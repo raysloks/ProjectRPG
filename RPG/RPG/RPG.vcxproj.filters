@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="AnimationControlComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraControlComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="MobComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerInputComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="HitComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionData.cpp" />
+    <ClCompile Include="SkillNode.cpp" />
+    <ClCompile Include="Item.cpp" />
+    <ClCompile Include="InventoryComponent.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AnimationControlComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraControlComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="MobComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerInputComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="HitComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionData.h" />
+    <ClInclude Include="SkillNode.h" />
+    <ClInclude Include="Item.h" />
+    <ClInclude Include="InventoryComponent.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Components">
+      <UniqueIdentifier>{b634c4b3-7c5c-4d39-a5d5-b2d530e99399}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

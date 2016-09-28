@@ -1,0 +1,18 @@
+#version 150
+
+out vec2 texco;
+out vec3 norm;
+
+uniform mat4 transform;
+uniform mat3 normal_transform;
+
+in vec4 pos;
+in vec3 normal;
+in vec2 texCoord;
+
+void main()
+{
+	norm = normal_transform * normal;
+	texco = texCoord;
+	gl_Position = transform * pos;
+}

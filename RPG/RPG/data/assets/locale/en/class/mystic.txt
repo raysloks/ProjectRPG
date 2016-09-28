@@ -1,0 +1,3 @@
+sDesc = "Mystics are known by many names across the lands. They devote their lives to unlocking the mysteries of magic.
+
+Shunned by some, worshipped by others.";

@@ -1,0 +1,29 @@
+#version 120
+
+varying vec4 vt;
+
+uniform vec3 horizon;
+uniform vec3 zenith;
+
+void main()
+{
+	vec3 n = normalize(vec3(vt));
+
+	vec3 color = horizon*(1.0-abs(n.z))+zenith*abs(n.z);
+
+	float intensity;
+	vec3 cd = normalize(vec3(gl_LightSource[0].position));
+	float angle = acos(dot(cd,n));
+	intensity = 1-angle/0.02;
+	intensity = clamp(intensity, 0.0, 1.0);
+
+	color += vec3(intensity);
+
+	intensity = 1-angle/0.1;
+	intensity = clamp(intensity, 0.0, 1.0);
+	intensity *= intensity;
+
+	color += vec3(intensity);
+
+	gl_FragColor = vec4(color, 1.0);
+}

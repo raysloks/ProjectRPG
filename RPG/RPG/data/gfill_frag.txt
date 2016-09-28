@@ -1,0 +1,12 @@
+#version 130
+
+varying vec2 texco;
+varying vec3 norm;
+
+uniform sampler2D tex;
+
+void main()
+{
+	gl_FragData[0] = texture(tex, texco);
+	gl_FragData[1] = vec4(normalize(norm), 1.0);
+}

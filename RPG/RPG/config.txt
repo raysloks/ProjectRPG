@@ -1,0 +1,27 @@
+screen_width = 1280;
+screen_height = 720;
+fullscreen = 0;
+
+vsync = 1;
+force_sync = -1;
+force_cap = 0;
+framerate_cap = 0;
+tickrate = 144;
+
+anisotropic_filtering = 16.0;
+
+shadow_res = 1024;
+shadow_splits = 10;
+
+supersampling_x = 1;
+supersampling_y = 1;
+
+fov = 60.0;
+
+sensitivity = 0.001;
+sensitivity_x = 1.0;
+sensitivity_y = 0.5;
+
+controller_sensitivity = 4.0;
+controller_sensitivity_x = 1.0;
+controller_sensitivity_y = 0.5;

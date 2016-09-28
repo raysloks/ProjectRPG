@@ -1,0 +1,7 @@
+action = "attack3";
+speed = 200.0;
+blend_in = 90.0;
+blend_out = 60.0;
+start = 76.0;
+finish = 113.0;
+recover = 143.0;

@@ -1,0 +1,360 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3043BE9F-740B-4841-ABBE-53F83AE6EAAB}</ProjectGuid>
+    <RootNamespace>ProjectNope</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <CLRSupport>false</CLRSupport>
+    <UseOfMfc>false</UseOfMfc>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <CLRSupport>false</CLRSupport>
+    <UseOfMfc>false</UseOfMfc>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Users\Emil\Documents\freetype-2.7\include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include</IncludePath>
+    <LibraryPath>
+    </LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Program Files (x86)\GnuWin32\include\freetype2;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include;C:\Program Files (x86)\GnuWin32\include</IncludePath>
+    <LibraryPath>
+    </LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Users\Emil\Documents\freetype-2.7\include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include</IncludePath>
+    <LibraryPath>
+    </LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Users\Emil\Downloads\freetype-2.6.3\freetype-2.6.3\include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include</IncludePath>
+    <LibraryPath>
+    </LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\ProjectScript\ProjectScript;$(SolutionDir)..\ProjectCore\ProjectCore;$(SolutionDir)..\Platform\Platform;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_USE_MATH_DEFINES;USE_FREETYPE_STATIC</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32;C:\Users\Emil\Documents\Visual Studio 2010\Projects\Platform\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\ProjectScript\ProjectScript;$(SolutionDir)..\ProjectCore\ProjectCore;$(SolutionDir)..\Platform\Platform;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_USE_MATH_DEFINES;USE_FREETYPE_STATIC</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32;C:\Users\Emil\Documents\Visual Studio 2010\Projects\Platform\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\ProjectScript\ProjectScript;$(SolutionDir)..\ProjectCore\ProjectCore;$(SolutionDir)..\Platform\Platform;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PreprocessorDefinitions>_USE_MATH_DEFINES;USE_FREETYPE_STATIC</PreprocessorDefinitions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\ProjectScript\ProjectScript;$(SolutionDir)..\ProjectCore\ProjectCore;$(SolutionDir)..\Platform\Platform;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PreprocessorDefinitions>_USE_MATH_DEFINES;USE_FREETYPE_STATIC</PreprocessorDefinitions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="APL.cpp" />
+    <ClCompile Include="APLEX.cpp" />
+    <ClCompile Include="APLSet.cpp" />
+    <ClCompile Include="AudioComponent.cpp" />
+    <ClCompile Include="AudioSource.cpp" />
+    <ClCompile Include="CascadedShadowMap.cpp" />
+    <ClCompile Include="ColliderComponent.cpp" />
+    <ClCompile Include="ColliderIterator.cpp" />
+    <ClCompile Include="ControllerState.cpp" />
+    <ClCompile Include="ExampleComponent.cpp" />
+    <ClCompile Include="FieldTriangle.cpp" />
+    <ClCompile Include="Input.cpp" />
+    <ClCompile Include="LineComponent.cpp" />
+    <ClCompile Include="MicrophoneComponent.cpp" />
+    <ClCompile Include="RenderSetup.cpp" />
+    <ClCompile Include="RigidBodyComponent.cpp" />
+    <ClCompile Include="Chunk.cpp" />
+    <ClCompile Include="ClientData.cpp" />
+    <ClCompile Include="ClientEvents.cpp" />
+    <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="CollisionMesh.cpp" />
+    <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ControlState.cpp" />
+    <ClCompile Include="DamageSource.cpp" />
+    <ClCompile Include="Decorator.cpp" />
+    <ClCompile Include="DynamicWall.cpp" />
+    <ClCompile Include="EntityLinkContainer.cpp" />
+    <ClCompile Include="FontResource.cpp" />
+    <ClCompile Include="GameLoop.cpp" />
+    <ClCompile Include="GlobalPosition.cpp" />
+    <ClCompile Include="Glyph.cpp" />
+    <ClCompile Include="GlyphString.cpp" />
+    <ClCompile Include="GraphicsComponent.cpp" />
+    <ClCompile Include="HealthBar.cpp" />
+    <ClCompile Include="IEvent.cpp" />
+    <ClCompile Include="Inventory.cpp" />
+    <ClCompile Include="InventoryDisplay.cpp" />
+    <ClCompile Include="InventoryWindow.cpp" />
+    <ClCompile Include="Item.cpp" />
+    <ClCompile Include="JoinGameWindow.cpp" />
+    <ClCompile Include="Light.cpp" />
+    <ClCompile Include="Link.cpp" />
+    <ClCompile Include="LinkContainer.cpp" />
+    <ClCompile Include="MainMenuWindow.cpp" />
+    <ClCompile Include="MaterialList.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="NewEntity.cpp" />
+    <ClCompile Include="Polynome.cpp" />
+    <ClCompile Include="PositionComponent.cpp" />
+    <ClCompile Include="RigidBodyIterator.cpp" />
+    <ClCompile Include="PlayerSaveState.cpp" />
+    <ClCompile Include="PlatformEvents.cpp" />
+    <ClCompile Include="PositionVar.cpp" />
+    <ClCompile Include="Profiler.cpp" />
+    <ClCompile Include="RectangleButtonWindow.cpp" />
+    <ClCompile Include="RectangleWindow.cpp" />
+    <ClCompile Include="Resource.cpp" />
+    <ClCompile Include="ShaderMod.cpp" />
+    <ClCompile Include="ShaderResource.cpp" />
+    <ClCompile Include="SkeletalAnimation.cpp" />
+    <ClCompile Include="Sound.cpp" />
+    <ClCompile Include="StandardHUD.cpp" />
+    <ClCompile Include="StringResource.cpp" />
+    <ClCompile Include="Synchronizer.cpp" />
+    <ClCompile Include="SyncState.cpp" />
+    <ClCompile Include="Client.cpp" />
+    <ClCompile Include="HashedString.cpp" />
+    <ClCompile Include="GameEventManager.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Server.cpp" />
+    <ClCompile Include="TempPlatform.cpp" />
+    <ClCompile Include="TextBoxWindow.cpp" />
+    <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TextWindow.cpp" />
+    <ClCompile Include="TGA.cpp" />
+    <ClCompile Include="VoiceComponent.cpp" />
+    <ClCompile Include="Wall.cpp" />
+    <ClCompile Include="Window.cpp" />
+    <ClCompile Include="World.cpp" />
+    <ClCompile Include="WorldRenderer.cpp" />
+    <ClCompile Include="Writing.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AnimationPoseLayer.h" />
+    <ClInclude Include="APL.h" />
+    <ClInclude Include="APLEX.h" />
+    <ClInclude Include="APLSet.h" />
+    <ClInclude Include="AudioComponent.h" />
+    <ClInclude Include="AudioSource.h" />
+    <ClInclude Include="CascadedShadowMap.h" />
+    <ClInclude Include="ColliderComponent.h" />
+    <ClInclude Include="ColliderIterator.h" />
+    <ClInclude Include="ControllerState.h" />
+    <ClInclude Include="ExampleComponent.h" />
+    <ClInclude Include="FieldTriangle.h" />
+    <ClInclude Include="Synchronizer.h" />
+    <ClInclude Include="Input.h" />
+    <ClInclude Include="LineComponent.h" />
+    <ClInclude Include="MicrophoneComponent.h" />
+    <ClInclude Include="RenderSetup.h" />
+    <ClInclude Include="RigidBodyComponent.h" />
+    <ClInclude Include="Chunk.h" />
+    <ClInclude Include="ClientData.h" />
+    <ClInclude Include="ClientEvents.h" />
+    <ClInclude Include="Collision.h" />
+    <ClInclude Include="CollisionMesh.h" />
+    <ClInclude Include="Component.h" />
+    <ClInclude Include="ControlState.h" />
+    <ClInclude Include="DamageSource.h" />
+    <ClInclude Include="Decorator.h" />
+    <ClInclude Include="DecoratorContainer.h" />
+    <ClInclude Include="DynamicWall.h" />
+    <ClInclude Include="EntityLinkContainer.h" />
+    <ClInclude Include="FontResource.h" />
+    <ClInclude Include="GameLoop.h" />
+    <ClInclude Include="GlobalPosition.h" />
+    <ClInclude Include="Glyph.h" />
+    <ClInclude Include="GlyphString.h" />
+    <ClInclude Include="GraphicsComponent.h" />
+    <ClInclude Include="HealthBar.h" />
+    <ClInclude Include="Inventory.h" />
+    <ClInclude Include="InventoryDisplay.h" />
+    <ClInclude Include="InventoryWindow.h" />
+    <ClInclude Include="Item.h" />
+    <ClInclude Include="JoinGameWindow.h" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="Link.h" />
+    <ClInclude Include="LinkContainer.h" />
+    <ClInclude Include="MainMenuWindow.h" />
+    <ClInclude Include="MaterialList.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="NewEntity.h" />
+    <ClInclude Include="Polynome.h" />
+    <ClInclude Include="PositionComponent.h" />
+    <ClInclude Include="RigidBodyIterator.h" />
+    <ClInclude Include="PlayerSaveState.h" />
+    <ClInclude Include="PositionVar.h" />
+    <ClInclude Include="Profiler.h" />
+    <ClInclude Include="RectangleButtonWindow.h" />
+    <ClInclude Include="RectangleWindow.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="ShaderMod.h" />
+    <ClInclude Include="ShaderResource.h" />
+    <ClInclude Include="SkeletalAnimation.h" />
+    <ClInclude Include="Sound.h" />
+    <ClInclude Include="StandardHUD.h" />
+    <ClInclude Include="PlatformEvents.h" />
+    <ClInclude Include="StringResource.h" />
+    <ClInclude Include="SyncContainer.h" />
+    <ClInclude Include="SyncState.h" />
+    <ClInclude Include="Client.h" />
+    <ClInclude Include="HashedString.h" />
+    <ClInclude Include="GameEventManager.h" />
+    <ClInclude Include="IEvent.h" />
+    <ClInclude Include="IEventListener.h" />
+    <ClInclude Include="IEventManager.h" />
+    <ClInclude Include="IPlatform.h" />
+    <ClInclude Include="Server.h" />
+    <ClInclude Include="TempPlatform.h" />
+    <ClInclude Include="TextBoxWindow.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="TextWindow.h" />
+    <ClInclude Include="TGA.h" />
+    <ClInclude Include="VoiceComponent.h" />
+    <ClInclude Include="Wall.h" />
+    <ClInclude Include="Window.h" />
+    <ClInclude Include="World.h" />
+    <ClInclude Include="WorldRenderer.h" />
+    <ClInclude Include="Writing.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Platform\Platform\Platform.vcxproj">
+      <Project>{ecc4e600-bbb5-4212-b825-dd0e90324c5f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ProjectCore\ProjectCore\ProjectCore.vcxproj">
+      <Project>{3fb506bf-9234-415a-a583-571b688633ca}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ProjectScript\ProjectScript\ProjectScript.vcxproj">
+      <Project>{96cdb2e4-ccf3-4684-94cf-4fdaa997287e}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="data\deferred_frag.txt" />
+    <None Include="data\deferred_vert.txt" />
+    <None Include="data\dfill_frag.txt" />
+    <None Include="data\dfill_vert.txt" />
+    <None Include="data\d_frag.txt" />
+    <None Include="data\d_vert.txt" />
+    <None Include="data\frag.txt" />
+    <None Include="data\gfill_frag.txt" />
+    <None Include="data\gfill_vert.txt" />
+    <None Include="data\sky_frag.txt" />
+    <None Include="data\sky_vert.txt" />
+    <None Include="data\vert.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

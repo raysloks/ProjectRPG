@@ -1,0 +1,9 @@
+#version 120
+
+varying vec4 vt;
+
+void main()
+{
+	gl_Position = ftransform();
+	vt = gl_ModelViewMatrix * gl_Vertex;
+}

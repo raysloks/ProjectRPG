@@ -1,0 +1,8 @@
+animation = "block_1hs";
+speed = 60.0;
+blend_in = 5.0;
+blend_out = 5.0;
+block_start = 0.0;
+block_end = 20.0;
+block_cover = 0.0;
+cooldown = 1.0;

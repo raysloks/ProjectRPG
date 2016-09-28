@@ -1,0 +1,13 @@
+animation = "attack1";
+damage = 50;
+slice_width = 0.0;
+slice_dir = 0.0;
+slice_reach = 0.5;
+slice_size = 0.35;
+slice_start = 42.0;
+slice_end = 55.0;
+speed = 60.0;
+blend_in = 10.0;
+blend_out = 10.0;
+knockback = 10.0;
+knockup = 10.0;
