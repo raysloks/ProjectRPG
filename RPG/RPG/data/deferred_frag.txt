@@ -133,5 +133,5 @@ void main()
 	float fog_weight = length(world) * fog_strength;
 	fog_weight = exp(fog_weight)-1.0;
 	fog_weight = min(fog_weight, 100.0);
-	gl_FragColor = (final + fog_color*fog_weight)/(1.0+fog_weight);
+	gl_FragColor = (final + fog_color*fog_weight)/(1.0+fog_weight);// * max(0.0, min(1.0, 1.0 - (length(world) - 200.0) / 50.0));
 }

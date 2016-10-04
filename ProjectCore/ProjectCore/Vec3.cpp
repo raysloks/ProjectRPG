@@ -34,9 +34,16 @@ float Vec3::LenPwr(void)const {
 }
 
 Vec3& Vec3::Normalize(void) {
-	float l = LenPwr();
-	if (l!=0.0f)
-		*this /= sqrt(l);
+	float l = Len();
+	if (l != 0.0f)
+		*this /= l;
+	return *this;
+}
+
+Vec3 Vec3::Normalized(void) {
+	float l = Len();
+	if (l != 0.0f)
+		return *this / l;
 	return *this;
 }
 

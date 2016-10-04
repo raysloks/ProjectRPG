@@ -26,63 +26,70 @@ Resource::~Resource(void)
 
 void _load(std::string name, std::set<std::string> options)
 {
-	//LARGE_INTEGER freq, start, end;
-	//QueryPerformanceFrequency(&freq);
-	//QueryPerformanceCounter(&start);
+	try
+	{
+		//LARGE_INTEGER freq, start, end;
+		//QueryPerformanceFrequency(&freq);
+		//QueryPerformanceCounter(&start);
 
-	//std::cout << std::string("loading resource: ") + name << std::endl;
-	std::fstream f(name, std::ios_base::binary | std::ios_base::in);
-	if (!f.is_open() || f.bad() || !f.good()) {
-		mutex.lock();
-		loading.erase(name);
-		resources.insert(std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>()));
-		mutex.unlock();
+		//std::cout << std::string("loading resource: ") + name << std::endl;
+		std::fstream f(name, std::ios_base::binary | std::ios_base::in);
+		if (!f.is_open() || f.bad() || !f.good()) {
+			mutex.lock();
+			loading.erase(name);
+			resources.insert(std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>()));
+			mutex.unlock();
+			//f.close();
+			//std::cout << std::string("failed to load resource: ") + name + "\r\n";
+			return;
+		}
+		std::stringstream buffer;
+		buffer << f.rdbuf();
+
 		//f.close();
-		//std::cout << std::string("failed to load resource: ") + name + "\r\n";
-		return;
-	}
-	std::stringstream buffer;
-	buffer << f.rdbuf();
 
-    //f.close();
+		//QueryPerformanceCounter(&end);
+		//double durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
 
-	//QueryPerformanceCounter(&end);
-	//double durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
+		//std::cout << std::string("file closed: ") + name << " taking " << durationInSeconds << " seconds" << std::endl;
 
-	//std::cout << std::string("file closed: ") + name << " taking " << durationInSeconds << " seconds" << std::endl;
+		std::istringstream is(buffer.str());
 
-	std::istringstream is(buffer.str());
+		std::pair<std::string, std::shared_ptr<Resource>> res;
+		if (name.find(".tga") != std::string::npos) {
+			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new TGA(instream(is.rdbuf()))));
+		}
+		else if (name.find(".wav") != std::string::npos) {
+			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new Sound(instream(is.rdbuf()), options)));
+		}
+		else if (name.find(".gmdl") != std::string::npos) {
+			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new Mesh(instream(is.rdbuf()))));
+		}
+		else if (name.find(".anim") != std::string::npos) {
+			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new SkeletalAnimation(instream(is.rdbuf()))));
+		}
+		else if (name.find(".ttf") != std::string::npos) {
+			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new FontResource(buffer.str())));
+		}
+		else {
+			std::shared_ptr<StringResource> text(new StringResource(buffer.str()));
+			res = std::pair<std::string, std::shared_ptr<Resource>>(name, text);
+		}
 
-	std::pair<std::string, std::shared_ptr<Resource>> res;
-	if (name.find(".tga")!=std::string::npos) {
-		res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new TGA(instream(is.rdbuf()))));
-	}
-	else if (name.find(".wav")!=std::string::npos) {
-		res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new Sound(instream(is.rdbuf()), options)));
-	}
-	else if (name.find(".gmdl")!=std::string::npos) {
-		res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new Mesh(instream(is.rdbuf()))));
-	}
-	else if (name.find(".anim")!=std::string::npos) {
-		res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new SkeletalAnimation(instream(is.rdbuf()))));
-	}
-	else if (name.find(".ttf")!=std::string::npos) {
-		res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new FontResource(buffer.str())));
-	}
-	else {
-		std::shared_ptr<StringResource> text(new StringResource(buffer.str()));
-		res = std::pair<std::string, std::shared_ptr<Resource>>(name, text);
-	}
-	
-	mutex.lock();
-	resources.insert(res);
-	loading.erase(name);
-	mutex.unlock();
+		mutex.lock();
+		resources.insert(res);
+		loading.erase(name);
+		mutex.unlock();
 
-	//QueryPerformanceCounter(&end);
-	//durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
+		//QueryPerformanceCounter(&end);
+		//durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
 
-	//std::cout << std::string("resource finalized: ") + name << " taking " << durationInSeconds << " seconds" << std::endl;
+		//std::cout << std::string("resource finalized: ") + name << " taking " << durationInSeconds << " seconds" << std::endl;
+	}
+	catch (std::exception& e)
+	{
+		std::cout << "Failed to load resource \"" << name << "\". Reason: \"" << e.what() << '"' << std::endl;
+	}
 }
 
 void Resource::add(const std::string& name, const std::shared_ptr<Resource>& res)

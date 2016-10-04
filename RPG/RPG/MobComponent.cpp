@@ -69,6 +69,32 @@ void MobComponent::tick(float dTime)
 
 		if (p!=0)
 		{
+			/*{
+				std::vector<std::shared_ptr<Collision>> list;
+				ColliderComponent::DiskCast(*p + Vec3(0.0f, 0.0f, -0.9f), *p + Vec3(0.0f, 0.0f, -1.1f), 0.25f, list);
+
+				std::shared_ptr<Collision> col;
+				for (auto i = list.begin(); i != list.end(); ++i)
+				{
+					if ((*i)->t >= 0.0f && (*i)->t <= 1.0f)
+						if (col != 0)
+						{
+							if (col->t>(*i)->t)
+								col = *i;
+						}
+						else
+						{
+							col = *i;
+						}
+				}
+
+				if (col != 0)
+				{
+					*p = col->poo;
+					v -= col->n*col->n.Dot(v);
+				}
+			}*/
+
 			GlobalPosition prev = *p;
 
 			if (input.find("warp")!=input.end())
@@ -90,6 +116,30 @@ void MobComponent::tick(float dTime)
 			while (t>0.0f)
 			{
 				std::vector<std::shared_ptr<Collision>> list;
+
+				if (t == 1.0f)
+				{
+					float disk_radius = 0.5f;
+					ColliderComponent::DiskCast(*p - up * 0.5f, *p - up * 1.0f, disk_radius, list);
+					if (list.size() > 0)
+					{
+						std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b)
+						{
+							return a->t < b->t;
+						});
+						Vec3 axis = Vec3(list.front()->poc - list.front()->poo).Cross(up);
+						Vec3 pivot = list.front()->poc;
+						list.clear();
+						ColliderComponent::LowerDisk(pivot, list.front()->poo, axis, -up, disk_radius, list);
+					}
+				}
+
+				/*for (auto i = list.begin(); i != list.end(); ++i)
+				{
+					(*i)->poo += up * 0.75f;
+					(*i)->n = up;
+				}*/
+
 				ColliderComponent::SphereCast(*p, *p+dp, 0.5f, list);
 
 				std::shared_ptr<Collision> col;

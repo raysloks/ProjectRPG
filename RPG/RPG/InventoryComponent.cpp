@@ -3,6 +3,7 @@
 #include "World.h"
 
 #include "Client.h"
+#include "ClientData.h"
 
 #include "RenderSetup.h"
 
@@ -29,7 +30,6 @@ InventoryComponent::~InventoryComponent(void)
 void InventoryComponent::connect(NewEntity * pEntity, bool authority)
 {
 	items.setSyncState(&pEntity->ss);
-	items.add(std::make_shared<Item>());
 }
 
 void InventoryComponent::disconnect(void)
@@ -45,12 +45,16 @@ void InventoryComponent::tick(float dTime)
 {
 }
 
-void InventoryComponent::set_display(bool visible)
+void InventoryComponent::set_display(bool enable)
 {
 	Client * client = entity->world->client;
 	if (client!=0)
 	{
-		if (visible)
+		if (client->clientData != nullptr)
+			enable &= visible(*client->clientData);
+		else
+			enable = false;
+		if (enable)
 		{
 			if (func==0)
 			{
@@ -119,4 +123,9 @@ void InventoryComponent::write_to(outstream& os, ClientData& client) const
 
 void InventoryComponent::write_to(outstream& os) const
 {
+}
+
+bool InventoryComponent::visible(ClientData& client) const
+{
+	return client.unit_id == entity->id;
 }

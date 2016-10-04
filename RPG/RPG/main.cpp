@@ -75,9 +75,9 @@ public:
 
 				world->AddEntity(ent);
 			}
-			/*for (int x = -100; x < 100; ++x)
+			/*for (int x = -40; x < 40; ++x)
 			{
-				for (int y = -10; y < 10; ++y)
+				for (int y = -40; y < 40; ++y)
 				{
 					NewEntity * ent = new NewEntity();
 
@@ -101,6 +101,29 @@ public:
 					world->AddEntity(ent);
 				}
 			}*/
+			for (int i = 0; i < 20; ++i)
+			{
+				NewEntity * ent = new NewEntity();
+
+				PositionComponent * p = new PositionComponent();
+				p->p += Vec3(0.2f * i, 0.05f * i, 0.15f * i - 12.0f);
+				ColliderComponent * c = new ColliderComponent();
+				GraphicsComponent * g = new GraphicsComponent(false);
+
+				ent->addComponent(p);
+				ent->addComponent(c);
+				ent->addComponent(g);
+
+				std::vector<std::string> tex;
+				tex.push_back("data/assets/terrain/textures/grass.tga");
+
+				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", tex, 0)));
+				g->decs.items.front()->local *= 1.0f;
+				g->decs.items.front()->local.mtrx[3][3] = 1.0f;
+				g->decs.items.front()->final = g->decs.items.front()->local;
+
+				world->AddEntity(ent);
+			}
 		}
 
 		NewEntity * ent = new NewEntity();
@@ -111,7 +134,7 @@ public:
 		MobComponent * mob = new MobComponent();
 		CameraControlComponent * cam = new CameraControlComponent();
 		AnimationControlComponent * acc = new AnimationControlComponent();
-		InventoryComponent * inv = new InventoryComponent();
+		//InventoryComponent * inv = new InventoryComponent();
 		HitComponent * hit = new HitComponent();
 
 		ent->addComponent(p);
@@ -120,7 +143,7 @@ public:
 		ent->addComponent(mob);
 		ent->addComponent(cam);
 		ent->addComponent(acc);
-		ent->addComponent(inv);
+		//ent->addComponent(inv);
 		ent->addComponent(hit);
 
 		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", "data/assets/units/player/KnightGuy.tga"/*"data/assets/empty.tga"*/)));

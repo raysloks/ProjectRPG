@@ -227,7 +227,6 @@
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="HashedString.cpp" />
     <ClCompile Include="GameEventManager.cpp" />
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="TempPlatform.cpp" />
     <ClCompile Include="TextBoxWindow.cpp" />

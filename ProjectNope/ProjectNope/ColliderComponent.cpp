@@ -108,3 +108,35 @@ void ColliderComponent::SphereCast(const GlobalPosition& sP, const GlobalPositio
 		}
 	}
 }
+
+void ColliderComponent::DiskCast(const GlobalPosition & sP, const GlobalPosition & eP, float r, std::vector<std::shared_ptr<Collision>>& list)
+{
+	for (auto i = all.begin(); i != all.end(); ++i) {
+		if (*i != 0) {
+			int j = list.size();
+			(*i)->mesh.DiskCast(sP - (*i)->p, eP - (*i)->p, r, list);
+			for (; j<list.size(); ++j) {
+				list[j]->comp = *i;
+				list[j]->poc += (*i)->p;
+				list[j]->poo += (*i)->p;
+				list[j]->v += (*i)->v;
+			}
+		}
+	}
+}
+
+void ColliderComponent::LowerDisk(const Vec3 & lock, const Vec3 & center, const Vec3 & axis, const Vec3 & dir, float r, std::vector<std::shared_ptr<Collision>>& list)
+{
+	for (auto i = all.begin(); i != all.end(); ++i) {
+		if (*i != 0) {
+			int j = list.size();
+			(*i)->mesh.LowerDisk(lock - (*i)->p, center - (*i)->p, axis, dir, r, list);
+			for (; j<list.size(); ++j) {
+				list[j]->comp = *i;
+				list[j]->poc += (*i)->p;
+				list[j]->poo += (*i)->p;
+				list[j]->v += (*i)->v;
+			}
+		}
+	}
+}

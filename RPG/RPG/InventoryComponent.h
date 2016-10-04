@@ -36,9 +36,11 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
+	bool visible(ClientData& client) const;
+
 	static const AutoSerialFactory<InventoryComponent> _factory;
 
-	void set_display(bool visible);
+	void set_display(bool enable);
 
 	std::shared_ptr<std::function<void(RenderSetup&)>> func;
 

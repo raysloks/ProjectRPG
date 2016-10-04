@@ -140,13 +140,14 @@ void GameLoop::tick(void)
 		if (lag>secondsPerStep*0.5) { // TODO fix
 			if (world->authority)
 				server->tick(secondsPerStep);
+			if (client != 0)
+				client->tick(secondsPerStep);
 			lag -= secondsPerStep;
 		}
 	}
 	world->clean();
 
-	if (client!=0)
-		client->tick(last_frame_duration); //TODO averaged inputs when fps > tick rate
+	//TODO averaged inputs when fps > tick rate
 
 	gpPlatform->set_vsync(useVSync);
 

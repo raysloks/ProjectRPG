@@ -186,6 +186,30 @@ void CollisionMesh::SphereCast(const Vec3& sP, const Vec3& eP, float r, std::vec
 	}
 }
 
+void CollisionMesh::DiskCast(const Vec3& sP, const Vec3& eP, float r, std::vector<std::shared_ptr<Collision>>& list)
+{
+	float f = ((sP + eP) / 2.0f).Len() - (eP - sP).Len() / 2.0f - r;
+	if (f <= bounds)
+	{
+		for (int i = 0; i<walls.size(); ++i)
+		{
+			f = ((sP + eP) / 2.0f - walls[i].p1).Len() - (eP - sP).Len() / 2.0f - r;
+			if (walls[i].l12 >= f || walls[i].l23 >= f || walls[i].l31 >= f)
+			{
+				std::shared_ptr<Collision> col = walls[i].DiskCast(sP, eP, r);
+				if (col != 0) {
+					col->ce = &walls[i];
+					list.push_back(col);
+				}
+			}
+		}
+	}
+}
+
+void CollisionMesh::LowerDisk(const Vec3 & lock, const Vec3 & center, const Vec3 & axis, const Vec3 & dir, float r, std::vector<std::shared_ptr<Collision>>& list)
+{
+}
+
 void CollisionMesh::debug_render(void)
 {
 	float col[3] = {1.0f, 1.0f, 1.0f};

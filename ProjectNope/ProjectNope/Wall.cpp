@@ -218,7 +218,7 @@ std::shared_ptr<Collision> Wall::SphereLine(const Vec3& sP, const Vec3& eP, cons
 	return 0;
 }
 
-std::shared_ptr<Collision> TubeLine(const Vec3& sP, const Vec3& eP, const Vec3& vP, const Vec3& dir, float r)
+std::shared_ptr<Collision> Wall::TubeLine(const Vec3& sP, const Vec3& eP, const Vec3& vP, const Vec3& dir, float r)
 {
 	Vec3 fsP = sP-dir*dir.Dot(sP-vP);
 	Vec3 feP = eP-dir*dir.Dot(eP-vP);
@@ -236,7 +236,7 @@ std::shared_ptr<Collision> TubeLine(const Vec3& sP, const Vec3& eP, const Vec3& 
 			sqd = sqrt(sqd);
 			float d = -(l.Dot(fsP-vP));
 			float d_close = d-sqd;
-			float d_far = d+sqd;
+			//float d_far = d+sqd;
 			if (d_close <= len && d_close >= 0.0f) {
 				std::shared_ptr<Collision> col(new Collision());
 				col->poo = sP + (eP-sP) * d_close/len;
@@ -247,6 +247,40 @@ std::shared_ptr<Collision> TubeLine(const Vec3& sP, const Vec3& eP, const Vec3& 
 				col->dist = d_close;
 				col->t = col->dist/len;
 				return col;
+			}
+		}
+	}
+	return 0;
+}
+
+std::shared_ptr<Collision> Wall::DiskCastLine(const Vec3& sP, const Vec3& eP, const Vec3& vP, const Vec3& dir, float cl, float r)
+{
+	Vec3 fsP = sP - dir*dir.Dot(sP - vP);
+	Vec3 feP = eP - dir*dir.Dot(eP - vP);
+
+	Vec3 l = feP - fsP;
+	float len = l.Len();
+	if (len != 0.0f)
+	{
+		l /= len;
+		Vec3 lp = l.Cross(dir);
+		float sqd = lp.Dot(fsP - vP);
+		sqd *= sqd;
+		sqd = r*r - sqd;
+		if (sqd > 0.0f) {
+			sqd = sqrt(sqd);
+			float d = -(l.Dot(fsP - vP));
+			float d_close = d - sqd;
+			if (d_close <= len && d_close >= 0.0f) {
+				std::shared_ptr<Collision> col(new Collision());
+				Vec3 poc = sP + (eP - sP) * d_close / len;
+				col->dist = (poc - vP).Dot(dir);
+				if (col->dist <= cl && col->dist >= 0.0f)
+				{
+					col->t = col->dist / cl;
+					col->poo = vP + dir * col->dist;
+					return col;
+				}
 			}
 		}
 	}
@@ -312,4 +346,109 @@ std::shared_ptr<Collision> Wall::SphereCast(const Vec3& sP, const Vec3& eP, floa
 		}
 	}
 	return 0;
+}
+
+std::shared_ptr<Collision> Wall::DiskCast(const Vec3 & sP, const Vec3 & eP, float r)
+{
+	std::shared_ptr<Collision> col;
+
+	Vec3 dif = eP - sP;
+	float l = dif.Len();
+	Vec3 dir = dif / l;
+
+	Vec3 uphill_flat = n.Cross(dir).Cross(dir) * r;
+	uphill_flat -= dir*dir.Dot(uphill_flat);
+
+	col = LineCheck(sP + uphill_flat, eP + uphill_flat);
+	if (col != nullptr)
+	{
+		col->poc -= uphill_flat;
+		col->poo -= uphill_flat;
+		return col;
+	}
+
+	Vec3 d1 = p1 - sP;
+	Vec3 d2 = p2 - sP;
+	Vec3 d3 = p3 - sP;
+	float ld1 = d1.Dot(dir);
+	float ld2 = d2.Dot(dir);
+	float ld3 = d3.Dot(dir);
+	Vec3 f1 = d1 - dir*ld1;
+	Vec3 f2 = d2 - dir*ld2;
+	Vec3 f3 = d3 - dir*ld3;
+	float r2 = r*r;
+	if (ld1 < ld2 && ld1 < ld3)
+	{
+		col = DiskCastLine(p1, p2, sP, dir, l, r);
+		if (col != nullptr)
+			return col;
+		col = DiskCastLine(p1, p3, sP, dir, l, r);
+		if (col != nullptr)
+			return col;
+		if (f1.LenPwr() <= r2)
+		{
+			col.reset(new Collision());
+			col->t = ld1 / l;
+			col->poo = sP + dir * ld1;
+			return col;
+		}
+	}
+	else if (ld2 < ld3)
+	{
+		col = DiskCastLine(p2, p1, sP, dir, l, r);
+		if (col != nullptr)
+			return col;
+		col = DiskCastLine(p2, p3, sP, dir, l, r);
+		if (col != nullptr)
+			return col;
+		if (f2.LenPwr() <= r2)
+		{
+			col.reset(new Collision());
+			col->t = ld2 / l;
+			col->poo = sP + dir * ld2;
+			return col;
+		}
+	}
+	else
+	{
+		col = DiskCastLine(p3, p1, sP, dir, l, r);
+		if (col != nullptr)
+			return col;
+		col = DiskCastLine(p3, p2, sP, dir, l, r);
+		if (col != nullptr)
+			return col;
+		if (f3.LenPwr() <= r2)
+		{
+			col.reset(new Collision());
+			col->t = ld3 / l;
+			col->poo = sP + dir * ld3;
+			return col;
+		}
+	}
+	return nullptr;
+}
+
+std::shared_ptr<Collision> Wall::LowerDisk(const Vec3 & lock, const Vec3 & center, const Vec3& axis, const Vec3 & dir, float r)
+{
+	// p.Dot(axis.Cross(center+dir*t)) = 0
+	// p      a b c
+	// axis   d e f
+	// center g h j
+	// dir    k l m
+
+	// p . (axis x center) / (-p . (axis x dir)) = t
+
+	// dir*t    k*t l*t m*t
+	// center+dir*t    g+k*t h+l*t j+m*t
+	// axis.Cross(center+dir*t)    e*(j+m*t)-f*(h+l*t) f*(g+k*t)-d*(j+m*t) d*(h+l*t)-e*(g+k*t)
+	// p.Dot(axis.Cross(center+dir*t))    a*(e*(j+m*t)-f*(h+l*t))+b*(f*(g+k*t)-d*(j+m*t))+c*(d*(h+l*t)-e*(g+k*t))
+
+	Vec3 axc = axis.Cross(center);
+	Vec3 axd = axis.Cross(dir);
+
+	float t1 = p1.Dot(axc) / (p1.Dot(axd));
+	float t2 = p2.Dot(axc) / (p2.Dot(axd));
+	float t3 = p3.Dot(axc) / (p3.Dot(axd));
+
+	return std::shared_ptr<Collision>();
 }
