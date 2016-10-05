@@ -15,6 +15,7 @@
 #include "ColliderComponent.h"
 #include "InventoryComponent.h"
 #include "HitComponent.h"
+#include "LineComponent.h"
 
 #include "ClientData.h"
 
@@ -106,7 +107,7 @@ public:
 				NewEntity * ent = new NewEntity();
 
 				PositionComponent * p = new PositionComponent();
-				p->p += Vec3(0.2f * i, 0.05f * i, 0.15f * i - 12.0f);
+				p->p += Vec3(0.2f * i, 0.015f * i, 0.15f * i - 12.0f);
 				ColliderComponent * c = new ColliderComponent();
 				GraphicsComponent * g = new GraphicsComponent(false);
 
@@ -118,7 +119,7 @@ public:
 				tex.push_back("data/assets/terrain/textures/grass.tga");
 
 				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", tex, 0)));
-				g->decs.items.front()->local *= 1.0f;
+				g->decs.items.front()->local *= 0.1f;
 				g->decs.items.front()->local.mtrx[3][3] = 1.0f;
 				g->decs.items.front()->final = g->decs.items.front()->local;
 
@@ -136,6 +137,7 @@ public:
 		AnimationControlComponent * acc = new AnimationControlComponent();
 		//InventoryComponent * inv = new InventoryComponent();
 		HitComponent * hit = new HitComponent();
+		LineComponent * line = new LineComponent();
 
 		ent->addComponent(p);
 		ent->addComponent(g);
@@ -145,6 +147,7 @@ public:
 		ent->addComponent(acc);
 		//ent->addComponent(inv);
 		ent->addComponent(hit);
+		ent->addComponent(line);
 
 		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", "data/assets/units/player/KnightGuy.tga"/*"data/assets/empty.tga"*/)));
 		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", "data/assets/decorators/eyes/basic.tga")));

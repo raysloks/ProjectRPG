@@ -208,6 +208,14 @@ void CollisionMesh::DiskCast(const Vec3& sP, const Vec3& eP, float r, std::vecto
 
 void CollisionMesh::LowerDisk(const Vec3 & lock, const Vec3 & center, const Vec3 & axis, const Vec3 & dir, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
+	for (int i = 0; i<walls.size(); ++i)
+	{
+		std::shared_ptr<Collision> col = walls[i].LowerDisk(lock, center, axis, dir, r);
+		if (col != 0) {
+			col->ce = &walls[i];
+			list.push_back(col);
+		}
+	}
 }
 
 void CollisionMesh::debug_render(void)

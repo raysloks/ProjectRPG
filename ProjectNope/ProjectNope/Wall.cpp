@@ -279,6 +279,7 @@ std::shared_ptr<Collision> Wall::DiskCastLine(const Vec3& sP, const Vec3& eP, co
 				{
 					col->t = col->dist / cl;
 					col->poo = vP + dir * col->dist;
+					col->poc = poc;
 					return col;
 				}
 			}
@@ -362,7 +363,6 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3 & sP, const Vec3 & eP, floa
 	col = LineCheck(sP + uphill_flat, eP + uphill_flat);
 	if (col != nullptr)
 	{
-		col->poc -= uphill_flat;
 		col->poo -= uphill_flat;
 		return col;
 	}
@@ -390,6 +390,7 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3 & sP, const Vec3 & eP, floa
 			col.reset(new Collision());
 			col->t = ld1 / l;
 			col->poo = sP + dir * ld1;
+			col->poc = p1;
 			return col;
 		}
 	}
@@ -406,6 +407,7 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3 & sP, const Vec3 & eP, floa
 			col.reset(new Collision());
 			col->t = ld2 / l;
 			col->poo = sP + dir * ld2;
+			col->poc = p2;
 			return col;
 		}
 	}
@@ -422,6 +424,7 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3 & sP, const Vec3 & eP, floa
 			col.reset(new Collision());
 			col->t = ld3 / l;
 			col->poo = sP + dir * ld3;
+			col->poc = p3;
 			return col;
 		}
 	}
@@ -443,12 +446,65 @@ std::shared_ptr<Collision> Wall::LowerDisk(const Vec3 & lock, const Vec3 & cente
 	// axis.Cross(center+dir*t)    e*(j+m*t)-f*(h+l*t) f*(g+k*t)-d*(j+m*t) d*(h+l*t)-e*(g+k*t)
 	// p.Dot(axis.Cross(center+dir*t))    a*(e*(j+m*t)-f*(h+l*t))+b*(f*(g+k*t)-d*(j+m*t))+c*(d*(h+l*t)-e*(g+k*t))
 
-	Vec3 axc = axis.Cross(center);
-	Vec3 axd = axis.Cross(dir);
+	// (p - lock) . (axis x (center + dir*t - lock)) = 0
+	// (p - lock) . (axis x (center - lock)) + (p - lock) . (axis x dir*t) = 0
+	// (p - lock) . (axis x (center - lock)) = -(p - lock) . (axis x dir*t)
+	// (p - lock) . (axis x (center - lock)) = -(p - lock) . (axis x dir) * t
+	// (p - lock) . (axis x (center - lock)) / -(p - lock) . (axis x dir) = t
 
-	float t1 = p1.Dot(axc) / (p1.Dot(axd));
-	float t2 = p2.Dot(axc) / (p2.Dot(axd));
-	float t3 = p3.Dot(axc) / (p3.Dot(axd));
+	std::shared_ptr<Collision> col;
+
+	Vec3 num_part = axis.Cross(center - lock);
+	Vec3 denom_part = axis.Cross(dir);
+
+	float t1 = (p1 - lock).Dot(num_part) / -(p1 - lock).Dot(denom_part);
+	float t2 = (p2 - lock).Dot(num_part) / -(p2 - lock).Dot(denom_part);
+	float t3 = (p3 - lock).Dot(num_part) / -(p3 - lock).Dot(denom_part);
+
+	Vec3 d1 = p1 - center;
+	Vec3 d2 = p2 - center;
+	Vec3 d3 = p3 - center;
+	float ld1 = d1.Dot(dir);
+	float ld2 = d2.Dot(dir);
+	float ld3 = d3.Dot(dir);
+	Vec3 f1 = d1 - dir*ld1;
+	Vec3 f2 = d2 - dir*ld2;
+	Vec3 f3 = d3 - dir*ld3;
+	float r2 = r*r;
+
+	if (t1 < t2 && t1 < t3 && t1 >= 0.0f && t1 <= 1.0f)
+	{
+		if (f1.LenPwr() <= r2)
+		{
+			col.reset(new Collision());
+			col->t = t1;
+			col->poo = center + dir * t1;
+			col->poc = p1;
+			return col;
+		}
+	}
+	else if (t2 < t3 && t2 >= 0.0f && t2 <= 1.0f)
+	{
+		if (f2.LenPwr() <= r2)
+		{
+			col.reset(new Collision());
+			col->t = t2;
+			col->poo = center + dir * t2;
+			col->poc = p2;
+			return col;
+		}
+	}
+	else if (t3 >= 0.0f && t3 <= 1.0f)
+	{
+		if (f3.LenPwr() <= r2)
+		{
+			col.reset(new Collision());
+			col->t = t3;
+			col->poo = center + dir * t3;
+			col->poc = p3;
+			return col;
+		}
+	}
 
 	return std::shared_ptr<Collision>();
 }
