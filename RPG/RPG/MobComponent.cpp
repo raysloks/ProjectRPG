@@ -124,7 +124,9 @@ void MobComponent::tick(float dTime)
 					auto line = entity->getComponent<LineComponent>();
 					if (line != 0)
 					{
+						line->lines.clear();
 						line->lines.resize(16);
+						line->color.clear();
 						line->color.resize(16);
 					}
 
@@ -136,8 +138,8 @@ void MobComponent::tick(float dTime)
 					{
 						std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
 						Vec3 axis = Vec3(list.front()->poc - list.front()->poo).Cross(up).Normalize();
-						Vec3 pivot = list.front()->poc;
-						Vec3 center = list.front()->poo;
+						GlobalPosition pivot = list.front()->poc;
+						GlobalPosition center = list.front()->poo;
 						float tdt = list.front()->t;
 						list.clear();
 
@@ -159,72 +161,83 @@ void MobComponent::tick(float dTime)
 							line->color[6].second = Vec3(0.0f, 0.0f, 0.0f);
 						}
 
-						ColliderComponent::LowerDisk(pivot, center, axis, -up * (1.0f - tdt) * height, disk_radius, list);
-						if (list.size() > 0)
+						if (pivot == center)
 						{
-							std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
-							axis = (pivot - list.front()->poc).Normalize();
-							Vec3 second_pivot = list.front()->poc;
-							center = list.front()->poo;
-							tdt += list.front()->t * (1.0f - tdt);
-							list.clear();
-
-							if (line != 0)
-							{
-								line->lines[1].first = second_pivot - *p;
-								line->lines[1].second = second_pivot + up - *p;
-								line->color[1].first = Vec3(1.0f, 1.0f, 1.0f);
-								line->color[1].second = Vec3(0.0f, 1.0f, 0.0f);
-
-								line->lines[4].first = second_pivot - *p;
-								line->lines[4].second = center - *p;
-								line->color[4].first = Vec3(0.0f, 1.0f, 0.0f);
-								line->color[4].second = Vec3(0.0f, 1.0f, 0.0f);
-
-								line->lines[7].first = second_pivot - *p;
-								line->lines[7].second = second_pivot + axis - *p;
-								line->color[7].first = Vec3(0.0f, 1.0f, 0.0f);
-								line->color[7].second = Vec3(0.0f, 0.0f, 0.0f);
-							}
-
+							std::shared_ptr<Collision> col(new Collision());
+							col->t = 0.0f;
+							col->n = up;
+							col->poo = center + up * (offset + height * 0.5f);
+							list.push_back(col);
+						}
+						else
+						{
 							ColliderComponent::LowerDisk(pivot, center, axis, -up * (1.0f - tdt) * height, disk_radius, list);
 							if (list.size() > 0)
 							{
 								std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
+								axis = Vec3(pivot - list.front()->poc).Normalize();
+								GlobalPosition second_pivot = list.front()->poc;
 								center = list.front()->poo;
-								Vec3 n = axis.Cross(pivot - list.front()->poc).Normalize();
-								Vec3 third_pivot = list.front()->poc;
-								if (n.z < 0.0f)
-									n = -n;
 								tdt += list.front()->t * (1.0f - tdt);
 								list.clear();
-								std::shared_ptr<Collision> col(new Collision());
-								col->t = 0.0f;
-								col->n = n;
-								col->poo = center + up * (offset + height * 0.5f);
-								list.push_back(col);
 
 								if (line != 0)
 								{
-									line->lines[2].first = third_pivot - *p;
-									line->lines[2].second = third_pivot + up - *p;
-									line->color[2].first = Vec3(1.0f, 1.0f, 1.0f);
-									line->color[2].second = Vec3(0.0f, 0.0f, 1.0f);
+									line->lines[1].first = second_pivot - *p;
+									line->lines[1].second = second_pivot + up - *p;
+									line->color[1].first = Vec3(1.0f, 1.0f, 1.0f);
+									line->color[1].second = Vec3(0.0f, 1.0f, 0.0f);
 
-									line->lines[5].first = third_pivot - *p;
-									line->lines[5].second = center - *p;
-									line->color[5].first = Vec3(0.0f, 0.0f, 1.0f);
-									line->color[5].second = Vec3(0.0f, 0.0f, 1.0f);
+									line->lines[4].first = second_pivot - *p;
+									line->lines[4].second = center - *p;
+									line->color[4].first = Vec3(0.0f, 1.0f, 0.0f);
+									line->color[4].second = Vec3(0.0f, 1.0f, 0.0f);
 
-									line->lines[8].first = third_pivot - *p;
-									line->lines[8].second = third_pivot + axis - *p;
-									line->color[8].first = Vec3(0.0f, 0.0f, 1.0f);
-									line->color[8].second = Vec3(0.0f, 0.0f, 0.0f);
+									line->lines[7].first = second_pivot - *p;
+									line->lines[7].second = second_pivot + axis - *p;
+									line->color[7].first = Vec3(0.0f, 1.0f, 0.0f);
+									line->color[7].second = Vec3(0.0f, 0.0f, 0.0f);
+								}
 
-									line->lines[9].first = center - *p;
-									line->lines[9].second = center + n - *p;
-									line->color[9].first = Vec3(0.0f, 0.0f, 0.0f);
-									line->color[9].second = Vec3(1.0f, 1.0f, 1.0f);
+								ColliderComponent::LowerDisk(pivot, center, axis, -up * (1.0f - tdt) * height, disk_radius, list);
+								if (list.size() > 0)
+								{
+									std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
+									center = list.front()->poo;
+									Vec3 n = axis.Cross(pivot - list.front()->poc).Normalize();
+									GlobalPosition third_pivot = list.front()->poc;
+									if (n.z < 0.0f)
+										n = -n;
+									tdt += list.front()->t * (1.0f - tdt);
+									list.clear();
+									std::shared_ptr<Collision> col(new Collision());
+									col->t = 0.0f;
+									col->n = n;
+									col->poo = center + up * (offset + height * 0.5f);
+									list.push_back(col);
+
+									if (line != 0)
+									{
+										line->lines[2].first = third_pivot - *p;
+										line->lines[2].second = third_pivot + up - *p;
+										line->color[2].first = Vec3(1.0f, 1.0f, 1.0f);
+										line->color[2].second = Vec3(0.0f, 0.0f, 1.0f);
+
+										line->lines[5].first = third_pivot - *p;
+										line->lines[5].second = center - *p;
+										line->color[5].first = Vec3(0.0f, 0.0f, 1.0f);
+										line->color[5].second = Vec3(0.0f, 0.0f, 1.0f);
+
+										line->lines[8].first = third_pivot - *p;
+										line->lines[8].second = third_pivot + axis - *p;
+										line->color[8].first = Vec3(0.0f, 0.0f, 1.0f);
+										line->color[8].second = Vec3(0.0f, 0.0f, 0.0f);
+
+										line->lines[9].first = center - *p;
+										line->lines[9].second = center + n - *p;
+										line->color[9].first = Vec3(0.0f, 0.0f, 0.0f);
+										line->color[9].second = Vec3(1.0f, 1.0f, 1.0f);
+									}
 								}
 							}
 						}

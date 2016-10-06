@@ -433,24 +433,28 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3 & sP, const Vec3 & eP, floa
 
 std::shared_ptr<Collision> Wall::LowerDisk(const Vec3 & lock, const Vec3 & center, const Vec3& axis, const Vec3 & dir, float r)
 {
-	// p.Dot(axis.Cross(center+dir*t)) = 0
-	// p      a b c
-	// axis   d e f
-	// center g h j
-	// dir    k l m
-
-	// p . (axis x center) / (-p . (axis x dir)) = t
-
-	// dir*t    k*t l*t m*t
-	// center+dir*t    g+k*t h+l*t j+m*t
-	// axis.Cross(center+dir*t)    e*(j+m*t)-f*(h+l*t) f*(g+k*t)-d*(j+m*t) d*(h+l*t)-e*(g+k*t)
-	// p.Dot(axis.Cross(center+dir*t))    a*(e*(j+m*t)-f*(h+l*t))+b*(f*(g+k*t)-d*(j+m*t))+c*(d*(h+l*t)-e*(g+k*t))
-
 	// (p - lock) . (axis x (center + dir*t - lock)) = 0
 	// (p - lock) . (axis x (center - lock)) + (p - lock) . (axis x dir*t) = 0
 	// (p - lock) . (axis x (center - lock)) = -(p - lock) . (axis x dir*t)
 	// (p - lock) . (axis x (center - lock)) = -(p - lock) . (axis x dir) * t
 	// (p - lock) . (axis x (center - lock)) / -(p - lock) . (axis x dir) = t
+
+	// (p - center - dir * dir . (p - center))^2 = r^2
+	// (p - lock) . (axis x (center - lock)) / -(p - lock) . (axis x dir) = t
+
+	// x
+	// y
+	// z
+	// r
+	// k
+	// l
+	// m
+	// a
+
+	// x^2 + y^2 = r^2
+	// y = sqrt(r^2 - x^2)
+
+	// 
 
 	std::shared_ptr<Collision> col;
 

@@ -79,14 +79,14 @@ public:
 
 	std::vector<std::shared_ptr<std::function<void(RenderSetup&)>>> render2D;
 
-	std::shared_ptr<FrameBuffer> buffer, frame, frame2;
+	std::shared_ptr<FrameBuffer> buffer, frame, frame2, stencil;
 	std::shared_ptr<CascadedShadowMap> shadow_buf;
 	std::vector<Matrix4> dp;
 	GlobalPosition prev;
 
 	int supersample_x, supersample_y;
 
-	std::shared_ptr<ShaderProgram> depth_fill_prog, deferred_prog, shader_program, sky_prog, dof_prog;
+	std::shared_ptr<ShaderProgram> depth_fill_prog, deferred_prog, shader_program, sky_prog, dof_prog, stencil_prog;
 
 	std::shared_ptr<ScriptMemory> mem;
 

@@ -4,6 +4,7 @@ uniform sampler2D diffuse;
 uniform sampler2D normal;
 uniform sampler2D depth;
 uniform sampler2DArray shadow;
+uniform sampler2D stencil;
 
 uniform mat4 proj;
 
@@ -114,10 +115,13 @@ void main()
 
 		//illumination = step(0.999, illumination);
 
+		vec4 stencil_sample = texture2D(stencil, gl_TexCoord[0].xy);
+		illumination = min(1.0, max(0.0, 1.0 - stencil_sample.x + stencil_sample.y));
+
 		intensity *= illumination;
 
-		intensity *= 0.6;
-		intensity += 0.4;
+		intensity *= 0.9;
+		intensity += 0.1;
 
 		intensity += dot(world_norm, n) * 0.2 + 0.2;
 
@@ -129,6 +133,7 @@ void main()
 		final += vec4(color * tex_col.xyz, tex_col.w);
 
 		//final = vec4(vec3(texture(shadow, vec3(sc.xy, split)).x), 1.0);
+		//gl_FragColor = vec4(stencil_sample.x / 16.0, stencil_sample.y / 16.0, 0.0, 1.0);
 	}
 	float fog_weight = length(world) * fog_strength;
 	fog_weight = exp(fog_weight)-1.0;

@@ -2,6 +2,7 @@
 
 RenderSetup::RenderSetup()
 {
+	tmp_use_default_state = true;
 }
 
 RenderSetup::~RenderSetup()

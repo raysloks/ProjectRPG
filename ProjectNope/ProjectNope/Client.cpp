@@ -516,40 +516,48 @@ void Client::render(void)
 
 void Client::render_world(void)
 {
-	if (shader_program==0)
+	if (shader_program == 0)
 	{
-		if (Resource::get<StringResource>("data/gfill_vert.txt")!=0 && Resource::get<StringResource>("data/gfill_frag.txt")!=0)
+		if (Resource::get<StringResource>("data/gfill_vert.txt") != 0 && Resource::get<StringResource>("data/gfill_frag.txt") != 0)
 			shader_program = std::shared_ptr<ShaderProgram>(new ShaderProgram(
-			std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/gfill_vert.txt")->string, GL_VERTEX_SHADER)), 
-			std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/gfill_frag.txt")->string, GL_FRAGMENT_SHADER))));
+				std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/gfill_vert.txt")->string, GL_VERTEX_SHADER)),
+				std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/gfill_frag.txt")->string, GL_FRAGMENT_SHADER))));
 	}
-	if (deferred_prog==0)
+	if (deferred_prog == 0)
 	{
-		if (Resource::get<StringResource>("data/deferred_vert.txt")!=0 && Resource::get<StringResource>("data/deferred_frag.txt")!=0)
+		if (Resource::get<StringResource>("data/deferred_vert.txt") != 0 && Resource::get<StringResource>("data/deferred_frag.txt") != 0)
 			deferred_prog = std::shared_ptr<ShaderProgram>(new ShaderProgram(
-			std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/deferred_vert.txt")->string, GL_VERTEX_SHADER)), 
-			std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/deferred_frag.txt")->string, GL_FRAGMENT_SHADER))));
+				std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/deferred_vert.txt")->string, GL_VERTEX_SHADER)),
+				std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/deferred_frag.txt")->string, GL_FRAGMENT_SHADER))));
 	}
-	if (depth_fill_prog==0)
+	if (depth_fill_prog == 0)
 	{
-		if (Resource::get<StringResource>("data/dfill_vert.txt")!=0 && Resource::get<StringResource>("data/dfill_frag.txt")!=0)
+		if (Resource::get<StringResource>("data/dfill_vert.txt") != 0 && Resource::get<StringResource>("data/dfill_frag.txt") != 0)
 			depth_fill_prog = std::shared_ptr<ShaderProgram>(new ShaderProgram(
-			std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/dfill_vert.txt")->string, GL_VERTEX_SHADER)),
-			std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/dfill_frag.txt")->string, GL_FRAGMENT_SHADER))));
+				std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/dfill_vert.txt")->string, GL_VERTEX_SHADER)),
+				std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/dfill_frag.txt")->string, GL_FRAGMENT_SHADER))));
 	}
-	if (sky_prog==0)
+	if (sky_prog == 0)
 	{
-		if (Resource::get<StringResource>("data/sky_vert.txt")!=0 && Resource::get<StringResource>("data/sky_frag.txt")!=0)
+		if (Resource::get<StringResource>("data/sky_vert.txt") != 0 && Resource::get<StringResource>("data/sky_frag.txt") != 0)
 			sky_prog = std::shared_ptr<ShaderProgram>(new ShaderProgram(
-			std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/sky_vert.txt")->string, GL_VERTEX_SHADER)), 
-			std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/sky_frag.txt")->string, GL_FRAGMENT_SHADER))));
+				std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/sky_vert.txt")->string, GL_VERTEX_SHADER)),
+				std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/sky_frag.txt")->string, GL_FRAGMENT_SHADER))));
 	}
-	if (dof_prog==0)
+	if (dof_prog == 0)
 	{
-		if (Resource::get<StringResource>("data/dof_vert.txt")!=0 && Resource::get<StringResource>("data/dof_frag.txt")!=0)
+		if (Resource::get<StringResource>("data/dof_vert.txt") != 0 && Resource::get<StringResource>("data/dof_frag.txt") != 0)
 			dof_prog = std::shared_ptr<ShaderProgram>(new ShaderProgram(
 				std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/dof_vert.txt")->string, GL_VERTEX_SHADER)),
 				std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/dof_frag.txt")->string, GL_FRAGMENT_SHADER))));
+	}
+	if (stencil_prog == 0)
+	{
+		if (Resource::get<StringResource>("data/stencil_vert.txt") != 0 && Resource::get<StringResource>("data/stencil_geom.txt") != 0 && Resource::get<StringResource>("data/stencil_frag.txt") != 0)
+			stencil_prog = std::shared_ptr<ShaderProgram>(new ShaderProgram(
+				std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/stencil_vert.txt")->string, GL_VERTEX_SHADER)),
+				std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/stencil_geom.txt")->string, GL_GEOMETRY_SHADER)),
+				std::shared_ptr<Shader>(new Shader(Resource::get<StringResource>("data/stencil_frag.txt")->string, GL_FRAGMENT_SHADER))));
 	}
 
 	if (shader_program!=0 && depth_fill_prog!=0 && sky_prog!=0)
@@ -605,9 +613,18 @@ void Client::render_world(void)
 			std::vector<GLenum> gbuf;
 			gbuf.push_back(GL_RGB16F);
 			gbuf.push_back(GL_RGB16F);
-			buffer = std::make_shared<FrameBuffer>(view[2]*supersample_x, view[3]*supersample_y, gbuf, GL_DEPTH_COMPONENT32);
+			buffer = std::make_shared<FrameBuffer>(view[2] * supersample_x, view[3] * supersample_y, gbuf, GL_DEPTH_COMPONENT32);
 		} else {
-			buffer->resize(view[2]*supersample_x, view[3]*supersample_y);
+			buffer->resize(view[2] * supersample_x, view[3] * supersample_y);
+		}
+
+		if (stencil == 0) {
+			std::vector<GLenum> gbuf;
+			gbuf.push_back(GL_RG16F);
+			stencil = std::make_shared<FrameBuffer>(view[2] * supersample_x, view[3] * supersample_y, gbuf, GL_NONE);
+		}
+		else {
+			stencil->resize(view[2] * supersample_x, view[3] * supersample_y);
 		}
 
 		double aspect = ((double)view[2])/((double)view[3]);
@@ -863,8 +880,53 @@ void Client::render_world(void)
 			glEnable(GL_CULL_FACE);
 		}
 
-		glBindFramebuffer(GL_FRAMEBUFFER, frame->fb);
+		// render soft stencils here
+		glBindFramebuffer(GL_FRAMEBUFFER, stencil->fb);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if (stencil_prog != nullptr)
+		{
+			glUseProgram(stencil_prog->prog);
 
+			stencil_prog->Uniform2f("col", 1.0f, 0.0f);
+
+			stencil_prog->UniformMatrix4fv("proj", proj.data);
+			stencil_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
+
+			stencil_prog->Uniform1f("zNear", near_z);
+			stencil_prog->Uniform1f("zFar", far_z);
+
+			stencil_prog->Uniform2f("pixel", 1.0f / stencil->w, 1.0f / stencil->h);
+
+			glActiveTexture(GL_TEXTURE1);
+			stencil_prog->Uniform1i("depth", 1);
+			glBindTexture(GL_TEXTURE_2D, buffer->depth);
+			glActiveTexture(GL_TEXTURE0);
+
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+			ShaderMod mod(stencil_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+				prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
+				prog->UniformMatrix4fv("normal_transform", rs.transform.data);
+			});
+
+			rs.pushMod(mod);
+			rs.pass = 1;
+			rs.tmp_use_default_state = false;
+
+			world->render(rs);
+
+			glCullFace(GL_FRONT);
+			stencil_prog->Uniform2f("col", 0.0f, 1.0f);
+
+			world->render(rs);
+
+			glCullFace(GL_BACK);
+		}
+
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, frame->fb);
 		if (deferred_prog!=0) {
 			glUseProgram(deferred_prog->prog);
 			for (int i=0;i<1;++i)
@@ -918,6 +980,9 @@ void Client::render_world(void)
 				glActiveTexture(GL_TEXTURE3);
 				deferred_prog->Uniform1i("shadow", 3);
 				glBindTexture(GL_TEXTURE_2D_ARRAY, shadow_buf->depth);
+				glActiveTexture(GL_TEXTURE4);
+				deferred_prog->Uniform1i("stencil", 4);
+				glBindTexture(GL_TEXTURE_2D, stencil->tex[0]);
 				glActiveTexture(GL_TEXTURE0);
 
 				deferred_prog->Uniform4f("fog_color", horizon.x, horizon.y, horizon.z, 1.0f);
@@ -953,8 +1018,6 @@ void Client::render_world(void)
 				glActiveTexture(GL_TEXTURE4);
 				glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 				glActiveTexture(GL_TEXTURE0);
-
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 			}
 		}
 
@@ -1017,8 +1080,6 @@ void Client::render_world(void)
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, 0);
 				glActiveTexture(GL_TEXTURE0);
-
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 			}
 		}
 

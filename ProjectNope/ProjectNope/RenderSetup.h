@@ -39,6 +39,8 @@ public:
 	std::vector<Matrix4> transform_stack;
 	std::vector<ShaderMod> mod_stack;
 	std::shared_ptr<ShaderProgram> current_program;
+
+	bool tmp_use_default_state; // TODO make better
 };
 
 #endif

@@ -250,22 +250,25 @@ void World::render(RenderSetup& rs)
 	QueryPerformanceFrequency(&freq);
 	QueryPerformanceCounter(&start);
 
-	glEnable(GL_DEPTH_TEST);
+	if (rs.tmp_use_default_state)
+	{
+		glEnable(GL_DEPTH_TEST);
 
-	glEnable(GL_DEPTH_CLAMP);
+		glEnable(GL_DEPTH_CLAMP);
 
-	glEnable(GL_NORMALIZE);
+		glEnable(GL_NORMALIZE);
 
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
 
-	glEnable(GL_TEXTURE_2D);
+		glEnable(GL_TEXTURE_2D);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
-	glEnable(GL_ALPHA_TEST);
-	glAlphaFunc(GL_GREATER, 0.0f);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glEnable(GL_ALPHA_TEST);
+		glAlphaFunc(GL_GREATER, 0.0f);
+	}
 
 	rs.origin = cam_pos;
 
