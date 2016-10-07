@@ -887,8 +887,6 @@ void Client::render_world(void)
 		{
 			glUseProgram(stencil_prog->prog);
 
-			stencil_prog->Uniform2f("col", 1.0f, 0.0f);
-
 			stencil_prog->UniformMatrix4fv("proj", proj.data);
 			stencil_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
 
@@ -896,6 +894,8 @@ void Client::render_world(void)
 			stencil_prog->Uniform1f("zFar", far_z);
 
 			stencil_prog->Uniform2f("pixel", 1.0f / stencil->w, 1.0f / stencil->h);
+
+			stencil_prog->Uniform4f("light", light.x, light.y, light.z, 0.0f);
 
 			glActiveTexture(GL_TEXTURE1);
 			stencil_prog->Uniform1i("depth", 1);
@@ -914,14 +914,14 @@ void Client::render_world(void)
 			rs.pass = 1;
 			rs.tmp_use_default_state = false;
 
-			world->render(rs);
+			glDisable(GL_CULL_FACE);
 
-			glCullFace(GL_FRONT);
-			stencil_prog->Uniform2f("col", 0.0f, 1.0f);
-
-			world->render(rs);
-
-			glCullFace(GL_BACK);
+			for (int i = 0; i < 3; ++i)
+			{
+				stencil_prog->Uniform1i("first", i);
+				stencil_prog->Uniform1i("second", (i + 1) % 3);
+				world->render(rs);
+			}
 		}
 
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

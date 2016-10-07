@@ -7,20 +7,30 @@ uniform float zFar;
 
 uniform vec2 pixel;
 
-uniform vec2 col;
-
 uniform mat4 proj;
+uniform mat4 proj_inv;
+
+in vec3 tri_pos;
+in vec3 side_n;
 
 void main()
 {
 	float z = texture2D(depth, vec2(gl_FragCoord.x * pixel.x, gl_FragCoord.y * pixel.y)).x;
 
-	vec4 world = vec4(gl_FragCoord.x*pixel.x*2.0-1.0, gl_FragCoord.y*pixel.y*2.0-1.0, z+z*z*0.5*zNear/zFar, 1.0);
+	vec4 geom_world = vec4(gl_FragCoord.x*pixel.x*2.0-1.0, gl_FragCoord.y*pixel.y*2.0-1.0, z+z*z*0.5*zNear/zFar, 1.0);
 
-	world = proj * world;
-	world /= world.w;
-	world.xyz /= 2.0;
+	geom_world = proj_inv * geom_world;
+	geom_world /= geom_world.w;
+	geom_world.xyz /= 2.0;
+
+	vec4 stencil_world = vec4(gl_FragCoord.x*pixel.x*2.0-1.0, gl_FragCoord.y*pixel.y*2.0-1.0, gl_FragCoord.z+gl_FragCoord.z*gl_FragCoord.z*0.5*zNear/zFar, 1.0);
+
+	stencil_world = proj_inv * stencil_world;
+	stencil_world /= stencil_world.w;
+	stencil_world.xyz /= 2.0;
+
+	float cull = step(dot(side_n, stencil_world.xyz), 0.0);
+	vec2 col = vec2(cull, 1.0 - cull);
 
 	gl_FragData[0] = vec4(col, 0.0, step(gl_FragCoord.z, z));
-	//gl_FragData[0] = vec4(col, 0.0, max(0.0, min(1.0, (z - gl_FragCoord.z) * 1000.0)));
 }

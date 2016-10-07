@@ -1,10 +1,18 @@
-#version 150
+﻿#version 150
 
 uniform mat4 proj;
 uniform mat4 proj_inv;
 
+uniform vec4 light;
+
+uniform int first;
+uniform int second;
+
 layout(triangles) in;
-layout(triangle_strip, max_vertices=6) out;
+layout(triangle_strip, max_vertices=4) out;
+
+out vec3 tri_pos;
+out vec3 side_n;
 
 void main()
 {
@@ -18,26 +26,29 @@ void main()
 
 	vec3 n = normalize(cross((real[1] - real[0]).xyz, (real[2] - real[0]).xyz));
 
+	vec3 sides[3];
+	sides[0] = normalize(cross((real[1] - real[0]).xyz, cd));
+	sides[1] = normalize(cross((real[2] - real[1]).xyz, cd));
+	sides[2] = normalize(cross((real[0] - real[2]).xyz, cd));
+
 	if (dot(cd, n) > 0.0)
 	{
-		gl_Position = proj * (real[0] + vec4(cd, 0.0) * 1000.0);
+		gl_Position = proj * (real[first] + vec4(cd, 0.0) * 1000.0);
+		tri_pos = real[first].xyz;
+		side_n = sides[first];
 		EmitVertex();
-		gl_Position = gl_in[0].gl_Position;
-		EmitVertex();
-		
-		gl_Position = proj * (real[1] + vec4(cd, 0.0) * 1000.0);
-		EmitVertex();
-		gl_Position = gl_in[1].gl_Position;
-		EmitVertex();
-		
-		gl_Position = proj * (real[2] + vec4(cd, 0.0) * 1000.0);
-		EmitVertex();
-		gl_Position = gl_in[2].gl_Position;
+		gl_Position = gl_in[first].gl_Position;
+		tri_pos = real[first].xyz;
+		side_n = sides[first];
 		EmitVertex();
 		
-		gl_Position = proj * (real[0] + vec4(cd, 0.0) * 1000.0);
+		gl_Position = proj * (real[second] + vec4(cd, 0.0) * 1000.0);
+		tri_pos = real[second].xyz;
+		side_n = sides[first];
 		EmitVertex();
-		gl_Position = gl_in[0].gl_Position;
+		gl_Position = gl_in[second].gl_Position;
+		tri_pos = real[second].xyz;
+		side_n = sides[first];
 		EmitVertex();
 	}
 
