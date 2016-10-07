@@ -265,9 +265,10 @@ void Client::tick(float dTime)
 		}
 	}
 
-	/*Vec3 pole(0.0f, 1.0f, 1.0f);
+	Vec3 pole(0.0f, 0.0f, 1.0f);
 	pole.Normalize();
-	light *= Matrix3(dTime*M_PI/60.0f/60.0f/12.0f, pole);*/
+	float lspeed = M_PI / 60.0f / 60.0f / 12.0f*1000.0f;
+	light *= Matrix3(dTime * lspeed, pole);
 
 	if (input.isPressed(Platform::KeyEvent::P))
 		show_entity_list = !show_entity_list;

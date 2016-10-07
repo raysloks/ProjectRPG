@@ -123,7 +123,7 @@ void main()
 		intensity *= 0.9;
 		intensity += 0.1;
 
-		intensity += dot(world_norm, n) * 0.2 + 0.2;
+		//intensity += dot(world_norm, n) * 0.2 + 0.2;
 
 		specular *= step(0.5, illumination);
 
@@ -133,6 +133,7 @@ void main()
 		final += vec4(color * tex_col.xyz, tex_col.w);
 
 		//final = vec4(vec3(texture(shadow, vec3(sc.xy, split)).x), 1.0);
+		//final +=  vec4(stencil_sample.x / 16.0, stencil_sample.y / 16.0, 0.0, 0.0);
 		//gl_FragColor = vec4(stencil_sample.x / 16.0, stencil_sample.y / 16.0, 0.0, 1.0);
 	}
 	float fog_weight = length(world) * fog_strength;

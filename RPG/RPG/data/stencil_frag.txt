@@ -12,6 +12,10 @@ uniform mat4 proj_inv;
 
 in vec3 tri_pos;
 in vec3 side_n;
+in vec3 out_n;
+in vec3 in_n;
+in vec3 first_end;
+in vec3 second_end;
 
 void main()
 {
@@ -32,5 +36,16 @@ void main()
 	float cull = step(dot(side_n, stencil_world.xyz), 0.0);
 	vec2 col = vec2(cull, 1.0 - cull);
 
-	gl_FragData[0] = vec4(col, 0.0, step(gl_FragCoord.z, z));
+	vec3 rel = geom_world.xyz - tri_pos;
+
+	float din = max(0.0, dot(rel, in_n));
+	float dout = max(0.0, -dot(rel, out_n));
+
+	float alpha = din / (din + dout);
+
+	alpha = alpha + cull - 2.0*alpha*cull;
+
+	alpha = max(0.0, min(1.0, alpha));
+
+	gl_FragData[0] = vec4(col, 0.0, step(gl_FragCoord.z, z) * alpha);
 }
