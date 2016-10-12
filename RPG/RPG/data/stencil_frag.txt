@@ -17,13 +17,11 @@ uniform vec3 light_samples[128];
 
 in vec3 first_pos;
 in vec3 second_pos;
+in vec3 n_top;
 in vec3 n_inner;
 in vec3 n_outer;
-in vec3 n_mid;
-in vec3 side;
-in vec3 side_flat;
-in vec3 first_cut;
-in vec3 second_cut;
+in vec3 n_first;
+in vec3 n_second;
 
 layout (location=0) out uvec4 shadow_and;
 
@@ -37,34 +35,23 @@ void main()
 	world /= world.w;
 	world.xyz /= 2.0;
 
-	float first_dot = dot(first_pos, side_flat);
-	float second_dot = dot(second_pos, side_flat);
-	float world_dot = dot(world.xyz, side_flat);
-
-	vec3 pos = first_pos + (second_pos - first_pos) * ((world_dot - first_dot) / (second_dot - first_dot));
-
-	vec3 rel = world.xyz - pos;
-
-	if (dot(n_inner, rel) < -0.001 || dot(n_outer, rel) > 0.001 ||
-		world_dot > first_dot || world_dot < second_dot || 
-		dot(first_cut, world.xyz - first_pos) > 0.0 || dot(second_cut, world.xyz - second_pos) > 0.0)
+	if (dot(n_inner, world.xyz - first_pos) < -0.001 || dot(n_outer, world.xyz - first_pos) > 0.0)
 		discard;
 
-	rel = normalize(rel);
-
-	vec3 angle = normalize(cross(side_flat, n_inner));
-
-	uint shadow_r = 0u;
-	uint shadow_g = 0u;
-	uint shadow_b = 0u;
-	uint shadow_a = 0u;
-	for (int i = 0; i < 32; i++)
+	uint shadow[4] = uint[](0u, 0u, 0u, 0u);
+	for (int j = 0; j < 4; j++)
 	{
-		shadow_r += uint(step(dot(angle, light_samples[i]), -dot(angle, rel))) << i;
-		shadow_g += uint(step(dot(angle, light_samples[i + 32]), -dot(angle, rel))) << i;
-		shadow_b += uint(step(dot(angle, light_samples[i + 64]), -dot(angle, rel))) << i;
-		shadow_a += uint(step(dot(angle, light_samples[i + 96]), -dot(angle, rel))) << i;
+		for (int i = 0; i < 32; i++)
+		{
+			float t = (dot(first_pos, n_top) - dot(n_top, world.xyz)) / dot(n_top, light_samples[i + j * 32]);
+			vec3 pos = world.xyz + light_samples[i + j * 32] * t;
+			float a = step(dot(n_inner, pos - first_pos), 0.0);
+			float b = step(dot(n_first, pos - first_pos), 0.0);
+			float c = step(dot(n_second, pos - second_pos), 0.0);
+			shadow[j] += uint(1.0 - a * b * c) << i;
+		}
 	}
 
-	shadow_and = uvec4(shadow_r, shadow_g, shadow_b, shadow_a);
+	//shadow_and = uvec4(0u);
+	shadow_and = uvec4(shadow[0], shadow[1], shadow[2], shadow[3]);
 }

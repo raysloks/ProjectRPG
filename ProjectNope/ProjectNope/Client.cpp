@@ -936,8 +936,8 @@ void Client::render_world(void)
 		// calculate poisson shadow sample distribution
 		if (input.isDown(Platform::KeyEvent::M))
 		{
-			auto points = PoissonGenerator::GeneratePoissonPoints(128 * 2, PoissonGenerator::DefaultPRNG());
-			std::cout << points.size() << std::endl;
+			std::uniform_int_distribution<uint32_t> seeder;
+			auto points = PoissonGenerator::GeneratePoissonPoints(128 * 2, PoissonGenerator::DefaultPRNG(seeder(random)));
 			light_samples.resize(128 * 3);
 			light_samples[0] = light.x;
 			light_samples[1] = light.y;
@@ -950,6 +950,52 @@ void Client::render_world(void)
 				light_samples[i*3] = l.x;
 				light_samples[i*3 + 1] = l.y;
 				light_samples[i*3 + 2] = l.z;
+			}
+		}
+
+		// calculate hexagon grid shadow sample distribution
+		if (input.isDown(Platform::KeyEvent::B))
+		{
+			std::vector<Vec2> points;
+			std::set<std::pair<int, int>> visited;
+			std::multimap<float, std::pair<int, int>> open;
+			open.insert(std::make_pair(0.0f, std::make_pair(0, 0)));
+			Vec2 hex_x(1.0f, 0.0f);
+			Vec2 hex_y(cos(M_PI / 3.0f), sin(M_PI / 3.0f));
+			float max_r = 0.0f;
+			while (points.size() < 128)
+			{
+				auto current_iterator = open.begin();
+				auto current = current_iterator->second;
+				open.erase(current_iterator);
+				if (visited.find(current) == visited.end())
+				{
+					visited.insert(current);
+					points.push_back(hex_x * current.first + hex_y * current.second);
+					float r = points.back().LenPwr();
+					if (r > max_r)
+						max_r = r;
+					open.insert(std::make_pair((hex_x * current.first + hex_y * (current.second + 1)).LenPwr(), std::make_pair(current.first, current.second + 1)));
+					open.insert(std::make_pair((hex_x * current.first + hex_y * (current.second - 1)).LenPwr(), std::make_pair(current.first, current.second - 1)));
+					open.insert(std::make_pair((hex_x * (current.first - 1) + hex_y * (current.second + 1)).LenPwr(), std::make_pair(current.first - 1, current.second + 1)));
+					open.insert(std::make_pair((hex_x * (current.first + 1) + hex_y * (current.second - 1)).LenPwr(), std::make_pair(current.first + 1, current.second - 1)));
+					open.insert(std::make_pair((hex_x * (current.first - 1) + hex_y * current.second).LenPwr(), std::make_pair(current.first - 1, current.second)));
+					open.insert(std::make_pair((hex_x * (current.first + 1) + hex_y * current.second).LenPwr(), std::make_pair(current.first + 1, current.second)));
+				}
+			}
+			max_r = sqrt(max_r) + 0.5f;
+			light_samples.resize(128 * 3);
+			light_samples[0] = light.x;
+			light_samples[1] = light.y;
+			light_samples[2] = light.z;
+			Vec3 x = light.Cross(Vec3(0.0f, 0.0f, 1.0f));
+			Vec3 y = light.Cross(x);
+			for (int i = 1; i < 128; ++i)
+			{
+				Vec3 l = (light + (x * points[i].x + y * points[i].y) / max_r * light_size).Normalize();
+				light_samples[i * 3] = l.x;
+				light_samples[i * 3 + 1] = l.y;
+				light_samples[i * 3 + 2] = l.z;
 			}
 		}
 
@@ -1061,7 +1107,21 @@ void Client::render_world(void)
 				glLogicOp(GL_AND);
 				glEnable(GL_CULL_FACE);
 
-				for (int i = 0; i < 3; ++i)
+				int min_i = 0;
+				int max_i = 3;
+				if (input.isDown(Platform::KeyEvent::T))
+					max_i = 1;
+				if (input.isDown(Platform::KeyEvent::Y))
+				{
+					min_i = 1;
+					max_i = 2;
+				}
+				if (input.isDown(Platform::KeyEvent::U))
+				{
+					min_i = 2;
+					max_i = 3;
+				}
+				for (int i = min_i; i < max_i; ++i)
 				{
 					stencil_prog->Uniform1i("first", i);
 					stencil_prog->Uniform1i("second", (i + 1) % 3);

@@ -172,7 +172,7 @@ public:
 				NewEntity * ent = new NewEntity();
 
 				PositionComponent * p = new PositionComponent();
-				p->p += Vec3(5.0f, 0.0f, -10.0f);
+				p->p += Vec3(5.0f, 0.0f, -10.25f);
 				ColliderComponent * c = new ColliderComponent();
 				GraphicsComponent * g = new GraphicsComponent(false);
 

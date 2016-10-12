@@ -49,7 +49,7 @@ void main()
 		end_in[1] = normalize(cross(n_in[0], n_in[1]));
 		end_in[2] = normalize(cross(n_in[1], n_in[2]));
 
-		float extend = 10.0;
+		float extend = 1000.0;
 
 		gl_Position = proj * (real[first] + vec4(end_in[first], 0.0) * extend);
 		EmitVertex();
