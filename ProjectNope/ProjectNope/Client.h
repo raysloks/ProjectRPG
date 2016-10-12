@@ -7,6 +7,7 @@
 #include "NewEntity.h"
 #include <set>
 #include "Window.h"
+#include <random>
 
 #include "Texture.h"
 #include "ShaderResource.h"
@@ -79,18 +80,22 @@ public:
 
 	std::vector<std::shared_ptr<std::function<void(RenderSetup&)>>> render2D;
 
-	std::shared_ptr<FrameBuffer> buffer, frame, frame2, stencil;
+	std::shared_ptr<FrameBuffer> buffer, frame, frame2, stencil, flat_stencil;
 	std::shared_ptr<CascadedShadowMap> shadow_buf;
 	std::vector<Matrix4> dp;
 	GlobalPosition prev;
 
 	int supersample_x, supersample_y;
 
-	std::shared_ptr<ShaderProgram> depth_fill_prog, deferred_prog, shader_program, sky_prog, dof_prog, stencil_prog;
+	std::shared_ptr<ShaderProgram> depth_fill_prog, deferred_prog, shader_program, sky_prog, dof_prog, stencil_prog, flat_stencil_prog;
 
 	std::shared_ptr<ScriptMemory> mem;
 
+	std::mt19937 random;
+
 	Vec3 light;
+	float light_size;
+	std::vector<float> light_samples;
 };
 
 #endif

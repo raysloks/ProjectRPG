@@ -78,6 +78,10 @@ extern PFNGLBINDBUFFERPROC glBindBuffer;
 extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
 extern PFNGLGENBUFFERSPROC glGenBuffers;
 extern PFNGLBUFFERDATAPROC glBufferData;
+extern PFNGLCLEARBUFFERIVPROC glClearBufferiv;
+extern PFNGLCLEARBUFFERUIVPROC glClearBufferuiv;
+extern PFNGLCLEARBUFFERFVPROC glClearBufferfv;
+extern PFNGLCLEARBUFFERFIPROC glClearBufferfi;
 
 #ifndef RENDER_CONTEXT_H
 #define RENDER_CONTEXT_H

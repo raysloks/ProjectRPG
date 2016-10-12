@@ -72,6 +72,10 @@ PFNGLBINDBUFFERPROC glBindBuffer = 0;
 PFNGLDELETEBUFFERSPROC glDeleteBuffers = 0;
 PFNGLGENBUFFERSPROC glGenBuffers = 0;
 PFNGLBUFFERDATAPROC glBufferData = 0;
+PFNGLCLEARBUFFERIVPROC glClearBufferiv = 0;
+PFNGLCLEARBUFFERUIVPROC glClearBufferuiv = 0;
+PFNGLCLEARBUFFERFVPROC glClearBufferfv = 0;
+PFNGLCLEARBUFFERFIPROC glClearBufferfi = 0;
 
 #define DEBUG_GL
 
@@ -263,6 +267,14 @@ namespace Platform
 		reportFunc("glGenBuffers", glGenBuffers);
 		glBufferData = (PFNGLBUFFERDATAPROC)wglGetProcAddress("glBufferData");
 		reportFunc("glBufferData", glBufferData);
+		glClearBufferiv = (PFNGLCLEARBUFFERIVPROC)wglGetProcAddress("glClearBufferiv");
+		reportFunc("glClearBufferiv", glClearBufferiv);
+		glClearBufferuiv = (PFNGLCLEARBUFFERUIVPROC)wglGetProcAddress("glClearBufferuiv");
+		reportFunc("glClearBufferuiv", glClearBufferuiv);
+		glClearBufferfv = (PFNGLCLEARBUFFERFVPROC)wglGetProcAddress("glClearBufferfv");
+		reportFunc("glClearBufferfv", glClearBufferfv);
+		glClearBufferfi = (PFNGLCLEARBUFFERFIPROC)wglGetProcAddress("glClearBufferfi");
+		reportFunc("glClearBufferfi", glClearBufferfi);
 	}
 
 	void RenderContext::Swap(void)

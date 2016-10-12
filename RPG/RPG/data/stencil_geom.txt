@@ -4,19 +4,24 @@ uniform mat4 proj;
 uniform mat4 proj_inv;
 
 uniform vec4 light;
+uniform float lsize;
 
 uniform int first;
 uniform int second;
+uniform int third;
 
 layout(triangles) in;
-layout(triangle_strip, max_vertices=4) out;
+layout(triangle_strip, max_vertices=8) out;
 
-out vec3 tri_pos;
-out vec3 side_n;
-out vec3 out_n;
-out vec3 in_n;
-out vec3 first_end;
-out vec3 second_end;
+out vec3 first_pos;
+out vec3 second_pos;
+out vec3 n_inner;
+out vec3 n_outer;
+out vec3 n_mid;
+out vec3 side_flat;
+out vec3 side;
+out vec3 first_cut;
+out vec3 second_cut;
 
 void main()
 {
@@ -41,8 +46,6 @@ void main()
 		side_n_flat[i] = normalize(cross(sides[i], cd));
 	}
 
-	float lsize = 0.05;
-
 	vec3 n_out[3];
 	vec3 n_in[3];
 	for (int i=0;i<3;i++)
@@ -54,59 +57,123 @@ void main()
 	vec3 end_out[3];
 	vec3 end_in[3];
 
-	end_out[0] = cross(n_out[2], n_out[0]);
-	end_out[1] = cross(n_out[0], n_out[1]);
-	end_out[2] = cross(n_out[1], n_out[2]);
+	end_out[0] = normalize(cross(n_out[2], n_out[0]));
+	end_out[1] = normalize(cross(n_out[0], n_out[1]));
+	end_out[2] = normalize(cross(n_out[1], n_out[2]));
 
-	end_in[0] = cross(n_in[2], n_in[0]);
-	end_in[1] = cross(n_in[0], n_in[1]);
-	end_in[2] = cross(n_in[1], n_in[2]);
-	
-	float ds = step(dot(n_out[first], real[first].xyz), 0.0);
+	end_in[0] = normalize(cross(n_in[2], n_in[0]));
+	end_in[1] = normalize(cross(n_in[0], n_in[1]));
+	end_in[2] = normalize(cross(n_in[1], n_in[2]));
 
-	vec3 end_first = end_out[first] * ds + end_in[first] * (1.0 - ds);
-	vec3 end_second = end_out[second] * ds + end_in[second] * (1.0 - ds);
-
-	vec3 side = n_out[first] * ds + n_in[first] * (1.0 - ds);
-
-	float extend = 5.0;
-
-	if (dot(cd, n) > 0.0 && dot(end_first, n) > 0.0 && dot(end_second, n) > 0.0)
+	vec3 flat_sides[3];
+	for (int i=0;i<3;i++)
 	{
-		gl_Position = proj * (real[first] + vec4(end_first, 0.0) * extend);
-		tri_pos = real[first].xyz;
-		side_n = side;
-		out_n = n_out[first];
-		in_n = n_in[first];
-		first_end = n_in[first];
-		second_end = n_in[second];
+		flat_sides[i] = normalize(cross(side_n_flat[i], cd));
+	}
+
+	float extend = 10.0;
+
+	vec4 fin_out_first = proj * (real[first] + vec4(end_out[first], 0.0) * extend);
+	vec4 fin_out_second = proj * (real[second] + vec4(end_out[second], 0.0) * extend);
+	vec4 fin_in_first = proj * (real[first] + vec4(end_in[first], 0.0) * extend);
+	vec4 fin_in_second = proj * (real[second] + vec4(end_in[second], 0.0) * extend);
+
+	// && dot(end_first, n) > 0.0 && dot(end_second, n) > 0.0
+	if (dot(cd, n) > 0.0)
+	{
+		gl_Position = fin_out_first;
+		first_pos = real[first].xyz;
+		second_pos = real[second].xyz;
+		n_inner = n_in[first];
+		n_outer = n_out[first];
+		n_mid = side_n_flat[first];
+		side = sides[first];
+		side_flat = flat_sides[first];
+		first_cut = n_in[third];
+		second_cut = n_in[second];
 		EmitVertex();
 
 		gl_Position = gl_in[first].gl_Position;
-		tri_pos = real[first].xyz;
-		side_n = side;
-		out_n = n_out[first];
-		in_n = n_in[first];
-		first_end = n_in[first];
-		second_end = n_in[second];
+		first_pos = real[first].xyz;
+		second_pos = real[second].xyz;
+		n_inner = n_in[first];
+		n_outer = n_out[first];
+		side = sides[first];
+		side_flat = flat_sides[first];
+		first_cut = n_in[third];
+		second_cut = n_in[second];
 		EmitVertex();
 		
-		gl_Position = proj * (real[second] + vec4(end_second, 0.0) * extend);
-		tri_pos = real[second].xyz;
-		side_n = side;
-		out_n = n_out[first];
-		in_n = n_in[first];
-		first_end = n_in[first];
-		second_end = n_in[second];
+		gl_Position = fin_out_second;
+		first_pos = real[first].xyz;
+		second_pos = real[second].xyz;
+		n_inner = n_in[first];
+		n_outer = n_out[first];
+		n_mid = side_n_flat[first];
+		side = sides[first];
+		side_flat = flat_sides[first];
+		first_cut = n_in[third];
+		second_cut = n_in[second];
 		EmitVertex();
 
 		gl_Position = gl_in[second].gl_Position;
-		tri_pos = real[second].xyz;
-		side_n = side;
-		out_n = n_out[first];
-		in_n = n_in[first];
-		first_end = n_in[first];
-		second_end = n_in[second];
+		first_pos = real[first].xyz;
+		second_pos = real[second].xyz;
+		n_inner = n_in[first];
+		n_outer = n_out[first];
+		n_mid = side_n_flat[first];
+		side = sides[first];
+		side_flat = flat_sides[first];
+		first_cut = n_in[third];
+		second_cut = n_in[second];
+		EmitVertex();
+		
+		gl_Position = fin_in_second;
+		first_pos = real[first].xyz;
+		second_pos = real[second].xyz;
+		n_inner = n_in[first];
+		n_outer = n_out[first];
+		n_mid = side_n_flat[first];
+		side = sides[first];
+		side_flat = flat_sides[first];
+		first_cut = n_in[third];
+		second_cut = n_in[second];
+		EmitVertex();
+
+		gl_Position = gl_in[first].gl_Position;
+		first_pos = real[first].xyz;
+		second_pos = real[second].xyz;
+		n_inner = n_in[first];
+		n_outer = n_out[first];
+		n_mid = side_n_flat[first];
+		side = sides[first];
+		side_flat = flat_sides[first];
+		first_cut = n_in[third];
+		second_cut = n_in[second];
+		EmitVertex();
+		
+		gl_Position = fin_in_first;
+		first_pos = real[first].xyz;
+		second_pos = real[second].xyz;
+		n_inner = n_in[first];
+		n_outer = n_out[first];
+		n_mid = side_n_flat[first];
+		side = sides[first];
+		side_flat = flat_sides[first];
+		first_cut = n_in[third];
+		second_cut = n_in[second];
+		EmitVertex();
+		
+		gl_Position = fin_out_first;
+		first_pos = real[first].xyz;
+		second_pos = real[second].xyz;
+		n_inner = n_in[first];
+		n_outer = n_out[first];
+		n_mid = side_n_flat[first];
+		side = sides[first];
+		side_flat = flat_sides[first];
+		first_cut = n_in[third];
+		second_cut = n_in[second];
 		EmitVertex();
 	}
 

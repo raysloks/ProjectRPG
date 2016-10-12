@@ -11,7 +11,7 @@ tickrate = 144;
 anisotropic_filtering = 16.0;
 
 shadow_res = 1024;
-shadow_splits = 10;
+shadow_splits = 1;
 
 supersampling_x = 1;
 supersampling_y = 1;

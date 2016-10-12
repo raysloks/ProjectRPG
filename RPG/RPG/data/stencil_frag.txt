@@ -1,4 +1,4 @@
-#version 150
+#version 440
 
 uniform sampler2D depth;
 
@@ -10,42 +10,61 @@ uniform vec2 pixel;
 uniform mat4 proj;
 uniform mat4 proj_inv;
 
-in vec3 tri_pos;
-in vec3 side_n;
-in vec3 out_n;
-in vec3 in_n;
-in vec3 first_end;
-in vec3 second_end;
+uniform vec4 light;
+uniform float lsize;
+
+uniform vec3 light_samples[128];
+
+in vec3 first_pos;
+in vec3 second_pos;
+in vec3 n_inner;
+in vec3 n_outer;
+in vec3 n_mid;
+in vec3 side;
+in vec3 side_flat;
+in vec3 first_cut;
+in vec3 second_cut;
+
+layout (location=0) out uvec4 shadow_and;
 
 void main()
 {
 	float z = texture2D(depth, vec2(gl_FragCoord.x * pixel.x, gl_FragCoord.y * pixel.y)).x;
 
-	vec4 geom_world = vec4(gl_FragCoord.x*pixel.x*2.0-1.0, gl_FragCoord.y*pixel.y*2.0-1.0, z+z*z*0.5*zNear/zFar, 1.0);
+	vec4 world = vec4(gl_FragCoord.x*pixel.x*2.0-1.0, gl_FragCoord.y*pixel.y*2.0-1.0, z+z*z*0.5*zNear/zFar, 1.0);
 
-	geom_world = proj_inv * geom_world;
-	geom_world /= geom_world.w;
-	geom_world.xyz /= 2.0;
+	world = proj_inv * world;
+	world /= world.w;
+	world.xyz /= 2.0;
 
-	vec4 stencil_world = vec4(gl_FragCoord.x*pixel.x*2.0-1.0, gl_FragCoord.y*pixel.y*2.0-1.0, gl_FragCoord.z+gl_FragCoord.z*gl_FragCoord.z*0.5*zNear/zFar, 1.0);
+	float first_dot = dot(first_pos, side_flat);
+	float second_dot = dot(second_pos, side_flat);
+	float world_dot = dot(world.xyz, side_flat);
 
-	stencil_world = proj_inv * stencil_world;
-	stencil_world /= stencil_world.w;
-	stencil_world.xyz /= 2.0;
+	vec3 pos = first_pos + (second_pos - first_pos) * ((world_dot - first_dot) / (second_dot - first_dot));
 
-	float cull = step(dot(side_n, stencil_world.xyz), 0.0);
-	vec2 col = vec2(cull, 1.0 - cull);
+	vec3 rel = world.xyz - pos;
 
-	vec3 rel = geom_world.xyz - tri_pos;
+	if (dot(n_inner, rel) < -0.001 || dot(n_outer, rel) > 0.001 ||
+		world_dot > first_dot || world_dot < second_dot || 
+		dot(first_cut, world.xyz - first_pos) > 0.0 || dot(second_cut, world.xyz - second_pos) > 0.0)
+		discard;
 
-	float din = max(0.0, dot(rel, in_n));
-	float dout = max(0.0, -dot(rel, out_n));
+	rel = normalize(rel);
 
-	float alpha = din / (din + dout);
+	vec3 angle = normalize(cross(side_flat, n_inner));
 
-	alpha = alpha + cull - 2.0*alpha*cull;
+	uint shadow_r = 0u;
+	uint shadow_g = 0u;
+	uint shadow_b = 0u;
+	uint shadow_a = 0u;
+	for (int i = 0; i < 32; i++)
+	{
+		shadow_r += uint(step(dot(angle, light_samples[i]), -dot(angle, rel))) << i;
+		shadow_g += uint(step(dot(angle, light_samples[i + 32]), -dot(angle, rel))) << i;
+		shadow_b += uint(step(dot(angle, light_samples[i + 64]), -dot(angle, rel))) << i;
+		shadow_a += uint(step(dot(angle, light_samples[i + 96]), -dot(angle, rel))) << i;
+	}
 
-	alpha = max(0.0, min(1.0, alpha));
-
-	gl_FragData[0] = vec4(col, 0.0, step(gl_FragCoord.z, z) * alpha);
+	shadow_and = uvec4(shadow_r, shadow_g, shadow_b, shadow_a);
 }

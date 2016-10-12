@@ -6,6 +6,10 @@ FrameBuffer::FrameBuffer(unsigned short width, unsigned short height, std::vecto
 	w = width;
 	h = height;
 
+	GLenum err = GL_NO_ERROR;
+	while ((err = glGetError()) != GL_NO_ERROR)
+		std::cout << "OpenGL error before image: 0x" << (void*)err << std::endl;
+
 	g_type = gbuf;
 	if (g_type.size()>0)
 	{
@@ -18,7 +22,15 @@ FrameBuffer::FrameBuffer(unsigned short width, unsigned short height, std::vecto
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexImage2D(GL_TEXTURE_2D, 0, g_type[i], w, h, 0, GL_RGB, GL_FLOAT, NULL);
+
+			if (g_type[i] == GL_RGBA32UI)
+				glTexImage2D(GL_TEXTURE_2D, 0, g_type[i], w, h, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, NULL);
+			else
+				glTexImage2D(GL_TEXTURE_2D, 0, g_type[i], w, h, 0, GL_RGB, GL_FLOAT, NULL);
+
+			err = GL_NO_ERROR;
+			while ((err = glGetError()) != GL_NO_ERROR)
+				std::cout << "OpenGL error after image: 0x" << (void*)err << std::endl;
 		}
 	}
 	else
@@ -64,6 +76,15 @@ FrameBuffer::FrameBuffer(unsigned short width, unsigned short height, std::vecto
 		glGetIntegerv(GL_DRAW_BUFFER0 + i, &check);
 		std::cout << check << std::endl;
 	}*/
+	
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "Framebuffer error: 0x" << (void*)status << std::endl;
+		for each (auto t in g_type)
+			std::cout << "	Color buffer: 0x" << (void*)t << std::endl;
+		std::cout << "	Depth buffer: 0x" << (void*)z_type << std::endl;
+	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

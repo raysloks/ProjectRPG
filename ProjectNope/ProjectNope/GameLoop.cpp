@@ -139,10 +139,10 @@ void GameLoop::tick(void)
 	} else {
 		if (lag>secondsPerStep*0.5) { // TODO fix
 			if (world->authority)
-				server->tick(secondsPerStep);
+				server->tick(lag);
 			if (client != 0)
-				client->tick(secondsPerStep);
-			lag -= secondsPerStep;
+				client->tick(lag);
+			lag -= lag;
 		}
 	}
 	world->clean();
