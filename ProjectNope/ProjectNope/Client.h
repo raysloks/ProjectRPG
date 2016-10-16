@@ -96,6 +96,7 @@ public:
 	Vec3 light;
 	float light_size;
 	std::vector<float> light_samples;
+	float light_angle;
 };
 
 #endif

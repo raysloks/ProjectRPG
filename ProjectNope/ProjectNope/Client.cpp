@@ -522,9 +522,9 @@ void Client::render(void)
 		durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
 		Profiler::add("render", durationInSeconds);
 
-		GLenum err = GL_NO_ERROR;
+		/*GLenum err = GL_NO_ERROR;
 		while ((err = glGetError()) != GL_NO_ERROR)
-			std::cout << "OpenGL error: 0x" << (void*)err << std::endl;
+			std::cout << "OpenGL error: 0x" << (void*)err << std::endl;*/
 	}
 }
 
@@ -587,10 +587,6 @@ void Client::render_world(void)
 	if (shader_program!=0 && depth_fill_prog!=0 && sky_prog!=0)
 	{
 		GraphicsComponent::prep();
-
-		GLenum err = GL_NO_ERROR;
-		while ((err = glGetError()) != GL_NO_ERROR)
-			std::cout << "OpenGL error after prep: 0x" << (void*)err << std::endl;
 
 		GLint view[4];
 
@@ -912,6 +908,8 @@ void Client::render_world(void)
 			glEnable(GL_CULL_FACE);
 		}
 
+		light.Normalize();
+
 		// calculate shadow sample distribution
 		if (input.isDown(Platform::KeyEvent::N))
 		{
@@ -920,8 +918,8 @@ void Client::render_world(void)
 			light_samples[1] = light.y;
 			light_samples[2] = light.z;
 			std::uniform_real_distribution<float> uni_dist;
-			Vec3 x = light.Cross(Vec3(0.0f, 0.0f, 1.0f));
-			Vec3 y = light.Cross(x);
+			Vec3 x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
+			Vec3 y = light.Cross(x).Normalize();
 			for (int i = 3; i < 128 * 3; i += 3)
 			{
 				float t = 2.0f * M_PI * uni_dist(random);
@@ -942,8 +940,8 @@ void Client::render_world(void)
 			light_samples[0] = light.x;
 			light_samples[1] = light.y;
 			light_samples[2] = light.z;
-			Vec3 x = light.Cross(Vec3(0.0f, 0.0f, 1.0f));
-			Vec3 y = light.Cross(x);
+			Vec3 x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
+			Vec3 y = light.Cross(x).Normalize();
 			for (int i = 1; i < 128; ++i)
 			{
 				Vec3 l = (light + (x * (points[i].x * 2.0f - 1.0f) + y * (points[i].y * 2.0f - 1.0f)) * light_size).Normalize();
@@ -960,8 +958,10 @@ void Client::render_world(void)
 			std::set<std::pair<int, int>> visited;
 			std::multimap<float, std::pair<int, int>> open;
 			open.insert(std::make_pair(0.0f, std::make_pair(0, 0)));
-			Vec2 hex_x(1.0f, 0.0f);
-			Vec2 hex_y(cos(M_PI / 3.0f), sin(M_PI / 3.0f));
+			std::uniform_int_distribution<uint32_t> exangle_dist(0U, 6U);
+			light_angle += 1.0f + exangle_dist(random);
+			Vec2 hex_x(cos(light_angle), sin(light_angle));
+			Vec2 hex_y(cos(light_angle + M_PI / 3.0f), sin(light_angle + M_PI / 3.0f));
 			float max_r = 0.0f;
 			while (points.size() < 128)
 			{
@@ -988,9 +988,9 @@ void Client::render_world(void)
 			light_samples[0] = light.x;
 			light_samples[1] = light.y;
 			light_samples[2] = light.z;
-			Vec3 x = light.Cross(Vec3(0.0f, 0.0f, 1.0f));
-			Vec3 y = light.Cross(x);
-			for (int i = 1; i < 128; ++i)
+			Vec3 x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
+			Vec3 y = light.Cross(x).Normalize();
+			for (int i = 0; i < 128; ++i)
 			{
 				Vec3 l = (light + (x * points[i].x + y * points[i].y) / max_r * light_size).Normalize();
 				light_samples[i * 3] = l.x;
@@ -999,10 +999,10 @@ void Client::render_world(void)
 			}
 		}
 
-		/*if (light_samples.size() == 128 * 3)
+		/*if (light_samples.size() == 128 * 3 && input.isDown(Platform::KeyEvent::V))
 		{
 			std::uniform_real_distribution<float> uni_dist_2pi(0.0f, M_PI * 2.0f);
-			for (int i = 3; i < 128 * 3; i += 3)
+			for (int i = 0; i < 128 * 3; i += 3)
 			{
 				Vec3 l(light_samples[i], light_samples[i + 1], light_samples[i + 2]);
 				l *= Matrix3(uni_dist_2pi(random), light);
@@ -1050,6 +1050,7 @@ void Client::render_world(void)
 				{
 					flat_stencil_prog->Uniform1i("first", i);
 					flat_stencil_prog->Uniform1i("second", (i + 1) % 3);
+					flat_stencil_prog->Uniform1i("third", (i + 2) % 3);
 					world->render(rs);
 				}
 
@@ -1059,6 +1060,7 @@ void Client::render_world(void)
 				{
 					flat_stencil_prog->Uniform1i("first", i);
 					flat_stencil_prog->Uniform1i("second", (i + 1) % 3);
+					flat_stencil_prog->Uniform1i("third", (i + 2) % 3);
 					world->render(rs);
 				}
 

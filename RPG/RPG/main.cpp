@@ -168,11 +168,12 @@ public:
 
 				world->AddEntity(ent);
 			}
+			for (int i = 0; i < 2; ++i)
 			{
 				NewEntity * ent = new NewEntity();
 
 				PositionComponent * p = new PositionComponent();
-				p->p += Vec3(5.0f, 0.0f, -10.25f);
+				p->p += Vec3(5.0f + 2.01f * i, 2.01f * i, -10.25f);
 				ColliderComponent * c = new ColliderComponent();
 				GraphicsComponent * g = new GraphicsComponent(false);
 
@@ -212,14 +213,14 @@ public:
 		ent->addComponent(hit);
 		//ent->addComponent(line);
 
-		//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", "data/assets/units/player/KnightGuy.tga"/*"data/assets/empty.tga"*/)));
-		//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", "data/assets/decorators/eyes/basic.tga")));
-		//g->decs.items.back()->priority = 1;
-		//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", "data/assets/decorators/eyes/basic.tga")));
-		//g->decs.items.back()->priority = 2;
-		//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", "data/assets/decorators/mouth/neutral.tga")));
-		//g->decs.items.back()->priority = 3;
-		//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", "data/assets/items/weapons/swords/claymore.tga", 15)));
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", "data/assets/units/player/KnightGuy.tga"/*"data/assets/empty.tga"*/)));
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", "data/assets/decorators/eyes/basic.tga")));
+		g->decs.items.back()->priority = 1;
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", "data/assets/decorators/eyes/basic.tga")));
+		g->decs.items.back()->priority = 2;
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", "data/assets/decorators/mouth/neutral.tga")));
+		g->decs.items.back()->priority = 3;
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", "data/assets/items/weapons/swords/claymore.tga", 15)));
 
 		data.unit_id = world->AddEntity(ent);
 	}

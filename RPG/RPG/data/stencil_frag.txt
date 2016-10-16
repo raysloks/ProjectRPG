@@ -22,6 +22,8 @@ in vec3 n_inner;
 in vec3 n_outer;
 in vec3 n_first;
 in vec3 n_second;
+in vec3 n_outer_first;
+in vec3 n_outer_second;
 
 layout (location=0) out uvec4 shadow_and;
 
@@ -35,7 +37,7 @@ void main()
 	world /= world.w;
 	world.xyz /= 2.0;
 
-	if (dot(n_inner, world.xyz - first_pos) < -0.001 || dot(n_outer, world.xyz - first_pos) > 0.0)
+	if (dot(n_inner, world.xyz - first_pos) < 0.0 || dot(n_outer, world.xyz - first_pos) > 0.0 || dot(n_outer_first, world.xyz - first_pos) > 0.0 || dot(n_outer_second, world.xyz - second_pos) > 0.0)
 		discard;
 
 	uint shadow[4] = uint[](0u, 0u, 0u, 0u);

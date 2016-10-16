@@ -8,6 +8,7 @@ uniform float lsize;
 
 uniform int first;
 uniform int second;
+uniform int third;
 
 layout(triangles) in;
 layout(triangle_strip, max_vertices=4) out;
@@ -49,15 +50,23 @@ void main()
 		end_in[1] = normalize(cross(n_in[0], n_in[1]));
 		end_in[2] = normalize(cross(n_in[1], n_in[2]));
 
+		vec3 flat_sides[3];
+		for (int i=0;i<3;i++)
+		{
+			flat_sides[i] = normalize(cross(side_n_flat[i], cd));
+		}
+		
 		float extend = 1000.0;
+		float extend_first = min(extend, dot(real[second].xyz - real[first].xyz, n_in[second]) / dot(end_in[first], n_in[second]));
+		float extend_second = min(extend, dot(real[first].xyz - real[second].xyz, n_in[third]) / dot(end_in[second], n_in[third]));
 
-		gl_Position = proj * (real[first] + vec4(end_in[first], 0.0) * extend);
+		gl_Position = proj * (real[first] + vec4(end_in[first], 0.0) * extend_first);
 		EmitVertex();
 
 		gl_Position = gl_in[first].gl_Position;
 		EmitVertex();
 		
-		gl_Position = proj * (real[second] + vec4(end_in[second], 0.0) * extend);
+		gl_Position = proj * (real[second] + vec4(end_in[second], 0.0) * extend_second);
 		EmitVertex();
 
 		gl_Position = gl_in[second].gl_Position;

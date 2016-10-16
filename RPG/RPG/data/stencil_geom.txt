@@ -20,6 +20,8 @@ out vec3 n_inner;
 out vec3 n_outer;
 out vec3 n_first;
 out vec3 n_second;
+out vec3 n_outer_first;
+out vec3 n_outer_second;
 
 void main()
 {
@@ -70,13 +72,15 @@ void main()
 	}
 
 	float extend = 1000.0;
+	float extend_first = min(extend, dot(real[second].xyz - real[first].xyz, n_in[second]) / dot(end_in[first], n_in[second]));
+	float extend_second = min(extend, dot(real[first].xyz - real[second].xyz, n_in[third]) / dot(end_in[second], n_in[third]));
 
 	vec4 fin_out_first = proj * (real[first] + vec4(end_out[first], 0.0) * extend);
 	vec4 fin_out_second = proj * (real[second] + vec4(end_out[second], 0.0) * extend);
 	vec4 fin_in_first = proj * (real[first] + vec4(end_in[first], 0.0) * extend);
 	vec4 fin_in_second = proj * (real[second] + vec4(end_in[second], 0.0) * extend);
 
-	// && dot(end_first, n) > 0.0 && dot(end_second, n) > 0.0
+	// && dot(end_out[first], n) > 0.0 && dot(end_out[second], n) > 0.0 && dot(end_in[first], n) > 0.0 && dot(end_in[second], n) > 0.0
 	if (dot(cd, n) > 0.0)
 	{
 		gl_Position = fin_out_first;
@@ -87,6 +91,8 @@ void main()
 		n_outer = n_out[first];
 		n_first = n_in[third];
 		n_second = n_in[second];
+		n_outer_first = n_out[third];
+		n_outer_second = n_out[second];
 		EmitVertex();
 
 		gl_Position = gl_in[first].gl_Position;
@@ -97,6 +103,8 @@ void main()
 		n_outer = n_out[first];
 		n_first = n_in[third];
 		n_second = n_in[second];
+		n_outer_first = n_out[third];
+		n_outer_second = n_out[second];
 		EmitVertex();
 		
 		gl_Position = fin_out_second;
@@ -107,6 +115,8 @@ void main()
 		n_outer = n_out[first];
 		n_first = n_in[third];
 		n_second = n_in[second];
+		n_outer_first = n_out[third];
+		n_outer_second = n_out[second];
 		EmitVertex();
 
 		gl_Position = gl_in[second].gl_Position;
@@ -117,6 +127,8 @@ void main()
 		n_outer = n_out[first];
 		n_first = n_in[third];
 		n_second = n_in[second];
+		n_outer_first = n_out[third];
+		n_outer_second = n_out[second];
 		EmitVertex();
 		
 		gl_Position = fin_in_second;
@@ -127,6 +139,8 @@ void main()
 		n_outer = n_out[first];
 		n_first = n_in[third];
 		n_second = n_in[second];
+		n_outer_first = n_out[third];
+		n_outer_second = n_out[second];
 		EmitVertex();
 
 		gl_Position = gl_in[first].gl_Position;
@@ -137,6 +151,8 @@ void main()
 		n_outer = n_out[first];
 		n_first = n_in[third];
 		n_second = n_in[second];
+		n_outer_first = n_out[third];
+		n_outer_second = n_out[second];
 		EmitVertex();
 		
 		gl_Position = fin_in_first;
@@ -147,6 +163,8 @@ void main()
 		n_outer = n_out[first];
 		n_first = n_in[third];
 		n_second = n_in[second];
+		n_outer_first = n_out[third];
+		n_outer_second = n_out[second];
 		EmitVertex();
 		
 		gl_Position = fin_out_first;
@@ -157,6 +175,8 @@ void main()
 		n_outer = n_out[first];
 		n_first = n_in[third];
 		n_second = n_in[second];
+		n_outer_first = n_out[third];
+		n_outer_second = n_out[second];
 		EmitVertex();
 	}
 
