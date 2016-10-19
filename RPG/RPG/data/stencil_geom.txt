@@ -72,16 +72,14 @@ void main()
 	}
 
 	float extend = 1000.0;
-	float extend_first = min(extend, dot(real[second].xyz - real[first].xyz, n_in[second]) / dot(end_in[first], n_in[second]));
-	float extend_second = min(extend, dot(real[first].xyz - real[second].xyz, n_in[third]) / dot(end_in[second], n_in[third]));
 
-	vec4 fin_out_first = proj * (real[first] + vec4(end_out[first], 0.0) * extend);
-	vec4 fin_out_second = proj * (real[second] + vec4(end_out[second], 0.0) * extend);
-	vec4 fin_in_first = proj * (real[first] + vec4(end_in[first], 0.0) * extend);
-	vec4 fin_in_second = proj * (real[second] + vec4(end_in[second], 0.0) * extend);
+	vec4 fin_out_first = proj * (real[first] + vec4(cd + (side_n_flat[first] + flat_sides[first]) * lsize, 0.0) * extend);
+	vec4 fin_out_second = proj * (real[second] + vec4(cd + (side_n_flat[first] - flat_sides[first]) * lsize, 0.0) * extend);
+	vec4 fin_in_first = proj * (real[first] + vec4(cd - (side_n_flat[first] - flat_sides[first]) * lsize, 0.0) * extend);
+	vec4 fin_in_second = proj * (real[second] + vec4(cd - (side_n_flat[first] + flat_sides[first]) * lsize, 0.0) * extend);
 
 	// && dot(end_out[first], n) > 0.0 && dot(end_out[second], n) > 0.0 && dot(end_in[first], n) > 0.0 && dot(end_in[second], n) > 0.0
-	if (dot(cd, n) > 0.0)
+	if (dot(cd, n) > sin(atan(lsize)) && abs(dot(sides[first], normalize(cd))) < cos(atan(lsize)))
 	{
 		gl_Position = fin_out_first;
 		first_pos = real[first].xyz;

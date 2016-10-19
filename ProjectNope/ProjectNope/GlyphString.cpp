@@ -40,9 +40,9 @@ void GlyphString::render(void)
 				glTexCoord2f(1.0f, 0.0f);
 				glVertex2f(bitmap->bitmap.width+bitmap->left, -bitmap->top);
 				glTexCoord2f(1.0f, 1.0f);
-				glVertex2f(bitmap->bitmap.width+bitmap->left, -bitmap->top + (int)bitmap->bitmap.rows);
+				glVertex2f(bitmap->bitmap.width+bitmap->left, (int)bitmap->bitmap.rows - bitmap->top);
 				glTexCoord2f(0.0f, 1.0f);
-				glVertex2f(bitmap->left, -bitmap->top + (int)bitmap->bitmap.rows);
+				glVertex2f(bitmap->left, (int)bitmap->bitmap.rows - bitmap->top);
 
 				glEnd();
 

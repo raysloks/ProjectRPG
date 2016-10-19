@@ -13,6 +13,8 @@ uniform int third;
 layout(triangles) in;
 layout(triangle_strip, max_vertices=4) out;
 
+out float face;
+
 void main()
 {
 	vec3 cd = -light.xyz;
@@ -25,7 +27,9 @@ void main()
 
 	vec3 n = normalize(cross((real[1] - real[0]).xyz, (real[2] - real[0]).xyz));
 
-	if (dot(cd, n) > 0.0)
+	float facing = step(dot(n, cd), 0.0) * 2.0 - 1.0;
+
+	//if (dot(cd, n) < 0.0)
 	{
 		vec3 sides[3];
 		sides[0] = normalize((real[1] - real[0]).xyz);
@@ -35,13 +39,13 @@ void main()
 		vec3 side_n_flat[3];
 		for (int i=0;i<3;i++)
 		{
-			side_n_flat[i] = normalize(cross(sides[i], cd));
+			side_n_flat[i] = normalize(cross(cd, sides[i]));
 		}
 
 		vec3 n_in[3];
 		for (int i=0;i<3;i++)
 		{
-			n_in[i] = cross(sides[i], normalize(cd - side_n_flat[i] * lsize));
+			n_in[i] = cross(sides[i], normalize(cd - side_n_flat[i] * lsize * facing));
 		}
 
 		vec3 end_in[3];
@@ -59,17 +63,21 @@ void main()
 		float extend = 1000.0;
 		float extend_first = min(extend, dot(real[second].xyz - real[first].xyz, n_in[second]) / dot(end_in[first], n_in[second]));
 		float extend_second = min(extend, dot(real[first].xyz - real[second].xyz, n_in[third]) / dot(end_in[second], n_in[third]));
-
-		gl_Position = proj * (real[first] + vec4(end_in[first], 0.0) * extend_first);
-		EmitVertex();
-
-		gl_Position = gl_in[first].gl_Position;
-		EmitVertex();
 		
 		gl_Position = proj * (real[second] + vec4(end_in[second], 0.0) * extend_second);
+		face = facing;
 		EmitVertex();
 
 		gl_Position = gl_in[second].gl_Position;
+		face = facing;
+		EmitVertex();
+
+		gl_Position = proj * (real[first] + vec4(end_in[first], 0.0) * extend_first);
+		face = facing;
+		EmitVertex();
+
+		gl_Position = gl_in[first].gl_Position;
+		face = facing;
 		EmitVertex();
 	}
 

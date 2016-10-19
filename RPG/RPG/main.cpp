@@ -143,7 +143,7 @@ public:
 				std::vector<std::string> tex;
 				tex.push_back("data/assets/terrain/textures/RockPlate.tga");
 
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/triangle_ds_test.gmdl", tex, 0)));
+				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/triangle_test.gmdl", tex, 0)));
 				g->decs.items.front()->final = g->decs.items.front()->local;
 
 				world->AddEntity(ent);
