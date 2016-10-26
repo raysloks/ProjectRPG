@@ -46,12 +46,12 @@ void CameraControlComponent::frame(float dTime)
 		{
 			const Input& input = client->input;
 
-			/*float zoom = input.ctrl[0].left_shoulder.down ? 1.0f : 0.0f;
+			float zoom = input.ctrl[0].left_shoulder.down ? 1.0f : 0.0f;
 			zoom -= input.ctrl[0].right_shoulder.down ? 1.0f : 0.0f;
 
 			camera.z += zoom * dTime;
 
-			camera.z -= float(input.mouse_dif_z) / 2400.0f;*/
+			camera.z -= float(input.mouse_dif_z) / 2400.0f;
 
 			if (camera.z < 0.0f)
 				camera.z = 0.0f;

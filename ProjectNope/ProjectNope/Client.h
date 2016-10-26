@@ -97,6 +97,9 @@ public:
 	float light_size;
 	std::vector<float> light_samples;
 	float light_angle;
+
+	std::vector<unsigned int> light_lookup;
+	std::shared_ptr<Texture> light_lookup_tex;
 };
 
 #endif

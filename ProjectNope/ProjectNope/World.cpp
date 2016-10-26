@@ -256,8 +256,6 @@ void World::render(RenderSetup& rs)
 
 		glEnable(GL_DEPTH_CLAMP);
 
-		glEnable(GL_NORMALIZE);
-
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
 

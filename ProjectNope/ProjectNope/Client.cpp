@@ -66,7 +66,7 @@ Client::Client(World * pWorld)
 	Vec3 pole(0.0f, 0.0f, 1.0f);
 	pole.Normalize();
 	light *= Matrix3(0.0f, pole);
-	light_size = 0.0f;
+	light_size = 0.003f;
 
 	clientData = 0;
 
@@ -268,7 +268,7 @@ void Client::tick(float dTime)
 
 	Vec3 pole(0.0f, 0.0f, 1.0f);
 	pole.Normalize();
-	float lspeed = M_PI / 60.0f / 60.0f / 12.0f*50000.0f;
+	float lspeed = M_PI / 60.0f / 60.0f / 12.0f*5000.0f;
 	if (input.isDown(Platform::KeyEvent::L))
 		light *= Matrix3(dTime * lspeed, pole);
 	if (input.isDown(Platform::KeyEvent::J))
@@ -588,12 +588,11 @@ void Client::render_world(void)
 	{
 		GraphicsComponent::prep();
 
-		GLint view[4];
+		int view_w = gpPlatform->get_width();
+		int view_h = gpPlatform->get_height();
 
-		view[0] = 0;
-		view[1] = 0;
-		view[2] = gpPlatform->get_width();
-		view[3] = gpPlatform->get_height();
+		int buffer_w = view_w * supersample_x;
+		int buffer_h = view_h * supersample_y;
 
 		Vec3 horizon = Vec3(0.2f, 0.4f, 0.8f);
 		Vec3 zenith = Vec3(0.0f, 0.1f, 0.3f);
@@ -637,36 +636,39 @@ void Client::render_world(void)
 			std::vector<GLenum> gbuf;
 			gbuf.push_back(GL_RGB16F);
 			gbuf.push_back(GL_RGB16F);
-			buffer = std::make_shared<FrameBuffer>(view[2] * supersample_x, view[3] * supersample_y, gbuf, GL_DEPTH_COMPONENT32);
+			buffer = std::make_shared<FrameBuffer>(buffer_w, buffer_h, gbuf, GL_DEPTH_COMPONENT32);
 		} else {
-			buffer->resize(view[2] * supersample_x, view[3] * supersample_y);
+			buffer->resize(buffer_w, buffer_h);
 		}
 
 		if (stencil == 0) {
 			std::vector<GLenum> gbuf;
 			gbuf.push_back(GL_RGBA32UI);
-			stencil = std::make_shared<FrameBuffer>(view[2] * supersample_x, view[3] * supersample_y, gbuf, GL_NONE);
+			stencil = std::make_shared<FrameBuffer>(buffer_w, buffer_h, gbuf, GL_NONE);
 			glBindFramebuffer(GL_FRAMEBUFFER, stencil->fb);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, buffer->depth, 0);
 		}
 		else {
-			stencil->resize(view[2] * supersample_x, view[3] * supersample_y);
+			stencil->resize(buffer_w, buffer_h);
 		}
 
 		if (flat_stencil == 0) {
 			std::vector<GLenum> gbuf;
 			gbuf.push_back(GL_R16F);
-			flat_stencil = std::make_shared<FrameBuffer>(view[2] * supersample_x, view[3] * supersample_y, gbuf, GL_NONE);
+			flat_stencil = std::make_shared<FrameBuffer>(buffer_w, buffer_h, gbuf, GL_NONE);
 			glBindFramebuffer(GL_FRAMEBUFFER, flat_stencil->fb);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, buffer->depth, 0);
 		}
 		else {
-			flat_stencil->resize(view[2] * supersample_x, view[3] * supersample_y);
+			flat_stencil->resize(buffer_w, buffer_h);
 		}
 
-		double aspect = ((double)view[2])/((double)view[3]);
+		double aspect = ((double)view_w)/((double)view_h);
 
 		Matrix4 pers = Matrix4::Perspective(fov, aspect, near_z, far_z);
+
+		Vec2 view_texel_jitter(0.0f, 0.0f);
+		pers *= Matrix4::Translation(Vec3(view_texel_jitter.x / buffer_w, view_texel_jitter.y / buffer_h, 0.0f));
 
 		Matrix4 rot = world->cam_rot.getConj();
 		Matrix4 invrot = world->cam_rot;
@@ -707,12 +709,10 @@ void Client::render_world(void)
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		glEnable(GL_NORMALIZE);
-
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
 
-		glViewport(view[0], view[1], view[2]*supersample_x, view[3]*supersample_y);
+		glViewport(0, 0, buffer_w, buffer_h);
 
 		if (sky_prog!=0)
 		{
@@ -868,7 +868,7 @@ void Client::render_world(void)
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		glViewport(view[0], view[1], view[2]*supersample_x, view[3]*supersample_y);
+		glViewport(0, 0, buffer_w, buffer_h);
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -988,29 +988,98 @@ void Client::render_world(void)
 			light_samples[0] = light.x;
 			light_samples[1] = light.y;
 			light_samples[2] = light.z;
-			Vec3 x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
-			Vec3 y = light.Cross(x).Normalize();
+			Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
+			Vec3 light_y = light.Cross(light_x).Normalize();
 			for (int i = 0; i < 128; ++i)
 			{
-				Vec3 l = (light + (x * points[i].x + y * points[i].y) / max_r * light_size).Normalize();
+				Vec3 l = (light + (light_x * points[i].x + light_y * points[i].y) / max_r * light_size).Normalize();
 				light_samples[i * 3] = l.x;
 				light_samples[i * 3 + 1] = l.y;
 				light_samples[i * 3 + 2] = l.z;
 			}
 		}
 
-		/*if (light_samples.size() == 128 * 3 && input.isDown(Platform::KeyEvent::V))
+		if (input.isDown(Platform::KeyEvent::V))
 		{
-			std::uniform_real_distribution<float> uni_dist_2pi(0.0f, M_PI * 2.0f);
-			for (int i = 0; i < 128 * 3; i += 3)
+			/*if (light_samples.size() == 128 * 3 && input.isDown(Platform::KeyEvent::V))
 			{
-				Vec3 l(light_samples[i], light_samples[i + 1], light_samples[i + 2]);
-				l *= Matrix3(uni_dist_2pi(random), light);
-				light_samples[i] = l.x;
-				light_samples[i + 1] = l.y;
-				light_samples[i + 2] = l.z;
+				std::uniform_real_distribution<float> uni_dist_2pi(0.0f, M_PI * 2.0f);
+				for (int i = 0; i < 128 * 3; i += 3)
+				{
+					Vec3 l(light_samples[i], light_samples[i + 1], light_samples[i + 2]);
+					l *= Matrix3(uni_dist_2pi(random), light);
+					light_samples[i] = l.x;
+					light_samples[i + 1] = l.y;
+					light_samples[i + 2] = l.z;
+				}
+			}*/
+
+			unsigned short light_lookup_res_angle = 128;
+			unsigned short light_lookup_res_distance = 64;
+			// calculate shadow look-up table
+			{
+				LARGE_INTEGER freq, start, end;
+				QueryPerformanceFrequency(&freq);
+				QueryPerformanceCounter(&start);
+
+				light_lookup.resize(light_lookup_res_angle * light_lookup_res_distance * 4);
+				std::fill(light_lookup.begin(), light_lookup.end(), 0u);
+				Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
+				Vec3 light_y = light.Cross(light_x).Normalize();
+				for (int x = 0; x < light_lookup_res_angle; ++x)
+				{
+					for (int y = 0; y < light_lookup_res_distance; ++y)
+					{
+						float angle = x * M_PI * 2.0f / light_lookup_res_angle;
+						Vec3 dir = light_x * cos(angle) + light_y * sin(angle);
+
+						float dist = float(y) / light_lookup_res_distance * 2.0f - 1.0f;
+						Vec3 off = light + dir * dist * light_size;
+						off.Normalize();
+
+						for (int j = 0; j < 4; ++j)
+						{
+							for (int i = 0; i < 32; ++i)
+							{
+								float dot = dir.Dot(off - Vec3(light_samples[(i + j * 32) * 3], light_samples[(i + j * 32) * 3 + 1], light_samples[(i + j * 32) * 3 + 2]));
+								light_lookup[j + x * 4 + y * light_lookup_res_angle * 4] |= (dot > 0.0f ? 1u : 0u) << i;
+							}
+							/*if (y == 0)
+								light_lookup[j + x * 4 + y * light_lookup_res_angle * 4] = 0u;
+							if (y == light_lookup_res_distance - 1)
+								light_lookup[j + x * 4 + y * light_lookup_res_angle * 4] = UINT32_MAX;*/
+						}
+					}
+				}
+
+				QueryPerformanceCounter(&end);
+				double durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
+				Profiler::add("shadow-look-up", durationInSeconds);
 			}
-		}*/
+
+			// push shadow look-up table to gpu
+			if (light_lookup_tex == 0)
+			{
+				light_lookup_tex.reset(new Texture());
+
+				light_lookup_tex->w = light_lookup_res_angle;
+				light_lookup_tex->h = light_lookup_res_distance;
+
+				glGenTextures(1, &light_lookup_tex->texid);
+				glBindTexture(GL_TEXTURE_2D, light_lookup_tex->texid);
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32UI, light_lookup_res_angle, light_lookup_res_distance, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, light_lookup.data());
+			}
+			else
+			{
+				glBindTexture(GL_TEXTURE_2D, light_lookup_tex->texid);
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, light_lookup_res_angle, light_lookup_res_distance, GL_RGBA_INTEGER, GL_UNSIGNED_INT, light_lookup.data());
+			}
+
+		}
 
 		// stencils
 		if (stencil_prog != nullptr && flat_stencil_prog != nullptr)
@@ -1086,6 +1155,12 @@ void Client::render_world(void)
 
 				stencil_prog->Uniform4f("light", light.x, light.y, light.z, 0.0f);
 
+				Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
+				Vec3 light_y = light.Cross(light_x).Normalize();
+
+				stencil_prog->Uniform4f("light_x", light_x.x, light_x.y, light_x.z, 0.0f);
+				stencil_prog->Uniform4f("light_y", light_y.x, light_y.y, light_y.z, 0.0f);
+
 				stencil_prog->Uniform1f("lsize", light_size);
 
 				stencil_prog->Uniform3fv("light_samples", light_samples);
@@ -1093,6 +1168,10 @@ void Client::render_world(void)
 				glActiveTexture(GL_TEXTURE1);
 				stencil_prog->Uniform1i("depth", 1);
 				glBindTexture(GL_TEXTURE_2D, buffer->depth);
+				glActiveTexture(GL_TEXTURE2);
+				stencil_prog->Uniform1i("lookup", 2);
+				if (light_lookup_tex != nullptr)
+					glBindTexture(GL_TEXTURE_2D, light_lookup_tex->getGLTexID());
 				glActiveTexture(GL_TEXTURE0);
 
 				ShaderMod mod(stencil_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
@@ -1184,6 +1263,8 @@ void Client::render_world(void)
 
 				deferred_prog->Uniform1i("nLights", 1);
 
+				deferred_prog->Uniform3fv("light_samples", light_samples);
+
 				deferred_prog->Uniform1i("diffuse", 0);
 				glBindTexture(GL_TEXTURE_2D, buffer->tex[0]);
 				glActiveTexture(GL_TEXTURE1);
@@ -1247,7 +1328,7 @@ void Client::render_world(void)
 		}
 		glActiveTexture(GL_TEXTURE0);
 
-		glViewport(view[0], view[1], view[2], view[3]);
+		glViewport(0, 0, view_w, view_h);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, frame2->fb);
 		glClear(GL_COLOR_BUFFER_BIT);

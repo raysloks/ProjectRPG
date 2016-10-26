@@ -23,6 +23,8 @@ uniform vec3 zn;
 
 uniform int nLights;
 
+uniform vec3 light_samples[128];
+
 uniform vec4 fog_color;
 uniform float fog_strength = 1.0 / 15000.0;
 
@@ -116,18 +118,18 @@ void main()
 
 		uvec4 stencil_sample = texture(stencil, gl_TexCoord[0].xy);
 		vec4 flat_stencil_sample = texture(flat_stencil, gl_TexCoord[0].xy);
-		uint total_stencil = 0u;
-		for (int i = 0; i < 32; i++)
+		float total_stencil = 0.0;
+		for (int j = 0; j < 4; j++)
 		{
-			total_stencil += (stencil_sample.r >> i) & 1u;
-			total_stencil += (stencil_sample.g >> i) & 1u;
-			total_stencil += (stencil_sample.b >> i) & 1u;
-			total_stencil += (stencil_sample.a >> i) & 1u;
+			for (int i = 0; i < 32; i++)
+			{
+				total_stencil += float((stencil_sample[j] >> i) & 1u) * max(0.0, dot(n, light_samples[i + j * 32]));
+			}
 		}
-		float illumination = float(total_stencil) / 128.0;
+		float illumination = total_stencil / 128.0;
 		illumination *= min(1.0, max(0.0, 1.0 - flat_stencil_sample.x));
 
-		intensity *= illumination;
+		intensity = illumination;
 
 		intensity *= 0.9;
 		intensity += 0.1;
