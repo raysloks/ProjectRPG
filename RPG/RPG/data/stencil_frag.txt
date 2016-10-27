@@ -72,13 +72,12 @@ void main()
 {
 	float z = texture2D(depth, vec2(gl_FragCoord.x * pixel.x, gl_FragCoord.y * pixel.y)).x;
 
-	vec4 world = vec4(gl_FragCoord.x*pixel.x*2.0-1.0, gl_FragCoord.y*pixel.y*2.0-1.0, z+z*z*0.5*zNear/zFar, 1.0);
+	vec4 world = vec4(gl_FragCoord.x*pixel.x*2.0-1.0, gl_FragCoord.y*pixel.y*2.0-1.0, z*2.0-1.0, 1.0);
 
 	world = proj_inv * world;
 	world /= world.w;
-	world.xyz /= 2.0;
 
-	if (dot(n_inner, world.xyz - first_pos) < 0.0 || dot(n_outer, world.xyz - first_pos) > 0.0 || dot(first_cap, world.xyz - first_pos) > 0.0 || dot(second_cap, world.xyz - second_pos) > 0.0)
+	if (dot(n_inner, world.xyz - first_pos) < length(world.xyz) / -4096.0 || dot(n_outer, world.xyz - first_pos) > 0.0 || dot(first_cap, world.xyz - first_pos) > 0.0 || dot(second_cap, world.xyz - second_pos) > 0.0)
 		discard;
 
 	float first_dot_f = dot(first_pos, side_flat_first);

@@ -65,11 +65,11 @@ void main()
 	vec4 nor = texture2D(normal, gl_TexCoord[0].xy);
 
 	float z = texture2D(depth, gl_TexCoord[0].xy).x;
-	world = vec4(gl_TexCoord[0].x*2.0-1.0, gl_TexCoord[0].y*2.0-1.0, z+z*z*0.5*zNear/zFar, 1.0);
+
+	world = vec4(gl_TexCoord[0].x*2.0-1.0, gl_TexCoord[0].y*2.0-1.0, z*2.0-1.0, 1.0);
 
 	world = proj * world;
 	world /= world.w;
-	world.xyz /= 2.0;
 
 	vec3 world_norm = normalize(world.xyz);
 
