@@ -111,7 +111,10 @@ void FrameBuffer::resize(unsigned short width, unsigned short height)
 		for (int i=0;i<g_type.size();++i)
 		{
 			glBindTexture(GL_TEXTURE_2D, tex[i]);
-			glTexImage2D(GL_TEXTURE_2D, 0, g_type[i], w, h, 0, GL_RGB, GL_FLOAT, NULL);
+			if (g_type[i] == GL_RGBA32UI)
+				glTexImage2D(GL_TEXTURE_2D, 0, g_type[i], w, h, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, NULL);
+			else
+				glTexImage2D(GL_TEXTURE_2D, 0, g_type[i], w, h, 0, GL_RGB, GL_FLOAT, NULL);
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 

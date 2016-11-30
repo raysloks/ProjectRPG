@@ -77,8 +77,8 @@ void main()
 	world = proj_inv * world;
 	world /= world.w;
 
-	if (dot(n_inner, world.xyz - first_pos) < length(world.xyz) / -4096.0 || dot(n_outer, world.xyz - first_pos) > 0.0 || dot(first_cap, world.xyz - first_pos) > 0.0 || dot(second_cap, world.xyz - second_pos) > 0.0)
-		discard;
+	//if (dot(n_inner, world.xyz - first_pos) < length(world.xyz) / -4096.0 || dot(n_outer, world.xyz - first_pos) > 0.0 || dot(first_cap, world.xyz - first_pos) > 0.0 || dot(second_cap, world.xyz - second_pos) > 0.0)
+		//discard;
 
 	float first_dot_f = dot(first_pos, side_flat_first);
 	float second_dot_f = dot(second_pos, side_flat_first);

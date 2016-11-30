@@ -102,73 +102,32 @@ public:
 					world->AddEntity(ent);
 				}
 			}*/
-			/*for (int y = 0; y < 20; ++y)
-			{
-				for (int i = 0; i < 20; ++i)
-				{
-					NewEntity * ent = new NewEntity();
+			//for (int y = 0; y < 20; ++y)
+			//{
+			//	for (int i = 0; i < 20; ++i)
+			//	{
+			//		NewEntity * ent = new NewEntity();
 
-					PositionComponent * p = new PositionComponent();
-					p->p += Vec3(0.2f * i, 0.2f * y + 0.05f * i, 0.15f * i + 0.05f * y - 12.0f);
-					ColliderComponent * c = new ColliderComponent();
-					GraphicsComponent * g = new GraphicsComponent(false);
+			//		PositionComponent * p = new PositionComponent();
+			//		p->p += Vec3(2.0f * i, 2.0f * y + 0.5f * i, 1.5f * i + 0.5f * y - 12.0f);
+			//		ColliderComponent * c = new ColliderComponent();
+			//		GraphicsComponent * g = new GraphicsComponent(false);
 
-					ent->addComponent(p);
-					ent->addComponent(c);
-					ent->addComponent(g);
+			//		ent->addComponent(p);
+			//		ent->addComponent(c);
+			//		ent->addComponent(g);
 
-					std::vector<std::string> tex;
-					tex.push_back("data/assets/terrain/textures/grass.tga");
+			//		std::vector<std::string> tex;
+			//		tex.push_back("data/assets/terrain/textures/RockPlate.tga");
 
-					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", tex, 0)));
-					g->decs.items.front()->local *= 0.1f;
-					g->decs.items.front()->local.mtrx[3][3] = 1.0f;
-					g->decs.items.front()->final = g->decs.items.front()->local;
+			//		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", tex, 0)));
+			//		//g->decs.items.front()->local *= 0.1f;
+			//		//g->decs.items.front()->local.mtrx[3][3] = 1.0f;
+			//		g->decs.items.front()->final = g->decs.items.front()->local;
 
-					world->AddEntity(ent);
-				}
-			}*/
-			{
-				NewEntity * ent = new NewEntity();
-
-				PositionComponent * p = new PositionComponent();
-				p->p += Vec3(10.0f, 0.0f, -11.5f);
-				ColliderComponent * c = new ColliderComponent();
-				GraphicsComponent * g = new GraphicsComponent(false);
-
-				ent->addComponent(p);
-				ent->addComponent(c);
-				ent->addComponent(g);
-
-				std::vector<std::string> tex;
-				tex.push_back("data/assets/terrain/textures/RockPlate.tga");
-
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/triangle_test.gmdl", tex, 0)));
-				g->decs.items.front()->final = g->decs.items.front()->local;
-
-				world->AddEntity(ent);
-			}
-			{
-				NewEntity * ent = new NewEntity();
-
-				PositionComponent * p = new PositionComponent();
-				p->p += Vec3(10.0f, 4.0f, -9.5f);
-				ColliderComponent * c = new ColliderComponent();
-				GraphicsComponent * g = new GraphicsComponent(false);
-
-				ent->addComponent(p);
-				ent->addComponent(c);
-				ent->addComponent(g);
-
-				std::vector<std::string> tex;
-				tex.push_back("data/assets/terrain/textures/RockPlate.tga");
-
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/triangle_test.gmdl", tex, 0)));
-				g->decs.items.front()->local *= Matrix3(M_PI, Vec3(1.0f, 0.0f, 0.0f));
-				g->decs.items.front()->final = g->decs.items.front()->local;
-
-				world->AddEntity(ent);
-			}
+			//		world->AddEntity(ent);
+			//	}
+			//}
 			{
 				NewEntity * ent = new NewEntity();
 

@@ -17,7 +17,8 @@ public:
 	GLenum z_type;
 
 	GLuint* tex;
-	GLuint fb, depth;
+	GLuint depth;
+	GLuint fb;
 };
 
 #endif

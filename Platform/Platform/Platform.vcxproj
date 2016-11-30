@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Buffer.h" />
     <ClInclude Include="FrameBuffer.h" />
     <ClInclude Include="GUIObject.h" />
     <ClInclude Include="KeyEvent.h" />
@@ -27,6 +28,7 @@
     <ClInclude Include="ShaderProgram.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="FrameBuffer.cpp" />
     <ClCompile Include="GUIObject.cpp" />
     <ClCompile Include="KeyEvent.cpp" />

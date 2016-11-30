@@ -647,8 +647,7 @@ void Client::render_world(void)
 			stencil = std::make_shared<FrameBuffer>(buffer_w, buffer_h, gbuf, GL_NONE);
 			glBindFramebuffer(GL_FRAMEBUFFER, stencil->fb);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, buffer->depth, 0);
-		}
-		else {
+		} else {
 			stencil->resize(buffer_w, buffer_h);
 		}
 
@@ -658,8 +657,7 @@ void Client::render_world(void)
 			flat_stencil = std::make_shared<FrameBuffer>(buffer_w, buffer_h, gbuf, GL_NONE);
 			glBindFramebuffer(GL_FRAMEBUFFER, flat_stencil->fb);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, buffer->depth, 0);
-		}
-		else {
+		} else {
 			flat_stencil->resize(buffer_w, buffer_h);
 		}
 
@@ -667,7 +665,8 @@ void Client::render_world(void)
 
 		Matrix4 pers = Matrix4::Perspective(fov, aspect, near_z, far_z);
 
-		Vec2 view_texel_jitter(0.0f, 0.0f);
+		std::uniform_real_distribution<float> jitter_distribution(-0.5f, 0.5f);
+		Vec2 view_texel_jitter(jitter_distribution(random), jitter_distribution(random));
 		pers *= Matrix4::Translation(Vec3(view_texel_jitter.x / buffer_w, view_texel_jitter.y / buffer_h, 0.0f));
 
 		Matrix4 rot = world->cam_rot.getConj();
@@ -910,7 +909,7 @@ void Client::render_world(void)
 
 		light.Normalize();
 
-		// calculate shadow sample distribution
+		// calculate noise shadow sample distribution
 		if (input.isDown(Platform::KeyEvent::N))
 		{
 			light_samples.resize(128 * 3);
@@ -952,7 +951,7 @@ void Client::render_world(void)
 		}
 
 		// calculate hexagon grid shadow sample distribution
-		if (input.isDown(Platform::KeyEvent::B))
+		if (input.isDown(Platform::KeyEvent::H))
 		{
 			std::vector<Vec2> points;
 			std::set<std::pair<int, int>> visited;
@@ -985,21 +984,48 @@ void Client::render_world(void)
 			}
 			max_r = sqrt(max_r) + 0.5f;
 			light_samples.resize(128 * 3);
-			light_samples[0] = light.x;
-			light_samples[1] = light.y;
-			light_samples[2] = light.z;
 			Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
 			Vec3 light_y = light.Cross(light_x).Normalize();
 			for (int i = 0; i < 128; ++i)
 			{
-				Vec3 l = (light + (light_x * points[i].x + light_y * points[i].y) / max_r * light_size).Normalize();
+				Vec3 l = (light + (light_x * points[i].x + light_y * points[i].y) * light_size / max_r).Normalize();
 				light_samples[i * 3] = l.x;
 				light_samples[i * 3 + 1] = l.y;
 				light_samples[i * 3 + 2] = l.z;
 			}
 		}
 
-		if (input.isDown(Platform::KeyEvent::V))
+		// calculate rings shadow sample distribution
+		if (input.isDown(Platform::KeyEvent::B) || light_samples.empty())
+		{
+			std::vector<Vec2> points;
+			int ring = 1;
+			float density = 3.0f;
+			while (points.size() < 128)
+			{
+				int points_to_add = (2*ring - 1) * density;
+				if (points.size() + points_to_add > 128)
+					points_to_add = 128 - points.size();
+				for (int i = 0; i < points_to_add; ++i)
+				{
+					float angle = i * 2.0f * M_PI / points_to_add + ring;
+					points.push_back(Vec2(cos(angle), sin(angle)) * ring);
+				}
+				++ring;
+			}
+			light_samples.resize(128 * 3);
+			Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
+			Vec3 light_y = light.Cross(light_x).Normalize();
+			for (int i = 0; i < 128; ++i)
+			{
+				Vec3 l = (light + (light_x * points[i].x + light_y * points[i].y) * light_size / ring).Normalize();
+				light_samples[i * 3] = l.x;
+				light_samples[i * 3 + 1] = l.y;
+				light_samples[i * 3 + 2] = l.z;
+			}
+		}
+
+		if (input.isDown(Platform::KeyEvent::V) || light_lookup.empty())
 		{
 			/*if (light_samples.size() == 128 * 3 && input.isDown(Platform::KeyEvent::V))
 			{
@@ -1044,10 +1070,10 @@ void Client::render_world(void)
 								float dot = dir.Dot(off - Vec3(light_samples[(i + j * 32) * 3], light_samples[(i + j * 32) * 3 + 1], light_samples[(i + j * 32) * 3 + 2]));
 								light_lookup[j + x * 4 + y * light_lookup_res_angle * 4] |= (dot > 0.0f ? 1u : 0u) << i;
 							}
-							/*if (y == 0)
+							if (y == 0)
 								light_lookup[j + x * 4 + y * light_lookup_res_angle * 4] = 0u;
 							if (y == light_lookup_res_distance - 1)
-								light_lookup[j + x * 4 + y * light_lookup_res_angle * 4] = UINT32_MAX;*/
+								light_lookup[j + x * 4 + y * light_lookup_res_angle * 4] = UINT32_MAX;
 						}
 					}
 				}

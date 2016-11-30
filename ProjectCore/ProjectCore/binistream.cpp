@@ -61,10 +61,10 @@ namespace std
 	{
 		uint32_t size;
 		is.read((char*)&size, sizeof(size));
-		std::cout << size;
+		//std::cout << size;
 		str.resize(size);
 		is.read(&str[0], size);
-		std::cout << " " << str << std::endl;
+		//std::cout << " " << str << std::endl;
 		return is;
 	}
 }

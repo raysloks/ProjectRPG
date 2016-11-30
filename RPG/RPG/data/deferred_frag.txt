@@ -131,14 +131,14 @@ void main()
 
 		intensity = illumination;
 
-		intensity *= 0.9;
+		intensity *= 1.1;
 		intensity += 0.1;
 
 		//intensity += dot(world_norm, n) * 0.2 + 0.2;
 
 		specular *= step(0.5, illumination);
 
-		vec3 color = vec3(intensity);
+		vec3 color = vec3(intensity, intensity * 0.95 + 0.05, intensity * 0.75 + 0.25);
 		color += vec3(specular);
 
 		final += vec4(color * tex_col.xyz, tex_col.w);
@@ -150,5 +150,6 @@ void main()
 	float fog_weight = length(world) * fog_strength;
 	fog_weight = exp(fog_weight)-1.0;
 	fog_weight = min(fog_weight, 100.0);
-	gl_FragColor = (final + fog_color*fog_weight)/(1.0+fog_weight);// * max(0.0, min(1.0, 1.0 - (length(world) - 200.0) / 50.0));
+	gl_FragColor = final;
+	//gl_FragColor = (final + fog_color*fog_weight)/(1.0+fog_weight);// * max(0.0, min(1.0, 1.0 - (length(world) - 200.0) / 50.0));
 }
