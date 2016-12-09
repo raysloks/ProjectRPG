@@ -11,7 +11,7 @@ uniform mat4 proj_inv;
 
 void main()
 {
-	vec3 n = normalize((proj_inv * vec4(texCoord, 1.0, 0.0)).xyz);
+	vec3 n = normalize((proj_inv * vec4(texCoord * 2.0 - 1.0, 0.0, 1.0)).xyz);
 
 	vec3 color = horizon*(1.0-abs(n.z))+zenith*abs(n.z);
 
