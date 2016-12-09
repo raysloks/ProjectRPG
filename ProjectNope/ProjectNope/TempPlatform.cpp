@@ -74,7 +74,7 @@ void TempPlatform::apply(void)
 		ptr->Destroy();
 		delete ptr;
 	}
-	ptr = new TPWindow("MotionMetrix", mX, mY, mW, mH, z_buffer_depth, use_fullscreen, this);
+	ptr = new TPWindow("RPG", mX, mY, mW, mH, z_buffer_depth, use_fullscreen, this);
 	ptr->getContext()->SetVSync(use_vsync);
 }
 

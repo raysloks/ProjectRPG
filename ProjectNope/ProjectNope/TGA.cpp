@@ -197,9 +197,8 @@ GLuint TGA::getGLTexID(void)
 	{
 		glGenTextures(1, &texid);
 		glBindTexture(GL_TEXTURE_2D, texid);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		if (useGeneralAnisotropicFiltering ? fGeneralAnisotropicFiltering : fAnisotropicFiltering>1.0f)
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, useGeneralAnisotropicFiltering ? fGeneralAnisotropicFiltering : fAnisotropicFiltering);
+		if (fAnisotropicFiltering < 0.5f ? fGeneralAnisotropicFiltering : fAnisotropicFiltering > 1.0f)
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, fAnisotropicFiltering < 0.5f ? fGeneralAnisotropicFiltering : fAnisotropicFiltering);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

@@ -1,19 +1,22 @@
-#version 120
+#version 440
 
-varying vec4 vt;
+in vec2 texCoord;
 
 uniform vec3 horizon;
 uniform vec3 zenith;
 
+uniform vec3 light;
+
+uniform mat4 proj_inv;
+
 void main()
 {
-	vec3 n = normalize(vec3(vt));
+	vec3 n = normalize((proj_inv * vec4(texCoord, 1.0, 0.0)).xyz);
 
 	vec3 color = horizon*(1.0-abs(n.z))+zenith*abs(n.z);
 
 	float intensity;
-	vec3 cd = normalize(vec3(gl_LightSource[0].position));
-	float angle = acos(dot(cd,n));
+	float angle = acos(dot(light, n));
 	intensity = 1-angle/0.02;
 	intensity = clamp(intensity, 0.0, 1.0);
 

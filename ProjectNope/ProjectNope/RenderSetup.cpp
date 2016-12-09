@@ -2,7 +2,6 @@
 
 RenderSetup::RenderSetup()
 {
-	tmp_use_default_state = true;
 }
 
 RenderSetup::~RenderSetup()
@@ -19,17 +18,20 @@ void RenderSetup::popMod(void)
 	mod_stack.pop_back();
 }
 
-void RenderSetup::applyMods(void)
+bool RenderSetup::applyMods(void)
 {
 	auto previous_program = current_program;
-	for (auto i=mod_stack.begin();i!=mod_stack.end();++i)
-		if (i->shader!=0)
+	for (auto i = mod_stack.begin(); i != mod_stack.end(); ++i)
+		if (i->shader != 0)
 			current_program = i->shader;
-	if (current_program!=previous_program)
-		glUseProgram(current_program->prog);
-	for (auto i=mod_stack.begin();i!=mod_stack.end();++i)
+	if (!current_program->IsReady())
+		return false;
+	if (current_program != previous_program)
+		current_program->Use();
+	for (auto i = mod_stack.begin(); i != mod_stack.end(); ++i)
 		if (i->mod!=0)
 			i->mod(current_program);
+	return true;
 }
 
 void RenderSetup::pushTransform(void)

@@ -323,70 +323,73 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 	QueryPerformanceFrequency(&freq);
 	QueryPerformanceCounter(&start);
 
-	rs.applyMods();
-
-	GLint pos = rs.current_program->GetAttributeLocation("pos");
-	GLint normal = rs.current_program->GetAttributeLocation("normal");
-	GLint texcoord = rs.current_program->GetAttributeLocation("texCoord");
-
-	glEnableVertexAttribArray(pos);
-	glEnableVertexAttribArray(normal);
-	glEnableVertexAttribArray(texcoord);
-
-	for (auto i = standard_static.begin(); i != standard_static.end(); ++i)
+	if (rs.applyMods())
 	{
-		glBindTexture(GL_TEXTURE_2D, i->second.first);
-		PreparedVBO& vbo = i->second.second;
 
-		rs.current_program->UniformMatrix4fv("transform", (Matrix4::Translation(-rs.origin)*rs.view).data);
-		rs.current_program->UniformMatrix3fv("normal_transform", Matrix3().data);
+		GLint pos = rs.current_program->GetAttributeLocation("pos");
+		GLint normal = rs.current_program->GetAttributeLocation("normal");
+		GLint texcoord = rs.current_program->GetAttributeLocation("texCoord");
 
-		glBindBuffer(GL_ARRAY_BUFFER, vbo.v);
-		glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo.t);
-		glVertexAttribPointer(texcoord, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo.n);
-		glVertexAttribPointer(normal, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+		glEnableVertexAttribArray(pos);
+		glEnableVertexAttribArray(normal);
+		glEnableVertexAttribArray(texcoord);
 
-		glDrawArrays(GL_TRIANGLES, 0, vbo.size);
-	}
-
-	for (auto i = standard_dynamic.begin(); i != standard_dynamic.end(); ++i)
-	{
-		glBindTexture(GL_TEXTURE_2D, i->second.first);
-		std::vector<PreparedVBO>& vbos = i->second.second;
-		for (size_t j = 0; j != vbos.size(); ++j)
+		for (auto i = standard_static.begin(); i != standard_static.end(); ++i)
 		{
-			rs.current_program->UniformMatrix4fv("transform", (vbos[j].mtrx*Matrix4::Translation(vbos[j].p - rs.origin)*rs.view).data);
-			rs.current_program->UniformMatrix3fv("normal_transform", Matrix3(vbos[j].mtrx).data);
+			glBindTexture(GL_TEXTURE_2D, i->second.first);
+			PreparedVBO& vbo = i->second.second;
 
-			glBindBuffer(GL_ARRAY_BUFFER, vbos[j].v);
+			rs.current_program->UniformMatrix4fv("transform", (Matrix4::Translation(-rs.origin)*rs.view).data);
+			rs.current_program->UniformMatrix3fv("normal_transform", Matrix3().data);
+
+			glBindBuffer(GL_ARRAY_BUFFER, vbo.v);
 			glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-			glBindBuffer(GL_ARRAY_BUFFER, vbos[j].t);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo.t);
 			glVertexAttribPointer(texcoord, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-			glBindBuffer(GL_ARRAY_BUFFER, vbos[j].n);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo.n);
 			glVertexAttribPointer(normal, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 
-			glDrawArrays(GL_TRIANGLES, 0, vbos[j].size);
+			glDrawArrays(GL_TRIANGLES, 0, vbo.size);
 		}
-	}
 
-	glDisableVertexAttribArray(texcoord);
-	glDisableVertexAttribArray(normal);
-	glDisableVertexAttribArray(pos);
+		for (auto i = standard_dynamic.begin(); i != standard_dynamic.end(); ++i)
+		{
+			glBindTexture(GL_TEXTURE_2D, i->second.first);
+			std::vector<PreparedVBO>& vbos = i->second.second;
+			for (size_t j = 0; j != vbos.size(); ++j)
+			{
+				rs.current_program->UniformMatrix4fv("transform", (vbos[j].mtrx*Matrix4::Translation(vbos[j].p - rs.origin)*rs.view).data);
+				rs.current_program->UniformMatrix3fv("normal_transform", Matrix3(vbos[j].mtrx).data);
 
-	for (auto i = custom_dynamic.begin(); i != custom_dynamic.end(); ++i)
-	{
-		if ((*i)->mod.find(rs.pass) != (*i)->mod.end())
-		{
-			rs.pushMod((*i)->mod[rs.pass]);
-			(*i)->render(rs);
-			rs.popMod();
+				glBindBuffer(GL_ARRAY_BUFFER, vbos[j].v);
+				glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+				glBindBuffer(GL_ARRAY_BUFFER, vbos[j].t);
+				glVertexAttribPointer(texcoord, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+				glBindBuffer(GL_ARRAY_BUFFER, vbos[j].n);
+				glVertexAttribPointer(normal, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+
+				glDrawArrays(GL_TRIANGLES, 0, vbos[j].size);
+			}
 		}
-		else
+
+		glDisableVertexAttribArray(texcoord);
+		glDisableVertexAttribArray(normal);
+		glDisableVertexAttribArray(pos);
+
+		for (auto i = custom_dynamic.begin(); i != custom_dynamic.end(); ++i)
 		{
-			(*i)->render(rs);
+			if ((*i)->mod.find(rs.pass) != (*i)->mod.end())
+			{
+				rs.pushMod((*i)->mod[rs.pass]);
+				(*i)->render(rs);
+				rs.popMod();
+			}
+			else
+			{
+				(*i)->render(rs);
+			}
 		}
+
 	}
 
 	QueryPerformanceCounter(&end);

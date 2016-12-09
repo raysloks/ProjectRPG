@@ -18,7 +18,7 @@ public:
 
 	virtual GLuint getGLTexID(void);
 
-	bool useGeneralAnisotropicFiltering, sRGB;
+	bool sRGB;
 	float fAnisotropicFiltering;
 	static bool useGammaCorrection;
 	static float fGeneralAnisotropicFiltering;

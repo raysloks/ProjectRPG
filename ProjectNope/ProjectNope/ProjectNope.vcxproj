@@ -216,8 +216,9 @@
     <ClCompile Include="RectangleButtonWindow.cpp" />
     <ClCompile Include="RectangleWindow.cpp" />
     <ClCompile Include="Resource.cpp" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderMod.cpp" />
-    <ClCompile Include="ShaderResource.cpp" />
+    <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="SkeletalAnimation.cpp" />
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="StandardHUD.cpp" />
@@ -253,6 +254,8 @@
     <ClInclude Include="ControllerState.h" />
     <ClInclude Include="ExampleComponent.h" />
     <ClInclude Include="FieldTriangle.h" />
+    <ClInclude Include="Shader.h" />
+    <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="Synchronizer.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="LineComponent.h" />
@@ -300,7 +303,6 @@
     <ClInclude Include="RectangleWindow.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ShaderMod.h" />
-    <ClInclude Include="ShaderResource.h" />
     <ClInclude Include="SkeletalAnimation.h" />
     <ClInclude Include="Sound.h" />
     <ClInclude Include="StandardHUD.h" />

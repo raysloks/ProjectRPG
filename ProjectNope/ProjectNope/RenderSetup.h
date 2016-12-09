@@ -19,7 +19,7 @@ public:
 	void pushMod(const ShaderMod& mod);
 	void popMod(void);
 
-	void applyMods(void);
+	bool applyMods(void);
 
 	void pushTransform(void);
 	void popTransform(void);
@@ -39,8 +39,6 @@ public:
 	std::vector<Matrix4> transform_stack;
 	std::vector<ShaderMod> mod_stack;
 	std::shared_ptr<ShaderProgram> current_program;
-
-	bool tmp_use_default_state; // TODO make better
 };
 
 #endif

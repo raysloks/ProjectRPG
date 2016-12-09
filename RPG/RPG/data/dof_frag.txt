@@ -1,4 +1,4 @@
-#version 130
+#version 440
 
 uniform sampler2D diffuse;
 uniform sampler2D depth;
@@ -12,6 +12,10 @@ uniform int max_kernel_size;
 
 uniform float x_size;
 uniform float y_size;
+
+in vec2 texCoord;
+
+out vec4 final_color;
 
 void main()
 {
@@ -41,11 +45,11 @@ void main()
 		for (float y=-0.5+y_size/2.0;y<=0.5;y+=y_size)
 		{
 			float d = 1.0;
-			tex_col += texture2D(diffuse, gl_TexCoord[0].xy+vec2(x*pixel.x, y*pixel.y))*d;
+			tex_col += texture(diffuse, texCoord+vec2(x*pixel.x, y*pixel.y))*d;
 			samples += d;
 		}
 	}
 	tex_col /= samples;
 
-	gl_FragColor = tex_col;
+	final_color = sqrt(tex_col);
 }

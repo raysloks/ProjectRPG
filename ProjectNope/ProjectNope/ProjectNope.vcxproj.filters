@@ -129,9 +129,6 @@
     <ClCompile Include="Collision.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ShaderResource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PositionVar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -294,6 +291,12 @@
     <ClCompile Include="AudioComponent.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderProgram.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IPlatform.h">
@@ -381,9 +384,6 @@
       <Filter>Header Files\Windows</Filter>
     </ClInclude>
     <ClInclude Include="Collision.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderResource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PositionVar.h">
@@ -553,6 +553,12 @@
     </ClInclude>
     <ClInclude Include="AudioComponent.h">
       <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderProgram.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

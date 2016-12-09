@@ -24,8 +24,6 @@
     <ClInclude Include="GUIObject.h" />
     <ClInclude Include="KeyEvent.h" />
     <ClInclude Include="RenderContext.h" />
-    <ClInclude Include="Shader.h" />
-    <ClInclude Include="ShaderProgram.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Buffer.cpp" />
@@ -33,8 +31,6 @@
     <ClCompile Include="GUIObject.cpp" />
     <ClCompile Include="KeyEvent.cpp" />
     <ClCompile Include="RenderContext.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="ShaderProgram.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{ECC4E600-BBB5-4212-B825-DD0E90324C5F}</ProjectGuid>

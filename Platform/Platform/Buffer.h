@@ -9,7 +9,8 @@ enum BufferFormatType
 	BUFFER_UNSIGNED_INTEGER,
 	BUFFER_SIGNED_INTEGER,
 	BUFFER_DEPTH,
-	BUFFER_DEPTH_STENCIL
+	BUFFER_DEPTH_STENCIL,
+	BUFFER_STENCIL
 };
 
 enum BufferTextureType
@@ -18,6 +19,18 @@ enum BufferTextureType
 	BUFFER_2D,
 	BUFFER_3D,
 	BUFFER_CUBE
+};
+
+enum BufferFilterType
+{
+	BUFFER_NEAREST,
+	BUFFER_LINEAR
+};
+
+enum BufferWrapType
+{
+	BUFFER_REPEAT,
+	BUFFER_CLAMP
 };
 
 class Buffer
@@ -32,7 +45,7 @@ public:
 
 	void setType(BufferTextureType type);
 
-	void setFormat(BufferFormatType format, unsigned int r, unsigned int g, unsigned int b, unsigned int a);
+	void setFormat(BufferFormatType format, unsigned int r, unsigned int g = 0, unsigned int b = 0, unsigned int a = 0);
 
 	void refresh();
 
@@ -40,6 +53,10 @@ public:
 	unsigned int w, h, d;
 	BufferTextureType type;
 	BufferFormatType format;
+
+	BufferFilterType min_filter, mag_filter;
+	BufferWrapType wrap_s, wrap_t, wrap_r;
+	bool use_mipmap;
 
 	bool changed;
 

@@ -10,13 +10,13 @@
 #include <random>
 
 #include "Texture.h"
-#include "ShaderResource.h"
 
 #include "Input.h"
 
 class World;
 class Server;
 class ClientData;
+class Buffer;
 class FrameBuffer;
 class CascadedShadowMap;
 class ShaderProgram;
@@ -80,10 +80,8 @@ public:
 
 	std::vector<std::shared_ptr<std::function<void(RenderSetup&)>>> render2D;
 
-	std::shared_ptr<FrameBuffer> buffer, frame, frame2, stencil, flat_stencil;
-	std::shared_ptr<CascadedShadowMap> shadow_buf;
-	std::vector<Matrix4> dp;
-	GlobalPosition prev;
+	std::shared_ptr<Buffer> depth_buf, normal_buf, color_buf;
+	std::shared_ptr<FrameBuffer> depth_prepass_fb, deferred_fb, color_fb;
 
 	int supersample_x, supersample_y;
 

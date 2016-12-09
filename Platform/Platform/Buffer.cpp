@@ -5,6 +5,7 @@
 Buffer::Buffer()
 {
 	glGenTextures(1, &gl_texture_id);
+	type = BUFFER_2D;
 }
 
 Buffer::~Buffer()
@@ -288,6 +289,18 @@ void Buffer::setFormat(BufferFormatType format, unsigned int r, unsigned int g, 
 			else
 				gl_internal_format = GL_DEPTH24_STENCIL8;
 			break;
+		case BUFFER_STENCIL:
+			gl_format = GL_STENCIL;
+			gl_type = GL_UNSIGNED_INT;
+			if (r > 8)
+				gl_internal_format = GL_STENCIL_INDEX16;
+			else if (r > 4)
+				gl_internal_format = GL_STENCIL_INDEX8;
+			else if (r > 1)
+				gl_internal_format = GL_STENCIL_INDEX4;
+			else
+				gl_internal_format = GL_STENCIL_INDEX1;
+			break;
 		}
 	}
 }
@@ -321,5 +334,9 @@ void Buffer::refresh()
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl_internal_format, w, h, 0, gl_format, gl_type, nullptr);
 			break;
 		}
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 }

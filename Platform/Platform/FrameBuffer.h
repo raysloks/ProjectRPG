@@ -3,22 +3,28 @@
 
 #include "GUIObject.h"
 
+class Buffer;
+
+enum FrameBufferBindType
+{
+	FRAME_BUFFER_DRAW,
+	FRAME_BUFFER_READ,
+	FRAME_BUFFER_BOTH
+};
+
 class FrameBuffer
 {
 public:
-	FrameBuffer(unsigned short width, unsigned short height, std::vector<GLenum> gbuf, GLenum zbuf);
-	~FrameBuffer(void);
+	FrameBuffer();
+	~FrameBuffer();
 
-	void resize(unsigned short width, unsigned short height);
+	void bind(FrameBufferBindType type = FRAME_BUFFER_BOTH);
+	void unbind();
 
-	unsigned short w, h;
-
-	std::vector<GLenum> g_type;
-	GLenum z_type;
-
-	GLuint* tex;
-	GLuint depth;
-	GLuint fb;
+	std::vector<std::shared_ptr<Buffer>> color;
+	std::shared_ptr<Buffer> depth, stencil;
+	
+	unsigned int gl_frame_buffer;
 };
 
 #endif
