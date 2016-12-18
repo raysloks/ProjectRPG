@@ -1,12 +1,12 @@
 #ifndef DECORATOR_H
 #define DECORATOR_H
 
+#include <vector>
 #include <memory>
 
 #include "streams.h"
-
-#include <vector>
 #include "Matrix4.h"
+#include "MaterialList.h"
 
 class RenderSetup;
 class Pose;
@@ -16,8 +16,8 @@ class Decorator
 {
 public:
 	Decorator(void);
-	Decorator(const std::string& mesh, const std::string& texture, int bone_id = -1);
-	Decorator(const std::string& mesh, const std::vector<std::string>& textures, int bone_id = -1);
+	Decorator(const std::string& mesh, const Material& material, int bone_id = -1);
+	Decorator(const std::string& mesh, const MaterialList& materials, int bone_id = -1);
 	~Decorator(void);
 
 	void writeLog(outstream& os);
@@ -27,12 +27,12 @@ public:
 	void attach();
 	void render(RenderSetup& rs);
 
-	std::string _mesh;
-	std::vector<std::string> _tex;
-	int bid;
+	std::string mesh_fname;
 	std::shared_ptr<Mesh> mesh, skin;
 	Matrix4 local, final;
-	int priority;
+	int priority, bid;
+
+	MaterialList materials;
 };
 
 #endif

@@ -24,7 +24,7 @@ bool CollisionMesh::LoadFromResource(const std::string& mesh)
 		walls.clear();
 		for (auto set = pMesh->sets.begin();set!=pMesh->sets.end();++set)
 		{
-			for (auto it = set->begin();it!=set->end();++it)
+			for (auto it = set->vertices.begin();it!=set->vertices.end();++it)
 			{
 				walls.push_back(DynamicWall(pMesh->vert[it->a].p,pMesh->vert[it->b].p,pMesh->vert[it->c].p));
 			}
@@ -41,7 +41,7 @@ void CollisionMesh::Recalculate(const Mesh& mesh, const Mesh& next_mesh, float d
 	{
 		for (auto set = mesh.sets.begin();set!=mesh.sets.end();++set)
 		{
-			for (auto it = set->begin();it!=set->end();++it)
+			for (auto it = set->vertices.begin();it!=set->vertices.end();++it)
 			{
 				walls.push_back(DynamicWall(mesh.vert[it->a].p, mesh.vert[it->b].p, mesh.vert[it->c].p));
 				walls.back().vV1 = (next_mesh.vert[it->a].p-mesh.vert[it->a].p)/dTime;
@@ -55,7 +55,7 @@ void CollisionMesh::Recalculate(const Mesh& mesh, const Mesh& next_mesh, float d
 		auto wall = walls.begin();
 		for (auto set = mesh.sets.begin();set!=mesh.sets.end();++set)
 		{
-			for (auto it = set->begin();it!=set->end();++it)
+			for (auto it = set->vertices.begin();it!=set->vertices.end();++it)
 			{
 				wall->p1 = mesh.vert[it->a].p;
 				wall->p2 = mesh.vert[it->b].p;
@@ -77,7 +77,7 @@ void CollisionMesh::Recalculate(const Mesh& mesh, const Mesh& next_mesh, const M
 	{
 		for (auto set = mesh.sets.begin();set!=mesh.sets.end();++set)
 		{
-			for (auto it = set->begin();it!=set->end();++it)
+			for (auto it = set->vertices.begin();it!=set->vertices.end();++it)
 			{
 				walls.push_back(DynamicWall(mesh.vert[it->a].p*mtrx, mesh.vert[it->b].p*mtrx, mesh.vert[it->c].p*mtrx));
 				walls.back().vV1 = (next_mesh.vert[it->a].p*next_mtrx-mesh.vert[it->a].p*mtrx)/dTime;
@@ -91,7 +91,7 @@ void CollisionMesh::Recalculate(const Mesh& mesh, const Mesh& next_mesh, const M
 		auto wall = walls.begin();
 		for (auto set = mesh.sets.begin();set!=mesh.sets.end();++set)
 		{
-			for (auto it = set->begin();it!=set->end();++it)
+			for (auto it = set->vertices.begin();it!=set->vertices.end();++it)
 			{
 				wall->p1 = mesh.vert[it->a].p*mtrx;
 				wall->p2 = mesh.vert[it->b].p*mtrx;

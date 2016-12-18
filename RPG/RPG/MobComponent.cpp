@@ -361,7 +361,7 @@ void MobComponent::tick(float dTime)
 
 			if (dodge > 0.0f) {
 				dodge -= dTime;
-				Vec3 target = move * (50.0f * dodge + 5.0f);
+				Vec3 target = move * (5000.0f * dodge + 5.0f);
 				target -= land_n*land_n.Dot(target);
 				v = target;
 			}

@@ -57,7 +57,7 @@ void _load(std::string name, std::set<std::string> options)
 
 		std::pair<std::string, std::shared_ptr<Resource>> res;
 		if (name.find(".tga") != std::string::npos) {
-			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new TGA(instream(is.rdbuf()))));
+			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new TGA(instream(is.rdbuf()), options)));
 		}
 		else if (name.find(".wav") != std::string::npos) {
 			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new Sound(instream(is.rdbuf()), options)));

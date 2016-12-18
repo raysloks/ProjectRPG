@@ -2,8 +2,11 @@
 #include <memory>
 #include <iostream>
 
-TGA::TGA(instream& is)
+TGA::TGA(instream& is, std::set<std::string> options)
 {
+	if (options.find("!sRGB") != options.end())
+		sRGB = false;
+
 	size_t file_size;
 	is.seekg(0, std::ios::end);
 	file_size = is.tellg();

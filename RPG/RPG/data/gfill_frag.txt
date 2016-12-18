@@ -1,22 +1,38 @@
-#version 130
+#version 440
 
-varying vec2 texco;
-varying vec3 norm;
+in vec4 position;
+in vec2 texco;
+in vec3 norm;
 
 uniform sampler2D tex;
+uniform usampler2D stencil;
+uniform sampler2D flat_stencil;
 
 uniform vec3 light;
 
+out vec4 final_color;
+
 void main()
 {
+	vec4 flat_stencil_sample = texture(flat_stencil, position.xy / position.w * 0.5 + 0.5);
+	/*uvec4 stencil_sample = texture(stencil, position.xy / position.w * 0.5 + 0.5);
+	float total_stencil = 0.0;
+	for (int j = 0; j < 4; j++)
+	{
+		for (int i = 0; i < 32; i++)
+		{
+			total_stencil += float((stencil_sample[j] >> i) & 1u);
+		}
+	}
+	float illumination = total_stencil / 128.0;*/
+	float illumination = min(1.0, max(0.0, 1.0 - flat_stencil_sample.x));
+
 	float intensity = dot(light, normalize(norm));
 	intensity = max(0.0, intensity);
-
 	intensity += 0.1;
+	//intensity *= illumination;
 
-	vec3 color = texture(tex, texco).rgb;
+	vec4 color = texture(tex, texco);
 
-	color *= intensity;
-
-	gl_FragData[0] = vec4(color, 1.0);
+	final_color = vec4(color.rgb * intensity, color.a);
 }

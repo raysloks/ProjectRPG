@@ -4,6 +4,8 @@
 #include <memory>
 #include <vector>
 
+#include "Material.h"
+
 class Mesh;
 
 class MaterialList
@@ -12,9 +14,10 @@ public:
 	MaterialList(void);
 	~MaterialList(void);
 
-	void slot(const std::shared_ptr<Mesh>& mesh);
-
-	std::vector<std::string> mat;
+	std::vector<Material> materials;
 };
+
+outstream& operator<<(outstream& os, const MaterialList& mats);
+instream& operator >> (instream& is, MaterialList& mats);
 
 #endif

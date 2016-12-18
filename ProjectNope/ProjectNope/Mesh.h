@@ -9,6 +9,7 @@
 #include "SkeletalAnimation.h"
 
 class RenderSetup;
+class MaterialList;
 
 class Vertex
 {
@@ -23,21 +24,51 @@ public:
 class Face
 {
 public:
-	Face(int va, int vb, int vc);
+	Face(unsigned short a, unsigned short b, unsigned short c);
 
-	void flip(void);
+	unsigned short a, b, c;
+};
 
-	int a, b, c;
-	int ta, tb, tc;
-	Vec3 n;
+class VertexStruct
+{
+public:
+	VertexStruct(const std::string& attribute, size_t size, bool normalize, size_t stride, size_t offset);
+	~VertexStruct();
+
+	void refresh(RenderSetup& rs);
+
+	void enable();
+	void specify();
+	void disable();
+
+	std::string attribute_name;
+	int attribute_id;
+
+	size_t size, stride, offset;
+	bool normalize;
 };
 
 class VBO
 {
 public:
-	VBO(void);
+	VBO();
+	~VBO();
 
-	unsigned int v, t, n;
+	void addBuffer();
+	void addVertexStruct(const VertexStruct& vs);
+
+	void draw(RenderSetup& rs);
+
+	std::vector<std::pair<unsigned int, std::vector<VertexStruct>>> buffers;
+	size_t nIndices;
+};
+
+class FaceSet
+{
+public:
+	std::vector<Face> vertices;
+	std::vector<Face> uv_points;
+	size_t nTextures;
 };
 
 class Texture;
@@ -51,23 +82,19 @@ public:
 	Mesh(const Mesh& mesh);
 	~Mesh(void);
 
-	void render(RenderSetup& rs);//const;
-	void render(RenderSetup& rs, const Pose& pose);//const;
+	void render(RenderSetup& rs, MaterialList& mats);//const;?
 
 	void transform(const Matrix4& mtrx, Mesh * mesh);//const;
 	void getPose(const Pose& pose, Mesh * mesh);//const;
-
-	void slotTexture(int slot, const std::shared_ptr<Texture>& texture);
 
 	void addVBO(size_t set, Vec3 * v_data, Vec3 * n_data, Vec2 * t_data, Matrix4 mtrx);
 	void buildVBO(void);
 
 	std::vector<Vertex> vert;
-	std::vector<std::vector<Face>> sets;
-	std::vector<std::shared_ptr<Texture>> tex;
+	std::vector<FaceSet> sets;
 	std::vector<Vec2> uv;
 
-	std::vector<VBO> vbos;
+	std::vector<std::shared_ptr<VBO>> vbos;
 	bool vbo_latest;
 };
 

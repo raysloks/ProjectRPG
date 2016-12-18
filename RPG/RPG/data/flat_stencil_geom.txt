@@ -67,7 +67,7 @@ void main()
 		
 		facing *= 3.0;
 
-		gl_Position = proj * vec4(real[second] + end_in[second] * extend_second, 1.0);
+		gl_Position = proj * vec4(real[second] + cd * extend, 1.0);
 		face = facing;
 		EmitVertex();
 
@@ -75,7 +75,7 @@ void main()
 		face = facing;
 		EmitVertex();
 
-		gl_Position = proj * vec4(real[first] + end_in[first] * extend_first, 1.0);
+		gl_Position = proj * vec4(real[first] + cd * extend, 1.0);
 		face = facing;
 		EmitVertex();
 

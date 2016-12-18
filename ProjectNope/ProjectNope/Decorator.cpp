@@ -6,13 +6,15 @@ Decorator::Decorator(void)
 {
 }
 
-Decorator::Decorator(const std::string& m, const std::string& texture, int bone_id) : _mesh(m), bid(bone_id), skin(0)
+Decorator::Decorator(const std::string& m, const Material& mat, int bone_id) : mesh_fname(m), bid(bone_id), skin(0)
 {
-	_tex.push_back(texture);
+	materials.materials.push_back(mat);
+	Resource::load(mesh_fname);
 }
 
-Decorator::Decorator(const std::string& m, const std::vector<std::string>& textures, int bone_id) : _mesh(m), _tex(textures), bid(bone_id), skin(0)
+Decorator::Decorator(const std::string& m, const MaterialList& mats, int bone_id) : mesh_fname(m), materials(mats), bid(bone_id), skin(0)
 {
+	Resource::load(mesh_fname);
 }
 
 Decorator::~Decorator(void)
@@ -21,12 +23,7 @@ Decorator::~Decorator(void)
 
 void Decorator::writeLog(outstream& os)
 {
-	os << _mesh;
-	unsigned char tsize = _tex.size();
-	os.write((char*)&tsize, 1); // number of textures will probably not be larger than 255
-	for (auto i=_tex.begin();i!=_tex.end();++i)
-		os << *i;
-	os << bid;
+	os << mesh_fname << materials << bid;
 	if (bid>=0)
 		os << local;
 	os << priority;
@@ -35,12 +32,7 @@ void Decorator::writeLog(outstream& os)
 void Decorator::readLog(instream& is)
 {
 	unsigned char tsize;
-	is >> _mesh >> tsize;
-	_tex.resize(tsize);
-	for (int i=0;i<tsize;++i) {
-		is >> _tex[i];
-	}
-	is >> bid;
+	is >> mesh_fname >> materials >> bid;
 	if (bid>=0)
 		is >> local;
 	is >> priority;
@@ -49,7 +41,7 @@ void Decorator::readLog(instream& is)
 void Decorator::attach(const Pose& pose)
 {
 	if (mesh==0)
-		mesh = Resource::get<Mesh>(_mesh);
+		mesh = Resource::get<Mesh>(mesh_fname);
 	if (mesh!=0)
 	{
 		if (bid>=0)
@@ -76,7 +68,7 @@ void Decorator::attach(const Pose& pose)
 void Decorator::attach()
 {
 	if (mesh==0)
-		mesh = Resource::get<Mesh>(_mesh);
+		mesh = Resource::get<Mesh>(mesh_fname);
 	if (mesh!=0)
 	{
 		if (bid>=0)
@@ -104,36 +96,20 @@ void Decorator::render(RenderSetup& rs)
 		rs.addTransform(final);
 
 		if (mesh==0)
-			mesh = Resource::get<Mesh>(_mesh);
-		if (mesh!=0) {
-			for (int i=0;i<_tex.size();++i) {
-				std::shared_ptr<Texture> tex = Resource::get<Texture>(_tex[i]);
-				mesh->slotTexture(i, tex);
-			}
-			mesh->render(rs);
-		}
+			mesh = Resource::get<Mesh>(mesh_fname);
+		if (mesh!=0)
+			mesh->render(rs, materials);
 
 		rs.popTransform();
 	} else {
 		if (skin!=0)
-		{
-			for (int i=0;i<_tex.size();++i) {
-				std::shared_ptr<Texture> tex = Resource::get<Texture>(_tex[i]);
-				skin->slotTexture(i, tex);
-			}
-			skin->render(rs);
-		}
+			skin->render(rs, materials);
 		else
 		{
-			if (mesh==0)
-				mesh = Resource::get<Mesh>(_mesh);
-			if (mesh!=0) {
-				for (int i=0;i<_tex.size();++i) {
-					std::shared_ptr<Texture> tex = Resource::get<Texture>(_tex[i]);
-					mesh->slotTexture(i, tex);
-				}
-				mesh->render(rs);
-			}
+			if (mesh == 0)
+				mesh = Resource::get<Mesh>(mesh_fname);
+			if (mesh != 0)
+				mesh->render(rs, materials);
 		}
 	}
 }

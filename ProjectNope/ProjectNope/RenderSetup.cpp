@@ -24,8 +24,6 @@ bool RenderSetup::applyMods(void)
 	for (auto i = mod_stack.begin(); i != mod_stack.end(); ++i)
 		if (i->shader != 0)
 			current_program = i->shader;
-	if (!current_program->IsReady())
-		return false;
 	if (current_program != previous_program)
 		current_program->Use();
 	for (auto i = mod_stack.begin(); i != mod_stack.end(); ++i)

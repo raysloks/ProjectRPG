@@ -19,9 +19,9 @@ out vec4 final_color;
 
 void main()
 {
-	/*vec4 tex_col = texture2D(diffuse, gl_TexCoord[0].xy);
+	/*vec4 tex_col = texture(diffuse, texCoord);
 
-	float z = (2.0 * zNear) / (zFar + zNear - texture2D(depth, gl_TexCoord[0].xy).x * (zFar - zNear));
+	float z = (2.0 * zNear) / (zFar + zNear - texture(depth, texCoord).x * (zFar - zNear));
 
 	float samples = 0.0;
 	float total = 0.0;
@@ -29,7 +29,7 @@ void main()
 	{
 		for (int y=-8;y<=8;++y)
 		{
-			float zn = (2.0 * zNear) / (zFar + zNear - texture2D(depth, gl_TexCoord[0].xy+vec2(x*pixel.x, y*pixel.y)).x * (zFar - zNear));
+			float zn = (2.0 * zNear) / (zFar + zNear - texture(depth, texCoord+vec2(x*pixel.x, y*pixel.y)).x * (zFar - zNear));
 			float d = step(zn, z);
 			samples += d / (sqrt(float(x*x+y*y))+1.0);
 			total += 1.0 / (sqrt(float(x*x+y*y))+1.0);
@@ -45,11 +45,11 @@ void main()
 		for (float y=-0.5+y_size/2.0;y<=0.5;y+=y_size)
 		{
 			float d = 1.0;
-			tex_col += texture(diffuse, texCoord+vec2(x*pixel.x, y*pixel.y))*d;
+			tex_col += sqrt(texture(diffuse, texCoord+vec2(x*pixel.x, y*pixel.y)))*d;
 			samples += d;
 		}
 	}
 	tex_col /= samples;
 
-	final_color = sqrt(tex_col);
+	final_color = tex_col;
 }

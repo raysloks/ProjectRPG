@@ -6,6 +6,7 @@
 #include "ShaderMod.h"
 #include "SkeletalAnimation.h"
 #include "GlobalPosition.h"
+#include "Mesh.h"
 
 class PositionComponent;
 class RenderSetup;
@@ -15,7 +16,7 @@ class PreparedVBO
 public:
 	GlobalPosition p;
 	Matrix4 mtrx;
-	unsigned int v, t, n, size;
+	VBO vbo;
 };
 
 typedef std::pair<int, std::string> render_priority;

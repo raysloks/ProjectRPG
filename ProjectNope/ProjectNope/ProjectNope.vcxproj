@@ -172,6 +172,7 @@
     <ClCompile Include="FieldTriangle.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="LineComponent.cpp" />
+    <ClCompile Include="Material.cpp" />
     <ClCompile Include="MicrophoneComponent.cpp" />
     <ClCompile Include="RenderSetup.cpp" />
     <ClCompile Include="RigidBodyComponent.cpp" />
@@ -254,6 +255,7 @@
     <ClInclude Include="ControllerState.h" />
     <ClInclude Include="ExampleComponent.h" />
     <ClInclude Include="FieldTriangle.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="Synchronizer.h" />

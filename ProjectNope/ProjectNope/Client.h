@@ -80,8 +80,8 @@ public:
 
 	std::vector<std::shared_ptr<std::function<void(RenderSetup&)>>> render2D;
 
-	std::shared_ptr<Buffer> depth_buf, normal_buf, color_buf;
-	std::shared_ptr<FrameBuffer> depth_prepass_fb, deferred_fb, color_fb;
+	std::shared_ptr<Buffer> depth_buf, normal_buf, color_buf, stencil_buf, flat_stencil_buf;
+	std::shared_ptr<FrameBuffer> depth_prepass_fb, normal_fb, deferred_fb, color_fb, stencil_fb, flat_stencil_fb;
 
 	int supersample_x, supersample_y;
 

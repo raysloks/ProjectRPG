@@ -10,10 +10,21 @@ MaterialList::~MaterialList(void)
 {
 }
 
-void MaterialList::slot(const std::shared_ptr<Mesh>& mesh)
+outstream& operator<<(outstream& os, const MaterialList& mats)
 {
-	for (int i=0;i<mat.size();++i) {
-		auto tex = Resource::get<Texture>(mat[i]);
-		mesh->slotTexture(i, tex);
-	}
+	uint32_t nMats = mats.materials.size();
+	os << nMats;
+	for (size_t i = 0; i < nMats; ++i)
+		os << mats.materials[i];
+	return os;
+}
+
+instream& operator >> (instream& is, MaterialList& mats)
+{
+	uint32_t nMats;
+	is >> nMats;
+	mats.materials.resize(nMats);
+	for (size_t i = 0; i < nMats; ++i)
+		is >> mats.materials[i];
+	return is;
 }

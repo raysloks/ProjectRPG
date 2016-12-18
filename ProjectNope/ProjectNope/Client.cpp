@@ -244,9 +244,6 @@ void Client::tick(float dTime)
 	}
 	delete ae;
 
-	/*if (keysPressed.find(Platform::KeyEvent::ESC)!=keysPressed.cend())
-		isAlive = false;*/
-
 	if (con==0)
 	{
 		if (clientData!=0)
@@ -282,6 +279,7 @@ void Client::tick(float dTime)
 		light *= Matrix3(dTime * lspeed, pole);
 	if (input.isDown(Platform::KeyEvent::J))
 		light *= Matrix3(-dTime * lspeed, pole);
+	light.Normalize();
 	if (input.isDown(Platform::KeyEvent::O))
 		light_size += dTime / 50.0f;
 	if (input.isDown(Platform::KeyEvent::I))
@@ -560,6 +558,8 @@ void Client::render_world(void)
 	float far_z = 30000.0f;
 	float near_z = 1.0f;
 
+	float supersample_r = 1.0f;
+
 	if (mem!=0)
 	{
 		auto var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("fov"));
@@ -571,6 +571,9 @@ void Client::render_world(void)
 		var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("near_z"));
 		if (var!=0)
 			near_z = var->f;
+		var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("supersampling_r"));
+		if (var != 0)
+			supersample_r = var->f;
 	}
 
 
@@ -587,9 +590,21 @@ void Client::render_world(void)
 
 	if (color_buf == nullptr)
 		color_buf = std::make_shared<Buffer>();
-	color_buf->setFormat(BUFFER_FLOAT, 32, 32, 32);
+	color_buf->setFormat(BUFFER_FLOAT, 16, 16, 16);
 	color_buf->resize(buffer_w, buffer_h);
 
+	if (stencil_buf == nullptr)
+		stencil_buf = std::make_shared<Buffer>();
+	stencil_buf->setFormat(BUFFER_UNSIGNED_INTEGER, 32, 32, 32, 32);
+	stencil_buf->resize(buffer_w, buffer_h);
+
+	if (flat_stencil_buf == nullptr)
+		flat_stencil_buf = std::make_shared<Buffer>();
+	flat_stencil_buf->setFormat(BUFFER_FLOAT, 16);
+	flat_stencil_buf->resize(buffer_w, buffer_h);
+
+	
+	// initialize and maintain frame buffers
 	if (depth_prepass_fb == nullptr)
 		depth_prepass_fb = std::make_shared<FrameBuffer>();
 	depth_prepass_fb->depth = depth_buf;
@@ -604,6 +619,18 @@ void Client::render_world(void)
 		color_fb = std::make_shared<FrameBuffer>();
 	color_fb->color.resize(1);
 	color_fb->color[0] = color_buf;
+
+	if (stencil_fb == nullptr)
+		stencil_fb = std::make_shared<FrameBuffer>();
+	stencil_fb->color.resize(1);
+	stencil_fb->color[0] = stencil_buf;
+	stencil_fb->depth = depth_buf;
+
+	if (flat_stencil_fb == nullptr)
+		flat_stencil_fb = std::make_shared<FrameBuffer>();
+	flat_stencil_fb->color.resize(1);
+	flat_stencil_fb->color[0] = flat_stencil_buf;
+	flat_stencil_fb->depth = depth_buf;
 	
 
 	// calculate projection matrix
@@ -645,6 +672,7 @@ void Client::render_world(void)
 	
 
 	// render depth pre-pass
+	if (depth_fill_prog->IsReady())
 	{
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
@@ -873,12 +901,12 @@ void Client::render_world(void)
 	}
 
 	// stencils
-	if (false)//stencil_prog->IsReady() && flat_stencil_prog->IsReady())
+	if (stencil_prog->IsReady() && flat_stencil_prog->IsReady() && false)
 	{
 		{
 			// render flat stencil
-			//glBindFramebuffer(GL_FRAMEBUFFER, flat_stencil->fb);
-
+			flat_stencil_fb->bind();
+			glViewport(0, 0, buffer_w, buffer_h);
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT);
 
@@ -931,8 +959,8 @@ void Client::render_world(void)
 
 		{
 			// render raytracing stencil
-			//glBindFramebuffer(GL_FRAMEBUFFER, stencil->fb);
-
+			stencil_fb->bind();
+			glViewport(0, 0, buffer_w, buffer_h);
 			uint32_t clear_value[4] = { UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX };
 			glClearBufferuiv(GL_COLOR, 0, clear_value);
 
@@ -944,7 +972,7 @@ void Client::render_world(void)
 			stencil_prog->Uniform("zNear", near_z);
 			stencil_prog->Uniform("zFar", far_z);
 
-			//stencil_prog->Uniform("pixel", 1.0f / stencil->w, 1.0f / stencil->h);
+			stencil_prog->Uniform("pixel", 1.0f / buffer_w, 1.0f / buffer_h);
 
 			stencil_prog->Uniform("light", light, 0.0f);
 
@@ -958,14 +986,13 @@ void Client::render_world(void)
 
 			stencil_prog->Uniform3fv("light_samples", light_samples);
 
+			glActiveTexture(GL_TEXTURE0);
+			stencil_prog->Uniform("depth", 0);
+			glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
 			glActiveTexture(GL_TEXTURE1);
-			stencil_prog->Uniform("depth", 1);
-			//glBindTexture(GL_TEXTURE_2D, buffer->depth);
-			glActiveTexture(GL_TEXTURE2);
-			stencil_prog->Uniform("lookup", 2);
+			stencil_prog->Uniform("lookup", 1);
 			if (light_lookup_tex != nullptr)
 				glBindTexture(GL_TEXTURE_2D, light_lookup_tex->getGLTexID());
-			glActiveTexture(GL_TEXTURE0);
 
 			RenderSetup rs;
 			rs.view = proj;
@@ -1015,12 +1042,16 @@ void Client::render_world(void)
 
 
 	// render shaded geometry
+	if (shader_program->IsReady())
 	{
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_EQUAL);
 		glDepthMask(GL_FALSE);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		deferred_fb->bind();
 		glViewport(0, 0, buffer_w, buffer_h);
@@ -1031,12 +1062,19 @@ void Client::render_world(void)
 		ShaderMod mod(shader_program, [this, proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
 			prog->Uniform("light", light);
 			prog->Uniform("diffuse", 0); // texture unit 0
+			prog->Uniform("stencil", 2); // texture unit 2
+			prog->Uniform("flat_stencil", 3); // texture unit 3
 			prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
-			prog->UniformMatrix4fv("normal_transform", rs.transform.data);
+			prog->UniformMatrix3fv("normal_transform", Matrix3(rs.transform).data);
 		});
 
 		rs.pushMod(mod);
 		rs.pass = 1;
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, stencil_buf->gl_texture_id);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, flat_stencil_buf->gl_texture_id);
 
 		world->render(rs);
 
@@ -1055,26 +1093,21 @@ void Client::render_world(void)
 		dof_prog->Uniform("zNear", near_z);
 		dof_prog->Uniform("zFar", far_z);
 
-		dof_prog->Uniform("pixel", 1.0f / color_buf->w, 1.0f / color_buf->h);
+		dof_prog->Uniform("pixel", supersample_r / view_w, supersample_r / view_h);
 
 		dof_prog->Uniform("max_kernel_size", std::ceilf(2.0f*color_buf->w/1000.0f));
 
-		dof_prog->Uniform("x_size", 1.0f/supersample_x);
-		dof_prog->Uniform("y_size", 1.0f/supersample_y);
+		dof_prog->Uniform("x_size", 2.0f / supersample_r / supersample_x);
+		dof_prog->Uniform("y_size", 2.0f / supersample_r / supersample_y);
 
+		glActiveTexture(GL_TEXTURE0);
 		dof_prog->Uniform("diffuse", 0);
 		glBindTexture(GL_TEXTURE_2D, color_buf->gl_texture_id);
 		glActiveTexture(GL_TEXTURE1);
 		dof_prog->Uniform("depth", 1);
 		glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
-		glActiveTexture(GL_TEXTURE0);
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glActiveTexture(GL_TEXTURE0);
 	}
 
 	//glUseProgram(0);

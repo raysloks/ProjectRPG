@@ -2,20 +2,103 @@
 #include "GUIObject.h"
 #include "Texture.h"
 #include "RenderSetup.h"
+#include "MaterialList.h"
 
-Vertex::Vertex(const Vec3& pos) : p(pos){}
+Vertex::Vertex(const Vec3& pos) : p(pos) {}
 
-Face::Face(int va, int vb, int vc) : a(va), b(vb), c(vc), ta(-1), tb(-1), tc(-1){}
+Face::Face(unsigned short va, unsigned short vb, unsigned short vc) : a(va), b(vb), c(vc) {}
 
-void Face::flip(void)
+VertexStruct::VertexStruct(const std::string& a, size_t s, bool n, size_t st, size_t o) : attribute_name(a), size(s), normalize(n), stride(st), offset(o)
 {
-	n = -n;
-	int tmp = a;
-	a = c;
-	c = tmp;
 }
 
-VBO::VBO(void) : v(0), t(0), n(0){}
+VertexStruct::~VertexStruct()
+{
+}
+
+void VertexStruct::refresh(RenderSetup& rs)
+{
+	attribute_id = rs.current_program->GetAttributeLocation(attribute_name);
+}
+
+void VertexStruct::enable()
+{
+	if (attribute_id != -1)
+		glEnableVertexAttribArray(attribute_id);
+}
+
+void VertexStruct::specify()
+{
+	if (attribute_id != -1)
+		glVertexAttribPointer(attribute_id, size, GL_FLOAT, normalize, stride, (void*)offset);
+}
+
+void VertexStruct::disable()
+{
+	if (attribute_id != -1)
+		glDisableVertexAttribArray(attribute_id);
+}
+
+VBO::VBO(void)
+{
+}
+
+VBO::~VBO()
+{
+	for (auto i = buffers.begin(); i != buffers.end(); ++i)
+		if (i->first != 0)
+			glDeleteBuffers(1, &i->first);
+}
+
+void VBO::addBuffer()
+{
+	GLuint buffer_id;
+	glGenBuffers(1, &buffer_id);
+	buffers.push_back(std::make_pair(buffer_id, std::vector<VertexStruct>()));
+}
+
+void VBO::addVertexStruct(const VertexStruct& vs)
+{
+	buffers.back().second.push_back(vs);
+}
+
+void VBO::draw(RenderSetup& rs)
+{
+	for (auto i = buffers.begin(); i != buffers.end(); ++i)
+	{
+		for (auto v = i->second.begin(); v != i->second.end(); ++v)
+		{
+			v->refresh(rs);
+		}
+	}
+
+	for (auto i = buffers.begin(); i != buffers.end(); ++i)
+	{
+		for (auto v = i->second.begin(); v != i->second.end(); ++v)
+		{
+			v->enable();
+		}
+	}
+
+	for (auto i = buffers.begin(); i != buffers.end(); ++i)
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, i->first);
+		for (auto v = i->second.begin(); v != i->second.end(); ++v)
+		{
+			v->specify();
+		}
+	}
+
+	glDrawArrays(GL_TRIANGLES, 0, nIndices);
+
+	for (auto i = buffers.begin(); i != buffers.end(); ++i)
+	{
+		for (auto v = i->second.begin(); v != i->second.end(); ++v)
+		{
+			v->disable();
+		}
+	}
+}
 
 Mesh::Mesh(void) : vbo_latest(false)
 {
@@ -24,7 +107,10 @@ Mesh::Mesh(void) : vbo_latest(false)
 Mesh::Mesh(instream& is) : vbo_latest(false)
 {
 	bool first_mat = true;
-	sets.push_back(std::vector<Face>());
+	int nt = 0;
+	size_t nts = 0;
+
+	sets.push_back(FaceSet());
 	char prefix;
 	while (!is.eof()) {
 		is >> prefix;
@@ -41,8 +127,8 @@ Mesh::Mesh(instream& is) : vbo_latest(false)
 		if (prefix == 'f') {
 			unsigned short a,b,c;
 			is >> a >> b >> c;
-			Face f(a, b, c);
-			sets.back().push_back(f);
+			sets.back().vertices.push_back(Face(a, b, c));
+			nts = 0;
 		}
 		if (prefix == 'c') {
 			std::string name;
@@ -67,16 +153,21 @@ Mesh::Mesh(instream& is) : vbo_latest(false)
 		if (prefix == 't') {
 			unsigned short i;
 			is >> i;
-			if (sets.back().back().ta<0) {
-				sets.back().back().ta = i;
-			} else {
-				if (sets.back().back().tb<0) {
-					sets.back().back().tb = i;
-				} else {
-					if (sets.back().back().tc<0) {
-						sets.back().back().tc = i;
-					}
-				}
+			switch (nt)
+			{
+			case 0:
+				sets.back().uv_points.push_back(Face(i, 0, 0));
+				sets.back().nTextures = ++nts;
+				nt = 1;
+				break;
+			case 1:
+				sets.back().uv_points.back().b = i;
+				nt = 2;
+				break;
+			case 2:
+				sets.back().uv_points.back().c = i;
+				nt = 0;
+				break;
 			}
 		}
 		if (prefix == 'w') {
@@ -89,7 +180,7 @@ Mesh::Mesh(instream& is) : vbo_latest(false)
 			if (first_mat) {
 				first_mat = false;
 			} else {
-				sets.push_back(std::vector<Face>());
+				sets.push_back(FaceSet());
 			}
 		}
 		if (prefix == 'p') {
@@ -106,23 +197,6 @@ Mesh::Mesh(instream& is) : vbo_latest(false)
 			}
 		}
 	}
-
-	for (auto set = sets.begin();set!=sets.end();++set)
-	{
-		for (auto face = set->begin();face!=set->end();++face)
-		{
-			face->n = (vert[face->b].p-vert[face->a].p).Cross(vert[face->c].p-vert[face->a].p);
-			face->n.Normalize();
-			if (face->ta<0)
-				face->ta=0;
-			if (face->tb<0)
-				face->tb=0;
-			if (face->tc<0)
-				face->tc=0;
-		}
-	}
-	if (uv.size()==0)
-		uv.push_back(Vec2(0.0f, 0.0f));
 }
 
 Mesh::Mesh(const Mesh& mesh)
@@ -134,112 +208,30 @@ Mesh::Mesh(const Mesh& mesh)
 
 Mesh::~Mesh(void)
 {
-	for (auto i=vbos.begin();i!=vbos.end();++i)
-	{
-		if (i->v!=0)
-			glDeleteBuffers(1, &i->v);
-		if (i->t!=0)
-			glDeleteBuffers(1, &i->t);
-		if (i->n!=0)
-			glDeleteBuffers(1, &i->n);
-	}
 }
 
 #include "Profiler.h"
 
-void Mesh::render(RenderSetup& rs)
+void Mesh::render(RenderSetup& rs, MaterialList& mats) // maybe should get mats to be const
 {
-	LARGE_INTEGER freq, start, end;
-	QueryPerformanceFrequency(&freq);
-	QueryPerformanceCounter(&start);
+	if (!vbo_latest)
+		buildVBO();
 
-	for (int i=0;i<sets.size();++i)
+	for (size_t i = 0; i < sets.size(); i++)
 	{
-		LARGE_INTEGER freq, start, end;
-		QueryPerformanceFrequency(&freq);
-		QueryPerformanceCounter(&start);
-
-		if (i<tex.size()) {
-			if (tex[i]!=0) {
-				tex[i]->sRGB = true;
-				glBindTexture(GL_TEXTURE_2D, tex[i]->getGLTexID());
-			}
-		}
-
-		if (!vbo_latest)
-			buildVBO();
-
-		rs.applyMods();
-
-		GLint pos = rs.current_program->GetAttributeLocation("pos");
-		GLint normal = rs.current_program->GetAttributeLocation("normal");
-		GLint texcoord = rs.current_program->GetAttributeLocation("texCoord");
-
-		QueryPerformanceCounter(&end);
-		double durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
-		Profiler::add("mesh-partial", durationInSeconds);
-
-		glEnableVertexAttribArray(pos);
-		glEnableVertexAttribArray(normal);
-		glEnableVertexAttribArray(texcoord);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbos[i].v);
-		glVertexAttribPointer(pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-		glBindBuffer(GL_ARRAY_BUFFER, vbos[i].t);
-		glVertexAttribPointer(texcoord, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-		glBindBuffer(GL_ARRAY_BUFFER, vbos[i].n);
-		glVertexAttribPointer(normal, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-
-		glDrawArrays(GL_TRIANGLES, 0, sets[i].size()*3);
-
-		glDisableVertexAttribArray(texcoord);
-		glDisableVertexAttribArray(normal);
-		glDisableVertexAttribArray(pos);
-
-		/*glBegin(GL_TRIANGLES);
-
-		for (std::vector<Face>::const_iterator it = sets[i].cbegin();it!=sets[i].cend();++it)
+		if (i < mats.materials.size())
 		{
-			{
-				const Vec2& tc = uv[it->ta];
-				const Vec3& n = vert[it->a].n;
-				const Vec3& p = vert[it->a].p;
-				glTexCoord2f(tc.x, tc.y);
-				glNormal3f(n.x, n.y, n.z);
-				glVertex3f(p.x, p.y, p.z);
-			}
-			{
-				const Vec2& tc = uv[it->tb];
-				const Vec3& n = vert[it->b].n;
-				const Vec3& p = vert[it->b].p;
-				glTexCoord2f(tc.x, tc.y);
-				glNormal3f(n.x, n.y, n.z);
-				glVertex3f(p.x, p.y, p.z);
-			}
-			{
-				const Vec2& tc = uv[it->tc];
-				const Vec3& n = vert[it->c].n;
-				const Vec3& p = vert[it->c].p;
-				glTexCoord2f(tc.x, tc.y);
-				glNormal3f(n.x, n.y, n.z);
-				glVertex3f(p.x, p.y, p.z);
-			}
+			mats.materials[i].bindTextures();
+
+			rs.pushMod(mats.materials[i].mod);
+
+			rs.applyMods();
+
+			vbos[i]->draw(rs);
+
+			rs.popMod();
 		}
-
-		glEnd();*/
 	}
-
-	QueryPerformanceCounter(&end);
-	double durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
-	Profiler::add("mesh-render", durationInSeconds);
-}
-
-void Mesh::render(RenderSetup& rs, const Pose& pose)
-{
-	Mesh * mesh = new Mesh(*this);
-	getPose(pose, mesh);
-	mesh->render(rs);
-	delete mesh;
 }
 
 void Mesh::transform(const Matrix4& mtrx, Mesh * mesh)
@@ -304,36 +296,29 @@ void Mesh::getPose(const Pose& pose, Mesh * mesh)
 	Profiler::add("skinning", durationInSeconds);
 }
 
-void Mesh::slotTexture(int slot, const std::shared_ptr<Texture>& texture)
-{
-	if (slot>=tex.size())
-		tex.resize(slot+1);
-	tex[slot]=texture;
-}
-
 void Mesh::addVBO(size_t set, Vec3 * v_data, Vec3 * n_data, Vec2 * t_data, Matrix4 mtrx)
 {
-	std::vector<Face>& setref = sets[set];
+	auto& setref = sets[set];
 
-	for (auto p = setref.begin(); p != setref.end(); ++p)
+	for (auto p = setref.vertices.begin(); p != setref.vertices.end(); ++p)
 	{
-		v_data[(p - setref.begin()) * 3] = vert[p->a].p * mtrx;
-		v_data[(p - setref.begin()) * 3 + 1] = vert[p->b].p * mtrx;
-		v_data[(p - setref.begin()) * 3 + 2] = vert[p->c].p * mtrx;
+		v_data[(p - setref.vertices.begin()) * 3] = vert[p->a].p * mtrx;
+		v_data[(p - setref.vertices.begin()) * 3 + 1] = vert[p->b].p * mtrx;
+		v_data[(p - setref.vertices.begin()) * 3 + 2] = vert[p->c].p * mtrx;
 	}
 
-	for (auto p = setref.begin(); p != setref.end(); ++p)
+	for (auto p = setref.vertices.begin(); p != setref.vertices.end(); ++p)
 	{
-		n_data[(p - setref.begin()) * 3] = vert[p->a].n * Matrix3(mtrx);
-		n_data[(p - setref.begin()) * 3 + 1] = vert[p->b].n * Matrix3(mtrx);
-		n_data[(p - setref.begin()) * 3 + 2] = vert[p->c].n * Matrix3(mtrx);
+		n_data[(p - setref.vertices.begin()) * 3] = vert[p->a].n * Matrix3(mtrx);
+		n_data[(p - setref.vertices.begin()) * 3 + 1] = vert[p->b].n * Matrix3(mtrx);
+		n_data[(p - setref.vertices.begin()) * 3 + 2] = vert[p->c].n * Matrix3(mtrx);
 	}
 
-	for (auto p = setref.begin(); p != setref.end(); ++p)
+	for (auto p = setref.uv_points.begin(); p != setref.uv_points.end(); ++p)
 	{
-		t_data[(p - setref.begin()) * 3] = uv[p->ta];
-		t_data[(p - setref.begin()) * 3 + 1] = uv[p->tb];
-		t_data[(p - setref.begin()) * 3 + 2] = uv[p->tc];
+		t_data[(p - setref.uv_points.begin()) * 3] = uv[p->a];
+		t_data[(p - setref.uv_points.begin()) * 3 + 1] = uv[p->b];
+		t_data[(p - setref.uv_points.begin()) * 3 + 2] = uv[p->c];
 	}
 }
 
@@ -347,48 +332,64 @@ void Mesh::buildVBO(void)
 		vbos.resize(sets.size());
 	for (auto i=vbos.begin();i!=vbos.end();++i)
 	{
-		std::vector<Face>& setref = sets[i-vbos.begin()];
+		auto& setref = sets[i-vbos.begin()];
+
+		if (*i == nullptr)
+		{
+			i->reset(new VBO());
+
+			(*i)->nIndices = setref.vertices.size() * 3;
+
+			(*i)->addBuffer();
+			(*i)->addVertexStruct(VertexStruct("pos", 3, false, 0, 0));
+
+			(*i)->addBuffer();
+			(*i)->addVertexStruct(VertexStruct("normal", 3, false, 0, 0));
+
+			if (setref.nTextures > 0)
+			{
+				(*i)->addBuffer();
+				for (size_t j = 0; j < setref.nTextures; j++)
+				{
+					(*i)->addVertexStruct(VertexStruct(std::string("texCoord") + std::to_string(j), 2, false, 8 * setref.nTextures, 8 * j));
+				}
+			}
+		}
 
 		//generate data
-		Vec3 * v_data = new Vec3[setref.size()*3];
-		for (auto p=setref.begin();p!=setref.end();++p)
+		Vec3 * v_data = new Vec3[setref.vertices.size() * 3];
+		for (auto p=setref.vertices.begin();p!=setref.vertices.end();++p)
 		{
-			v_data[(p-setref.begin())*3] = vert[p->a].p;
-			v_data[(p-setref.begin())*3+1] = vert[p->b].p;
-			v_data[(p-setref.begin())*3+2] = vert[p->c].p;
+			v_data[(p-setref.vertices.begin())*3] = vert[p->a].p;
+			v_data[(p-setref.vertices.begin())*3+1] = vert[p->b].p;
+			v_data[(p-setref.vertices.begin())*3+2] = vert[p->c].p;
 		}
 
-		Vec3 * n_data = new Vec3[setref.size()*3];
-		for (auto p=setref.begin();p!=setref.end();++p)
+		Vec3 * n_data = new Vec3[setref.vertices.size() * 3];
+		for (auto p=setref.vertices.begin();p!=setref.vertices.end();++p)
 		{
-			n_data[(p-setref.begin())*3] = vert[p->a].n;
-			n_data[(p-setref.begin())*3+1] = vert[p->b].n;
-			n_data[(p-setref.begin())*3+2] = vert[p->c].n;
+			n_data[(p-setref.vertices.begin())*3] = vert[p->a].n;
+			n_data[(p-setref.vertices.begin())*3+1] = vert[p->b].n;
+			n_data[(p-setref.vertices.begin())*3+2] = vert[p->c].n;
 		}
 
-		Vec2 * t_data = new Vec2[setref.size()*3];
-		for (auto p=setref.begin();p!=setref.end();++p)
+		Vec2 * t_data = new Vec2[setref.uv_points.size() * 3];
+		for (auto p=setref.uv_points.begin();p!=setref.uv_points.end();++p)
 		{
-			t_data[(p-setref.begin())*3] = uv[p->ta];
-			t_data[(p-setref.begin())*3+1] = uv[p->tb];
-			t_data[(p-setref.begin())*3+2] = uv[p->tc];
+			t_data[(p-setref.uv_points.begin())*3] = uv[p->a];
+			t_data[(p-setref.uv_points.begin())*3+1] = uv[p->b];
+			t_data[(p-setref.uv_points.begin())*3+2] = uv[p->c];
 		}
 
-		//maybe make the vbos interleaved
+		// push buffer data
+		glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[0].first);
+		glBufferData(GL_ARRAY_BUFFER, setref.vertices.size() * 3 * sizeof(Vec3), v_data, GL_DYNAMIC_DRAW);
 
-		//generate vbos and pass data
-		if (i->v == 0)
-			glGenBuffers(1, &i->v);
-		glBindBuffer(GL_ARRAY_BUFFER, i->v);
-		glBufferData(GL_ARRAY_BUFFER, setref.size()*3*sizeof(Vec3), v_data, GL_DYNAMIC_DRAW);
-		if (i->t == 0)
-			glGenBuffers(1, &i->t);
-		glBindBuffer(GL_ARRAY_BUFFER, i->t);
-		glBufferData(GL_ARRAY_BUFFER, setref.size()*3*sizeof(Vec2), t_data, GL_STATIC_DRAW);
-		if (i->n == 0)
-			glGenBuffers(1, &i->n);
-		glBindBuffer(GL_ARRAY_BUFFER, i->n);
-		glBufferData(GL_ARRAY_BUFFER, setref.size()*3*sizeof(Vec3), n_data, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[1].first);
+		glBufferData(GL_ARRAY_BUFFER, setref.vertices.size() * 3 * sizeof(Vec3), n_data, GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[2].first);
+		glBufferData(GL_ARRAY_BUFFER, setref.uv_points.size() * 3 * sizeof(Vec2), t_data, GL_STATIC_DRAW);
 
 		delete [] v_data;
 		delete [] n_data;
