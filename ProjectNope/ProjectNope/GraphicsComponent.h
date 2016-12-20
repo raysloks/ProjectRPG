@@ -50,8 +50,6 @@ public:
 
 	bool dynamic;
 
-	std::map<int, ShaderMod> mod;
-
 	GlobalPosition * p;
 
 	Pose pose;

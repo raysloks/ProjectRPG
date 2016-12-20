@@ -3,11 +3,11 @@
 float Texture::fGeneralAnisotropicFiltering = 1.0f;
 bool Texture::useGammaCorrection = true;
 
-Texture::Texture(void) : fAnisotropicFiltering(0.0f), sRGB(false)
+Texture::Texture(void) : fAnisotropicFiltering(0.0f), sRGB(true)
 {
 }
 
-Texture::Texture(instream& is) : fAnisotropicFiltering(0.0f), sRGB(false)
+Texture::Texture(instream& is) : fAnisotropicFiltering(0.0f), sRGB(true)
 {
 }
 

@@ -1,0 +1,43 @@
+#version 440
+
+uniform sampler2D depth;
+uniform sampler2D normal;
+
+uniform float zNear;
+uniform float zFar;
+
+uniform mat4 proj_inv;
+
+uniform vec4 light;
+uniform mat3 shape;
+
+in vec2 texCoord;
+
+out vec4 final_color;
+
+void main()
+{
+	float z = texture(depth, texCoord).x;
+
+	vec4 world = vec4(texCoord * 2.0 - 1.0, z * 2.0 - 1.0, 1.0);
+
+	world = proj_inv * world;
+	world /= world.w;
+
+	vec3 normal = texture(normal, texCoord).xyz;
+	
+	vec3 dif = light.xyz - world.xyz;
+
+	dif = shape * dif;
+
+	dif *= 2.0;
+
+	float ldotn = dot(normalize(dif), normal) * 0.5 + 0.5;
+
+	float falloff = 1.0 - length(dif);
+	falloff = max(0.0, falloff);
+
+	float ao = falloff * falloff * ldotn;
+
+	final_color = vec4(vec3(max(0.0, 1.0 - ao)), 1.0);
+}

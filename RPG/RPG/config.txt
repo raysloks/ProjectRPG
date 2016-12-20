@@ -13,8 +13,8 @@ anisotropic_filtering = 16.0;
 shadow_res = 1024;
 shadow_splits = 1;
 
-supersampling_x = 2;
-supersampling_y = 2;
+supersampling_x = 1;
+supersampling_y = 1;
 supersampling_r = 1;
 
 fov = 60.0;

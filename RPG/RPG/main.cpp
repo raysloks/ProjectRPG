@@ -16,6 +16,7 @@
 #include "InventoryComponent.h"
 #include "HitComponent.h"
 #include "LineComponent.h"
+#include "LightComponent.h"
 
 #include "ClientData.h"
 
@@ -69,9 +70,9 @@ public:
 				Resource::load(ao, { "!sRGB" });
 
 				MaterialList materials;
-				materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
-				materials.materials.push_back(Material("data/assets/terrain/textures/grass.tga"));
-				materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
+				materials.materials.push_back(Material("data/assets/terrain/textures/nrock.tga"));
+				materials.materials.push_back(Material("data/assets/terrain/textures/ngrass.tga"));
+				materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
 
 				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/terrain/nworld.gmdl", materials, 0)));
 				g->decs.items.front()->local *= 1.0f;
@@ -216,6 +217,14 @@ public:
 		//ent->addComponent(inv);
 		ent->addComponent(hit);
 		//ent->addComponent(line);
+
+		for (int i = 1; i < 22; ++i)
+		{
+			LightComponent * light = new LightComponent();
+			light->pose = &acc->pose;
+			light->bone_id = i;
+			ent->addComponent(light);
+		}
 
 		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga")/*"data/assets/empty.tga"*/)));
 		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));

@@ -171,6 +171,7 @@
     <ClCompile Include="ExampleComponent.cpp" />
     <ClCompile Include="FieldTriangle.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LineComponent.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MicrophoneComponent.cpp" />
@@ -200,7 +201,6 @@
     <ClCompile Include="InventoryWindow.cpp" />
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="JoinGameWindow.cpp" />
-    <ClCompile Include="Light.cpp" />
     <ClCompile Include="Link.cpp" />
     <ClCompile Include="LinkContainer.cpp" />
     <ClCompile Include="MainMenuWindow.cpp" />
@@ -255,6 +255,7 @@
     <ClInclude Include="ControllerState.h" />
     <ClInclude Include="ExampleComponent.h" />
     <ClInclude Include="FieldTriangle.h" />
+    <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderProgram.h" />
@@ -288,7 +289,6 @@
     <ClInclude Include="InventoryWindow.h" />
     <ClInclude Include="Item.h" />
     <ClInclude Include="JoinGameWindow.h" />
-    <ClInclude Include="Light.h" />
     <ClInclude Include="Link.h" />
     <ClInclude Include="LinkContainer.h" />
     <ClInclude Include="MainMenuWindow.h" />

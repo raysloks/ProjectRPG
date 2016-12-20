@@ -6,13 +6,13 @@ Decorator::Decorator(void)
 {
 }
 
-Decorator::Decorator(const std::string& m, const Material& mat, int bone_id) : mesh_fname(m), bid(bone_id), skin(0)
+Decorator::Decorator(const std::string& m, const Material& mat, int bid) : mesh_fname(m), bone_id(bid), skin(0)
 {
 	materials.materials.push_back(mat);
 	Resource::load(mesh_fname);
 }
 
-Decorator::Decorator(const std::string& m, const MaterialList& mats, int bone_id) : mesh_fname(m), materials(mats), bid(bone_id), skin(0)
+Decorator::Decorator(const std::string& m, const MaterialList& mats, int bid) : mesh_fname(m), materials(mats), bone_id(bid), skin(0)
 {
 	Resource::load(mesh_fname);
 }
@@ -23,8 +23,8 @@ Decorator::~Decorator(void)
 
 void Decorator::writeLog(outstream& os)
 {
-	os << mesh_fname << materials << bid;
-	if (bid>=0)
+	os << mesh_fname << materials << bone_id;
+	if (bone_id>=0)
 		os << local;
 	os << priority;
 }
@@ -32,8 +32,8 @@ void Decorator::writeLog(outstream& os)
 void Decorator::readLog(instream& is)
 {
 	unsigned char tsize;
-	is >> mesh_fname >> materials >> bid;
-	if (bid>=0)
+	is >> mesh_fname >> materials >> bone_id;
+	if (bone_id>=0)
 		is >> local;
 	is >> priority;
 }
@@ -44,7 +44,7 @@ void Decorator::attach(const Pose& pose)
 		mesh = Resource::get<Mesh>(mesh_fname);
 	if (mesh!=0)
 	{
-		if (bid>=0)
+		if (bone_id>=0)
 		{
 			if (skin!=mesh)
 				skin = mesh;
@@ -56,10 +56,10 @@ void Decorator::attach(const Pose& pose)
 			mesh->getPose(pose, skin.get());
 		}
 	}
-	if (bid>=0)
+	if (bone_id>=0)
 	{
-		if (pose.bones.size()>bid)
-			final = local * pose.bones[bid].getTransform();
+		if (pose.bones.size()>bone_id)
+			final = local * pose.bones[bone_id].getTransform();
 		else
 			final = local;
 	}
@@ -71,7 +71,7 @@ void Decorator::attach()
 		mesh = Resource::get<Mesh>(mesh_fname);
 	if (mesh!=0)
 	{
-		if (bid>=0)
+		if (bone_id>=0)
 		{
 			if (skin!=mesh)
 				skin = mesh;
@@ -82,7 +82,7 @@ void Decorator::attach()
 				skin.reset(new Mesh(*mesh));
 		}
 	}
-	if (bid>=0)
+	if (bone_id>=0)
 		final = local;
 }
 
@@ -90,7 +90,7 @@ void Decorator::attach()
 
 void Decorator::render(RenderSetup& rs)
 {
-	if (bid>=0) {
+	if (bone_id>=0) {
 		rs.pushTransform();
 
 		rs.addTransform(final);

@@ -30,7 +30,7 @@ public:
 	std::string mesh_fname;
 	std::shared_ptr<Mesh> mesh, skin;
 	Matrix4 local, final;
-	int priority, bid;
+	int priority, bone_id;
 
 	MaterialList materials;
 };

@@ -1,0 +1,13 @@
+#version 440
+
+uniform sampler2D diffuse;
+
+in vec3 norm;
+in vec2 texco;
+
+out vec4 final_normal;
+
+void main()
+{
+	final_normal = vec4(normalize(norm), texture(diffuse, texco).a);
+}

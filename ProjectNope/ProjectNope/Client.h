@@ -80,12 +80,12 @@ public:
 
 	std::vector<std::shared_ptr<std::function<void(RenderSetup&)>>> render2D;
 
-	std::shared_ptr<Buffer> depth_buf, normal_buf, color_buf, stencil_buf, flat_stencil_buf;
-	std::shared_ptr<FrameBuffer> depth_prepass_fb, normal_fb, deferred_fb, color_fb, stencil_fb, flat_stencil_fb;
+	std::shared_ptr<Buffer> depth_buf, normal_buf, light_buf, color_buf, stencil_buf, flat_stencil_buf;
+	std::shared_ptr<FrameBuffer> depth_prepass_fb, normal_fb, light_fb, deferred_fb, color_fb, stencil_fb, flat_stencil_fb;
 
 	int supersample_x, supersample_y;
 
-	std::shared_ptr<ShaderProgram> depth_fill_prog, deferred_prog, shader_program, sky_prog, dof_prog, stencil_prog, flat_stencil_prog;
+	std::shared_ptr<ShaderProgram> depth_fill_prog, shader_program, normal_prog, light_prog, sky_prog, dof_prog, stencil_prog, flat_stencil_prog;
 
 	std::shared_ptr<ScriptMemory> mem;
 
