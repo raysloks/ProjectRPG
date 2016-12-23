@@ -76,6 +76,9 @@ PFNGLCLEARBUFFERIVPROC glClearBufferiv = 0;
 PFNGLCLEARBUFFERUIVPROC glClearBufferuiv = 0;
 PFNGLCLEARBUFFERFVPROC glClearBufferfv = 0;
 PFNGLCLEARBUFFERFIPROC glClearBufferfi = 0;
+PFNGLSTENCILFUNCSEPARATEPROC glStencilFuncSeparate = 0;
+PFNGLSTENCILOPSEPARATEPROC glStencilOpSeparate = 0;
+PFNGLSTENCILMASKSEPARATEPROC glStencilMaskSeparate = 0;
 
 #define DEBUG_GL
 
@@ -275,6 +278,12 @@ namespace Platform
 		reportFunc("glClearBufferfv", glClearBufferfv);
 		glClearBufferfi = (PFNGLCLEARBUFFERFIPROC)wglGetProcAddress("glClearBufferfi");
 		reportFunc("glClearBufferfi", glClearBufferfi);
+		glStencilFuncSeparate = (PFNGLSTENCILFUNCSEPARATEPROC)wglGetProcAddress("glStencilFuncSeparate");
+		reportFunc("glStencilFuncSeparate", glStencilFuncSeparate);
+		glStencilOpSeparate = (PFNGLSTENCILOPSEPARATEPROC)wglGetProcAddress("glStencilOpSeparate");
+		reportFunc("glStencilOpSeparate", glStencilOpSeparate);
+		glStencilMaskSeparate = (PFNGLSTENCILMASKSEPARATEPROC)wglGetProcAddress("glStencilMaskSeparate");
+		reportFunc("glStencilMaskSeparate", glStencilMaskSeparate);
 	}
 
 	void RenderContext::Swap(void)

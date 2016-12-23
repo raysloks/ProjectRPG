@@ -607,7 +607,7 @@ void Client::render_world(void)
 
 	if (flat_stencil_buf == nullptr)
 		flat_stencil_buf = std::make_shared<Buffer>();
-	flat_stencil_buf->setFormat(BUFFER_FLOAT, 16);
+	flat_stencil_buf->setFormat(BUFFER_STENCIL, 8);
 	flat_stencil_buf->resize(buffer_w, buffer_h);
 
 	
@@ -644,11 +644,11 @@ void Client::render_world(void)
 	stencil_fb->color.resize(1);
 	stencil_fb->color[0] = stencil_buf;
 	stencil_fb->depth = depth_buf;
+	//stencil_fb->stencil = flat_stencil_buf;
 
 	if (flat_stencil_fb == nullptr)
 		flat_stencil_fb = std::make_shared<FrameBuffer>();
-	flat_stencil_fb->color.resize(1);
-	flat_stencil_fb->color[0] = flat_stencil_buf;
+	flat_stencil_fb->stencil = flat_stencil_buf;
 	flat_stencil_fb->depth = depth_buf;
 	
 
@@ -992,8 +992,8 @@ void Client::render_world(void)
 			// render flat stencil
 			flat_stencil_fb->bind();
 			glViewport(0, 0, buffer_w, buffer_h);
-			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
+			glClearStencil(128);
+			glClear(GL_STENCIL_BUFFER_BIT);
 
 			flat_stencil_prog->Use();
 
@@ -1018,20 +1018,12 @@ void Client::render_world(void)
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LESS);
 			glDepthMask(GL_FALSE);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-			glCullFace(GL_FRONT);
-			flat_stencil_prog->Uniform("value", -1.0f);
-			for (int i = 0; i < 3; ++i)
-			{
-				flat_stencil_prog->Uniform("first", i);
-				flat_stencil_prog->Uniform("second", (i + 1) % 3);
-				flat_stencil_prog->Uniform("third", (i + 2) % 3);
-				world->render(rs);
-			}
+			glDisable(GL_CULL_FACE);
 
-			glCullFace(GL_BACK);
-			flat_stencil_prog->Uniform("value", 1.0f);
+			glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
+			glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
+
 			for (int i = 0; i < 3; ++i)
 			{
 				flat_stencil_prog->Uniform("first", i);
@@ -1096,6 +1088,9 @@ void Client::render_world(void)
 			glEnable(GL_COLOR_LOGIC_OP);
 			glLogicOp(GL_AND);
 			glEnable(GL_CULL_FACE);
+
+			//glStencilFunc(GL_LESS, 128, 0xff);
+			//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 			int min_i = 0;
 			int max_i = 3;

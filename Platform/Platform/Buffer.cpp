@@ -290,7 +290,7 @@ void Buffer::setFormat(BufferFormatType format, unsigned int r, unsigned int g, 
 				gl_internal_format = GL_DEPTH24_STENCIL8;
 			break;
 		case BUFFER_STENCIL:
-			gl_format = GL_STENCIL;
+			gl_format = GL_STENCIL_INDEX;
 			gl_type = GL_UNSIGNED_INT;
 			if (r > 8)
 				gl_internal_format = GL_STENCIL_INDEX16;
