@@ -2,6 +2,7 @@
 #define SCRIPT_VARIABLE_DATA_H
 
 #include "ScriptTypeData.h"
+#include "ScriptCompileMemoryTarget.h"
 
 class ScriptVariableData
 {
@@ -9,8 +10,8 @@ public:
 	ScriptVariableData();
 	~ScriptVariableData();
 
-	size_t offset;
 	ScriptTypeData type;
+	ScriptCompileMemoryTarget target;
 };
 
 #endif

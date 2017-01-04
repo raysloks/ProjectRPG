@@ -245,7 +245,7 @@ void main()
 //INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 //    PSTR lpCmdLine, INT nCmdShow)
 {
-	if (false)
+	if (true)
 	{
 		size_t max_mem_size = 65536;
 		void * mem = VirtualAlloc(nullptr, max_mem_size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
@@ -261,12 +261,7 @@ void main()
 
 				ScriptCode code = ScriptCode(std::istringstream(buffer));
 
-				ScriptCompile comp;
-
-				comp.proto.ret.size = 4;
-				comp.proto.ret.type = ST_UINT;
-
-				//comp.stack = sizeof(int);
+				ScriptCompile comp(buffer);
 
 				for (auto i = code.statements.begin(); i != code.statements.end(); ++i)
 				{

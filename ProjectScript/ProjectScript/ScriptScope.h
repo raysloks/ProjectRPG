@@ -4,14 +4,15 @@
 #include "ScriptVariableData.h"
 
 #include <sstream>
-#include <map>
+#include <unordered_map>
 
 class ScriptScope
 {
 public:
 	size_t offset;
 
-	std::map<std::string, ScriptVariableData> vars;
+	std::unordered_map<std::string, ScriptVariableData> vars;
+	std::vector<std::pair<ScriptCompileMemoryTarget, ScriptCompileMemoryTarget>> swaps;
 	//std::map<std::string, std::pair<ScriptFunctionPrototype, void*>> funcs;
 };
 

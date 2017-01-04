@@ -120,6 +120,7 @@
     <ClCompile Include="ReferenceVar.cpp" />
     <ClCompile Include="Script.cpp" />
     <ClCompile Include="ScriptAssemblyHelper.cpp" />
+    <ClCompile Include="ScriptClassData.cpp" />
     <ClCompile Include="ScriptCode.cpp" />
     <ClCompile Include="ScriptCompile.cpp" />
     <ClCompile Include="ScriptCompileMemoryTarget.cpp" />
@@ -141,8 +142,10 @@
     <ClInclude Include="FunctionVar.h" />
     <ClInclude Include="MemoryVar.h" />
     <ClInclude Include="ReferenceVar.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="ScriptAssemblyHelper.h" />
+    <ClInclude Include="ScriptClassData.h" />
     <ClInclude Include="ScriptCode.h" />
     <ClInclude Include="ScriptCompile.h" />
     <ClInclude Include="ScriptCompileMemoryTarget.h" />
@@ -158,6 +161,9 @@
     <ClInclude Include="Token.h" />
     <ClInclude Include="Variable.h" />
     <ClInclude Include="VectorVar.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ProjectScript.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

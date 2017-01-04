@@ -478,6 +478,7 @@ Statement::~Statement(void)
 void Statement::compile(ScriptCompile& comp)
 {
 	auto& ss = comp.ss;
+	auto& sasm = comp.sasm;
 
 	StreamAssignee<uint8_t> p(ss);
 	StreamAssignee<uint8_t> po(ss);
@@ -491,36 +492,44 @@ void Statement::compile(ScriptCompile& comp)
 
 	ScriptCompileMemoryTarget target = comp.target;
 
-	ScriptAssemblyHelper sasm(comp);
-
-	std::vector<ScriptCompileMemoryTarget> targets;
-	targets.push_back(target);
-
 	switch (keyword)
 	{
 	case 1://return
 	{
+		if (comp.proto == nullptr)
+			throw std::runtime_error("'return' found outside of a function.");
+
 		if (lhs != nullptr)
 		{
-			if (comp.proto.ret.size == 0)
+			if (comp.proto->ret.size == 0)
 				throw std::runtime_error("Return type is 'void'.");
-			if (comp.proto.ret != lhs->getType(comp))
+			if (comp.proto->ret != lhs->getType(comp))
 				throw std::runtime_error("Return type mismatch.");
 
-			comp.target = ScriptCompileMemoryTarget();
+			if (comp.proto->ret.size <= 4)
+			{
+				comp.target = ScriptCompileMemoryTarget();
 
-			lhs->compile(comp);
+				lhs->compile(comp);
+			}
+			else
+			{
+				throw std::runtime_error("Return types larger than 32 bits are not supported yet.");
+			}
 		}
 		else
 		{
-			if (comp.proto.ret.size > 0)
+			if (comp.proto->ret.size > 0)
 				throw std::runtime_error("Function needs to return a value.");
 		}
 
-		// add esp, comp.stack
-		po = 0x81;
-		o = 0b11000100;
-		dat32 = comp.stack;
+		if (comp.stack > 0)
+		{
+			// add esp, comp.stack
+			po = 0x81;
+			o = 0b11000100;
+			dat32 = comp.stack;
+		}
 
 		// leave
 		po = 0xc9;
@@ -569,6 +578,19 @@ void Statement::compile(ScriptCompile& comp)
 	return;
 	case 4:
 	{
+		if (code != 0)
+		{
+			comp.BeginScope();
+			bool has_return = false;
+			for (auto i = code->statements.begin(); i != code->statements.end(); ++i)
+			{
+				i->compile(comp);
+				has_return |= i->hasReturn();
+			}
+			if (!has_return)
+				throw std::runtime_error("Not all control paths return.");
+			comp.EndScope();
+		}
 	}
 	return;
 	//keyword 5 is reserved for single depth parentheses' for some odd reason
@@ -603,9 +625,77 @@ void Statement::compile(ScriptCompile& comp)
 		comp.EndScope();
 	}
 	return;
-	case 7:
+	case 7://no real operator or keyword or something
 	{
-		comp.PushVariable(rhs->token.lexeme, getType(comp));
+		if (lhs->keyword == 7)
+		{
+			if (lhs->lhs->token.lexeme.compare("class") == 0)
+			{
+				if (comp.proto == nullptr)
+				{
+					comp.SetClass(lhs->rhs->token.lexeme);
+					rhs->compile(comp);
+					comp.current_class.reset();
+					return;
+				}
+			}
+			if (rhs->code != nullptr && comp.current_class != nullptr)
+			{
+				comp.BeginScope();
+
+				comp.BeginFunction();
+
+				ScriptFunctionPrototype prototype;
+				prototype.ret = lhs->getType(comp);
+
+				std::vector<std::string> parameter_names;
+
+				std::function<void(const std::shared_ptr<Statement>&)> add_arg;
+				add_arg = [&](const std::shared_ptr<Statement>& v)
+				{
+					if (v->token.lexeme.size() == 0 && v->keyword == 0)
+						return;
+					if (v->token.lexeme.front() == ',')
+					{
+						add_arg(v->lhs);
+						add_arg(v->rhs);
+					}
+					else
+					{
+						prototype.params.push_back(v->getType(comp));
+						parameter_names.push_back(v->rhs->token.lexeme);
+					}
+				};
+				add_arg(rhs->lhs);
+				
+				size_t offset = 8;
+				for (size_t i = 0; i < prototype.params.size(); ++i)
+				{
+					comp.AddParameter(parameter_names[i], prototype.params[i], offset);
+					offset += prototype.params[i].size;
+				}
+
+				comp.current_class->AddFunction(lhs->rhs->token.lexeme, prototype, (char*)comp.base_pointer + ss.tellp());
+
+				comp.proto.reset(new ScriptFunctionPrototype(prototype));
+				rhs->compile(comp);
+				comp.proto.reset();
+
+				comp.EndScope();
+
+				return;
+			}
+		}
+		if (comp.proto != nullptr)
+		{
+			comp.PushVariable(rhs->token.lexeme, getType(comp));
+			return;
+		}
+		if (comp.current_class != nullptr)
+		{
+			comp.current_class->AddMember(rhs->token.lexeme, getType(comp));
+			return;
+		}
 	}
 	return;
 	default:
@@ -634,7 +724,7 @@ void Statement::compile(ScriptCompile& comp)
 			{
 				if (lhs->keyword == 7)
 				{
-					auto rhs_target = sasm.FindRegister(targets);
+					auto rhs_target = sasm.FindRegister();
 					comp.target = rhs_target;
 
 					rhs->compile(comp);
@@ -651,7 +741,7 @@ void Statement::compile(ScriptCompile& comp)
 			break;
 			case '+':
 			{
-				auto rhs_target = sasm.FindRegister(targets);
+				auto rhs_target = sasm.FindRegister(target);
 				comp.target = rhs_target;
 
 				rhs->compile(comp);
@@ -669,7 +759,7 @@ void Statement::compile(ScriptCompile& comp)
 			break;
 			case '-':
 			{
-				auto rhs_target = sasm.FindRegister(targets);
+				auto rhs_target = sasm.FindRegister(target);
 				comp.target = rhs_target;
 
 				rhs->compile(comp);
@@ -687,7 +777,7 @@ void Statement::compile(ScriptCompile& comp)
 			break;
 			case '*':
 			{
-				auto rhs_target = sasm.FindRegister(targets);
+				auto rhs_target = sasm.FindRegister(target);
 				comp.target = rhs_target;
 
 				rhs->compile(comp);
@@ -948,11 +1038,7 @@ void Statement::compile(ScriptCompile& comp)
 
 				auto varData = comp.GetVariable(token.lexeme);
 
-				ScriptCompileMemoryTarget var_target;
-
-				var_target.mod = 0b10;
-				var_target.rm = 0b101;
-				var_target.offset = -varData.offset;
+				ScriptCompileMemoryTarget var_target = varData.target;
 
 				if (target.lvalue)
 				{
@@ -960,15 +1046,22 @@ void Statement::compile(ScriptCompile& comp)
 				}
 				else
 				{
-					if (comp.target.mod == 0b11)
+					if (target.mod == 0b11)
 					{
-						sasm.Move(0x8b, comp.target, var_target);
+						sasm.Move(0x8b, target, var_target);
 					}
 					else
 					{
-						auto tmp_target = sasm.FindRegister(targets);
-						sasm.Move(0x8b, tmp_target, var_target);
-						sasm.Move(0x89, comp.target, tmp_target);
+						if (var_target.mod == 0b11)
+						{
+							sasm.Move(0x89, target, var_target);
+						}
+						else
+						{
+							auto tmp_target = sasm.FindRegister({ target, var_target });
+							sasm.Move(0x8b, tmp_target, var_target);
+							sasm.Move(0x89, target, tmp_target);
+						}
 					}
 				}
 			}
@@ -1094,6 +1187,30 @@ std::shared_ptr<Variable> Statement::run(const std::shared_ptr<ScriptMemory>& me
 	return 0;
 }
 
+bool Statement::hasReturn()
+{
+	switch (keyword)
+	{
+	case 1:
+		return true;
+	case 3:
+		return lhs->hasReturn() && rhs->hasReturn();
+	default:
+		return false;
+	}
+
+	if (code != 0)
+	{
+		for (auto i = code->statements.begin(); i != code->statements.end(); ++i)
+		{
+			if (i->hasReturn())
+				return true;
+		}
+	}
+
+	return false;
+}
+
 //TODO add evaluation of constant expressions
 bool Statement::isConstant(ScriptCompile & comp)
 {
@@ -1156,13 +1273,26 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 	case 0:
 		break;
 	case 5:
-		break;
 	case 7:
 	{
-		ScriptTypeData typeData;
-		typeData.size = 4;
-		typeData.type = ST_UINT;
-		return typeData;
+		switch (lhs->keyword)
+		{
+		case 0:
+			if (lhs->token.lexeme.compare("int") == 0)
+			{
+				ScriptTypeData typeData;
+				typeData.size = 4;
+				typeData.type = ST_INT;
+				return typeData;
+			}
+			if (lhs->token.lexeme.compare("uint") == 0)
+			{
+				ScriptTypeData typeData;
+				typeData.size = 4;
+				typeData.type = ST_UINT;
+				return typeData;
+			}
+		}
 	}
 	break;
 	default:
@@ -1289,6 +1419,6 @@ std::string Statement::output(const std::string& indent)
 		}
 		break;
 	}
-	//str.append(std::to_string((long long)keyword));
+	str.append(std::to_string((long long)keyword));
 	return str;
 }

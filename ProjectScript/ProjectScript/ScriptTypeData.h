@@ -9,7 +9,6 @@ enum ScriptType
 	ST_UINT,
 	ST_FLOAT,
 	ST_FUNCTION,
-	ST_POINTER,
 	ST_CLASS
 };
 
@@ -20,7 +19,7 @@ public:
 	~ScriptTypeData();
 
 	ScriptType type;
-	size_t size;
+	size_t size, indirection;
 
 	bool operator==(const ScriptTypeData& rhs) const;
 	bool operator!=(const ScriptTypeData& rhs) const;

@@ -2,10 +2,17 @@
 
 #include "StreamAssignee.h"
 
-ScriptCompile::ScriptCompile()
+ScriptCompile::ScriptCompile(void * bp) : sasm(*this)
 {
-	scope.push_back(ScriptScope());
+	base_pointer = bp;
+}
 
+ScriptCompile::~ScriptCompile()
+{
+}
+
+void ScriptCompile::BeginFunction()
+{
 	StreamAssignee<uint8_t> p(ss);
 	StreamAssignee<uint8_t> po(ss);
 	StreamAssignee<uint8_t> o(ss);
@@ -24,10 +31,6 @@ ScriptCompile::ScriptCompile()
 	o = 0b11100101;
 
 	stack = 0;
-}
-
-ScriptCompile::~ScriptCompile()
-{
 }
 
 void ScriptCompile::BeginScope()
@@ -111,14 +114,51 @@ void ScriptCompile::Insert(size_t start, off_t size)
 	}
 }
 
-void ScriptCompile::PushVariable(const std::string & name, ScriptTypeData type)
+void ScriptCompile::PushVariable(const std::string& name)
+{
+	ScriptVariableData oldVarData = GetVariable(name);
+
+	ScriptVariableData varData;
+	varData.type = oldVarData.type;
+	stack += varData.type.size;
+
+	varData.target.lvalue = false;
+	varData.target.offset = -stack;
+	varData.target.mod = 0b10;
+	varData.target.rm = 0b101;
+
+	if (scope.back().vars.find(name) != scope.back().vars.end())
+		throw std::runtime_error("Redefinition of variable '" + name + "'.");
+
+	StreamAssignee<uint8_t> po(ss);
+	StreamAssignee<uint8_t> o(ss);
+	StreamAssignee<uint8_t> dat8(ss);
+	StreamAssignee<uint32_t> dat32(ss);
+
+	if (oldVarData.target.mod == 0b11)
+	{
+		sasm.Move(0x89, varData.target, oldVarData.target);
+	}
+	else
+	{
+	}
+
+	scope.back().vars[name] = varData;
+}
+
+void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type)
 {
 	ScriptVariableData varData;
 	varData.type = type;
 	stack += type.size;
-	varData.offset = stack;
 
-	scope.back().vars[name] = varData;
+	varData.target.lvalue = false;
+	varData.target.offset = -stack;
+	varData.target.mod = 0b10;
+	varData.target.rm = 0b101;
+
+	if (scope.back().vars.find(name) != scope.back().vars.end())
+		throw std::runtime_error("Redefinition of variable '" + name + "'.");
 
 	StreamAssignee<uint8_t> po(ss);
 	StreamAssignee<uint8_t> o(ss);
@@ -139,16 +179,23 @@ void ScriptCompile::PushVariable(const std::string & name, ScriptTypeData type)
 		o = 0b11101100;
 		dat32 = type.size;
 	}
+
+	scope.back().vars[name] = varData;
 }
 
-void ScriptCompile::PushVariable(const std::string & name, ScriptTypeData type, ScriptCompileMemoryTarget target)
+void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type, ScriptCompileMemoryTarget target)
 {
 	ScriptVariableData varData;
 	varData.type = type;
 	stack += type.size;
-	varData.offset = stack;
+	
+	varData.target.lvalue = false;
+	varData.target.offset = -stack;
+	varData.target.mod = 0b10;
+	varData.target.rm = 0b101;
 
-	scope.back().vars[name] = varData;
+	if (scope.back().vars.find(name) != scope.back().vars.end())
+		throw std::runtime_error("Redefinition of variable '" + name + "'.");
 
 	StreamAssignee<uint8_t> po(ss);
 	StreamAssignee<uint8_t> o(ss);
@@ -170,16 +217,23 @@ void ScriptCompile::PushVariable(const std::string & name, ScriptTypeData type, 
 		if (target.mod == 0b10)
 			dat32 = target.offset;
 	}
+
+	scope.back().vars[name] = varData;
 }
 
-void ScriptCompile::PushVariable(const std::string & name, ScriptTypeData type, uint32_t value)
+void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type, uint32_t value)
 {
 	ScriptVariableData varData;
 	varData.type = type;
 	stack += type.size;
-	varData.offset = stack;
 
-	scope.back().vars[name] = varData;
+	varData.target.lvalue = false;
+	varData.target.offset = -stack;
+	varData.target.mod = 0b10;
+	varData.target.rm = 0b101;
+
+	if (scope.back().vars.find(name) != scope.back().vars.end())
+		throw std::runtime_error("Redefinition of variable '" + name + "'.");
 
 	StreamAssignee<uint8_t> po(ss);
 	StreamAssignee<uint32_t> dat32(ss);
@@ -187,6 +241,24 @@ void ScriptCompile::PushVariable(const std::string & name, ScriptTypeData type, 
 	// push value
 	po = 0x68;
 	dat32 = value;
+
+	scope.back().vars[name] = varData;
+}
+
+void ScriptCompile::AddParameter(const std::string& name, ScriptTypeData type, size_t offset)
+{
+	ScriptVariableData varData;
+	varData.type = type;
+
+	varData.target.lvalue = false;
+	varData.target.offset = offset;
+	varData.target.mod = 0b10;
+	varData.target.rm = 0b101;
+
+	if (scope.back().vars.find(name) != scope.back().vars.end())
+		throw std::runtime_error("Redefinition of parameter '" + name + "'.");
+
+	scope.back().vars[name] = varData;
 }
 
 ScriptVariableData ScriptCompile::GetVariable(const std::string& name)
@@ -198,4 +270,37 @@ ScriptVariableData ScriptCompile::GetVariable(const std::string& name)
 			return var->second;
 	}
 	throw std::runtime_error("Couldn't find variable '" + name + "'.");
+}
+
+void ScriptCompile::SetClass(const std::string& name)
+{
+	if (classes.find(name) != classes.end())
+	{
+		current_class = classes.find(name)->second;
+	}
+	else
+	{
+		current_class.reset(new ScriptClassData());
+		classes.insert(std::make_pair(name, current_class));
+	}
+}
+
+bool ScriptCompile::IsBusy(uint8_t reg)
+{
+	return busy_registers.find(reg) != busy_registers.end();
+}
+
+bool ScriptCompile::IsFree(uint8_t reg)
+{
+	return busy_registers.find(reg) == busy_registers.end();
+}
+
+void ScriptCompile::SetBusy(uint8_t reg)
+{
+	busy_registers.insert(reg);
+}
+
+void ScriptCompile::SetFree(uint8_t reg)
+{
+	busy_registers.erase(reg);
 }

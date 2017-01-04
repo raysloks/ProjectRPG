@@ -18,6 +18,7 @@ public:
 	void compile(ScriptCompile& comp);
 	std::shared_ptr<Variable> run(const std::shared_ptr<ScriptMemory>& mem);
 
+	bool hasReturn();
 	bool isConstant(ScriptCompile& comp);
 	ScriptTypeData getType(ScriptCompile& comp);
 

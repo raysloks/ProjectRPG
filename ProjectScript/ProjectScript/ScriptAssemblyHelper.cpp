@@ -1,8 +1,9 @@
 #include "ScriptAssemblyHelper.h"
 
 #include "StreamAssignee.h"
+#include "ScriptCompile.h"
 
-ScriptAssemblyHelper::ScriptAssemblyHelper(ScriptCompile& comp) : ss(comp.ss)
+ScriptAssemblyHelper::ScriptAssemblyHelper(ScriptCompile& c) : comp(c), ss(comp.ss)
 {
 }
 
@@ -10,41 +11,45 @@ ScriptAssemblyHelper::~ScriptAssemblyHelper()
 {
 }
 
-ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister(const std::vector<ScriptCompileMemoryTarget>& targets)
+ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister()
 {
 	ScriptCompileMemoryTarget ret;
 
-	bool eax = false;
-	bool ebx = false;
-	bool edx = false;
-	bool esi = false;
-	bool edi = false;
-	for (auto i = targets.begin(); i != targets.end(); ++i)
-	{
-		eax |= i->rm == 0b000;
-		ebx |= i->rm == 0b011;
-		edx |= i->rm == 0b010;
-		esi |= i->rm == 0b110;
-		edi |= i->rm == 0b111;
-	}
-	if (eax && ebx && edx && esi && edi)
+	bool eax = comp.IsBusy(0b000);
+	bool ecx = comp.IsBusy(0b001);
+	bool edx = comp.IsBusy(0b010);
+	if (eax && ecx && edx)
 	{
 		throw std::runtime_error("Unable to find free register.");
 	}
-	if (!edi)
-		ret.rm = 0b111;
-	if (!esi)
-		ret.rm = 0b110;
 	if (!edx)
 		ret.rm = 0b010;
-	if (!ebx)
-		ret.rm = 0b011;
+	if (!ecx)
+		ret.rm = 0b001;
 	if (!eax)
 		ret.rm = 0b000;
 	return ret;
 }
 
-void ScriptAssemblyHelper::Move(uint8_t opcode, ScriptCompileMemoryTarget & destination, ScriptCompileMemoryTarget & source)
+ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister(ScriptCompileMemoryTarget& target)
+{
+	comp.SetBusy(target.rm);
+	auto ret = FindRegister();
+	comp.SetFree(target.rm);
+	return ret;
+}
+
+ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister(const std::vector<ScriptCompileMemoryTarget>& targets)
+{
+	for each (auto target in targets)
+		comp.SetBusy(target.rm);
+	auto ret = FindRegister();
+	for each (auto target in targets)
+		comp.SetFree(target.rm);
+	return ret;
+}
+
+void ScriptAssemblyHelper::Move(uint8_t opcode, ScriptCompileMemoryTarget& destination, ScriptCompileMemoryTarget& source)
 {
 	StreamAssignee<uint8_t> p(ss);
 	StreamAssignee<uint8_t> po(ss);
@@ -85,7 +90,7 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, ScriptCompileMemoryTarget & dest
 	}
 }
 
-void ScriptAssemblyHelper::Move(uint8_t opcode, uint8_t opcode_extension, ScriptCompileMemoryTarget & operand)
+void ScriptAssemblyHelper::Move(uint8_t opcode, uint8_t opcode_extension, ScriptCompileMemoryTarget& operand)
 {
 	StreamAssignee<uint8_t> p(ss);
 	StreamAssignee<uint8_t> po(ss);
@@ -103,7 +108,7 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, uint8_t opcode_extension, Script
 		dat32 = operand.offset;
 }
 
-void ScriptAssemblyHelper::Push(ScriptCompileMemoryTarget & source)
+void ScriptAssemblyHelper::Push(ScriptCompileMemoryTarget& source)
 {
 	StreamAssignee<uint8_t> p(ss);
 	StreamAssignee<uint8_t> po(ss);
@@ -125,7 +130,7 @@ void ScriptAssemblyHelper::Push(ScriptCompileMemoryTarget & source)
 	}
 }
 
-void ScriptAssemblyHelper::Pop(ScriptCompileMemoryTarget & destination)
+void ScriptAssemblyHelper::Pop(ScriptCompileMemoryTarget& destination)
 {
 	StreamAssignee<uint8_t> p(ss);
 	StreamAssignee<uint8_t> po(ss);
