@@ -643,8 +643,6 @@ void Statement::compile(ScriptCompile& comp)
 			{
 				comp.BeginScope();
 
-				comp.BeginFunction();
-
 				ScriptFunctionPrototype prototype;
 				prototype.ret = lhs->getType(comp);
 
@@ -676,6 +674,8 @@ void Statement::compile(ScriptCompile& comp)
 				}
 
 				comp.current_class->AddFunction(lhs->rhs->token.lexeme, prototype, (char*)comp.base_pointer + ss.tellp());
+
+				comp.BeginFunction();
 
 				comp.proto.reset(new ScriptFunctionPrototype(prototype));
 				rhs->compile(comp);
@@ -816,10 +816,9 @@ void Statement::compile(ScriptCompile& comp)
 
 				sasm.Push(eax_target);
 
-				ScriptCompileMemoryTarget ebx_target;
-				ebx_target.rm = 0b011;
+				ScriptCompileMemoryTarget divisor_target = sasm.FindRegister({ target, eax_target });
 
-				comp.target = ebx_target;
+				comp.target = divisor_target;
 				rhs->compile(comp);
 
 				sasm.Pop(eax_target);
@@ -836,9 +835,9 @@ void Statement::compile(ScriptCompile& comp)
 					dat32 = 0;
 				}
 
-				// idiv ebx
+				// idiv divisor_target
 				po = 0xf7;
-				o = 0b11111011;
+				o = divisor_target.GetModRegRM(7);
 
 				if (target.mod != 0b11 || target.rm != 0b000)
 					sasm.Move(0x89, target, eax_target);

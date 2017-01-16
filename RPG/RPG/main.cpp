@@ -261,7 +261,7 @@ void main()
 
 				ScriptCode code = ScriptCode(std::istringstream(buffer));
 
-				ScriptCompile comp(buffer);
+				ScriptCompile comp(mem);
 
 				for (auto i = code.statements.begin(); i != code.statements.end(); ++i)
 				{
@@ -269,19 +269,26 @@ void main()
 					i->compile(comp);
 				}
 
-				auto& ss = comp.ss;
-
-				size_t mem_size = ss.tellp();
+				size_t mem_size = comp.ss.tellp();
 
 				std::cout << "code bytes: " << mem_size << std::endl;
 
-				ss.read((char*)mem, mem_size);
+				comp.ss.read((char*)mem, mem_size);
 
-				typedef int func(int);
+				auto found_class = comp.classes.find("Main");
+				if (found_class != comp.classes.end())
+				{
+					auto found_func = found_class->second->functions.find("main");
+					if (found_func != found_class->second->functions.end())
+					{
+						typedef unsigned int func(unsigned int);
 
-				func * f = static_cast<func*>(mem);
+						func * f = static_cast<func*>(found_func->second.second);
 
-				std::cout << f(300) << std::endl;
+						for (int i = 0; i < 20; ++i)
+							std::cout << f(i) << std::endl;
+					}
+				}
 
 			}
 			catch (std::runtime_error& e)
