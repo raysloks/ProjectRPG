@@ -1,9 +1,12 @@
-#include "Resource.h"
-#include "streams.h"
-#include <al.h>
-
 #ifndef SOUND_H
 #define SOUND_H
+
+#include "Resource.h"
+
+#include <al.h>
+
+#include "streams.h"
+#include "Vec3.h"
 
 class Sound
 	: public Resource
@@ -16,6 +19,9 @@ public:
 	static void init(void);
 	static void release(void);
 	static bool isReady(void);
+
+	static void setListenerOrientation(const Vec3& front, const Vec3& up);
+	static void setListenerPosition(const Vec3& position);
 
 	ALuint getBuffer(void);
 
