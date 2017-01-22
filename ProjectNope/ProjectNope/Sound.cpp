@@ -109,6 +109,33 @@ bool Sound::isReady(void)
 	return dev!=0 && con!=0;
 }
 
+void Sound::setListenerOrientation(const Vec3& front, const Vec3& up)
+{
+	if (isReady())
+	{
+		ALfloat val[6];
+		val[0] = front.x;
+		val[1] = front.y;
+		val[2] = front.z;
+		val[3] = up.x;
+		val[4] = up.y;
+		val[5] = up.z;
+		alListenerfv(AL_ORIENTATION, val);
+	}
+}
+
+void Sound::setListenerPosition(const Vec3& position)
+{
+	if (isReady())
+	{
+		ALfloat pos[3];
+		pos[0] = position.x;
+		pos[1] = position.y;
+		pos[2] = position.z;
+		alListenerfv(AL_POSITION, pos);
+	}
+}
+
 ALuint Sound::getBuffer(void)
 {
 	if (buffer==0)
