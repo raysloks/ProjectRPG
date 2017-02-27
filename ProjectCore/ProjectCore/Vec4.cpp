@@ -12,6 +12,14 @@ Vec4::Vec4(float a, float b, float c, float d) : x(a), y(b), z(c), w(d)
 {
 }
 
+Vec4::Vec4(const Vec3 & a, float b)
+{
+	x = a.x;
+	y = a.y;
+	z = a.z;
+	w = b;
+}
+
 Vec4::Vec4(instream& is)
 {
 	is >> x >> y >> z >> w;

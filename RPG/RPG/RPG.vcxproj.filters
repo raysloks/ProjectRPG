@@ -23,6 +23,8 @@
     <ClCompile Include="InventoryComponent.cpp">
       <Filter>Components</Filter>
     </ClCompile>
+    <ClCompile Include="AIComponent.cpp" />
+    <ClCompile Include="HitBox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -46,6 +48,8 @@
     <ClInclude Include="InventoryComponent.h">
       <Filter>Components</Filter>
     </ClInclude>
+    <ClInclude Include="AIComponent.h" />
+    <ClInclude Include="HitBox.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

@@ -92,7 +92,7 @@ MainMenuWindow::~MainMenuWindow(void)
 
 void MainMenuWindow::render(void)
 {
-	time += time_move;
+	/*time += time_move;
 	
 	if (time>2.0f)
 		time=2.0f;
@@ -110,7 +110,7 @@ void MainMenuWindow::render(void)
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
-	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_2D);*/
 
 	if (state!=2)
 	{

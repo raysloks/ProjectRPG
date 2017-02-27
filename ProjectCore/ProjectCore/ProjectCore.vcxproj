@@ -27,6 +27,7 @@
     <ClInclude Include="Matrix3.h" />
     <ClInclude Include="Matrix4.h" />
     <ClInclude Include="Quaternion.h" />
+    <ClInclude Include="SerialHash.h" />
     <ClInclude Include="Serializable.h" />
     <ClInclude Include="StreamFactory.h" />
     <ClInclude Include="streams.h" />
@@ -44,6 +45,7 @@
     <ClCompile Include="Matrix3.cpp" />
     <ClCompile Include="Matrix4.cpp" />
     <ClCompile Include="Quaternion.cpp" />
+    <ClCompile Include="SerialHash.cpp" />
     <ClCompile Include="Serializable.cpp" />
     <ClCompile Include="Vec2.cpp" />
     <ClCompile Include="Vec3.cpp" />

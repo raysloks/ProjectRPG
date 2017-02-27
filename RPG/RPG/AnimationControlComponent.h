@@ -72,7 +72,7 @@ public:
 	float time_since_landed;
 
 	std::shared_ptr<SkeletalAnimation> anim;
-	std::shared_ptr<Pose> pose;
+	Pose * pose;
 };
 
 #endif

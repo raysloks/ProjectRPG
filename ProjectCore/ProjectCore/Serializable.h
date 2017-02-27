@@ -5,8 +5,6 @@
 
 class Serializable;
 
-typedef unsigned int SerialID;
-
 template <class T>
 class SerialFactory : public StreamFactory<Serializable>
 {
@@ -27,12 +25,12 @@ class NullFactory : public StreamFactory<Serializable>
 public:
 	Serializable * create(instream& is, bool full) const
 	{
-		return 0;
+		return nullptr;
 	}
 
 	Serializable * create(const Serializable* obj) const
 	{
-		return 0;
+		return nullptr;
 	}
 };
 
@@ -55,18 +53,18 @@ public:
 	static void serialize(outstream& os, const Serializable * const instance);
 	static const StreamFactory<Serializable> * unserialize(instream& is);
 
-	static const StreamFactory<Serializable> * getFactory(const SerialID& id); 
+	static const StreamFactory<Serializable> * getFactory(uint32_t id);
 
-	inline const SerialID& getSerialID(void) const {return _serID;}
-	static const std::string& getName(SerialID id);
+	inline const uint32_t& getSerialID(void) const {return _serID;}
+	static const std::string& getName(uint32_t id);
 
 	static const AutoNullFactory null_factory;
 
 	virtual ~Serializable(void);
 protected:
-	Serializable(SerialID id);
+	Serializable(uint32_t id);
 private:
-	SerialID _serID;
+	uint32_t _serID;
 };
 
 #endif

@@ -36,7 +36,7 @@ public:
 
 	GlobalPosition p;
 
-	std::shared_ptr<Pose> * pose;
+	Pose * pose;
 
 	int bone_id;
 

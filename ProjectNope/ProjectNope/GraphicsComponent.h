@@ -52,7 +52,7 @@ public:
 
 	GlobalPosition * p;
 
-	Pose pose;
+	Pose * pose;
 
 	void render(RenderSetup& rs);
 

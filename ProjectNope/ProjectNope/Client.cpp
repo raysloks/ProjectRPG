@@ -562,6 +562,9 @@ void Client::render_world(void)
 
 	float supersample_r = 1.0f;
 
+	int shadow_quality = 1;
+	int ao_quality = 1;
+
 	if (mem!=0)
 	{
 		auto var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("fov"));
@@ -576,13 +579,19 @@ void Client::render_world(void)
 		var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("supersampling_r"));
 		if (var != 0)
 			supersample_r = var->f;
+		var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("shadow_quality"));
+		if (var != 0)
+			shadow_quality = var->f;
+		var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("ao_quality"));
+		if (var != 0)
+			ao_quality = var->f;
 	}
 
 
 	// initialize and maintain buffers
 	if (depth_buf == nullptr)
 		depth_buf = std::make_shared<Buffer>();
-	depth_buf->setFormat(BUFFER_DEPTH, 32);
+	depth_buf->setFormat(BUFFER_DEPTH_STENCIL, 24);
 	depth_buf->resize(buffer_w, buffer_h);
 
 	if (normal_buf == nullptr)
@@ -607,7 +616,7 @@ void Client::render_world(void)
 
 	if (flat_stencil_buf == nullptr)
 		flat_stencil_buf = std::make_shared<Buffer>();
-	flat_stencil_buf->setFormat(BUFFER_STENCIL, 8);
+	flat_stencil_buf->setFormat(BUFFER_DEPTH_STENCIL, 24);
 	flat_stencil_buf->resize(buffer_w, buffer_h);
 
 	
@@ -644,11 +653,11 @@ void Client::render_world(void)
 	stencil_fb->color.resize(1);
 	stencil_fb->color[0] = stencil_buf;
 	stencil_fb->depth = depth_buf;
-	//stencil_fb->stencil = flat_stencil_buf;
+	stencil_fb->stencil = depth_buf;
 
 	if (flat_stencil_fb == nullptr)
 		flat_stencil_fb = std::make_shared<FrameBuffer>();
-	flat_stencil_fb->stencil = flat_stencil_buf;
+	flat_stencil_fb->stencil = depth_buf;
 	flat_stencil_fb->depth = depth_buf;
 	
 
@@ -681,8 +690,8 @@ void Client::render_world(void)
 		color_fb->bind();
 		glViewport(0, 0, buffer_w, buffer_h);
 
-		sky_prog->Uniform("horizon", horizon.x, horizon.y, horizon.z);
-		sky_prog->Uniform("zenith", zenith.x, zenith.y, zenith.z);
+		sky_prog->Uniform("horizon", horizon);
+		sky_prog->Uniform("zenith", zenith);
 		sky_prog->Uniform("light", light);
 		sky_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
 
@@ -749,38 +758,6 @@ void Client::render_world(void)
 		world->render(rs);
 
 		rs.popMod();
-	}
-
-
-	// render lights
-	if (light_prog->Use())
-	{
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ONE);
-
-		light_fb->bind();
-		glViewport(0, 0, buffer_w, buffer_h);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		light_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
-
-		light_prog->Uniform("zNear", near_z);
-		light_prog->Uniform("zFar", far_z);
-
-		glActiveTexture(GL_TEXTURE0);
-		light_prog->Uniform("normal", 0);
-		glBindTexture(GL_TEXTURE_2D, normal_buf->gl_texture_id);
-		glActiveTexture(GL_TEXTURE1);
-		light_prog->Uniform("depth", 1);
-		glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
-
-		for (auto i = LightComponent::all.begin(); i != LightComponent::all.end(); ++i)
-		{
-			light_prog->Uniform("light", Vec3((*i)->p - world->cam_pos), 0.0f);
-			light_prog->UniformMatrix3fv("shape", Matrix3().data);
-			glDrawArrays(GL_TRIANGLES, 0, 3);
-			glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-		}
 	}
 
 
@@ -987,15 +964,13 @@ void Client::render_world(void)
 	// stencils
 	if (stencil_prog->IsReady() && flat_stencil_prog->IsReady())
 	{
-		//if (false)
+		// render flat stencil
+		if (flat_stencil_prog->Use())
 		{
-			// render flat stencil
 			flat_stencil_fb->bind();
 			glViewport(0, 0, buffer_w, buffer_h);
-			glClearStencil(128);
+			glClearStencil(64);
 			glClear(GL_STENCIL_BUFFER_BIT);
-
-			flat_stencil_prog->Use();
 
 			flat_stencil_prog->UniformMatrix4fv("proj", proj.data);
 			flat_stencil_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
@@ -1015,12 +990,14 @@ void Client::render_world(void)
 			rs.pushMod(mod);
 			rs.pass = 3;
 
+			glEnable(GL_STENCIL_TEST);
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LESS);
 			glDepthMask(GL_FALSE);
 
 			glDisable(GL_CULL_FACE);
 
+			glStencilFunc(GL_ALWAYS, 0xff, 0xff);
 			glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
 			glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
 
@@ -1032,91 +1009,136 @@ void Client::render_world(void)
 				world->render(rs);
 			}
 
+			glDisable(GL_STENCIL_TEST);
+
 			rs.popMod();
 		}
 
-		//if (false)
+		if (shadow_quality == 3)
 		{
 			// render raytracing stencil
-			stencil_fb->bind();
-			glViewport(0, 0, buffer_w, buffer_h);
-			uint32_t clear_value[4] = { UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX };
-			glClearBufferuiv(GL_COLOR, 0, clear_value);
+			if (stencil_prog->Use())
+			{
+				stencil_fb->bind();
+				glViewport(0, 0, buffer_w, buffer_h);
+				uint32_t clear_value[4] = { UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX };
+				glClearBufferuiv(GL_COLOR, 0, clear_value);
 
-			stencil_prog->Use();
+				stencil_prog->Use();
 
-			stencil_prog->UniformMatrix4fv("proj", proj.data);
-			stencil_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
+				stencil_prog->UniformMatrix4fv("proj", proj.data);
+				stencil_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
 
-			stencil_prog->Uniform("zNear", near_z);
-			stencil_prog->Uniform("zFar", far_z);
+				stencil_prog->Uniform("zNear", near_z);
+				stencil_prog->Uniform("zFar", far_z);
 
-			stencil_prog->Uniform("pixel", 1.0f / buffer_w, 1.0f / buffer_h);
+				stencil_prog->Uniform("pixel", 1.0f / buffer_w, 1.0f / buffer_h);
 
-			stencil_prog->Uniform("light", light, 0.0f);
+				stencil_prog->Uniform("light", light, 0.0f);
 
-			Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
-			Vec3 light_y = light.Cross(light_x).Normalize();
+				Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
+				Vec3 light_y = light.Cross(light_x).Normalize();
 
-			stencil_prog->Uniform("light_x", light_x, 0.0f);
-			stencil_prog->Uniform("light_y", light_y, 0.0f);
+				stencil_prog->Uniform("light_x", light_x, 0.0f);
+				stencil_prog->Uniform("light_y", light_y, 0.0f);
 
-			stencil_prog->Uniform("lsize", light_size);
+				stencil_prog->Uniform("lsize", light_size);
 
-			stencil_prog->Uniform3fv("light_samples", light_samples);
+				stencil_prog->Uniform3fv("light_samples", light_samples);
 
+				glActiveTexture(GL_TEXTURE1);
+				stencil_prog->Uniform("depth", 1);
+				glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
+				glActiveTexture(GL_TEXTURE2);
+				stencil_prog->Uniform("lookup", 2);
+				if (light_lookup_tex != nullptr)
+					glBindTexture(GL_TEXTURE_2D, light_lookup_tex->getGLTexID());
+
+				RenderSetup rs;
+				rs.view = proj;
+
+				ShaderMod mod(stencil_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+					prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
+					prog->UniformMatrix4fv("normal_transform", rs.transform.data);
+				});
+
+				rs.pushMod(mod);
+				rs.pass = 4;
+
+				glDisable(GL_BLEND);
+				glEnable(GL_COLOR_LOGIC_OP);
+				glLogicOp(GL_AND);
+				glEnable(GL_CULL_FACE);
+				glEnable(GL_STENCIL_TEST);
+				glStencilFunc(GL_EQUAL, 64, 0xff);
+				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+				//glStencilFunc(GL_LESS, 128, 0xff);
+				//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+				int min_i = 0;
+				int max_i = 3;
+				if (input.isDown(Platform::KeyEvent::T))
+					max_i = 1;
+				if (input.isDown(Platform::KeyEvent::Y))
+				{
+					min_i = 1;
+					max_i = 2;
+				}
+				if (input.isDown(Platform::KeyEvent::U))
+				{
+					min_i = 2;
+					max_i = 3;
+				}
+				for (int i = min_i; i < max_i; ++i)
+				{
+					stencil_prog->Uniform("first", i);
+					stencil_prog->Uniform("second", (i + 1) % 3);
+					stencil_prog->Uniform("third", (i + 2) % 3);
+					world->render(rs);
+				}
+
+				glDisable(GL_STENCIL_TEST);
+				glDisable(GL_COLOR_LOGIC_OP);
+
+				rs.popMod();
+			}
+		}
+	}
+
+
+	// render lights
+	if (light_prog->Use())
+	{
+		light_fb->bind();
+		glViewport(0, 0, buffer_w, buffer_h);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT); // TODO proper light quality options
+
+		if (ao_quality == 2) // TODO proper separation of light and ao
+		{
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+
+			light_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
+
+			glActiveTexture(GL_TEXTURE0);
+			light_prog->Uniform("normal", 0);
+			glBindTexture(GL_TEXTURE_2D, normal_buf->gl_texture_id);
 			glActiveTexture(GL_TEXTURE1);
-			stencil_prog->Uniform("depth", 1);
+			light_prog->Uniform("depth", 1);
 			glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
-			glActiveTexture(GL_TEXTURE2);
-			stencil_prog->Uniform("lookup", 2);
-			if (light_lookup_tex != nullptr)
-				glBindTexture(GL_TEXTURE_2D, light_lookup_tex->getGLTexID());
 
-			RenderSetup rs;
-			rs.view = proj;
-
-			ShaderMod mod(stencil_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
-				prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
-				prog->UniformMatrix4fv("normal_transform", rs.transform.data);
-			});
-
-			rs.pushMod(mod);
-			rs.pass = 4;
-
-			glDisable(GL_BLEND);
-			glEnable(GL_COLOR_LOGIC_OP);
-			glLogicOp(GL_AND);
-			glEnable(GL_CULL_FACE);
-
-			//glStencilFunc(GL_LESS, 128, 0xff);
-			//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-
-			int min_i = 0;
-			int max_i = 3;
-			if (input.isDown(Platform::KeyEvent::T))
-				max_i = 1;
-			if (input.isDown(Platform::KeyEvent::Y))
+			std::vector<Vec4> light_array;
+			for (auto i = LightComponent::all.begin(); i != LightComponent::all.end(); ++i)
 			{
-				min_i = 1;
-				max_i = 2;
-			}
-			if (input.isDown(Platform::KeyEvent::U))
-			{
-				min_i = 2;
-				max_i = 3;
-			}
-			for (int i = min_i; i < max_i; ++i)
-			{
-				stencil_prog->Uniform("first", i);
-				stencil_prog->Uniform("second", (i + 1) % 3);
-				stencil_prog->Uniform("third", (i + 2) % 3);
-				world->render(rs);
+				light_array.push_back(Vec4((*i)->p - world->cam_pos, 1.0f));
 			}
 
-			glDisable(GL_COLOR_LOGIC_OP);
+			light_prog->Uniform4fv("light", light_array);
+			light_prog->Uniform("n_light", (int)light_array.size());
 
-			rs.popMod();
+			glDrawArrays(GL_TRIANGLES, 0, 3);
 		}
 	}
 
@@ -1139,14 +1161,14 @@ void Client::render_world(void)
 		RenderSetup rs;
 		rs.view = proj;
 
-		ShaderMod mod(shader_program, [this, proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+		ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality](const std::shared_ptr<ShaderProgram>& prog) {
 			prog->Uniform("light", light);
 			prog->Uniform("diffuse", 0); // texture unit 0
 			prog->Uniform("light_buffer", 1); // texture unit 1
 			prog->Uniform("stencil", 2); // texture unit 2
-			prog->Uniform("flat_stencil", 3); // texture unit 3
 			prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
 			prog->UniformMatrix3fv("normal_transform", Matrix3(rs.transform).data);
+			prog->Uniform("shadow_quality", shadow_quality);
 		});
 
 		rs.pushMod(mod);
@@ -1156,8 +1178,6 @@ void Client::render_world(void)
 		glBindTexture(GL_TEXTURE_2D, light_buf->gl_texture_id);
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, stencil_buf->gl_texture_id);
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, flat_stencil_buf->gl_texture_id);
 
 		world->render(rs);
 

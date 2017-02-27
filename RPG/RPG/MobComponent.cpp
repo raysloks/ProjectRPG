@@ -20,7 +20,7 @@
 
 const AutoSerialFactory<MobComponent> MobComponent::_factory("MobComponent");
 
-MobComponent::MobComponent(void) : Serializable(_factory.id)
+MobComponent::MobComponent(void) : Serializable(_factory.id), health(20), stamina(20)
 {
 	facing = Vec3(0.0f, 1.0f, 0.0f);
 	move_facing = facing;
@@ -53,6 +53,15 @@ void MobComponent::tick(float dTime)
 {
 	if (entity->world->authority)
 	{
+		if (health.current <= 0)
+		{
+			input["warp"] = 1.0f;
+			health.current = health.max;
+		}
+
+		stamina.current += dTime;
+		stamina.current = std::min(stamina.current, stamina.max);
+
 		for (auto i = input.begin(); i != input.end();)
 		{
 			i->second -= dTime;
@@ -99,8 +108,10 @@ void MobComponent::tick(float dTime)
 
 			GlobalPosition prev = *p;
 
-			if (input.find("warp")!=input.end())
+			if (input.find("warp") != input.end())
+			{
 				*p = GlobalPosition();
+			}
 
 			landed = false;
 			land_n = Vec3(); // smooth these out for some cases

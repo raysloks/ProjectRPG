@@ -41,6 +41,7 @@ PFNGLVERTEXATTRIB4FPROC glVertexAttrib4f = 0;
 PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation = 0;
 PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation = 0;
 PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample = 0;
+PFNGLTEXSTORAGE2DPROC glTexStorage2D = 0;
 PFNGLTEXIMAGE3DPROC glTexImage3D = 0;
 PFNGLTEXSTORAGE3DPROC glTexStorage3D = 0;
 PFNGLTEXSUBIMAGE3DPROC glTexSubImage3D = 0;
@@ -208,6 +209,8 @@ namespace Platform
 		reportFunc("glGetAttribLocation", glGetAttribLocation);
 		glTexImage2DMultisample = (PFNGLTEXIMAGE2DMULTISAMPLEPROC)wglGetProcAddress("glTexImage2DMultisample");
 		reportFunc("glTexImage2DMultisample", glTexImage2DMultisample);
+		glTexStorage2D = (PFNGLTEXSTORAGE2DPROC)wglGetProcAddress("glTexStorage2D");
+		reportFunc("glTexStorage2D", glTexStorage2D);
 		glTexImage3D = (PFNGLTEXIMAGE3DPROC)wglGetProcAddress("glTexImage3D");
 		reportFunc("glTexImage3D", glTexImage3D);
 		glTexStorage3D = (PFNGLTEXSTORAGE3DPROC)wglGetProcAddress("glTexStorage3D");

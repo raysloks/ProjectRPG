@@ -3,6 +3,7 @@
 #include "NewEntity.h"
 
 #include "PositionComponent.h"
+#include "PoseComponent.h"
 
 #include "RenderSetup.h"
 
@@ -57,19 +58,22 @@ void GraphicsComponent::readLog(instream& is)
 
 void GraphicsComponent::frame(float dTime)
 {
-	if (p==0) {
+	if (p == nullptr) {
 		PositionComponent * pc = entity->getComponent<PositionComponent>();
-		if (pc!=0)
+		if (pc != nullptr)
 			p = &pc->p;
 	}
 
-	if (pose.bones.size()) {
+	if (pose != nullptr) {
 		for (auto i=decs.items.begin();i!=decs.items.end();++i) {
 			if (*i!=0) {
-				(*i)->attach(pose);
+				(*i)->attach(*pose);
 			}
 		}
 	} else {
+		PoseComponent * pc = entity->getComponent<PoseComponent>();
+		if (pc != nullptr)
+			pose = &pc->pose;
 		for (auto i=decs.items.begin();i!=decs.items.end();++i) {
 			if (*i!=0) {
 				(*i)->attach();

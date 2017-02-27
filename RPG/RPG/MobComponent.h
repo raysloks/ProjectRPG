@@ -41,7 +41,9 @@ public:
 
 	GlobalPosition * p;
 
-	HealthBar hp;
+	//stats
+	HealthBar health;
+	HealthBar stamina;
 
 	//facing
 	Vec3 facing, up, move_facing;

@@ -1,9 +1,9 @@
 screen_width = 1920;
 screen_height = 1080;
-fullscreen = 0;
+fullscreen = 1;
 
 vsync = 1;
-force_sync = -1;
+force_sync = 0;
 force_cap = 0;
 framerate_cap = 0;
 tickrate = 144;
@@ -13,8 +13,12 @@ anisotropic_filtering = 16.0;
 shadow_res = 1024;
 shadow_splits = 1;
 
-supersampling_x = 1;
-supersampling_y = 1;
+shadow_quality = 2;
+
+ao_quality = 2;
+
+supersampling_x = 2;
+supersampling_y = 2;
 supersampling_r = 1;
 
 fov = 60.0;

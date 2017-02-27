@@ -11,9 +11,9 @@ APLBlend::~APLBlend(void)
 {
 }
 
-bool APLBlend::tick(float dTime, std::shared_ptr<Pose> out_pose) //TODO optimize for 1.0f and 0.0f and option to base blend factor on dTime
+bool APLBlend::tick(float dTime, Pose * out_pose) //TODO optimize for 1.0f and 0.0f and option to base blend factor on dTime
 {
-	if (!source->tick(dTime, pose))
+	if (!source->tick(dTime, pose.get()))
 		return false;
 	out_pose->interpolate(*pose, weight);
 	return true;
@@ -29,9 +29,9 @@ APLAdd::~APLAdd(void)
 {
 }
 
-bool APLAdd::tick(float dTime, std::shared_ptr<Pose> out_pose)
+bool APLAdd::tick(float dTime, Pose * out_pose)
 {
-	if (!source->tick(dTime, pose))
+	if (!source->tick(dTime, pose.get()))
 		return false;
 	out_pose->add(*pose);
 	return true;
@@ -40,7 +40,7 @@ bool APLAdd::tick(float dTime, std::shared_ptr<Pose> out_pose)
 APLList::APLList(void){}
 APLList::~APLList(void){}
 
-bool APLList::tick(float dTime, std::shared_ptr<Pose> out_pose)
+bool APLList::tick(float dTime, Pose * out_pose)
 {
 	std::vector<std::list<std::shared_ptr<AnimationPoseLayer>>::iterator> rem;
 	for (auto it=layers.begin();it!=layers.end();++it)
@@ -63,7 +63,7 @@ APLSource::~APLSource(void)
 {
 }
 
-bool APLSource::tick(float dTime, std::shared_ptr<Pose> out_pose)
+bool APLSource::tick(float dTime, Pose * out_pose)
 {
 	time += dTime;
 	if (action == 0)
@@ -104,7 +104,7 @@ APLSpeed::~APLSpeed(void)
 {
 }
 
-bool APLSpeed::tick(float dTime, std::shared_ptr<Pose> out_pose)
+bool APLSpeed::tick(float dTime, Pose * out_pose)
 {
 	return source->tick(dTime*speed, out_pose);
 }
@@ -117,7 +117,7 @@ APLStatic::~APLStatic(void)
 {
 }
 
-bool APLStatic::tick(float dTime, std::shared_ptr<Pose> out_pose)
+bool APLStatic::tick(float dTime, Pose * out_pose)
 {
 	*out_pose = *pose;
 	return true;

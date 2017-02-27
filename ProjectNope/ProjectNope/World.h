@@ -7,9 +7,11 @@
 #include <stack>
 #include <memory>
 #include <boost\thread.hpp>
+
 #include "Serializable.h"//for SerialID
 #include "GlobalPosition.h"
 #include "Quaternion.h"
+#include "PositionComponent.h"
 
 class TypeIteratorBase;
 class ScriptMemory;
@@ -47,6 +49,62 @@ public:
 	NewEntity * GetEntity(int id);
 	NewEntity * GetEntity(int id, int uid);
 
+	std::multimap<float, NewEntity*> GetNearestEntities(const GlobalPosition& p);
+	std::multimap<float, NewEntity*> GetNearestEntities(const GlobalPosition& p, float r);
+
+	template <class T>
+	std::multimap<float, T*> GetNearestComponents(const GlobalPosition& p)
+	{
+		std::multimap<float, T*> ret;
+
+		for (auto i = units.begin(); i != units.end(); ++i)
+		{
+			if (*i != nullptr)
+			{
+				auto pc = (*i)->getComponent<PositionComponent>();
+				if (pc != nullptr)
+				{
+					float distance = Vec3(p - pc->p).Len();
+					auto t = (*i)->getComponent<T>();
+					if (t != nullptr)
+					{
+						ret.insert(std::make_pair(distance, t));
+					}
+				}
+			}
+		}
+
+		return ret;
+	}
+
+	template <class T>
+	std::multimap<float, T*> GetNearestComponents(const GlobalPosition& p, float r)
+	{
+		std::multimap<float, T*> ret;
+
+		for (auto i = units.begin(); i != units.end(); ++i)
+		{
+			if (*i != nullptr)
+			{
+				auto pc = (*i)->getComponent<PositionComponent>();
+				if (pc != nullptr)
+				{
+					float distance = Vec3(p - pc->p).Len();
+					if (distance <= r)
+					{
+						auto t = (*i)->getComponent<T>();
+						if (t != nullptr)
+						{
+							ret.insert(std::make_pair(distance, t));
+						}
+					}
+				}
+			}
+		}
+
+		return ret;
+	}
+
 	Server * server;
 	Client * client;
 
@@ -55,7 +113,7 @@ public:
 	std::vector<NewEntity*> removed;
 	std::stack<size_t> alloc;
 
-	std::map<std::pair<int, SerialID>, std::shared_ptr<TypeIteratorBase>> comp_layers;
+	std::map<std::pair<int, uint32_t>, std::shared_ptr<TypeIteratorBase>> comp_layers;
 
 	GlobalPosition getMed(const std::set<int>& ents);
 

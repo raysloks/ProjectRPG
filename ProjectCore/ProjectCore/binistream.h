@@ -1,7 +1,7 @@
-#include <istream>
-
 #ifndef BINISTREAM_H
 #define BINISTREAM_H
+
+#include <istream>
 
 namespace std
 {
@@ -12,16 +12,19 @@ namespace std
 		binistream(streambuf *buf);
 	};
 
-	binistream& operator>>(binistream& is, bool &b);
-	binistream& operator>>(binistream& is, unsigned char &uc);
-	binistream& operator>>(binistream& is, signed char &c);
-	binistream& operator>>(binistream& is, unsigned short &us);
-	binistream& operator>>(binistream& is, signed short &s);
-	binistream& operator>>(binistream& in, unsigned int &ui);
-	binistream& operator>>(binistream& is, signed int &i);
-	binistream& operator>>(binistream& is, float &f);
+	binistream& operator>>(binistream& is, bool& b);
+	binistream& operator>>(binistream& is, int8_t& i8);
+	binistream& operator>>(binistream& is, uint8_t& u8);
+	binistream& operator>>(binistream& is, int16_t& i16);
+	binistream& operator>>(binistream& is, uint16_t& u16);
+	binistream& operator>>(binistream& is, int32_t& i32);
+	binistream& operator>>(binistream& is, uint32_t& u32);
+	binistream& operator>>(binistream& is, int64_t& i64);
+	binistream& operator>>(binistream& is, uint64_t& u64);
+	binistream& operator>>(binistream& is, float& f);
+	binistream& operator>>(binistream& is, double& d);
 
-	binistream& operator>>(binistream& is, std::string &str);
+	binistream& operator>>(binistream& is, std::string& str);
 }
 
 #endif

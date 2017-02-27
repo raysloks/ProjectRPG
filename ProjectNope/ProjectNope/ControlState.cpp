@@ -27,7 +27,7 @@ void ControlState::update(ControlState& cs)
 		auto it = cs.check.find(i->first);
 		if (it!=cs.check.end())
 		{
-			int difference = i->second<INT_MIN / 2 && it->second>INT_MAX / 2 ? it->second + i->second + 2 : it->second - i->second;
+			int difference = i->second<INT_MIN / 2 && it->second>INT_MAX / 2 ? it->second + i->second + 2 : i->second - it->second;
 			if (difference > 0)
 				cs.active[i->first] += difference;
 			it->second = i->second;

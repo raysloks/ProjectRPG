@@ -36,7 +36,7 @@ public:
 
 	void writeLog(outstream& os, ClientData& client);
 	void readLog(instream& is);
-	
+
 	void writeLog(outstream& os);
 	void readLog(instream& is, ClientData& client);
 
@@ -51,20 +51,20 @@ public:
 	template <class T>
 	T * getComponent(void)
 	{
-		for (auto i=components.begin();i!=components.end();++i)
-			if (*i!=0)
-				if ((*i)->getSerialID()==T::_factory.id)
+		for (auto i = components.begin(); i != components.end(); ++i)
+			if (*i != nullptr)
+				if ((*i)->getSerialID() == T::_factory.id)
 					return static_cast<T*>(*i);
-		return 0;
+		return nullptr;
 	}
 
 	template <class T>
 	std::vector<T*> getComponents(void)
 	{
 		std::vector<T*> ret;
-		for (auto i=components.begin();i!=components.end();++i)
-			if (*i!=0)
-				if ((*i)->getSerialID()==T::_factory.id)
+		for (auto i = components.begin(); i != components.end(); ++i)
+			if (*i != 0)
+				if ((*i)->getSerialID() == T::_factory.id)
 					ret.push_back(static_cast<T*>(*i));
 		return ret;
 	}

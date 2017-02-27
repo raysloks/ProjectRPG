@@ -364,6 +364,49 @@ NewEntity * World::GetEntity(int id, int unid)
 	return units[id];
 }
 
+std::multimap<float, NewEntity*> World::GetNearestEntities(const GlobalPosition& p)
+{
+	std::multimap<float, NewEntity*> ret;
+
+	for (auto i = units.begin(); i != units.end(); ++i)
+	{
+		if (*i != nullptr)
+		{
+			auto pc = (*i)->getComponent<PositionComponent>();
+			if (pc != nullptr)
+			{
+				float distance = Vec3(p - pc->p).Len();
+				ret.insert(std::make_pair(distance, *i));
+			}
+		}
+	}
+
+	return ret;
+}
+
+std::multimap<float, NewEntity*> World::GetNearestEntities(const GlobalPosition& p, float r)
+{
+	std::multimap<float, NewEntity*> ret;
+
+	for (auto i = units.begin(); i != units.end(); ++i)
+	{
+		if (*i != nullptr)
+		{
+			auto pc = (*i)->getComponent<PositionComponent>();
+			if (pc != nullptr)
+			{
+				float distance = Vec3(p - pc->p).Len();
+				if (distance <= r)
+				{
+					ret.insert(std::make_pair(distance, *i));
+				}
+			}
+		}
+	}
+
+	return ret;
+}
+
 GlobalPosition World::getMed(const std::set<int>& e)
 {
 	std::set<int> ents = e;

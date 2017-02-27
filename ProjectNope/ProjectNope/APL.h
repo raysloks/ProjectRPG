@@ -11,7 +11,7 @@ public:
 	APLBlend(std::shared_ptr<Pose> pose, float weight, std::shared_ptr<AnimationPoseLayer> source);
 	~APLBlend(void);
 
-	bool tick(float dTime, std::shared_ptr<Pose> pose);
+	bool tick(float dTime, Pose * pose);
 	
 	float weight;
 	std::shared_ptr<Pose> pose;
@@ -25,7 +25,7 @@ public:
 	APLAdd(std::shared_ptr<Pose> pose, std::shared_ptr<AnimationPoseLayer> source);
 	~APLAdd(void);
 
-	bool tick(float dTime, std::shared_ptr<Pose> pose);
+	bool tick(float dTime, Pose * pose);
 	
 	std::shared_ptr<Pose> pose;
 	std::shared_ptr<AnimationPoseLayer> source;
@@ -38,7 +38,7 @@ public:
 	APLList(void);
 	~APLList(void);
 
-	bool tick(float dTime, std::shared_ptr<Pose> pose);
+	bool tick(float dTime, Pose * pose);
 	
 	std::list<std::shared_ptr<AnimationPoseLayer>> layers;
 };
@@ -50,7 +50,7 @@ public:
 	APLSpeed(float speed, std::shared_ptr<AnimationPoseLayer> source);
 	~APLSpeed(void);
 
-	bool tick(float dTime, std::shared_ptr<Pose> pose);
+	bool tick(float dTime, Pose * pose);
 	
 	float speed;
 	std::shared_ptr<AnimationPoseLayer> source;
@@ -64,7 +64,7 @@ public:
 	APLSource(Action * action, const std::function<bool(void)>& loop_func);
 	~APLSource(void);
 
-	bool tick(float dTime, std::shared_ptr<Pose> pose);
+	bool tick(float dTime, Pose * pose);
 	
 	float time;
 	bool loop;
@@ -80,7 +80,7 @@ public:
 	APLStatic(std::shared_ptr<Pose> pose);
 	~APLStatic(void);
 
-	bool tick(float dTime, std::shared_ptr<Pose> pose);
+	bool tick(float dTime, Pose * pose);
 	
 	std::shared_ptr<Pose> pose;
 };

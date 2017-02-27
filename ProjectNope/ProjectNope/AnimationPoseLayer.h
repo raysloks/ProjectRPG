@@ -9,7 +9,7 @@ public:
 	AnimationPoseLayer(void){}
 	virtual ~AnimationPoseLayer(void){}
 
-	virtual bool tick(float dTime, std::shared_ptr<Pose> pose) = 0;
+	virtual bool tick(float dTime, Pose * pose) = 0;
 };
 
 #endif

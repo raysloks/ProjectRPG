@@ -9,51 +9,70 @@ namespace std
 	{
 	}
 
-	binistream& operator>>(binistream& is, bool &b)
+	binistream& operator>>(binistream& is, bool& b)
 	{
 		is.read((char*)&b, sizeof(b));
 		return is;
 	}
 
-	binistream& operator>>(binistream& is, unsigned char &uc)
+	binistream& operator >> (binistream& is, int8_t& i8)
 	{
-		is.read((char*)&uc, sizeof(uc));
+		is.read((char*)&i8, sizeof(i8));
 		return is;
 	}
 
-	binistream& operator>>(binistream& is, signed char &c)
+	binistream& operator >> (binistream& is, uint8_t& u8)
 	{
-		is.read((char*)&c, sizeof(c));
+		is.read((char*)&u8, sizeof(u8));
 		return is;
 	}
 
-	binistream& operator>>(binistream& is, unsigned short &us)
+	binistream& operator >> (binistream& is, int16_t& i16)
 	{
-		is.read((char*)&us, sizeof(us));
+		is.read((char*)&i16, sizeof(i16));
 		return is;
 	}
 
-	binistream& operator>>(binistream& is, signed short &s)
+	binistream& operator >> (binistream& is, uint16_t& u16)
 	{
-		is.read((char*)&s, sizeof(s));
+		is.read((char*)&u16, sizeof(u16));
 		return is;
 	}
 
-	binistream& operator>>(binistream& is, unsigned int &ui)
+	binistream& operator >> (binistream& is, int32_t& i32)
 	{
-		is.read((char*)&ui, sizeof(ui));
+		is.read((char*)&i32, sizeof(i32));
 		return is;
 	}
 
-	binistream& operator>>(binistream& is, signed int &i)
+	binistream& operator >> (binistream& is, uint32_t& u32)
 	{
-		is.read((char*)&i, sizeof(i));
+		is.read((char*)&u32, sizeof(u32));
 		return is;
 	}
 
-	binistream& operator>>(binistream& is, float &f)
+
+	binistream& operator >> (binistream& is, int64_t& i64)
+	{
+		is.read((char*)&i64, sizeof(i64));
+		return is;
+	}
+
+	binistream& operator >> (binistream& is, uint64_t& u64)
+	{
+		is.read((char*)&u64, sizeof(u64));
+		return is;
+	}
+
+	binistream& operator>>(binistream& is, float& f)
 	{
 		is.read((char*)&f, sizeof(f));
+		return is;
+	}
+
+	binistream& operator>>(binistream& is, double& d)
+	{
+		is.read((char*)&d, sizeof(d));
 		return is;
 	}
 	

@@ -17,6 +17,8 @@
 #include "HitComponent.h"
 #include "LineComponent.h"
 #include "LightComponent.h"
+#include "AIComponent.h"
+#include "PoseComponent.h"
 
 #include "ClientData.h"
 
@@ -31,7 +33,7 @@ public:
 
 	void connectClientToEntity(ClientData& data)
 	{
-		if (world->units.size()==0)
+		if (world->units.size() == 0)
 		{
 			/*{
 				NewEntity * ent = new NewEntity();
@@ -196,46 +198,96 @@ public:
 			}*/
 		}
 
-		NewEntity * ent = new NewEntity();
-
-		PositionComponent * p = new PositionComponent();
-		GraphicsComponent * g = new GraphicsComponent();
-		PlayerInputComponent * input = new PlayerInputComponent();
-		MobComponent * mob = new MobComponent();
-		CameraControlComponent * cam = new CameraControlComponent();
-		AnimationControlComponent * acc = new AnimationControlComponent();
-		//InventoryComponent * inv = new InventoryComponent();
-		HitComponent * hit = new HitComponent();
-		//LineComponent * line = new LineComponent();
-
-		ent->addComponent(p);
-		ent->addComponent(g);
-		ent->addComponent(input);
-		ent->addComponent(mob);
-		ent->addComponent(cam);
-		ent->addComponent(acc);
-		//ent->addComponent(inv);
-		ent->addComponent(hit);
-		//ent->addComponent(line);
-
-		for (int i = 1; i < 22; ++i)
+		// create ai entity
+		for (int i = 0; i < 2; ++i)
 		{
-			LightComponent * light = new LightComponent();
-			light->pose = &acc->pose;
-			light->bone_id = i;
-			ent->addComponent(light);
+			NewEntity * ent = new NewEntity();
+
+			PositionComponent * p = new PositionComponent();
+			p->p = Vec3(15.0f * i, 20.0f, 0.0f);
+			GraphicsComponent * g = new GraphicsComponent();
+			AIComponent * ai = new AIComponent();
+			ai->random.seed(i);
+			MobComponent * mob = new MobComponent();
+			AnimationControlComponent * acc = new AnimationControlComponent();
+			//InventoryComponent * inv = new InventoryComponent();
+			HitComponent * hit = new HitComponent();
+			//LineComponent * line = new LineComponent();
+			PoseComponent * pose = new PoseComponent();
+
+			ent->addComponent(p);
+			ent->addComponent(g);
+			ent->addComponent(ai);
+			ent->addComponent(mob);
+			ent->addComponent(acc);
+			//ent->addComponent(inv);
+			ent->addComponent(hit);
+			//ent->addComponent(line);
+			ent->addComponent(pose);
+
+			for (int i = 1; i < 23; ++i)
+			{
+				LightComponent * light = new LightComponent();
+				light->bone_id = i;
+				ent->addComponent(light);
+			}
+
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/empty.tga")/*"data/assets/empty.tga"*/)));
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
+			g->decs.items.back()->priority = 1;
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
+			g->decs.items.back()->priority = 2;
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
+			g->decs.items.back()->priority = 3;
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", Material("data/assets/items/weapons/swords/claymore.tga"), 15)));
+
+			world->AddEntity(ent);
 		}
 
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga")/*"data/assets/empty.tga"*/)));
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
-		g->decs.items.back()->priority = 1;
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
-		g->decs.items.back()->priority = 2;
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
-		g->decs.items.back()->priority = 3;
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", Material("data/assets/items/weapons/swords/claymore.tga"), 15)));
+		// create player entity
+		{
+			NewEntity * ent = new NewEntity();
 
-		data.unit_id = world->AddEntity(ent);
+			PositionComponent * p = new PositionComponent();
+			GraphicsComponent * g = new GraphicsComponent();
+			PlayerInputComponent * input = new PlayerInputComponent();
+			MobComponent * mob = new MobComponent();
+			CameraControlComponent * cam = new CameraControlComponent();
+			AnimationControlComponent * acc = new AnimationControlComponent();
+			InventoryComponent * inv = new InventoryComponent();
+			HitComponent * hit = new HitComponent();
+			//LineComponent * line = new LineComponent();
+			PoseComponent * pose = new PoseComponent();
+
+			ent->addComponent(p);
+			ent->addComponent(g);
+			ent->addComponent(input);
+			ent->addComponent(mob);
+			ent->addComponent(cam);
+			ent->addComponent(acc);
+			ent->addComponent(inv);
+			ent->addComponent(hit);
+			//ent->addComponent(line);
+			ent->addComponent(pose);
+
+			for (int i = 1; i < 23; ++i)
+			{
+				LightComponent * light = new LightComponent();
+				light->bone_id = i;
+				ent->addComponent(light);
+			}
+
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga")/*"data/assets/empty.tga"*/)));
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
+			g->decs.items.back()->priority = 1;
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
+			g->decs.items.back()->priority = 2;
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
+			g->decs.items.back()->priority = 3;
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", Material("data/assets/items/weapons/swords/claymore.tga"), 15)));
+
+			data.unit_id = world->AddEntity(ent);
+		}
 	}
 };
 
@@ -245,7 +297,7 @@ void main()
 //INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 //    PSTR lpCmdLine, INT nCmdShow)
 {
-	if (true)
+	if (false)
 	{
 		size_t max_mem_size = 65536;
 		void * mem = VirtualAlloc(nullptr, max_mem_size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);

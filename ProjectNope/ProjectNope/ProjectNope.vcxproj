@@ -76,7 +76,7 @@
     </LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Program Files (x86)\GnuWin32\include\freetype2;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include;C:\Program Files (x86)\GnuWin32\include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Users\Emil\Documents\freetype-2.7\include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include</IncludePath>
     <LibraryPath>
     </LibraryPath>
   </PropertyGroup>
@@ -86,7 +86,7 @@
     </LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Users\Emil\Downloads\freetype-2.6.3\freetype-2.6.3\include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Users\Emil\Documents\freetype-2.7\include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include</IncludePath>
     <LibraryPath>
     </LibraryPath>
   </PropertyGroup>
@@ -159,6 +159,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AnimationPoseLayer.cpp" />
     <ClCompile Include="APL.cpp" />
     <ClCompile Include="APLEX.cpp" />
     <ClCompile Include="APLSet.cpp" />
@@ -175,6 +176,7 @@
     <ClCompile Include="LineComponent.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MicrophoneComponent.cpp" />
+    <ClCompile Include="PoseComponent.cpp" />
     <ClCompile Include="RenderSetup.cpp" />
     <ClCompile Include="RigidBodyComponent.cpp" />
     <ClCompile Include="Chunk.cpp" />
@@ -255,8 +257,10 @@
     <ClInclude Include="ControllerState.h" />
     <ClInclude Include="ExampleComponent.h" />
     <ClInclude Include="FieldTriangle.h" />
+    <ClInclude Include="IComponentIterator.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="PoseComponent.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="Synchronizer.h" />

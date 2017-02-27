@@ -23,6 +23,7 @@ public:
 	void disconnect(void);
 
 	void frame(float dTime);
+	void tick(float dTime);
 
 	void writeLog(outstream& os, ClientData& client);
 	void readLog(instream& is);

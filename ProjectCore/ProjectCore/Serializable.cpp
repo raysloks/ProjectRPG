@@ -13,12 +13,12 @@ AutoNullFactory::~AutoNullFactory(void)
 	delete factory;
 }
 
-std::map<SerialID, StreamFactory<Serializable>*> * _reg;
-std::map<SerialID, std::string> * _names;
+std::map<uint32_t, StreamFactory<Serializable>*> * _reg;
+std::map<uint32_t, std::string> * _names;
 
 const AutoNullFactory Serializable::null_factory;
 
-Serializable::Serializable(SerialID id)
+Serializable::Serializable(uint32_t id)
 {
 	_serID = id;
 }
@@ -30,9 +30,9 @@ Serializable::~Serializable(void)
 void Serializable::Register(const std::string& name, const size_t& id, StreamFactory<Serializable> * factory)
 {
 	if (_reg==0)
-		_reg = new std::map<SerialID, StreamFactory<Serializable>*>;
+		_reg = new std::map<uint32_t, StreamFactory<Serializable>*>;
 	if (_names==0)
-		_names = new std::map<SerialID, std::string>;
+		_names = new std::map<uint32_t, std::string>;
 	if ((*_reg)[id]!=0)// && name.compare((*_names)[id])!=0)
 		throw std::exception("Hash collision!");
 	(*_reg)[id] = factory;
@@ -46,7 +46,7 @@ void Serializable::serialize(outstream& os, const Serializable * const instance)
 
 const StreamFactory<Serializable> * Serializable::unserialize(instream& is)
 {
-	SerialID id;
+	uint32_t id;
 	is >> id;
 	if ((*_reg)[id]!=0)
 		return (*_reg)[id];
@@ -54,12 +54,12 @@ const StreamFactory<Serializable> * Serializable::unserialize(instream& is)
 		return 0;
 }
 
-const StreamFactory<Serializable> * Serializable::getFactory(const SerialID& id)
+const StreamFactory<Serializable> * Serializable::getFactory(uint32_t id)
 {
 	return (*_reg)[id];
 }
 
-const std::string& Serializable::getName(SerialID id)
+const std::string& Serializable::getName(uint32_t id)
 {
 	return _names->at(id);
 }

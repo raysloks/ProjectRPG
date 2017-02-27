@@ -25,6 +25,7 @@ PlayerInputComponent::PlayerInputComponent(void) : Serializable(_factory.id)
 
 PlayerInputComponent::PlayerInputComponent(instream& is, bool full) : Serializable(_factory.id)
 {
+	is >> cs;
 }
 
 PlayerInputComponent::~PlayerInputComponent(void)
@@ -41,20 +42,20 @@ void PlayerInputComponent::disconnect(void)
 
 void PlayerInputComponent::frame(float dTime)
 {
-	if (p==0) {
+	if (p == nullptr) {
 		auto pc = entity->getComponent<PositionComponent>();
 		p = &pc->p;
 	}
-	if (mob==0)
+	if (mob == nullptr)
 		mob = entity->getComponent<MobComponent>();
-	if (camera==0) {
+	if (camera == nullptr) {
 		auto ccc = entity->getComponent<CameraControlComponent>();
-		if (ccc != 0)
+		if (ccc != nullptr)
 			camera = &ccc->camera;
 	}
 
 	Client * client = entity->world->client;
-	if (client!=0)
+	if (client != nullptr)
 	{
 		if (client->clientData->unit_id == entity->id || !entity->world->authority)
 		{
@@ -100,10 +101,6 @@ void PlayerInputComponent::frame(float dTime)
 			cs.input["run"] = input.isDown(Platform::KeyEvent::LSHIFT) || input.ctrl[0].b.down;
 			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].a.pressed)
 				cs.activate("jump");
-			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].b.pressed || input.isReleased(Platform::KeyEvent::SPACE) || input.ctrl[0].b.released)
-				cs.activate("shift");
-			if (input.isPressed(Platform::KeyEvent::H) || input.ctrl[0].up.pressed)
-				cs.activate("warp");
 			if (input.isPressed(Platform::KeyEvent::LMB) || input.ctrl[0].right_trigger.pressed)
 				cs.activate("attack");
 			if (input.isPressed(Platform::KeyEvent::Q) || input.ctrl[0].right_thumb.pressed)
@@ -111,74 +108,54 @@ void PlayerInputComponent::frame(float dTime)
 
 			cs.input["facing"] = camera->x;
 			mob->cam_facing = Vec3(-sin(camera->x), cos(camera->x), 0.0f);
+
+			if (input.isPressed(Platform::KeyEvent::H) || input.ctrl[0].up.pressed)
+				cs.activate("warp");
 		}
+	}
+}
+
+void PlayerInputComponent::tick(float dTime)
+{
+	if (p == nullptr) {
+		auto pc = entity->getComponent<PositionComponent>();
+		p = &pc->p;
+	}
+	if (mob == nullptr)
+		mob = entity->getComponent<MobComponent>();
+	if (camera == nullptr) {
+		auto ccc = entity->getComponent<CameraControlComponent>();
+		if (ccc != nullptr)
+			camera = &ccc->camera;
 	}
 
 	if (entity->world->authority)
 	{
-		if (mob!=0)
+		if (mob != nullptr)
 		{
 			float buffer_duration = 0.4f;
-			float jump_delay = 0.3f;
-			float dodge_delay = 0.2f;
-			float dodge_duration = 0.15f;
 
 			mob->move = Vec3(cs.input["x"], cs.input["y"], cs.input["z"]);
 
-			/*mob->run = cs.input["run"];
+			mob->run = cs.input["run"];
 			if (cs.active.find("jump") != cs.active.end())
-				mob->input["jump"] = buffer_duration;*/
+				mob->input["jump"] = buffer_duration;
 
-			if (cs.active.find("shift") != cs.active.end())
-			{
-				bool prev = run;
-				int shift = cs.active.find("shift")->second;
-				run ^= shift % 2;
-
-				int toggled_on = shift / 2 + !prev ? 1 : 0;
-				int toggled_off = shift / 2 + prev ? 1 : 0;
-
-				if (toggled_on)
-					mob->input["dodge_delay"] = 1.0f;
-				if (toggled_off && mob->run)
-					mob->input["jump_delay"] = 1.0f;
-
-				cs.active.erase("shift");
-			}
-
-			if (mob->input.find("jump_delay") != mob->input.end())
-			{
-				if (mob->input["jump_delay"] < 1.0f - jump_delay)
-				{
-					if (run)
-						mob->input["jump"] = buffer_duration;
-					mob->input.erase("jump_delay");
-				}
-			}
-
-			if (mob->input.find("dodge_delay") != mob->input.end())
-			{
-				if (mob->input["dodge_delay"] < 1.0f - dodge_delay && mob->input.find("jump_delay") == mob->input.end())
-				{
-					if (!run)
-						mob->input["dodge"] = buffer_duration;
-					mob->input.erase("dodge_delay");
-				}
-			}
-
-			mob->run = run && mob->input.find("dodge_delay") == mob->input.end() || mob->input.find("jump_delay") != mob->input.end();
-
-			if (cs.active.find("warp") != cs.active.end())
-				mob->input["warp"] = buffer_duration;
-			mob->cam_facing = Vec3(-sin(cs.input["facing"]), cos(cs.input["facing"]), 0.0f);
 			if (cs.active.find("attack") != cs.active.end())
 				mob->input["attack"] = buffer_duration;
 			if (cs.active.find("strafe") != cs.active.end())
 				mob->strafe = !mob->strafe;
 
-			cs.active.erase("warp");
+			mob->cam_facing = Vec3(-sin(cs.input["facing"]), cos(cs.input["facing"]), 0.0f);
+
+			if (cs.active.find("warp") != cs.active.end())
+				mob->input["warp"] = buffer_duration;
+
 			cs.active.erase("attack");
 			cs.active.erase("strafe");
+			cs.active.erase("jump");
+
+			cs.active.erase("warp");
 		}
 	}
 }
@@ -209,6 +186,7 @@ void PlayerInputComponent::interpolate(Component * pComponent, float fWeight)
 
 void PlayerInputComponent::write_to(outstream& os, ClientData& client) const
 {
+	os << cs;
 }
 
 void PlayerInputComponent::write_to(outstream& os) const

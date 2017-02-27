@@ -51,6 +51,8 @@ GameLoop::GameLoop(World * w, Server * s, Client * c)
 
 GameLoop::~GameLoop(void)
 {
+	world->clear();
+
 	if (server!=0)
 		delete server;
 	if (client!=0)
@@ -117,6 +119,7 @@ void GameLoop::tick(void)
 		gpPlatform->input(gpEventManager, client->lockCursor, client->hideCursor);
 		gpEventManager->Tick();
 		client->input.update();
+		client->tick(last_frame_duration);
 	}
 
 	useFrameSync = fpsCap==secondsPerStep && secondsPerStep!=0.0;// && !gpPlatform->get_vsync(); //vsync can still desync with tickrate
@@ -140,8 +143,8 @@ void GameLoop::tick(void)
 		if (lag>secondsPerStep*0.5) { // TODO fix
 			if (world->authority)
 				server->tick(lag);
-			if (client != 0)
-				client->tick(lag);
+			/*if (client != 0)
+				client->tick(lag);*/
 			lag -= lag;
 		}
 	}

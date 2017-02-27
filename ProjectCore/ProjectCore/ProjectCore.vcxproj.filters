@@ -63,6 +63,9 @@
     <ClInclude Include="BlendUtility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SerialHash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="binistream.cpp">
@@ -96,6 +99,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BlendUtility.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SerialHash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

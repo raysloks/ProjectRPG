@@ -79,11 +79,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(BOOST_ROOT);$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(BOOST_ROOT)\lib64-msvc-14.0;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(BOOST_ROOT);$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(BOOST_ROOT)\lib64-msvc-14.0;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -110,8 +110,8 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>xinput9_1_0.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\Emil\Downloads\freetype-2.6.3\solution\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>openal32.lib;xinput9_1_0.lib;freetyped.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64;C:\Users\Emil\Documents\freetype-2.7\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -148,14 +148,16 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>xinput9_1_0.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\Emil\Downloads\freetype-2.6.3\solution\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>openal32.lib;xinput9_1_0.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64;C:\Users\Emil\Documents\freetype-2.7\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ActionData.cpp" />
+    <ClCompile Include="AIComponent.cpp" />
     <ClCompile Include="AnimationControlComponent.cpp" />
     <ClCompile Include="CameraControlComponent.cpp" />
+    <ClCompile Include="HitBox.cpp" />
     <ClCompile Include="HitComponent.cpp" />
     <ClCompile Include="InventoryComponent.cpp" />
     <ClCompile Include="Item.cpp" />
@@ -180,8 +182,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ActionData.h" />
+    <ClInclude Include="AIComponent.h" />
     <ClInclude Include="AnimationControlComponent.h" />
     <ClInclude Include="CameraControlComponent.h" />
+    <ClInclude Include="HitBox.h" />
     <ClInclude Include="HitComponent.h" />
     <ClInclude Include="InventoryComponent.h" />
     <ClInclude Include="Item.h" />

@@ -87,6 +87,9 @@ bool ShaderProgram::IsReady()
 				glAttachShader(gl_program, frag->gl_shader);
 			glLinkProgram(gl_program);
 
+			gl_uloc.clear();
+			gl_aloc.clear();
+
 			GLint isLinked = 0;
 			glGetProgramiv(gl_program, GL_LINK_STATUS, &isLinked);
 			if (isLinked == GL_FALSE)
@@ -155,22 +158,38 @@ void ShaderProgram::Uniform(const std::string & name, const Vec4 & v)
 
 void ShaderProgram::Uniform1fv(const std::string& name, const std::vector<float>& fv)
 {
-	glUniform1fv(GetUniformLocation(name), fv.size(), &fv[0]);
+	glUniform1fv(GetUniformLocation(name), fv.size(), fv.data());
+}
+
+void ShaderProgram::Uniform2fv(const std::string& name, const std::vector<Vec2>& fv)
+{
+	glUniform2fv(GetUniformLocation(name), fv.size(), (float*)fv.data());
 }
 
 void ShaderProgram::Uniform2fv(const std::string& name, const std::vector<float>& fv)
 {
-	glUniform2fv(GetUniformLocation(name), fv.size(), &fv[0]);
+	glUniform2fv(GetUniformLocation(name), fv.size() / 2, fv.data());
+}
+
+
+void ShaderProgram::Uniform3fv(const std::string& name, const std::vector<Vec3>& fv)
+{
+	glUniform3fv(GetUniformLocation(name), fv.size(), (float*)fv.data());
 }
 
 void ShaderProgram::Uniform3fv(const std::string& name, const std::vector<float>& fv)
 {
-	glUniform3fv(GetUniformLocation(name), fv.size(), &fv[0]);
+	glUniform3fv(GetUniformLocation(name), fv.size() / 3, fv.data());
+}
+
+void ShaderProgram::Uniform4fv(const std::string& name, const std::vector<Vec4>& fv)
+{
+	glUniform4fv(GetUniformLocation(name), fv.size(), (float*)fv.data());
 }
 
 void ShaderProgram::Uniform4fv(const std::string& name, const std::vector<float>& fv)
 {
-	glUniform4fv(GetUniformLocation(name), fv.size(), &fv[0]);
+	glUniform4fv(GetUniformLocation(name), fv.size() / 4, fv.data());
 }
 
 void ShaderProgram::UniformMatrix3fv(const std::string& name, const float* fv)

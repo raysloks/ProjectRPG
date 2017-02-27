@@ -12,11 +12,11 @@
 #include "AnimationPoseLayer.h"
 #include "APL.h"
 
-#include "GraphicsComponent.h"
 #include "MobComponent.h"
 #include "HitComponent.h"
 #include "AudioComponent.h"
 #include "PositionComponent.h"
+#include "PoseComponent.h"
 
 #include "BlendUtility.h"
 
@@ -175,10 +175,15 @@ void AnimationControlComponent::tickAPL(float dTime)
 
 	if (mob->input.find("attack") != mob->input.end() && mob->action == 0 && entity->world->authority)
 	{
-		if (start_action("data/scripts/attack3.txt"))
+		if (mob->stamina.current > 0.0f)
 		{
-			mob->input.erase("attack");
-			cs.activate("data/scripts/attack3.txt");
+			if (start_action("data/scripts/attack1.txt"))
+			{
+				mob->input.erase("attack");
+				cs.activate("data/scripts/attack1.txt");
+
+				mob->stamina.current -= 4;
+			}
 		}
 	}
 
@@ -193,6 +198,8 @@ void AnimationControlComponent::tickAPL(float dTime)
 
 	if (mob->hit)
 	{
+		mob->health.current -= 1;
+
 		float blend_in = 1.0f;
 		float blend_out = 8.0f;
 
@@ -417,29 +424,25 @@ bool AnimationControlComponent::start_action(const std::string& fname)
 
 void AnimationControlComponent::tick(float dTime)
 {
-	if (anim==0) {
+	if (anim == nullptr) {
 		anim = Resource::get<SkeletalAnimation>("data/assets/units/player/KnightGuy.anim");
-		if (anim!=0) {
-			auto g = entity->getComponent<GraphicsComponent>();
-			if (g!=0) {
-				g->pose = anim->armature;
-				pose.reset(new Pose(g->pose));
+		if (anim != nullptr) {
+			auto pc = entity->getComponent<PoseComponent>();
+			if (pc != nullptr) {
+				pc->pose = anim->armature;
+				pose = &pc->pose;
 				initAPL();
 			}
 		}
 	}
-	if (mob==0)
+	if (mob == nullptr)
 		mob = entity->getComponent<MobComponent>();
-	if (mob!=0 && pose!=0) {
+	if (mob != nullptr && pose != nullptr) {
 		tickAPL(dTime);
 		apl->tick(dTime, pose);
 		pose->bones[0].transform *= Matrix3(mob->move_facing.Cross(mob->up), mob->move_facing, mob->up);
 		pose->bones[0].transform *= Matrix4::Translation(-mob->up * 0.5f);
 		pose->update();
-		auto g = entity->getComponent<GraphicsComponent>();
-		if (g!=0) {
-			g->pose = *pose;
-		}
 	}
 }
 

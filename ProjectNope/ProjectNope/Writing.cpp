@@ -189,7 +189,7 @@ void Writing::render(const std::string& text)
 
 			glEnd();
 		}
-	}
+	}*/
 	
 	unsigned int current_page = 0;
 	loadBitmap(current_page);
@@ -222,5 +222,5 @@ void Writing::render(const std::string& text)
 		offset.x += std::get<3>(c_mapping).x*c_size.x;
 		offset.y += std::get<3>(c_mapping).y*c_size.y;
 	}
-	glEnd();*/
+	glEnd();
 }

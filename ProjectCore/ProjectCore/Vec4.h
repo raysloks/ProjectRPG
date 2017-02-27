@@ -15,6 +15,7 @@ public:
 
 	Vec4(void);
 	Vec4(float a, float b, float c, float d);
+	Vec4(const Vec3& a, float b);
 	Vec4(instream& is);
 	~Vec4(void);
 

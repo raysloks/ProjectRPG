@@ -48,12 +48,11 @@ void InventoryComponent::tick(float dTime)
 void InventoryComponent::set_display(bool enable)
 {
 	Client * client = entity->world->client;
-	if (client!=0)
+	if (client != nullptr)
 	{
+		enable = false;
 		if (client->clientData != nullptr)
 			enable &= visible(*client->clientData);
-		else
-			enable = false;
 		if (enable)
 		{
 			if (func==0)

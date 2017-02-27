@@ -4,6 +4,7 @@
 
 #include "NewEntity.h"
 #include "PositionComponent.h"
+#include "PoseComponent.h"
 
 #include "SkeletalAnimation.h"
 
@@ -14,11 +15,14 @@ std::vector<LightComponent*> LightComponent::all;
 LightComponent::LightComponent(void) : Serializable(_factory.id)
 {
 	all.push_back(this);
+	pose = nullptr;
 }
 
 LightComponent::LightComponent(instream& is, bool full) : Serializable(_factory.id)
 {
 	all.push_back(this);
+	pose = nullptr;
+	is >> bone_id;
 }
 
 LightComponent::~LightComponent(void)
@@ -41,13 +45,17 @@ void LightComponent::frame(float dTime)
 	{
 		p = pc->p;
 
+		if (pose == nullptr)
+		{
+			PoseComponent * pose_comp = entity->getComponent<PoseComponent>();
+			if (pose_comp != nullptr)
+				pose = &pose_comp->pose;
+		}
+
 		if (pose != nullptr)
 		{
-			if (*pose != nullptr)
-			{
-				if ((*pose)->bones.size() > bone_id)
-					p += Vec3() * (*pose)->bones[bone_id].getTransform();
-			}
+			if (pose->bones.size() > bone_id)
+				p += Vec3() * pose->bones[bone_id].getTransform();
 		}
 	}
 }
@@ -78,6 +86,7 @@ void LightComponent::interpolate(Component * pComponent, float fWeight)
 
 void LightComponent::write_to(outstream& os, ClientData& client) const
 {
+	os << bone_id;
 }
 
 void LightComponent::write_to(outstream& os) const
