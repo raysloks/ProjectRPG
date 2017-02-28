@@ -993,10 +993,11 @@ void Client::render_world(void)
 
 			glEnable(GL_STENCIL_TEST);
 			glEnable(GL_DEPTH_TEST);
+			glEnable(GL_DEPTH_CLAMP);
 			glDepthFunc(GL_LESS);
 			glDepthMask(GL_FALSE);
 
-			glDisable(GL_CULL_FACE); // TODO near clipping plane z-flattening thing
+			glDisable(GL_CULL_FACE);
 
 			glStencilFunc(GL_ALWAYS, 0xff, 0xff);
 			glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
@@ -1015,6 +1016,7 @@ void Client::render_world(void)
 			flat_stencil_prog->Uniform("full", 1);
 			world->render(rs);
 
+			glDisable(GL_DEPTH_CLAMP);
 			glDisable(GL_STENCIL_TEST);
 
 			rs.popMod();
