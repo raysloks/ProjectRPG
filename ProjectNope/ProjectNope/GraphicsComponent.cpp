@@ -16,13 +16,13 @@ std::vector<GraphicsComponent*> GraphicsComponent::custom_dynamic;
 std::map<render_priority, std::pair<unsigned int, PreparedVBO>> GraphicsComponent::standard_static;
 std::set<render_priority> GraphicsComponent::complete;
 
-GraphicsComponent::GraphicsComponent(bool dynamic) : Serializable(_factory.id), p(0)
+GraphicsComponent::GraphicsComponent(bool dynamic) : Serializable(_factory.id), p(nullptr), pose(nullptr)
 {
 	all.push_back(this);
 	this->dynamic = dynamic;
 }
 
-GraphicsComponent::GraphicsComponent(instream& is, bool full) : Serializable(_factory.id), p(0)
+GraphicsComponent::GraphicsComponent(instream& is, bool full) : Serializable(_factory.id), p(nullptr), pose(nullptr)
 {
 	all.push_back(this);
 	is >> dynamic;

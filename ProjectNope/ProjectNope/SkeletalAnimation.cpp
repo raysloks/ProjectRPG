@@ -205,7 +205,7 @@ instream& operator>>(instream& is, Pose& pose)
 
 Bone::Bone(void)
 {
-	parent = 0;
+	parent = nullptr;
 }
 
 Bone::~Bone(void)
@@ -214,7 +214,7 @@ Bone::~Bone(void)
 
 Matrix4 Bone::getTransform(void)const
 {
-	if (parent!=0)
+	if (parent != nullptr)
 		return transform*parent->getTransform();
 	else
 		return transform;

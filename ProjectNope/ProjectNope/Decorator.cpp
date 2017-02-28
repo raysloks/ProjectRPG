@@ -31,7 +31,6 @@ void Decorator::writeLog(outstream& os)
 
 void Decorator::readLog(instream& is)
 {
-	unsigned char tsize;
 	is >> mesh_fname >> materials >> bone_id;
 	if (bone_id>=0)
 		is >> local;
