@@ -10,6 +10,8 @@ uniform int first;
 uniform int second;
 uniform int third;
 
+uniform int full;
+
 uniform float value;
 
 layout(triangles) in;
@@ -48,7 +50,6 @@ void main()
 		n_in[i] = cross(sides[i], normalize(cd - side_n_flat[i] * lsize * facing));
 	}
 
-
 	{
 		vec3 end_in[3];
 
@@ -63,46 +64,48 @@ void main()
 		}
 		
 		float extend = 1000.0;
-		float extend_first = min(extend, dot(real[second] - real[first], n_in[second]) / dot(end_in[first], n_in[second]));
-		float extend_second = min(extend, dot(real[first] - real[second], n_in[third]) / dot(end_in[second], n_in[third]));
-		
-		facing *= 3.0;
 
-		if (facing < 0.0)
+		if (facing > 0.0)
 		{
-			gl_Position = proj * vec4(real[second] + end_in[second] * extend_second, 1.0);
-			face = facing;
-			EmitVertex();
+			if (full > 0)
+			{
+				if (dot(side_n_flat[0], real[0]) > 0.0 && dot(side_n_flat[1], real[1]) > 0.0 && dot(side_n_flat[2], real[2]) > 0.0 && dot(n, real[0]) > 0.0)
+				{
+					gl_Position = vec4(1.0, 1.0, 0.0, 1.0);
+					face = facing;
+					EmitVertex();
+				
+					gl_Position = vec4(1.0, -1.0, 0.0, 1.0);
+					face = facing;
+					EmitVertex();
+				
+					gl_Position = vec4(-1.0, 1.0, 0.0, 1.0);
+					face = facing;
+					EmitVertex();
+				
+					gl_Position = vec4(-1.0, -1.0, 0.0, 1.0);
+					face = facing;
+					EmitVertex();
+				}
+			}
+			else
+			{
+				gl_Position = proj * vec4(real[second] + cd * extend, 1.0);
+				face = facing;
+				EmitVertex();
 
-			gl_Position = gl_in[second].gl_Position;
-			face = facing;
-			EmitVertex();
+				gl_Position = proj * vec4(real[first] + cd * extend, 1.0);
+				face = facing;
+				EmitVertex();
 
-			gl_Position = proj * vec4(real[first] + end_in[first] * extend_first, 1.0);
-			face = facing;
-			EmitVertex();
+				gl_Position = gl_in[second].gl_Position;
+				face = facing;
+				EmitVertex();
 
-			gl_Position = gl_in[first].gl_Position;
-			face = facing;
-			EmitVertex();
-		}
-		else
-		{
-			gl_Position = proj * vec4(real[second] + end_in[second] * extend_second, 1.0);
-			face = facing;
-			EmitVertex();
-
-			gl_Position = proj * vec4(real[first] + end_in[first] * extend_first, 1.0);
-			face = facing;
-			EmitVertex();
-
-			gl_Position = gl_in[second].gl_Position;
-			face = facing;
-			EmitVertex();
-
-			gl_Position = gl_in[first].gl_Position;
-			face = facing;
-			EmitVertex();
+				gl_Position = gl_in[first].gl_Position;
+				face = facing;
+				EmitVertex();
+			}
 		}
 
 		EndPrimitive();

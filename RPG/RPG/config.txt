@@ -15,7 +15,7 @@ shadow_splits = 1;
 
 shadow_quality = 2;
 
-ao_quality = 2;
+ao_quality = 1;
 
 supersampling_x = 2;
 supersampling_y = 2;

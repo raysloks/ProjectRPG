@@ -642,6 +642,7 @@ void Client::render_world(void)
 	deferred_fb->color.resize(1);
 	deferred_fb->color[0] = color_buf;
 	deferred_fb->depth = depth_buf;
+	deferred_fb->stencil = depth_buf;
 
 	if (color_fb == nullptr)
 		color_fb = std::make_shared<FrameBuffer>();
@@ -995,11 +996,13 @@ void Client::render_world(void)
 			glDepthFunc(GL_LESS);
 			glDepthMask(GL_FALSE);
 
-			glDisable(GL_CULL_FACE);
+			glDisable(GL_CULL_FACE); // TODO near clipping plane z-flattening thing
 
 			glStencilFunc(GL_ALWAYS, 0xff, 0xff);
 			glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
 			glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
+
+			flat_stencil_prog->Uniform("full", 0);
 
 			for (int i = 0; i < 3; ++i)
 			{
@@ -1008,6 +1011,9 @@ void Client::render_world(void)
 				flat_stencil_prog->Uniform("third", (i + 2) % 3);
 				world->render(rs);
 			}
+
+			flat_stencil_prog->Uniform("full", 1);
+			world->render(rs);
 
 			glDisable(GL_STENCIL_TEST);
 
@@ -1179,7 +1185,30 @@ void Client::render_world(void)
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, stencil_buf->gl_texture_id);
 
-		world->render(rs);
+		if (shadow_quality == 2)
+		{
+			glEnable(GL_STENCIL_TEST);
+			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+			glStencilFunc(GL_EQUAL, 64, 0xff);
+			world->render(rs);
+
+			glStencilFunc(GL_NOTEQUAL, 64, 0xff);
+
+			ShaderMod mod2([](const std::shared_ptr<ShaderProgram>& prog) {
+				prog->Uniform("light", Vec3());
+			});
+
+			rs.pushMod(mod2);
+			world->render(rs);
+			rs.popMod();
+
+			glDisable(GL_STENCIL_TEST);
+		}
+		else
+		{
+			world->render(rs);
+		}
 
 		rs.popMod();
 	}

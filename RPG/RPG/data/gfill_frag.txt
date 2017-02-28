@@ -2,6 +2,7 @@
 
 uniform sampler2D diffuse;
 uniform sampler2D light_buffer;
+uniform usampler2D stencil;
 
 uniform vec3 light;
 
