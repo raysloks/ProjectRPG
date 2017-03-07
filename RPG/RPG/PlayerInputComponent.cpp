@@ -48,11 +48,6 @@ void PlayerInputComponent::frame(float dTime)
 	}
 	if (mob == nullptr)
 		mob = entity->getComponent<MobComponent>();
-	if (camera == nullptr) {
-		auto ccc = entity->getComponent<CameraControlComponent>();
-		if (ccc != nullptr)
-			camera = &ccc->camera;
-	}
 
 	Client * client = entity->world->client;
 	if (client != nullptr)
@@ -82,12 +77,16 @@ void PlayerInputComponent::frame(float dTime)
 			move.x = local_dir.x*cos(camera->x) - local_dir.y*sin(camera->x);
 			move.y = local_dir.x*sin(camera->x) + local_dir.y*cos(camera->x);*/
 
-			Matrix4 mat = Matrix4(Quaternion(camera->x, Vec3(0.0f, 0.0f, 1.0f)) * Quaternion(camera->y, Vec3(1.0f, 0.0f, 0.0f)));
+			Vec3 fx, fy;
 
-			Vec3 xm = Vec3(1.0f, 0.0f, 0.0f) * mat;
+			auto ccc = entity->getComponent<CameraControlComponent>();
+			if (ccc != nullptr)
+			{
+				fx = ccc->right;
+				fy = ccc->front;
 
-			Vec3 fy = mob->up.Cross(xm);
-			Vec3 fx = fy.Cross(mob->up);
+				mob->cam_facing = ccc->front;
+			}
 
 			float l = move.Len();
 			move = fy * move.y + fx * move.x;
@@ -105,9 +104,6 @@ void PlayerInputComponent::frame(float dTime)
 				cs.activate("attack");
 			if (input.isPressed(Platform::KeyEvent::Q) || input.ctrl[0].right_thumb.pressed)
 				cs.activate("strafe");
-
-			cs.input["facing"] = camera->x;
-			mob->cam_facing = Vec3(-sin(camera->x), cos(camera->x), 0.0f);
 
 			if (input.isPressed(Platform::KeyEvent::H) || input.ctrl[0].up.pressed)
 				cs.activate("warp");

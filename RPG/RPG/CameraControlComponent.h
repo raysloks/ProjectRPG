@@ -39,6 +39,7 @@ public:
 	GlobalPosition * p;
 	GlobalPosition lag_position;
 	Vec3 camera, offset, local_offset;
+	Vec3 front, top, right;
 };
 
 #endif

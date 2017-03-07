@@ -117,7 +117,8 @@ void MobComponent::tick(float dTime)
 			land_n = Vec3(); // smooth these out for some cases
 			land_v = Vec3(); // -''-
 
-			Vec3 g = -Vec3(0.0f, 0.0f, 1.0f) * 9.8f;
+			up = Vec3(*p).Normalized();
+			Vec3 g = -up * 9.8f;
 
 			Vec3 dp = (g/2.0f * dTime + v)*dTime;
 
@@ -324,7 +325,7 @@ void MobComponent::tick(float dTime)
 			{
 				//up = land_n;
 
-				float speed = 5.0f;
+				float speed = 500.0f;
 				speed += run && input.find("run_delay")==input.end() ? 4.0f : 0.0f * std::max(0.0f, move.Dot(move_facing));
 				speed -= action != 0 ? 3.0f : 0.0f;
 

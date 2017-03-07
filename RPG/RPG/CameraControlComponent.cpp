@@ -5,9 +5,12 @@
 #include "Client.h"
 
 #include "PositionComponent.h"
+#include "MobComponent.h"
 
 #include "Script.h"
 #include "FloatVar.h"
+
+#include "Matrix3.h"
 
 #include "ClientData.h"
 
@@ -18,6 +21,7 @@ CameraControlComponent::CameraControlComponent(void) : Serializable(_factory.id)
 	camera.z = 2.0f;
 	offset.z = 1.0f;
 	local_offset.z = 1.0f;
+	front = Vec3(0.0f, 1.0f, 0.0f);
 }
 
 CameraControlComponent::CameraControlComponent(instream& is, bool full) : Serializable(_factory.id)
@@ -121,12 +125,25 @@ void CameraControlComponent::frame(float dTime)
 				lag_position -= Vec3(lag_position) * (1.0f - exp(log(0.0001f)*dTime));
 				lag_position += *p;
 
-				Vec3 front = Vec3(-sin(camera.x)*cos(camera.y), cos(camera.x)*cos(camera.y), sin(camera.y));
-				Vec3 right = Vec3(-cos(camera.x), -sin(camera.x), 0.0f);
-				Vec3 up = front.Cross(right);
-				Vec3 cam_pos = -front * (exp(camera.z) - 1.0f) + right * local_offset.x + front * local_offset.y + up * local_offset.z;
-				entity->world->cam_rot = Quaternion(Vec3(0.0f, 0.0f, camera.x + M_PI)) * Quaternion(Vec3(-camera.y + M_PI_2, 0.0f, 0.0f));
-				entity->world->cam_pos = lag_position + offset + cam_pos;
+				auto mob = entity->getComponent<MobComponent>();
+				if (mob != nullptr)
+					top = mob->up;
+				right = front.Cross(top);
+				front = top.Cross(right);
+				front.Normalize();
+
+				front *= Matrix3(-camera.x, top);
+				camera.x = 0.0f;
+
+				right = front.Cross(top);
+
+				Vec3 forward = front * Matrix3(-camera.y, right);
+				Vec3 up = right.Cross(forward);
+				Vec3 cam_pos = -forward * (exp(camera.z) - 1.0f) + right * local_offset.x + forward * local_offset.y + up * local_offset.z;
+				cam_pos += front * offset.y + right * offset.x + top * offset.z;
+
+				entity->world->cam_rot = Quaternion::lookAt(forward, up);
+				entity->world->cam_pos = lag_position + cam_pos;
 			}
 		}
 	}

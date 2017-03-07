@@ -25,7 +25,7 @@ fov = 60.0;
 
 near_z = 1.0;
 far_z = 5000.0;
-depth_partitions = 1;
+depth_partitions = 2;
 
 sensitivity = 0.001;
 sensitivity_x = 1.0;

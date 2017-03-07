@@ -20,6 +20,8 @@ public:
 	void Normalize(void);
 
 	Quaternion getConj(void)const;
+
+	static Quaternion lookAt(const Vec3& forward, const Vec3& up);
 };
 
 #endif

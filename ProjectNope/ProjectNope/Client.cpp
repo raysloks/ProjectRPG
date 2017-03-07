@@ -274,13 +274,14 @@ void Client::tick(float dTime)
 		}
 	}
 
-	Vec3 pole = light.Cross(Vec3(1.0f, 0.0f, 0.0f));
+	Vec3 pole = light.Cross(Vec3(1.0f, 2.0f, 0.0f));
 	pole.Normalize();
-	float lspeed = M_PI / 60.0f / 60.0f / 12.0f*50.0f;
+	float lspeed = M_PI / 60.0f / 60.0f / 12.0f * 50.0f;
+	light *= Matrix3(dTime * lspeed, pole);
 	if (input.isDown(Platform::KeyEvent::L))
-		light *= Matrix3(dTime * lspeed, pole);
+		light *= Matrix3(dTime * lspeed * 50.0f, pole);
 	if (input.isDown(Platform::KeyEvent::J))
-		light *= Matrix3(-dTime * lspeed, pole);
+		light *= Matrix3(-dTime * lspeed * 50.0f, pole);
 	light.Normalize();
 	if (input.isDown(Platform::KeyEvent::O))
 		light_size += dTime / 50.0f;
@@ -675,7 +676,7 @@ void Client::render_world(void)
 	Vec2 view_texel_jitter(jitter_distribution(random), jitter_distribution(random));
 	//pers *= Matrix4::Translation(Vec3(view_texel_jitter.x / buffer_w, view_texel_jitter.y / buffer_h, 0.0f));
 
-	Matrix4 rot = world->cam_rot.getConj();
+	Matrix4 rot = world->cam_rot;
 	Matrix4 invrot = world->cam_rot;
 
 	Matrix4 proj = rot * pers;

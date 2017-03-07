@@ -76,3 +76,52 @@ Quaternion Quaternion::getConj(void)const
 {
 	return Quaternion(w, -x, -y, -z);
 }
+
+Quaternion Quaternion::lookAt(const Vec3& forward, const Vec3& up)
+{
+	/*Vec3 right = forward.Cross(up);
+
+	Quaternion ret;
+	float a = 1.0f + right.x + up.y + forward.z;
+	ret.w = sqrt(a) * 0.5f;
+	float c = 1.0f / (4.0f * ret.w);
+	ret.x = (forward.y - up.z) * c;
+	ret.y = (right.z - forward.x) * c;
+	ret.z = (up.x - right.y) * c;
+
+	return ret;*/
+
+	/*Quaternion ret;
+
+	Vec3 x(up.Cross(forward));
+	Vec3 y(x.Cross(up));
+	Vec3 z(y.Cross(x));
+
+	float tr = x.x + y.y + z.z;
+
+	ret.x = y.z - z.y;
+	ret.y = z.x - x.z;
+	ret.z = x.y - y.x;
+	ret.w = tr + 1.0f;
+
+	ret.Normalize();
+
+	return ret;*/
+
+	Quaternion ret;
+
+	Vec3 z(forward);
+	z.Normalize();
+	Vec3 x(up.Cross(z));
+	x.Normalize();
+	Vec3 y(z.Cross(x));
+	ret.w = sqrt(1.0f + x.x + y.y + z.z) / 2.0f;
+	float w4 = (4.0f * ret.w);
+	ret.x = (z.y - y.z) / w4;
+	ret.y = (x.z - z.x) / w4;
+	ret.z = (y.x - x.y) / w4;
+
+	ret.Normalize();
+
+	return ret;
+}
