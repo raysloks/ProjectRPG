@@ -24,6 +24,8 @@ public:
 	GlobalPosition operator+(const Vec3& rhs)const;
 	GlobalPosition operator-(const Vec3& rhs)const;
 	
+	static GlobalPosition extend(const Vec3& v, float l);
+
 	/*const GlobalPosition& operator*=(float rhs);
 	const GlobalPosition& operator/=(float rhs);
 	GlobalPosition operator*(float rhs)const;

@@ -163,6 +163,7 @@
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MobComponent.cpp" />
+    <ClCompile Include="OrbitComponent.cpp" />
     <ClCompile Include="PlayerInputComponent.cpp" />
     <ClCompile Include="SkillNode.cpp" />
   </ItemGroup>
@@ -190,6 +191,7 @@
     <ClInclude Include="InventoryComponent.h" />
     <ClInclude Include="Item.h" />
     <ClInclude Include="MobComponent.h" />
+    <ClInclude Include="OrbitComponent.h" />
     <ClInclude Include="PlayerInputComponent.h" />
     <ClInclude Include="SkillNode.h" />
   </ItemGroup>

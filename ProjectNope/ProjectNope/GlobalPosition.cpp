@@ -98,6 +98,20 @@ GlobalPosition GlobalPosition::operator-(const Vec3& rhs)const
 	return ret;
 }
 
+GlobalPosition GlobalPosition::extend(const Vec3& v, float l)
+{
+	GlobalPosition ret;
+	size_t i = 0;
+	for (i = 0; i < l; i++)
+	{
+		ret += v;
+		ret._adjust();
+	}
+	ret += v * (l - (i - 1));
+	ret._adjust();
+	return ret;
+}
+
 //const GlobalPosition& GlobalPosition::operator*=(float rhs)
 //{
 //	local_pos*=rhs;

@@ -77,10 +77,10 @@ void main()
 
 	float extend = 1000.0;
 
-	vec4 fin_out_first = proj * (real[first] + vec4(end_out_first, 0.0) * extend);
-	vec4 fin_out_second = proj * (real[second] + vec4(end_out_second, 0.0) * extend);
-	vec4 fin_in_first = proj * (real[first] + vec4(end_in_first, 0.0) * extend);
-	vec4 fin_in_second = proj * (real[second] + vec4(end_in_second, 0.0) * extend);
+	vec4 fin_out_first = proj * vec4(end_out_first, 0.0);//(real[first] + vec4(end_out_first, 0.0) * extend);
+	vec4 fin_out_second = proj * vec4(end_out_second, 0.0);//(real[second] + vec4(end_out_second, 0.0) * extend);
+	vec4 fin_in_first = proj * vec4(end_in_first, 0.0);//(real[first] + vec4(end_in_first, 0.0) * extend);
+	vec4 fin_in_second = proj * vec4(end_in_second, 0.0);//(real[second] + vec4(end_in_second, 0.0) * extend);
 
 	// && dot(end_out[first], n) > 0.0 && dot(end_out[second], n) > 0.0 && dot(end_in[first], n) > 0.0 && dot(end_in[second], n) > 0.0
 	//if (abs(dot(cd, n)) > sin(atan(lsize)) && abs(dot(sides[first], normalize(cd))) < cos(atan(lsize)))

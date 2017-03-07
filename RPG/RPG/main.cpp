@@ -19,6 +19,7 @@
 #include "LightComponent.h"
 #include "AIComponent.h"
 #include "PoseComponent.h"
+#include "OrbitComponent.h"
 
 #include "ClientData.h"
 
@@ -174,13 +175,13 @@ public:
 				g->decs.items.front()->final = g->decs.items.front()->local;
 
 				world->AddEntity(ent);
-			}
-			for (int i = 0; i < 2; ++i)
+			}*/
+			for (int i = 0; i < 10; ++i)
 			{
 				NewEntity * ent = new NewEntity();
 
 				PositionComponent * p = new PositionComponent();
-				p->p += Vec3(5.0f + 2.01f * i, 2.01f * i, -10.25f);
+				p->p += Vec3(5.0f, 0.0f, -1.0f + 2.0f * i);
 				ColliderComponent * c = new ColliderComponent();
 				GraphicsComponent * g = new GraphicsComponent(false);
 
@@ -188,14 +189,62 @@ public:
 				ent->addComponent(c);
 				ent->addComponent(g);
 
-				std::vector<std::string> tex;
-				tex.push_back("data/assets/terrain/textures/RockPlate.tga");
-
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", tex, 0)));
+				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube_bevel.gmdl", Material("data/assets/terrain/textures/RockPlate.tga"), 0)));
 				g->decs.items.front()->final = g->decs.items.front()->local;
 
 				world->AddEntity(ent);
-			}*/
+			}
+			{
+				NewEntity * ent = new NewEntity();
+
+				PositionComponent * p = new PositionComponent();
+				p->p += Vec3(3000.0f, -3000.0f, 3000.0f);
+				ColliderComponent * c = new ColliderComponent();
+				GraphicsComponent * g = new GraphicsComponent(false);
+				OrbitComponent * orbit = new OrbitComponent();
+
+				ent->addComponent(p);
+				ent->addComponent(c);
+				ent->addComponent(g);
+				ent->addComponent(orbit);
+
+				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/props/rocks/rock.gmdl", Material("data/assets/props/rocks/rock.tga"), 0)));
+				g->decs.items.front()->local *= 100.0f;
+				g->decs.items.front()->local.data[15] = 1.0f;
+				g->decs.items.front()->final = g->decs.items.front()->local;
+
+				orbit->offset = p->p;
+				orbit->angle = orbit->offset.Normalized().Cross(Vec3(1.0f, 0.0f, 0.0f));
+				orbit->period = 1000000.0f;
+				orbit->t = 8100.0f;
+
+				world->AddEntity(ent);
+			}
+			{
+				NewEntity * ent = new NewEntity();
+
+				PositionComponent * p = new PositionComponent();
+				p->p += Vec3(0.0f, 0.0f, 300000.0f);
+				ColliderComponent * c = new ColliderComponent();
+				GraphicsComponent * g = new GraphicsComponent(false);
+				OrbitComponent * orbit = new OrbitComponent();
+
+				ent->addComponent(p);
+				ent->addComponent(c);
+				ent->addComponent(g);
+				ent->addComponent(orbit);
+
+				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/props/rocks/rock.gmdl", Material("data/assets/props/rocks/rock.tga"), 0)));
+				g->decs.items.front()->local *= 10000.0f;
+				g->decs.items.front()->local.data[15] = 1.0f;
+				g->decs.items.front()->final = g->decs.items.front()->local;
+
+				orbit->offset = p->p;
+				orbit->angle = orbit->offset.Normalized().Cross(Vec3(1.0f, 0.0f, 0.0f));
+				orbit->period = 1000000.0f;
+
+				world->AddEntity(ent);
+			}
 		}
 
 		// create ai entity

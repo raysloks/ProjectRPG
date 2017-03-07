@@ -59,7 +59,7 @@ void GraphicsComponent::readLog(instream& is)
 void GraphicsComponent::frame(float dTime)
 {
 	if (p == nullptr) {
-		PositionComponent * pc = entity->getComponent<PositionComponent>();
+		auto pc = entity->getComponent<PositionComponent>();
 		if (pc != nullptr)
 			p = &pc->p;
 	}
@@ -71,7 +71,7 @@ void GraphicsComponent::frame(float dTime)
 			}
 		}
 	} else {
-		PoseComponent * pc = entity->getComponent<PoseComponent>();
+		auto pc = entity->getComponent<PoseComponent>();
 		if (pc != nullptr)
 			pose = &pc->pose;
 		for (auto i=decs.items.begin();i!=decs.items.end();++i) {
@@ -111,8 +111,7 @@ void GraphicsComponent::render(RenderSetup& rs)
 	}
 	if (p!=0)
 		offset += *p;
-	Vec3 pos = offset;
-	rs.addTransform(Matrix4::Translation(pos));
+	rs.addTransform(Matrix4::Translation(offset));
 
 	for (auto i=decs.items.begin();i!=decs.items.end();++i) {
 		if (*i!=0) {

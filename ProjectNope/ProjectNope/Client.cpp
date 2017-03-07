@@ -274,9 +274,9 @@ void Client::tick(float dTime)
 		}
 	}
 
-	Vec3 pole(0.0f, 0.0f, 1.0f);
+	Vec3 pole = light.Cross(Vec3(1.0f, 0.0f, 0.0f));
 	pole.Normalize();
-	float lspeed = M_PI / 60.0f / 60.0f / 12.0f*5000.0f;
+	float lspeed = M_PI / 60.0f / 60.0f / 12.0f*50.0f;
 	if (input.isDown(Platform::KeyEvent::L))
 		light *= Matrix3(dTime * lspeed, pole);
 	if (input.isDown(Platform::KeyEvent::J))
@@ -557,8 +557,9 @@ void Client::render_world(void)
 
 	float fov = 70.0f;
 
-	float far_z = 30000.0f;
+	float far_z = 5000.0f;
 	float near_z = 1.0f;
+	size_t depth_partitions = 2;
 
 	float supersample_r = 1.0f;
 
@@ -576,6 +577,9 @@ void Client::render_world(void)
 		var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("near_z"));
 		if (var!=0)
 			near_z = var->f;
+		var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("depth_partitions"));
+		if (var != 0)
+			depth_partitions = var->f;
 		var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("supersampling_r"));
 		if (var != 0)
 			supersample_r = var->f;
@@ -669,7 +673,7 @@ void Client::render_world(void)
 
 	std::uniform_real_distribution<float> jitter_distribution(-0.5f, 0.5f);
 	Vec2 view_texel_jitter(jitter_distribution(random), jitter_distribution(random));
-	pers *= Matrix4::Translation(Vec3(view_texel_jitter.x / buffer_w, view_texel_jitter.y / buffer_h, 0.0f));
+	//pers *= Matrix4::Translation(Vec3(view_texel_jitter.x / buffer_w, view_texel_jitter.y / buffer_h, 0.0f));
 
 	Matrix4 rot = world->cam_rot.getConj();
 	Matrix4 invrot = world->cam_rot;
@@ -683,6 +687,8 @@ void Client::render_world(void)
 	biasMat.data[12] = 0.5f;
 	biasMat.data[13] = 0.5f;
 	biasMat.data[14] = 0.5f;
+
+	Matrix4 light_alignment = Matrix3(acos(light.Dot(Vec3(0.0f, 0.0f, 1.0f))), -light.Cross(Vec3(0.0f, 0.0f, 1.0f)));
 
 
 	// render background
@@ -700,519 +706,539 @@ void Client::render_world(void)
 	}
 	
 
-	// render depth pre-pass
-	if (depth_fill_prog->IsReady())
+	float o_near_z = near_z;
+	float o_far_z = far_z;
+
+	for (size_t depth_partition = depth_partitions; depth_partition > 0; depth_partition--)
 	{
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
-		glDepthMask(GL_TRUE);
-
-		depth_prepass_fb->bind();
-		glViewport(0, 0, buffer_w, buffer_h);
-		glClear(GL_DEPTH_BUFFER_BIT);
-
-		RenderSetup rs;
-		rs.view = proj;
-
-		ShaderMod mod(depth_fill_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
-			prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
-		});
-
-		rs.pushMod(mod);
-		rs.pass = 0;
-
-		world->render(rs);
-
-		rs.popMod();
-	}
-
-
-	// render normals
-	if (normal_prog->IsReady())
-	{
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_EQUAL);
-		glDepthMask(GL_FALSE);
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		normal_fb->bind();
-		glViewport(0, 0, buffer_w, buffer_h);
-
-		RenderSetup rs;
-		rs.view = proj;
-
-		ShaderMod mod(normal_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
-			prog->Uniform("diffuse", 0); // texture unit 0
-			prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
-			prog->UniformMatrix3fv("normal_transform", Matrix3(rs.transform).data);
-		});
-
-		rs.pushMod(mod);
-		rs.pass = 1;
-
-		world->render(rs);
-
-		rs.popMod();
-	}
-
-
-	// raytracing shadows setup
-	{
-		// calculate noise shadow sample distribution
-		if (input.isDown(Platform::KeyEvent::N))
+		// update clip planes
+		near_z = o_near_z;
+		far_z = o_far_z;
+		for (size_t i = 1; i < depth_partition; i++)
 		{
-			light_samples.resize(128 * 3);
-			light_samples[0] = light.x;
-			light_samples[1] = light.y;
-			light_samples[2] = light.z;
-			std::uniform_real_distribution<float> uni_dist;
-			Vec3 x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
-			Vec3 y = light.Cross(x).Normalize();
-			for (int i = 3; i < 128 * 3; i += 3)
-			{
-				float t = 2.0f * M_PI * uni_dist(random);
-				float r = sqrt(uni_dist(random));
-				Vec3 l = (light + (x * cos(t) + y * sin(t)) * r * light_size).Normalize();
-				light_samples[i] = l.x;
-				light_samples[i + 1] = l.y;
-				light_samples[i + 2] = l.z;
-			}
+			float passover = far_z;
+			far_z = far_z * far_z / near_z;
+			near_z = passover;
 		}
 
-		// calculate poisson shadow sample distribution
-		if (input.isDown(Platform::KeyEvent::M))
+		pers = Matrix4::Perspective(fov, aspect, near_z, far_z);
+		proj = rot * pers;
+
+
+		// render depth pre-pass
+		if (depth_fill_prog->IsReady())
 		{
-			std::uniform_int_distribution<uint32_t> seeder;
-			auto points = PoissonGenerator::GeneratePoissonPoints(128 * 2, PoissonGenerator::DefaultPRNG(seeder(random)));
-			light_samples.resize(128 * 3);
-			light_samples[0] = light.x;
-			light_samples[1] = light.y;
-			light_samples[2] = light.z;
-			Vec3 x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
-			Vec3 y = light.Cross(x).Normalize();
-			for (int i = 1; i < 128; ++i)
-			{
-				Vec3 l = (light + (x * (points[i].x * 2.0f - 1.0f) + y * (points[i].y * 2.0f - 1.0f)) * light_size).Normalize();
-				light_samples[i * 3] = l.x;
-				light_samples[i * 3 + 1] = l.y;
-				light_samples[i * 3 + 2] = l.z;
-			}
-		}
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LESS);
+			glDepthMask(GL_TRUE);
 
-		// calculate hexagon grid shadow sample distribution
-		if (input.isDown(Platform::KeyEvent::H))
-		{
-			std::vector<Vec2> points;
-			std::set<std::pair<int, int>> visited;
-			std::multimap<float, std::pair<int, int>> open;
-			open.insert(std::make_pair(0.0f, std::make_pair(0, 0)));
-			std::uniform_int_distribution<uint32_t> exangle_dist(0U, 6U);
-			light_angle += 1.0f + exangle_dist(random);
-			Vec2 hex_x(cos(light_angle), sin(light_angle));
-			Vec2 hex_y(cos(light_angle + M_PI / 3.0f), sin(light_angle + M_PI / 3.0f));
-			float max_r = 0.0f;
-			while (points.size() < 128)
-			{
-				auto current_iterator = open.begin();
-				auto current = current_iterator->second;
-				open.erase(current_iterator);
-				if (visited.find(current) == visited.end())
-				{
-					visited.insert(current);
-					points.push_back(hex_x * current.first + hex_y * current.second);
-					float r = points.back().LenPwr();
-					if (r > max_r)
-						max_r = r;
-					open.insert(std::make_pair((hex_x * current.first + hex_y * (current.second + 1)).LenPwr(), std::make_pair(current.first, current.second + 1)));
-					open.insert(std::make_pair((hex_x * current.first + hex_y * (current.second - 1)).LenPwr(), std::make_pair(current.first, current.second - 1)));
-					open.insert(std::make_pair((hex_x * (current.first - 1) + hex_y * (current.second + 1)).LenPwr(), std::make_pair(current.first - 1, current.second + 1)));
-					open.insert(std::make_pair((hex_x * (current.first + 1) + hex_y * (current.second - 1)).LenPwr(), std::make_pair(current.first + 1, current.second - 1)));
-					open.insert(std::make_pair((hex_x * (current.first - 1) + hex_y * current.second).LenPwr(), std::make_pair(current.first - 1, current.second)));
-					open.insert(std::make_pair((hex_x * (current.first + 1) + hex_y * current.second).LenPwr(), std::make_pair(current.first + 1, current.second)));
-				}
-			}
-			max_r = sqrt(max_r) + 0.5f;
-			light_samples.resize(128 * 3);
-			Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
-			Vec3 light_y = light.Cross(light_x).Normalize();
-			for (int i = 0; i < 128; ++i)
-			{
-				Vec3 l = (light + (light_x * points[i].x + light_y * points[i].y) * light_size / max_r).Normalize();
-				light_samples[i * 3] = l.x;
-				light_samples[i * 3 + 1] = l.y;
-				light_samples[i * 3 + 2] = l.z;
-			}
-		}
-
-		// calculate rings shadow sample distribution
-		if (input.isDown(Platform::KeyEvent::B) || light_samples.empty())
-		{
-			std::vector<Vec2> points;
-			int ring = 1;
-			float density = 3.0f;
-			while (points.size() < 128)
-			{
-				int points_to_add = (2 * ring - 1) * density;
-				if (points.size() + points_to_add > 128)
-					points_to_add = 128 - points.size();
-				for (int i = 0; i < points_to_add; ++i)
-				{
-					float angle = i * 2.0f * M_PI / points_to_add + ring;
-					points.push_back(Vec2(cos(angle), sin(angle)) * ring);
-				}
-				++ring;
-			}
-			light_samples.resize(128 * 3);
-			Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
-			Vec3 light_y = light.Cross(light_x).Normalize();
-			for (int i = 0; i < 128; ++i)
-			{
-				Vec3 l = (light + (light_x * points[i].x + light_y * points[i].y) * light_size / ring).Normalize();
-				light_samples[i * 3] = l.x;
-				light_samples[i * 3 + 1] = l.y;
-				light_samples[i * 3 + 2] = l.z;
-			}
-		}
-
-		if (input.isDown(Platform::KeyEvent::V) || light_lookup.empty())
-		{
-			/*if (light_samples.size() == 128 * 3 && input.isDown(Platform::KeyEvent::V))
-			{
-				std::uniform_real_distribution<float> uni_dist_2pi(0.0f, M_PI * 2.0f);
-				for (int i = 0; i < 128 * 3; i += 3)
-				{
-					Vec3 l(light_samples[i], light_samples[i + 1], light_samples[i + 2]);
-					l *= Matrix3(uni_dist_2pi(random), light);
-					light_samples[i] = l.x;
-					light_samples[i + 1] = l.y;
-					light_samples[i + 2] = l.z;
-				}
-			}*/
-
-			unsigned short light_lookup_res_angle = 128;
-			unsigned short light_lookup_res_distance = 64;
-			// calculate shadow look-up table
-			{
-				LARGE_INTEGER freq, start, end;
-				QueryPerformanceFrequency(&freq);
-				QueryPerformanceCounter(&start);
-
-				light_lookup.resize(light_lookup_res_angle * light_lookup_res_distance * 4);
-				std::fill(light_lookup.begin(), light_lookup.end(), 0u);
-				Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
-				Vec3 light_y = light.Cross(light_x).Normalize();
-				for (int x = 0; x < light_lookup_res_angle; ++x)
-				{
-					for (int y = 0; y < light_lookup_res_distance; ++y)
-					{
-						float angle = x * M_PI * 2.0f / light_lookup_res_angle;
-						Vec3 dir = light_x * cos(angle) + light_y * sin(angle);
-
-						float dist = float(y) / light_lookup_res_distance * 2.0f - 1.0f;
-						Vec3 off = light + dir * dist * light_size;
-						off.Normalize();
-
-						for (int j = 0; j < 4; ++j)
-						{
-							for (int i = 0; i < 32; ++i)
-							{
-								float dot = dir.Dot(off - Vec3(light_samples[(i + j * 32) * 3], light_samples[(i + j * 32) * 3 + 1], light_samples[(i + j * 32) * 3 + 2]));
-								light_lookup[j + x * 4 + y * light_lookup_res_angle * 4] |= (dot > 0.0f ? 1u : 0u) << i;
-							}
-							if (y == 0)
-								light_lookup[j + x * 4 + y * light_lookup_res_angle * 4] = 0u;
-							if (y == light_lookup_res_distance - 1)
-								light_lookup[j + x * 4 + y * light_lookup_res_angle * 4] = UINT32_MAX;
-						}
-					}
-				}
-
-				QueryPerformanceCounter(&end);
-				double durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
-				Profiler::add("shadow-look-up", durationInSeconds);
-			}
-
-			// push shadow look-up table to gpu
-			if (light_lookup_tex == 0)
-			{
-				light_lookup_tex.reset(new Texture());
-
-				light_lookup_tex->w = light_lookup_res_angle;
-				light_lookup_tex->h = light_lookup_res_distance;
-
-				glGenTextures(1, &light_lookup_tex->texid);
-				glBindTexture(GL_TEXTURE_2D, light_lookup_tex->texid);
-				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32UI, light_lookup_res_angle, light_lookup_res_distance, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, light_lookup.data());
-			}
-			else
-			{
-				glBindTexture(GL_TEXTURE_2D, light_lookup_tex->texid);
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, light_lookup_res_angle, light_lookup_res_distance, GL_RGBA_INTEGER, GL_UNSIGNED_INT, light_lookup.data());
-			}
-		}
-	}
-
-	// stencils
-	if (stencil_prog->IsReady() && flat_stencil_prog->IsReady())
-	{
-		// render flat stencil
-		if (flat_stencil_prog->Use())
-		{
-			flat_stencil_fb->bind();
+			depth_prepass_fb->bind();
 			glViewport(0, 0, buffer_w, buffer_h);
-			glClearStencil(64);
-			glClear(GL_STENCIL_BUFFER_BIT);
-
-			flat_stencil_prog->UniformMatrix4fv("proj", proj.data);
-			flat_stencil_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
-
-			flat_stencil_prog->Uniform("light", light, 0.0f);
-
-			flat_stencil_prog->Uniform("lsize", light_size);
+			glClear(GL_DEPTH_BUFFER_BIT);
 
 			RenderSetup rs;
 			rs.view = proj;
 
-			ShaderMod mod(flat_stencil_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+			ShaderMod mod(depth_fill_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
 				prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
-				prog->UniformMatrix4fv("normal_transform", rs.transform.data);
 			});
 
 			rs.pushMod(mod);
-			rs.pass = 3;
+			rs.pass = 0;
 
-			glEnable(GL_STENCIL_TEST);
-			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_DEPTH_CLAMP);
-			glDepthFunc(GL_LESS);
-			glDepthMask(GL_FALSE);
-
-			glDisable(GL_CULL_FACE);
-
-			glStencilFunc(GL_ALWAYS, 0xff, 0xff);
-			glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
-			glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
-
-			flat_stencil_prog->Uniform("full", 0);
-
-			for (int i = 0; i < 3; ++i)
-			{
-				flat_stencil_prog->Uniform("first", i);
-				flat_stencil_prog->Uniform("second", (i + 1) % 3);
-				flat_stencil_prog->Uniform("third", (i + 2) % 3);
-				world->render(rs);
-			}
-
-			flat_stencil_prog->Uniform("full", 1);
 			world->render(rs);
-
-			glDisable(GL_DEPTH_CLAMP);
-			glDisable(GL_STENCIL_TEST);
 
 			rs.popMod();
 		}
 
-		if (shadow_quality == 3)
+
+		// render normals
+		if (normal_prog->IsReady())
 		{
-			// render raytracing stencil
-			if (stencil_prog->Use())
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_EQUAL);
+			glDepthMask(GL_FALSE);
+
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			normal_fb->bind();
+			glViewport(0, 0, buffer_w, buffer_h);
+
+			RenderSetup rs;
+			rs.view = proj;
+
+			ShaderMod mod(normal_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+				prog->Uniform("diffuse", 0); // texture unit 0
+				prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
+				prog->UniformMatrix3fv("normal_transform", Matrix3(rs.transform).data);
+			});
+
+			rs.pushMod(mod);
+			rs.pass = 1;
+
+			world->render(rs);
+
+			rs.popMod();
+		}
+
+
+		// raytracing shadows setup
+		{
+			// calculate noise shadow sample distribution
+			if (input.isDown(Platform::KeyEvent::N))
 			{
-				stencil_fb->bind();
-				glViewport(0, 0, buffer_w, buffer_h);
-				uint32_t clear_value[4] = { UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX };
-				glClearBufferuiv(GL_COLOR, 0, clear_value);
+				light_samples.resize(128 * 3);
+				light_samples[0] = light.x;
+				light_samples[1] = light.y;
+				light_samples[2] = light.z;
+				std::uniform_real_distribution<float> uni_dist;
+				Vec3 x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
+				Vec3 y = light.Cross(x).Normalize();
+				for (int i = 3; i < 128 * 3; i += 3)
+				{
+					float t = 2.0f * M_PI * uni_dist(random);
+					float r = sqrt(uni_dist(random));
+					Vec3 l = (light + (x * cos(t) + y * sin(t)) * r * light_size).Normalize();
+					light_samples[i] = l.x;
+					light_samples[i + 1] = l.y;
+					light_samples[i + 2] = l.z;
+				}
+			}
 
-				stencil_prog->Use();
+			// calculate poisson shadow sample distribution
+			if (input.isDown(Platform::KeyEvent::M))
+			{
+				std::uniform_int_distribution<uint32_t> seeder;
+				auto points = PoissonGenerator::GeneratePoissonPoints(128 * 2, PoissonGenerator::DefaultPRNG(seeder(random)));
+				light_samples.resize(128 * 3);
+				light_samples[0] = light.x;
+				light_samples[1] = light.y;
+				light_samples[2] = light.z;
+				Vec3 x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
+				Vec3 y = light.Cross(x).Normalize();
+				for (int i = 1; i < 128; ++i)
+				{
+					Vec3 l = (light + (x * (points[i].x * 2.0f - 1.0f) + y * (points[i].y * 2.0f - 1.0f)) * light_size).Normalize();
+					light_samples[i * 3] = l.x;
+					light_samples[i * 3 + 1] = l.y;
+					light_samples[i * 3 + 2] = l.z;
+				}
+			}
 
-				stencil_prog->UniformMatrix4fv("proj", proj.data);
-				stencil_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
-
-				stencil_prog->Uniform("zNear", near_z);
-				stencil_prog->Uniform("zFar", far_z);
-
-				stencil_prog->Uniform("pixel", 1.0f / buffer_w, 1.0f / buffer_h);
-
-				stencil_prog->Uniform("light", light, 0.0f);
-
+			// calculate hexagon grid shadow sample distribution
+			if (input.isDown(Platform::KeyEvent::H))
+			{
+				std::vector<Vec2> points;
+				std::set<std::pair<int, int>> visited;
+				std::multimap<float, std::pair<int, int>> open;
+				open.insert(std::make_pair(0.0f, std::make_pair(0, 0)));
+				std::uniform_int_distribution<uint32_t> exangle_dist(0U, 6U);
+				light_angle += 1.0f + exangle_dist(random);
+				Vec2 hex_x(cos(light_angle), sin(light_angle));
+				Vec2 hex_y(cos(light_angle + M_PI / 3.0f), sin(light_angle + M_PI / 3.0f));
+				float max_r = 0.0f;
+				while (points.size() < 128)
+				{
+					auto current_iterator = open.begin();
+					auto current = current_iterator->second;
+					open.erase(current_iterator);
+					if (visited.find(current) == visited.end())
+					{
+						visited.insert(current);
+						points.push_back(hex_x * current.first + hex_y * current.second);
+						float r = points.back().LenPwr();
+						if (r > max_r)
+							max_r = r;
+						open.insert(std::make_pair((hex_x * current.first + hex_y * (current.second + 1)).LenPwr(), std::make_pair(current.first, current.second + 1)));
+						open.insert(std::make_pair((hex_x * current.first + hex_y * (current.second - 1)).LenPwr(), std::make_pair(current.first, current.second - 1)));
+						open.insert(std::make_pair((hex_x * (current.first - 1) + hex_y * (current.second + 1)).LenPwr(), std::make_pair(current.first - 1, current.second + 1)));
+						open.insert(std::make_pair((hex_x * (current.first + 1) + hex_y * (current.second - 1)).LenPwr(), std::make_pair(current.first + 1, current.second - 1)));
+						open.insert(std::make_pair((hex_x * (current.first - 1) + hex_y * current.second).LenPwr(), std::make_pair(current.first - 1, current.second)));
+						open.insert(std::make_pair((hex_x * (current.first + 1) + hex_y * current.second).LenPwr(), std::make_pair(current.first + 1, current.second)));
+					}
+				}
+				max_r = sqrt(max_r) + 0.5f;
+				light_samples.resize(128 * 3);
 				Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
 				Vec3 light_y = light.Cross(light_x).Normalize();
+				for (int i = 0; i < 128; ++i)
+				{
+					Vec3 l = (light + (light_x * points[i].x + light_y * points[i].y) * light_size / max_r).Normalize();
+					light_samples[i * 3] = l.x;
+					light_samples[i * 3 + 1] = l.y;
+					light_samples[i * 3 + 2] = l.z;
+				}
+			}
 
-				stencil_prog->Uniform("light_x", light_x, 0.0f);
-				stencil_prog->Uniform("light_y", light_y, 0.0f);
+			// calculate rings shadow sample distribution
+			if (input.isDown(Platform::KeyEvent::B) || light_samples.empty())
+			{
+				std::vector<Vec2> points;
+				int ring = 1;
+				float density = 3.0f;
+				while (points.size() < 128)
+				{
+					int points_to_add = (2 * ring - 1) * density;
+					if (points.size() + points_to_add > 128)
+						points_to_add = 128 - points.size();
+					for (int i = 0; i < points_to_add; ++i)
+					{
+						float angle = i * 2.0f * M_PI / points_to_add + ring;
+						points.push_back(Vec2(cos(angle), sin(angle)) * ring);
+					}
+					++ring;
+				}
+				light_samples.resize(128 * 3);
+				Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
+				Vec3 light_y = light.Cross(light_x).Normalize();
+				for (int i = 0; i < 128; ++i)
+				{
+					Vec3 l = (light + (light_x * points[i].x + light_y * points[i].y) * light_size / ring).Normalize();
+					light_samples[i * 3] = l.x;
+					light_samples[i * 3 + 1] = l.y;
+					light_samples[i * 3 + 2] = l.z;
+				}
+			}
 
-				stencil_prog->Uniform("lsize", light_size);
+			if (input.isDown(Platform::KeyEvent::V) || light_lookup.empty())
+			{
+				/*if (light_samples.size() == 128 * 3 && input.isDown(Platform::KeyEvent::V))
+				{
+					std::uniform_real_distribution<float> uni_dist_2pi(0.0f, M_PI * 2.0f);
+					for (int i = 0; i < 128 * 3; i += 3)
+					{
+						Vec3 l(light_samples[i], light_samples[i + 1], light_samples[i + 2]);
+						l *= Matrix3(uni_dist_2pi(random), light);
+						light_samples[i] = l.x;
+						light_samples[i + 1] = l.y;
+						light_samples[i + 2] = l.z;
+					}
+				}*/
 
-				stencil_prog->Uniform3fv("light_samples", light_samples);
+				unsigned short light_lookup_res_angle = 128;
+				unsigned short light_lookup_res_distance = 64;
+				// calculate shadow look-up table
+				{
+					LARGE_INTEGER freq, start, end;
+					QueryPerformanceFrequency(&freq);
+					QueryPerformanceCounter(&start);
 
-				glActiveTexture(GL_TEXTURE1);
-				stencil_prog->Uniform("depth", 1);
-				glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
-				glActiveTexture(GL_TEXTURE2);
-				stencil_prog->Uniform("lookup", 2);
-				if (light_lookup_tex != nullptr)
-					glBindTexture(GL_TEXTURE_2D, light_lookup_tex->getGLTexID());
+					light_lookup.resize(light_lookup_res_angle * light_lookup_res_distance * 4);
+					std::fill(light_lookup.begin(), light_lookup.end(), 0u);
+					Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
+					Vec3 light_y = light.Cross(light_x).Normalize();
+					for (int x = 0; x < light_lookup_res_angle; ++x)
+					{
+						for (int y = 0; y < light_lookup_res_distance; ++y)
+						{
+							float angle = x * M_PI * 2.0f / light_lookup_res_angle;
+							Vec3 dir = light_x * cos(angle) + light_y * sin(angle);
+
+							float dist = float(y) / light_lookup_res_distance * 2.0f - 1.0f;
+							Vec3 off = light + dir * dist * light_size;
+							off.Normalize();
+
+							for (int j = 0; j < 4; ++j)
+							{
+								for (int i = 0; i < 32; ++i)
+								{
+									float dot = dir.Dot(off - Vec3(light_samples[(i + j * 32) * 3], light_samples[(i + j * 32) * 3 + 1], light_samples[(i + j * 32) * 3 + 2]));
+									light_lookup[j + x * 4 + y * light_lookup_res_angle * 4] |= (dot > 0.0f ? 1u : 0u) << i;
+								}
+								if (y == 0)
+									light_lookup[j + x * 4 + y * light_lookup_res_angle * 4] = 0u;
+								if (y == light_lookup_res_distance - 1)
+									light_lookup[j + x * 4 + y * light_lookup_res_angle * 4] = UINT32_MAX;
+							}
+						}
+					}
+
+					QueryPerformanceCounter(&end);
+					double durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
+					Profiler::add("shadow-look-up", durationInSeconds);
+				}
+
+				// push shadow look-up table to gpu
+				if (light_lookup_tex == 0)
+				{
+					light_lookup_tex.reset(new Texture());
+
+					light_lookup_tex->w = light_lookup_res_angle;
+					light_lookup_tex->h = light_lookup_res_distance;
+
+					glGenTextures(1, &light_lookup_tex->texid);
+					glBindTexture(GL_TEXTURE_2D, light_lookup_tex->texid);
+					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+					glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32UI, light_lookup_res_angle, light_lookup_res_distance, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, light_lookup.data());
+				}
+				else
+				{
+					glBindTexture(GL_TEXTURE_2D, light_lookup_tex->texid);
+					glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, light_lookup_res_angle, light_lookup_res_distance, GL_RGBA_INTEGER, GL_UNSIGNED_INT, light_lookup.data());
+				}
+			}
+		}
+
+		// stencils
+		if (stencil_prog->IsReady() && flat_stencil_prog->IsReady())
+		{
+			// render flat stencil
+			if (flat_stencil_prog->Use())
+			{
+				flat_stencil_fb->bind();
+				glViewport(0, 0, buffer_w, buffer_h);
+				glClearStencil(64);
+				glClear(GL_STENCIL_BUFFER_BIT);
+
+				flat_stencil_prog->UniformMatrix4fv("proj", proj.data);
+				flat_stencil_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
+
+				flat_stencil_prog->Uniform("light", light, 0.0f);
+
+				flat_stencil_prog->Uniform("lsize", light_size);
 
 				RenderSetup rs;
 				rs.view = proj;
 
-				ShaderMod mod(stencil_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+				ShaderMod mod(flat_stencil_prog, [proj, light_alignment, &rs](const std::shared_ptr<ShaderProgram>& prog) {
 					prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
 					prog->UniformMatrix4fv("normal_transform", rs.transform.data);
 				});
 
 				rs.pushMod(mod);
-				rs.pass = 4;
+				rs.pass = 3;
 
-				glDisable(GL_BLEND);
-				glEnable(GL_COLOR_LOGIC_OP);
-				glLogicOp(GL_AND);
-				glEnable(GL_CULL_FACE);
 				glEnable(GL_STENCIL_TEST);
-				glStencilFunc(GL_EQUAL, 64, 0xff);
-				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+				glEnable(GL_DEPTH_TEST);
+				glEnable(GL_DEPTH_CLAMP);
+				glDepthFunc(GL_LESS);
+				glDepthMask(GL_FALSE);
 
-				//glStencilFunc(GL_LESS, 128, 0xff);
-				//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+				glDisable(GL_CULL_FACE);
 
-				int min_i = 0;
-				int max_i = 3;
-				if (input.isDown(Platform::KeyEvent::T))
-					max_i = 1;
-				if (input.isDown(Platform::KeyEvent::Y))
+				glStencilFunc(GL_ALWAYS, 0xff, 0xff);
+				glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
+				glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
+
+				flat_stencil_prog->Uniform("full", 0);
+
+				for (int i = 0; i < 3; ++i)
 				{
-					min_i = 1;
-					max_i = 2;
-				}
-				if (input.isDown(Platform::KeyEvent::U))
-				{
-					min_i = 2;
-					max_i = 3;
-				}
-				for (int i = min_i; i < max_i; ++i)
-				{
-					stencil_prog->Uniform("first", i);
-					stencil_prog->Uniform("second", (i + 1) % 3);
-					stencil_prog->Uniform("third", (i + 2) % 3);
+					flat_stencil_prog->Uniform("first", i);
+					flat_stencil_prog->Uniform("second", (i + 1) % 3);
+					flat_stencil_prog->Uniform("third", (i + 2) % 3);
 					world->render(rs);
 				}
 
+				flat_stencil_prog->Uniform("full", 1);
+				world->render(rs);
+
+				glDisable(GL_DEPTH_CLAMP);
 				glDisable(GL_STENCIL_TEST);
-				glDisable(GL_COLOR_LOGIC_OP);
 
 				rs.popMod();
 			}
-		}
-	}
 
-
-	// render lights
-	if (light_prog->Use())
-	{
-		light_fb->bind();
-		glViewport(0, 0, buffer_w, buffer_h);
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT); // TODO proper light quality options
-
-		if (ao_quality == 2) // TODO proper separation of light and ao
-		{
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-
-			light_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
-
-			glActiveTexture(GL_TEXTURE0);
-			light_prog->Uniform("normal", 0);
-			glBindTexture(GL_TEXTURE_2D, normal_buf->gl_texture_id);
-			glActiveTexture(GL_TEXTURE1);
-			light_prog->Uniform("depth", 1);
-			glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
-
-			std::vector<Vec4> light_array;
-			for (auto i = LightComponent::all.begin(); i != LightComponent::all.end(); ++i)
+			if (shadow_quality == 3)
 			{
-				light_array.push_back(Vec4((*i)->p - world->cam_pos, 1.0f));
+				// render raytracing stencil
+				if (stencil_prog->Use())
+				{
+					stencil_fb->bind();
+					glViewport(0, 0, buffer_w, buffer_h);
+					uint32_t clear_value[4] = { UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX };
+					glClearBufferuiv(GL_COLOR, 0, clear_value);
+
+					stencil_prog->Use();
+
+					stencil_prog->UniformMatrix4fv("proj", proj.data);
+					stencil_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
+
+					stencil_prog->Uniform("zNear", near_z);
+					stencil_prog->Uniform("zFar", far_z);
+
+					stencil_prog->Uniform("pixel", 1.0f / buffer_w, 1.0f / buffer_h);
+
+					stencil_prog->Uniform("light", light, 0.0f);
+
+					Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
+					Vec3 light_y = light.Cross(light_x).Normalize();
+
+					stencil_prog->Uniform("light_x", light_x, 0.0f);
+					stencil_prog->Uniform("light_y", light_y, 0.0f);
+
+					stencil_prog->Uniform("lsize", light_size);
+
+					stencil_prog->Uniform3fv("light_samples", light_samples);
+
+					glActiveTexture(GL_TEXTURE1);
+					stencil_prog->Uniform("depth", 1);
+					glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
+					glActiveTexture(GL_TEXTURE2);
+					stencil_prog->Uniform("lookup", 2);
+					if (light_lookup_tex != nullptr)
+						glBindTexture(GL_TEXTURE_2D, light_lookup_tex->getGLTexID());
+
+					RenderSetup rs;
+					rs.view = proj;
+
+					ShaderMod mod(stencil_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+						prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
+						prog->UniformMatrix4fv("normal_transform", rs.transform.data);
+					});
+
+					rs.pushMod(mod);
+					rs.pass = 4;
+
+					glDisable(GL_BLEND);
+					glEnable(GL_COLOR_LOGIC_OP);
+					glLogicOp(GL_AND);
+					glEnable(GL_CULL_FACE);
+					glEnable(GL_STENCIL_TEST);
+					glStencilFunc(GL_EQUAL, 64, 0xff);
+					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+					//glStencilFunc(GL_LESS, 128, 0xff);
+					//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+					int min_i = 0;
+					int max_i = 3;
+					if (input.isDown(Platform::KeyEvent::T))
+						max_i = 1;
+					if (input.isDown(Platform::KeyEvent::Y))
+					{
+						min_i = 1;
+						max_i = 2;
+					}
+					if (input.isDown(Platform::KeyEvent::U))
+					{
+						min_i = 2;
+						max_i = 3;
+					}
+					for (int i = min_i; i < max_i; ++i)
+					{
+						stencil_prog->Uniform("first", i);
+						stencil_prog->Uniform("second", (i + 1) % 3);
+						stencil_prog->Uniform("third", (i + 2) % 3);
+						world->render(rs);
+					}
+
+					glDisable(GL_STENCIL_TEST);
+					glDisable(GL_COLOR_LOGIC_OP);
+
+					rs.popMod();
+				}
 			}
-
-			light_prog->Uniform4fv("light", light_array);
-			light_prog->Uniform("n_light", (int)light_array.size());
-
-			glDrawArrays(GL_TRIANGLES, 0, 3);
 		}
-	}
 
 
-	// render shaded geometry
-	if (shader_program->IsReady())
-	{
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_EQUAL);
-		glDepthMask(GL_FALSE);
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		deferred_fb->bind();
-		glViewport(0, 0, buffer_w, buffer_h);
-
-		RenderSetup rs;
-		rs.view = proj;
-
-		ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality](const std::shared_ptr<ShaderProgram>& prog) {
-			prog->Uniform("light", light);
-			prog->Uniform("diffuse", 0); // texture unit 0
-			prog->Uniform("light_buffer", 1); // texture unit 1
-			prog->Uniform("stencil", 2); // texture unit 2
-			prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
-			prog->UniformMatrix3fv("normal_transform", Matrix3(rs.transform).data);
-			prog->Uniform("shadow_quality", shadow_quality);
-		});
-
-		rs.pushMod(mod);
-		rs.pass = 2;
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, light_buf->gl_texture_id);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, stencil_buf->gl_texture_id);
-
-		if (shadow_quality == 2)
+		// render lights
+		if (light_prog->Use())
 		{
-			glEnable(GL_STENCIL_TEST);
-			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+			light_fb->bind();
+			glViewport(0, 0, buffer_w, buffer_h);
+			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT); // TODO proper light quality options
 
-			glStencilFunc(GL_EQUAL, 64, 0xff);
-			world->render(rs);
+			if (ao_quality == 2) // TODO proper separation of light and ao
+			{
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 
-			glStencilFunc(GL_NOTEQUAL, 64, 0xff);
+				light_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
 
-			ShaderMod mod2([](const std::shared_ptr<ShaderProgram>& prog) {
-				prog->Uniform("light", Vec3());
+				glActiveTexture(GL_TEXTURE0);
+				light_prog->Uniform("normal", 0);
+				glBindTexture(GL_TEXTURE_2D, normal_buf->gl_texture_id);
+				glActiveTexture(GL_TEXTURE1);
+				light_prog->Uniform("depth", 1);
+				glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
+
+				std::vector<Vec4> light_array;
+				for (auto i = LightComponent::all.begin(); i != LightComponent::all.end(); ++i)
+				{
+					light_array.push_back(Vec4((*i)->p - world->cam_pos, 1.0f));
+				}
+
+				light_prog->Uniform4fv("light", light_array);
+				light_prog->Uniform("n_light", (int)light_array.size());
+
+				glDrawArrays(GL_TRIANGLES, 0, 3);
+			}
+		}
+
+
+		// render shaded geometry
+		if (shader_program->IsReady())
+		{
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_EQUAL);
+			glDepthMask(GL_FALSE);
+
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			deferred_fb->bind();
+			glViewport(0, 0, buffer_w, buffer_h);
+
+			RenderSetup rs;
+			rs.view = proj;
+
+			ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality](const std::shared_ptr<ShaderProgram>& prog) {
+				prog->Uniform("light", light);
+				prog->Uniform("diffuse", 0); // texture unit 0
+				prog->Uniform("light_buffer", 1); // texture unit 1
+				prog->Uniform("stencil", 2); // texture unit 2
+				prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
+				prog->UniformMatrix3fv("normal_transform", Matrix3(rs.transform).data);
+				prog->Uniform("shadow_quality", shadow_quality);
 			});
 
-			rs.pushMod(mod2);
-			world->render(rs);
+			rs.pushMod(mod);
+			rs.pass = 2;
+
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, light_buf->gl_texture_id);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, stencil_buf->gl_texture_id);
+
+			if (shadow_quality == 2)
+			{
+				glEnable(GL_STENCIL_TEST);
+				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+				glStencilFunc(GL_EQUAL, 64, 0xff);
+				world->render(rs);
+
+				glStencilFunc(GL_NOTEQUAL, 64, 0xff);
+
+				ShaderMod mod2([](const std::shared_ptr<ShaderProgram>& prog) {
+					prog->Uniform("light", Vec3());
+				});
+
+				rs.pushMod(mod2);
+				world->render(rs);
+				rs.popMod();
+
+				glDisable(GL_STENCIL_TEST);
+			}
+			else
+			{
+				world->render(rs);
+			}
+
 			rs.popMod();
-
-			glDisable(GL_STENCIL_TEST);
 		}
-		else
-		{
-			world->render(rs);
-		}
-
-		rs.popMod();
 	}
 
 
