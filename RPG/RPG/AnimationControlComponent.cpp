@@ -327,11 +327,11 @@ void AnimationControlComponent::tickAPL(float dTime)
 	}
 	fall_blend_apl->weight += fall_blend_target_weight;
 
-	Vec3 lean = vb+Vec3(0.0f, 0.0f, 8.0f);
+	Vec3 lean = vb+mob->up*8.0f;
 	if (lean.z<0.0f)
 		lean.z=0.0f;
 	lean /= lean.Len();
-	Vec3 axis = Vec3(0.0f, 0.0f, 1.0f).Cross(lean);
+	Vec3 axis = mob->up.Cross(lean);
 
 	float tilt_blend_weight = lean.Dot(mob->facing);
 

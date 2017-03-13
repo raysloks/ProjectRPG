@@ -52,7 +52,9 @@ public:
 	float time_under_control;
 
 	//movement
-	Vec3 v, land_n, land_v;
+	Vec3 v;
+	Vec3 land_n, land_v, land_g;
+	Vec3 c_move;
 	Vec3 move;
 	bool run, landed;
 	float dodge;

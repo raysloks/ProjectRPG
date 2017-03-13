@@ -7,6 +7,8 @@
 #include "PositionComponent.h"
 #include "MobComponent.h"
 
+#include "BlendUtility.h"
+
 #include "Script.h"
 #include "FloatVar.h"
 
@@ -21,7 +23,7 @@ CameraControlComponent::CameraControlComponent(void) : Serializable(_factory.id)
 	camera.z = 2.0f;
 	offset.z = 1.0f;
 	local_offset.z = 1.0f;
-	front = Vec3(0.0f, 1.0f, 0.0f);
+	neutral = Vec3(0.0f, 1.0f, 0.0f);
 }
 
 CameraControlComponent::CameraControlComponent(instream& is, bool full) : Serializable(_factory.id)
@@ -127,13 +129,13 @@ void CameraControlComponent::frame(float dTime)
 
 				auto mob = entity->getComponent<MobComponent>();
 				if (mob != nullptr)
-					top = mob->up;
-				right = front.Cross(top);
-				front = top.Cross(right);
-				front.Normalize();
+					if (mob->up != Vec3())
+						top = bu_blend(top, mob->up.Normalized(), -2.0f, 0.0f, dTime);
+				Vec3 neutral_right = neutral.Cross(top);
+				neutral = top.Cross(neutral_right);
+				neutral.Normalize();
 
-				front *= Matrix3(-camera.x, top);
-				camera.x = 0.0f;
+				front = neutral * Matrix3(-camera.x, top);
 
 				right = front.Cross(top);
 
@@ -143,7 +145,7 @@ void CameraControlComponent::frame(float dTime)
 				cam_pos += front * offset.y + right * offset.x + top * offset.z;
 
 				entity->world->cam_rot = Quaternion::lookAt(forward, up);
-				entity->world->cam_pos = lag_position + cam_pos;
+				entity->world->cam_pos = *p;
 			}
 		}
 	}

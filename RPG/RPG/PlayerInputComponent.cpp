@@ -73,6 +73,9 @@ void PlayerInputComponent::frame(float dTime)
 					move.x += 1.0f;
 			}
 
+			if (move.Len() > 1.0f)
+				move.Normalize();
+
 			/*Vec3 local_dir = move;
 			move.x = local_dir.x*cos(camera->x) - local_dir.y*sin(camera->x);
 			move.y = local_dir.x*sin(camera->x) + local_dir.y*cos(camera->x);*/
@@ -142,7 +145,7 @@ void PlayerInputComponent::tick(float dTime)
 			if (cs.active.find("strafe") != cs.active.end())
 				mob->strafe = !mob->strafe;
 
-			mob->cam_facing = Vec3(-sin(cs.input["facing"]), cos(cs.input["facing"]), 0.0f);
+			//mob->cam_facing = Vec3(-sin(cs.input["facing"]), cos(cs.input["facing"]), 0.0f);
 
 			if (cs.active.find("warp") != cs.active.end())
 				mob->input["warp"] = buffer_duration;

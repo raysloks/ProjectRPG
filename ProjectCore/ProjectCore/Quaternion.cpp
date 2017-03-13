@@ -116,10 +116,19 @@ Quaternion Quaternion::lookAt(const Vec3& forward, const Vec3& up)
 	x.Normalize();
 	Vec3 y(z.Cross(x));
 	ret.w = sqrt(1.0f + x.x + y.y + z.z) / 2.0f;
-	float w4 = (4.0f * ret.w);
-	ret.x = (z.y - y.z) / w4;
-	ret.y = (x.z - z.x) / w4;
-	ret.z = (y.x - x.y) / w4;
+	float w4 = ret.w * 4.0f;
+	if (w4 == 0.0f)
+	{
+		ret.x = z.y - y.z;
+		ret.y = x.z - z.x;
+		ret.z = y.x - x.y;
+	}
+	else
+	{
+		ret.x = (z.y - y.z) / w4;
+		ret.y = (x.z - z.x) / w4;
+		ret.z = (y.x - x.y) / w4;
+	}
 
 	ret.Normalize();
 

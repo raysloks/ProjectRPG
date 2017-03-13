@@ -57,7 +57,7 @@ public:
 
 				world->AddEntity(ent);
 			}*/
-			/*{
+			{
 				NewEntity * ent = new NewEntity();
 
 				PositionComponent * p = new PositionComponent();
@@ -83,7 +83,7 @@ public:
 				g->decs.items.front()->final = g->decs.items.front()->local;
 
 				world->AddEntity(ent);
-			}*/
+			}
 			/*for (int x = -40; x < 40; ++x)
 			{
 				for (int y = -40; y < 40; ++y)
@@ -194,11 +194,11 @@ public:
 
 				world->AddEntity(ent);
 			}*/
-			{
+			/*{
 				NewEntity * ent = new NewEntity();
 
 				PositionComponent * p = new PositionComponent();
-				p->p += Vec3(0.0f, 0.0f, -9000.0f);
+				p->p += Vec3(0.0f, 0.0f, 200.0f);
 				ColliderComponent * c = new ColliderComponent();
 				GraphicsComponent * g = new GraphicsComponent(false);
 				OrbitComponent * orbit = new OrbitComponent();
@@ -209,14 +209,14 @@ public:
 				ent->addComponent(orbit);
 
 				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/props/rocks/rock.gmdl", Material("data/assets/props/rocks/rock.tga"), 0)));
-				g->decs.items.front()->local *= 100.0f;
+				g->decs.items.front()->local *= 10.0f;
 				g->decs.items.front()->local.data[15] = 1.0f;
 				g->decs.items.front()->final = g->decs.items.front()->local;
 
-				orbit->center = GlobalPosition();
+				orbit->center = Vec3(0.0f, 0.0f, 0.0f);
 				orbit->offset = p->p;
 				orbit->angle = orbit->offset.Normalized().Cross(Vec3(1.0f, 0.0f, 0.0f));
-				orbit->period = 1000.0f;
+				orbit->period = 100.0f;
 
 				world->AddEntity(ent);
 			}
@@ -232,12 +232,12 @@ public:
 				ent->addComponent(g);
 
 				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/planet_test.gmdl", Material("data/assets/terrain/textures/RockPlate.tga"), 0)));
-				g->decs.items.front()->local *= 10000.0f;
+				g->decs.items.front()->local *= 100.0f;
 				g->decs.items.front()->local.data[15] = 1.0f;
 				g->decs.items.front()->final = g->decs.items.front()->local;
 
 				world->AddEntity(ent);
-			}
+			}*/
 		}
 
 		// create ai entity
@@ -291,44 +291,44 @@ public:
 			NewEntity * ent = new NewEntity();
 
 			PositionComponent * p = new PositionComponent();
-			GraphicsComponent * g = new GraphicsComponent();
+			//GraphicsComponent * g = new GraphicsComponent();
 			PlayerInputComponent * input = new PlayerInputComponent();
 			MobComponent * mob = new MobComponent();
 			CameraControlComponent * cam = new CameraControlComponent();
-			AnimationControlComponent * acc = new AnimationControlComponent();
-			InventoryComponent * inv = new InventoryComponent();
-			HitComponent * hit = new HitComponent();
+			//AnimationControlComponent * acc = new AnimationControlComponent();
+			//InventoryComponent * inv = new InventoryComponent();
+			//HitComponent * hit = new HitComponent();
 			//LineComponent * line = new LineComponent();
-			PoseComponent * pose = new PoseComponent();
+			//PoseComponent * pose = new PoseComponent();
 
 			ent->addComponent(p);
-			ent->addComponent(g);
+			//ent->addComponent(g);
 			ent->addComponent(input);
 			ent->addComponent(mob);
 			ent->addComponent(cam);
-			ent->addComponent(acc);
-			ent->addComponent(inv);
-			ent->addComponent(hit);
+			//ent->addComponent(acc);
+			//ent->addComponent(inv);
+			//ent->addComponent(hit);
 			//ent->addComponent(line);
-			ent->addComponent(pose);
+			//ent->addComponent(pose);
 
-			p->p = Vec3(0.0f, 0.0f, 10000.0f);
+			p->p = Vec3(0.0f, 0.0f, 100.0f);
 
-			for (int i = 1; i < 23; ++i)
+			/*for (int i = 1; i < 23; ++i)
 			{
 				LightComponent * light = new LightComponent();
 				light->bone_id = i;
 				ent->addComponent(light);
-			}
+			}*/
 
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga")/*"data/assets/empty.tga"*/)));
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
-			g->decs.items.back()->priority = 1;
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
-			g->decs.items.back()->priority = 2;
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
-			g->decs.items.back()->priority = 3;
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", Material("data/assets/items/weapons/swords/claymore.tga"), 15)));
+			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga")/*"data/assets/empty.tga"*/)));
+			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
+			//g->decs.items.back()->priority = 1;
+			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
+			//g->decs.items.back()->priority = 2;
+			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
+			//g->decs.items.back()->priority = 3;
+			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", Material("data/assets/items/weapons/swords/claymore.tga"), 15)));
 
 			data.unit_id = world->AddEntity(ent);
 		}

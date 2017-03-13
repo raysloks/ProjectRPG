@@ -117,8 +117,15 @@ void MobComponent::tick(float dTime)
 			land_n = Vec3(); // smooth these out for some cases
 			land_v = Vec3(); // -''-
 
-			up = Vec3(*p).Normalized();
-			Vec3 g = -up * 9.8f;
+			if (land_g != Vec3())
+			{
+				land_g.Normalize();
+				up = -land_g;//bu_sphere(up, -land_g, up, -15.0f, 0.0f, dTime);
+				land_g *= 2.0f;
+			}
+
+			Vec3 g_dir = Vec3(0.0f, 0.0f, -1.0f);//-Vec3(*p).Normalized();
+			Vec3 g = g_dir * 9.8f;
 
 			Vec3 dp = (g/2.0f * dTime + v)*dTime;
 
@@ -145,7 +152,7 @@ void MobComponent::tick(float dTime)
 					float disk_radius = 0.5f;
 					float offset = 0.5f;
 					float height = 0.5f;
-					ColliderComponent::DiskCast(*p - up * offset, *p - up * (offset + height), disk_radius, list);
+					//ColliderComponent::DiskCast(*p - up * offset, *p - up * (offset + height), disk_radius, list);
 					if (list.size() > 0)
 					{
 						std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
@@ -291,7 +298,7 @@ void MobComponent::tick(float dTime)
 
 					*p = col->poo;
 
-					if (col->n.Dot(g)<-5.0f)
+					if (col->n.Dot(up)>0.5f)
 						landed = true;
 					if (col->n.Dot(up) > land_n.Dot(up)) {
 						land_n = col->n;
@@ -299,6 +306,9 @@ void MobComponent::tick(float dTime)
 					}
 
 					v -= col->v;
+
+					land_g += col->n*col->n.Dot(v);
+
 					v -= col->n*col->n.Dot(v);
 					v += col->v;
 
@@ -323,38 +333,23 @@ void MobComponent::tick(float dTime)
 			}
 			if (landed)
 			{
-				//up = land_n;
-
-				float speed = 500.0f;
-				speed += run && input.find("run_delay")==input.end() ? 4.0f : 0.0f * std::max(0.0f, move.Dot(move_facing));
+				float speed = 5.0f;
+				speed += run && input.find("run_delay")==input.end() ? 400.0f : 0.0f * std::max(0.0f, move.Dot(move_facing));
 				speed -= action != 0 ? 3.0f : 0.0f;
 
 				Vec3 target = move * speed;
 				target -= land_n*land_n.Dot(target);
 
-				v -= target;
+				v -= land_v;
 
-				float c = v.Len();
-				if (c>0.0f)
-				{
-					v.Normalize();
+				c_move = bu_blend(c_move, target, -0.5f, -40.0f, dTime);
+				v = bu_blend(v, target, -0.5f, -40.0f, dTime);
 
-					float a = -0.5f;
-					float b = -40.0f;
+				land_g -= c_move - v;
 
-					c += b/a;
+				c_move = v;
 
-					c *= exp(a*dTime);
-
-					c -= b/a;
-
-					if (c<0.0f)
-						c=0.0;
-
-					v *= c;
-				}
-
-				v += target;
+				v += land_v;
 
 				if (input.find("jump") != input.end()) {
 					v -= land_v;
