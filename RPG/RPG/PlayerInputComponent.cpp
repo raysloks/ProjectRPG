@@ -122,11 +122,6 @@ void PlayerInputComponent::tick(float dTime)
 	}
 	if (mob == nullptr)
 		mob = entity->getComponent<MobComponent>();
-	if (camera == nullptr) {
-		auto ccc = entity->getComponent<CameraControlComponent>();
-		if (ccc != nullptr)
-			camera = &ccc->camera;
-	}
 
 	if (entity->world->authority)
 	{

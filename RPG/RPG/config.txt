@@ -21,16 +21,16 @@ supersampling_x = 2;
 supersampling_y = 2;
 supersampling_r = 1;
 
-fov = 60.0;
+fov = 80.0;
 
-near_z = 1.0;
-far_z = 5000.0;
+near_z = 0.1;
+far_z = 500.0;
 depth_partitions = 2;
 
-sensitivity = 0.001;
+sensitivity = 0.0005;
 sensitivity_x = 1.0;
-sensitivity_y = 0.5;
+sensitivity_y = 1.0;
 
 controller_sensitivity = 4.0;
 controller_sensitivity_x = 1.0;
-controller_sensitivity_y = 0.5;
+controller_sensitivity_y = 1.0;

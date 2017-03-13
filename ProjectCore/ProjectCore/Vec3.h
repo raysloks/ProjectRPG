@@ -6,6 +6,7 @@
 class Vec2;
 class Matrix3;
 class Matrix4;
+class Quaternion;
 
 class Vec3
 {
@@ -49,9 +50,11 @@ public:
 	
 	Vec3 operator*(const Matrix3& rhs)const;
 	Vec3 operator*(const Matrix4& rhs)const;
+	Vec3 operator*(const Quaternion& rhs)const;
 	
 	const Vec3& operator*=(const Matrix3& rhs);
 	const Vec3& operator*=(const Matrix4& rhs);
+	const Vec3& operator*=(const Quaternion& rhs);
 
 	const Vec3& operator/=(const Matrix4& rhs);
 };

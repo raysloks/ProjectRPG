@@ -2,6 +2,7 @@
 #include "Vec2.h"
 #include "Matrix3.h"
 #include "Matrix4.h"
+#include "Quaternion.h"
 
 Vec3::Vec3(void) : x(0.0f), y(0.0f), z(0.0f)
 {
@@ -147,6 +148,37 @@ Vec3 Vec3::operator*(const Matrix4& rhs)const {
 		x * rhs.data[2] + y * rhs.data[6] + z * rhs.data[10] + rhs.data[14])/w;
 }
 
+Vec3 Vec3::operator*(const Quaternion& q) const
+{
+	float x2 = q.x * q.x;
+	float y2 = q.y * q.y;
+	float z2 = q.z * q.z;
+	float xy = q.x * q.y;
+	float xz = q.x * q.z;
+	float yz = q.y * q.z;
+	float wx = q.w * q.x;
+	float wy = q.w * q.y;
+	float wz = q.w * q.z;
+
+	Vec3 ret;
+
+	float m0 = 1.0f - 2.0f * (y2 + z2);
+	float m4 = 2.0f * (xy - wz);
+	float m8 = 2.0f * (xz + wy);
+	float m1 = 2.0f * (xy + wz);
+	float m5 = 1.0f - 2.0f * (x2 + z2);
+	float m9 = 2.0f * (yz - wx);
+	float m2 = 2.0f * (xz - wy);
+	float m6 = 2.0f * (yz + wx);
+	float m10 = 1.0f - 2.0f * (x2 + y2);
+
+	ret.x = x * m0 + y * m4 + z * m8;
+	ret.y = x * m1 + y * m5 + z * m9;
+	ret.z = x * m2 + y * m6 + z * m10;
+
+	return ret;
+}
+
 const Vec3& Vec3::operator*=(const Matrix3& rhs) {
 	*this = Vec3(x * rhs.data[0] + y * rhs.data[3] + z * rhs.data[6],
 		x * rhs.data[1] + y * rhs.data[4] + z * rhs.data[7],
@@ -160,6 +192,39 @@ const Vec3& Vec3::operator*=(const Matrix4& rhs) {
 	x * rhs.data[1] + y * rhs.data[5] + z * rhs.data[9] + rhs.data[13],
 	x * rhs.data[2] + y * rhs.data[6] + z * rhs.data[10] + rhs.data[14]);
 	*this /= w;
+	return *this;
+}
+
+const Vec3& Vec3::operator*=(const Quaternion& q)
+{
+	float x2 = q.x * q.x;
+	float y2 = q.y * q.y;
+	float z2 = q.z * q.z;
+	float xy = q.x * q.y;
+	float xz = q.x * q.z;
+	float yz = q.y * q.z;
+	float wx = q.w * q.x;
+	float wy = q.w * q.y;
+	float wz = q.w * q.z;
+
+	Vec3 ret;
+
+	float m0 = 1.0f - 2.0f * (y2 + z2);
+	float m4 = 2.0f * (xy - wz);
+	float m8 = 2.0f * (xz + wy);
+	float m1 = 2.0f * (xy + wz);
+	float m5 = 1.0f - 2.0f * (x2 + z2);
+	float m9 = 2.0f * (yz - wx);
+	float m2 = 2.0f * (xz - wy);
+	float m6 = 2.0f * (yz + wx);
+	float m10 = 1.0f - 2.0f * (x2 + y2);
+
+	ret.x = x * m0 + y * m4 + z * m8;
+	ret.y = x * m1 + y * m5 + z * m9;
+	ret.z = x * m2 + y * m6 + z * m10;
+
+	*this = ret;
+
 	return *this;
 }
 

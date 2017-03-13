@@ -43,7 +43,6 @@ public:
 	MobComponent * mob = 0;
 
 	GlobalPosition * p = 0;
-	Vec3 * camera = 0;
 
 	ControlState cs;
 	bool run;

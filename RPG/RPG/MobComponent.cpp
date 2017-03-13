@@ -113,6 +113,8 @@ void MobComponent::tick(float dTime)
 				*p = GlobalPosition();
 			}
 
+			//v += move * dTime * 100.0f;
+
 			landed = false;
 			land_n = Vec3(); // smooth these out for some cases
 			land_v = Vec3(); // -''-
@@ -334,7 +336,7 @@ void MobComponent::tick(float dTime)
 			if (landed)
 			{
 				float speed = 5.0f;
-				speed += run && input.find("run_delay")==input.end() ? 400.0f : 0.0f * std::max(0.0f, move.Dot(move_facing));
+				speed += run && input.find("run_delay")==input.end() ? 4.0f : 0.0f * std::max(0.0f, move.Dot(move_facing));
 				speed -= action != 0 ? 3.0f : 0.0f;
 
 				Vec3 target = move * speed;

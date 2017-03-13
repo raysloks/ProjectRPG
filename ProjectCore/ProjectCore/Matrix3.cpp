@@ -1,5 +1,6 @@
 #include "Matrix3.h"
 #include "Matrix4.h"
+#include "Quaternion.h"
 
 Matrix3::Matrix3(void)
 {
@@ -62,6 +63,29 @@ Matrix3::Matrix3(const Matrix4& mtrx)
 	data[6] = mtrx.data[8];
 	data[7] = mtrx.data[9];
 	data[8] = mtrx.data[10];
+}
+
+Matrix3::Matrix3(const Quaternion& q)
+{
+	float x2 = q.x * q.x;
+	float y2 = q.y * q.y;
+	float z2 = q.z * q.z;
+	float xy = q.x * q.y;
+	float xz = q.x * q.z;
+	float yz = q.y * q.z;
+	float wx = q.w * q.x;
+	float wy = q.w * q.y;
+	float wz = q.w * q.z;
+
+	data[0] = 1.0f - 2.0f * (y2 + z2);
+	data[3] = 2.0f * (xy - wz);
+	data[6] = 2.0f * (xz + wy);
+	data[1] = 2.0f * (xy + wz);
+	data[4] = 1.0f - 2.0f * (x2 + z2);
+	data[7] = 2.0f * (yz - wx);
+	data[2] = 2.0f * (xz - wy);
+	data[5] = 2.0f * (yz + wx);
+	data[8] = 1.0f - 2.0f * (x2 + y2);
 }
 
 Matrix3::~Matrix3(void)

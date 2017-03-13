@@ -4,6 +4,7 @@
 #include "Component.h"
 
 #include "Vec3.h"
+#include "Quaternion.h"
 #include "GlobalPosition.h"
 
 class PositionComponent;
@@ -37,9 +38,9 @@ public:
 	static const AutoSerialFactory<CameraControlComponent> _factory;
 
 	GlobalPosition * p;
-	GlobalPosition lag_position;
-	Vec3 camera, offset, local_offset;
-	Vec3 neutral;
+
+	Quaternion cam_rot;
+
 	Vec3 front, top, right;
 };
 

@@ -291,7 +291,7 @@ public:
 			NewEntity * ent = new NewEntity();
 
 			PositionComponent * p = new PositionComponent();
-			//GraphicsComponent * g = new GraphicsComponent();
+			GraphicsComponent * g = new GraphicsComponent();
 			PlayerInputComponent * input = new PlayerInputComponent();
 			MobComponent * mob = new MobComponent();
 			CameraControlComponent * cam = new CameraControlComponent();
@@ -302,7 +302,7 @@ public:
 			//PoseComponent * pose = new PoseComponent();
 
 			ent->addComponent(p);
-			//ent->addComponent(g);
+			ent->addComponent(g);
 			ent->addComponent(input);
 			ent->addComponent(mob);
 			ent->addComponent(cam);
@@ -320,6 +320,11 @@ public:
 				light->bone_id = i;
 				ent->addComponent(light);
 			}*/
+
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube_bevel.gmdl", Material("data/assets/empty.tga"), 15)));
+			g->decs.items.front()->local *= 0.15f;
+			g->decs.items.front()->local.data[15] = 1.0f;
+			g->decs.items.front()->final = g->decs.items.front()->local;
 
 			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga")/*"data/assets/empty.tga"*/)));
 			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));

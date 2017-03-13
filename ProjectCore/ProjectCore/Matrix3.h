@@ -5,6 +5,7 @@
 #define MATRIX3_H
 
 class Matrix4;
+class Quaternion;
 
 class Matrix3
 {
@@ -18,6 +19,7 @@ public:
 	Matrix3(float angle, const Vec3& axis);
 	Matrix3(const Vec3& x, const Vec3& y, const Vec3& z);
 	Matrix3(const Matrix4& mtrx);
+	Matrix3(const Quaternion& q);
 	~Matrix3(void);
 
 	float Determinant(void)const;

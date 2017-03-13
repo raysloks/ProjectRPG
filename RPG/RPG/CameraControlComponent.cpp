@@ -13,6 +13,7 @@
 #include "FloatVar.h"
 
 #include "Matrix3.h"
+#include "Matrix4.h"
 
 #include "ClientData.h"
 
@@ -20,15 +21,10 @@ const AutoSerialFactory<CameraControlComponent> CameraControlComponent::_factory
 
 CameraControlComponent::CameraControlComponent(void) : Serializable(_factory.id)
 {
-	camera.z = 2.0f;
-	offset.z = 1.0f;
-	local_offset.z = 1.0f;
-	neutral = Vec3(0.0f, 1.0f, 0.0f);
 }
 
 CameraControlComponent::CameraControlComponent(instream& is, bool full) : Serializable(_factory.id)
 {
-	is >> camera >> offset;
 }
 
 CameraControlComponent::~CameraControlComponent(void)
@@ -51,16 +47,6 @@ void CameraControlComponent::frame(float dTime)
 		if (client->clientData->unit_id == entity->id || !entity->world->authority)
 		{
 			const Input& input = client->input;
-
-			float zoom = input.ctrl[0].left_shoulder.down ? 1.0f : 0.0f;
-			zoom -= input.ctrl[0].right_shoulder.down ? 1.0f : 0.0f;
-
-			camera.z += zoom * dTime;
-
-			camera.z -= float(input.mouse_dif_z) / 2400.0f;
-
-			if (camera.z < 0.0f)
-				camera.z = 0.0f;
 
 			float sensitivity = 0.0025f;
 			float sensitivity_x = 1.0f;
@@ -100,21 +86,6 @@ void CameraControlComponent::frame(float dTime)
 
 			mouse_move += Vec2(f.x*controller_sensitivity_x, -f.y*controller_sensitivity_y)*controller_sensitivity*dTime;
 
-			if (client->isActive)
-				camera -= Vec3(mouse_move.x, mouse_move.y, 0.0f);
-			if (camera.x > M_PI * 2) {
-				camera.x -= M_PI * 2 * ((int)(camera.x / (M_PI * 2)));
-			}
-			if (camera.x < 0.0f) {
-				camera.x += M_PI * 2 * (1 + (int)(-camera.x / (M_PI * 2)));
-			}
-			if (camera.y > M_PI / 2.0f) {
-				camera.y = M_PI / 2.0f;
-			}
-			if (camera.y < -M_PI / 2.0f) {
-				camera.y = -M_PI / 2.0f;
-			}
-
 			if (p == 0) {
 				PositionComponent * pc = entity->getComponent<PositionComponent>();
 				if (pc != 0)
@@ -123,29 +94,45 @@ void CameraControlComponent::frame(float dTime)
 
 			//set camera position relative to focus point
 			if (p != 0) {
-				lag_position -= *p;
-				lag_position -= Vec3(lag_position) * (1.0f - exp(log(0.0001f)*dTime));
-				lag_position += *p;
+
+				Vec3 totes_up(0.0f, 0.0f, 1.0f);
+				Vec3 up;
 
 				auto mob = entity->getComponent<MobComponent>();
 				if (mob != nullptr)
-					if (mob->up != Vec3())
-						top = bu_blend(top, mob->up.Normalized(), -2.0f, 0.0f, dTime);
-				Vec3 neutral_right = neutral.Cross(top);
-				neutral = top.Cross(neutral_right);
-				neutral.Normalize();
+				{
+					totes_up = mob->up.Normalized();
+					if (mob->landed)
+						up = mob->up.Normalized();
+				}
 
-				front = neutral * Matrix3(-camera.x, top);
+				front = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
+				top = Vec3(0.0f, 1.0f, 0.0f) * cam_rot;
+				right = Vec3(-1.0f, 0.0f, 0.0f) * cam_rot;
 
-				right = front.Cross(top);
+				Vec3 flat_right = front.Cross(up).Normalize();
 
-				Vec3 forward = front * Matrix3(-camera.y, right);
-				Vec3 up = right.Cross(forward);
-				Vec3 cam_pos = -forward * (exp(camera.z) - 1.0f) + right * local_offset.x + forward * local_offset.y + up * local_offset.z;
-				cam_pos += front * offset.y + right * offset.x + top * offset.z;
+				//cam_rot = Quaternion(front * dTime) * cam_rot;
+				//cam_rot = Quaternion(top * dTime) * cam_rot;
 
-				entity->world->cam_rot = Quaternion::lookAt(forward, up);
-				entity->world->cam_pos = *p;
+				float pole_coeff = 1.5f - abs(up.Dot(front));
+				pole_coeff *= pole_coeff;
+				pole_coeff *= pole_coeff;
+				pole_coeff = std::min(1.0f, pole_coeff);
+
+				cam_rot = Quaternion((acos(flat_right.Dot(top)) - M_PI / 2.0f) * dTime * 10.0f * pole_coeff, front) * cam_rot;
+
+				cam_rot *= Quaternion(mouse_move.x, Vec3(0.0f, -1.0f, 0.0f));
+				cam_rot *= Quaternion(mouse_move.y, Vec3(1.0f, 0.0f, 0.0f));
+
+				cam_rot.Normalize();
+
+				front = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
+				top = Vec3(0.0f, 1.0f, 0.0f) * cam_rot;
+				right = Vec3(-1.0f, 0.0f, 0.0f) * cam_rot;
+
+				entity->world->cam_rot = cam_rot;
+				entity->world->cam_pos = *p + totes_up * 0.5f + top * 0.5f;
 			}
 		}
 	}
@@ -173,7 +160,6 @@ void CameraControlComponent::interpolate(Component * pComponent, float fWeight)
 
 void CameraControlComponent::write_to(outstream& os, ClientData& client) const
 {
-	os << camera << offset;
 }
 
 void CameraControlComponent::write_to(outstream& os) const

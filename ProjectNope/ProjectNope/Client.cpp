@@ -676,7 +676,7 @@ void Client::render_world(void)
 	Vec2 view_texel_jitter(jitter_distribution(random), jitter_distribution(random));
 	//pers *= Matrix4::Translation(Vec3(view_texel_jitter.x / buffer_w, view_texel_jitter.y / buffer_h, 0.0f));
 
-	Matrix4 rot = world->cam_rot;
+	Matrix4 rot = world->cam_rot.getConj();
 	Matrix4 invrot = world->cam_rot;
 
 	Matrix4 proj = rot * pers;

@@ -114,12 +114,12 @@ void GameLoop::tick(void)
 	float last_frame_duration = durationInSeconds;
 
 	if (client!=0) {
-		client->render();
 		client->input.clear();
 		gpPlatform->input(gpEventManager, client->lockCursor, client->hideCursor);
 		gpEventManager->Tick();
 		client->input.update();
 		client->tick(last_frame_duration);
+		client->render();
 	}
 
 	useFrameSync = fpsCap==secondsPerStep && secondsPerStep!=0.0;// && !gpPlatform->get_vsync(); //vsync can still desync with tickrate
