@@ -102,7 +102,7 @@ void CameraControlComponent::frame(float dTime)
 				if (mob != nullptr)
 				{
 					totes_up = mob->up.Normalized();
-					if (mob->landed)
+					//if (mob->landed)
 						up = mob->up.Normalized();
 				}
 
@@ -115,12 +115,14 @@ void CameraControlComponent::frame(float dTime)
 				//cam_rot = Quaternion(front * dTime) * cam_rot;
 				//cam_rot = Quaternion(top * dTime) * cam_rot;
 
-				float pole_coeff = 1.5f - abs(up.Dot(front));
+				float pole_coeff = 1.0f - abs(up.Dot(front));
+				pole_coeff *= 5.0f;
 				pole_coeff *= pole_coeff;
 				pole_coeff *= pole_coeff;
 				pole_coeff = std::min(1.0f, pole_coeff);
 
 				cam_rot = Quaternion((acos(flat_right.Dot(top)) - M_PI / 2.0f) * dTime * 10.0f * pole_coeff, front) * cam_rot;
+				//cam_rot = Quaternion((acos(front.Dot(up)) - M_PI / 2.0f), flat_right) * cam_rot;
 
 				cam_rot *= Quaternion(mouse_move.x, Vec3(0.0f, -1.0f, 0.0f));
 				cam_rot *= Quaternion(mouse_move.y, Vec3(1.0f, 0.0f, 0.0f));

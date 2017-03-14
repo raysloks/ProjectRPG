@@ -73,12 +73,12 @@ public:
 				Resource::load(ao, { "!sRGB" });
 
 				MaterialList materials;
-				materials.materials.push_back(Material("data/assets/terrain/textures/nrock.tga"));
+				materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
 				materials.materials.push_back(Material("data/assets/terrain/textures/ngrass.tga"));
 				materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
 
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/terrain/nworld.gmdl", materials, 0)));
-				g->decs.items.front()->local *= 1.0f;
+				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/loop.gmdl", materials, 0)));
+				g->decs.items.front()->local *= 100.0f;
 				g->decs.items.front()->local.mtrx[3][3] = 1.0f;
 				g->decs.items.front()->final = g->decs.items.front()->local;
 
@@ -321,10 +321,10 @@ public:
 				ent->addComponent(light);
 			}*/
 
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube_bevel.gmdl", Material("data/assets/empty.tga"), 15)));
+			/*g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube_bevel.gmdl", Material("data/assets/empty.tga"), 15)));
 			g->decs.items.front()->local *= 0.15f;
 			g->decs.items.front()->local.data[15] = 1.0f;
-			g->decs.items.front()->final = g->decs.items.front()->local;
+			g->decs.items.front()->final = g->decs.items.front()->local;*/
 
 			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga")/*"data/assets/empty.tga"*/)));
 			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));

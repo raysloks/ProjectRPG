@@ -121,9 +121,8 @@ void MobComponent::tick(float dTime)
 
 			if (land_g != Vec3())
 			{
-				land_g.Normalize();
-				up = -land_g;//bu_sphere(up, -land_g, up, -15.0f, 0.0f, dTime);
-				land_g *= 2.0f;
+				up = -land_g.Normalized();//bu_sphere(up, -land_g, up, -15.0f, 0.0f, dTime);
+				land_g *= exp(log(0.1f) * dTime);
 			}
 
 			Vec3 g_dir = Vec3(0.0f, 0.0f, -1.0f);//-Vec3(*p).Normalized();
@@ -329,25 +328,27 @@ void MobComponent::tick(float dTime)
 				else
 				{
 					*p += dp;
-					v += g*dTime;
+					v += g*dTime*t;
 					break;
 				}
 			}
+
 			if (landed)
 			{
 				float speed = 5.0f;
-				speed += run && input.find("run_delay")==input.end() ? 4.0f : 0.0f * std::max(0.0f, move.Dot(move_facing));
+				speed += run && input.find("run_delay")==input.end() ? 400.0f : 0.0f * std::max(0.0f, move.Dot(move_facing));
 				speed -= action != 0 ? 3.0f : 0.0f;
 
 				Vec3 target = move * speed;
-				target -= land_n*land_n.Dot(target);
+				target -= land_n * land_n.Dot(target);
+
+				c_move -= land_n * land_n.Dot(c_move);
 
 				v -= land_v;
 
-				c_move = bu_blend(c_move, target, -0.5f, -40.0f, dTime);
-				v = bu_blend(v, target, -0.5f, -40.0f, dTime);
-
 				land_g -= c_move - v;
+
+				v = bu_blend(v, target, -0.5f, -40.0f, dTime);
 
 				c_move = v;
 
