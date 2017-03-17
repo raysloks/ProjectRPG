@@ -72,7 +72,7 @@ void Quaternion::Normalize(void)
 	}
 }
 
-Quaternion Quaternion::getConj(void)const
+Quaternion Quaternion::getConj(void) const
 {
 	return Quaternion(w, -x, -y, -z);
 }

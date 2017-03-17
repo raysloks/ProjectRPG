@@ -21,6 +21,11 @@ const AutoSerialFactory<CameraControlComponent> CameraControlComponent::_factory
 
 CameraControlComponent::CameraControlComponent(void) : Serializable(_factory.id)
 {
+	cam_rot *= Quaternion(M_PI / 2.0f, Vec3(1.0f, 0.0f, 0.0f));
+
+	front = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
+	top = Vec3(0.0f, 1.0f, 0.0f) * cam_rot;
+	right = Vec3(-1.0f, 0.0f, 0.0f) * cam_rot;
 }
 
 CameraControlComponent::CameraControlComponent(instream& is, bool full) : Serializable(_factory.id)
@@ -134,7 +139,7 @@ void CameraControlComponent::frame(float dTime)
 				right = Vec3(-1.0f, 0.0f, 0.0f) * cam_rot;
 
 				entity->world->cam_rot = cam_rot;
-				entity->world->cam_pos = *p + totes_up * 0.5f + top * 0.5f;
+				entity->world->cam_pos = *p + totes_up * 0.5f + top * 0.5f - front * 4.0f;
 			}
 		}
 	}

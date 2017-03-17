@@ -121,14 +121,16 @@ void MobComponent::tick(float dTime)
 
 			if (land_g != Vec3())
 			{
-				up = -land_g.Normalized();//bu_sphere(up, -land_g, up, -15.0f, 0.0f, dTime);
+				Vec3 nup = -land_g.Normalized();
+				if (nup != Vec3())
+					up = nup;//bu_sphere(up, -land_g, up, -15.0f, 0.0f, dTime);
 				land_g *= exp(log(0.1f) * dTime);
 			}
 
 			Vec3 g_dir = Vec3(0.0f, 0.0f, -1.0f);//-Vec3(*p).Normalized();
 			Vec3 g = g_dir * 9.8f;
 
-			Vec3 dp = (g/2.0f * dTime + v)*dTime;
+			Vec3 dp = (g/2.0f * dTime + v) * dTime;
 
 			float t = 1.0f;
 

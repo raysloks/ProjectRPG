@@ -328,7 +328,7 @@ const Matrix4& Matrix4::operator*=(const Matrix4& rhs)
 Matrix4 Matrix4::operator*(float rhs)const
 {
 	Matrix4 ret(*this);
-	for (int i=0;i<16;++i)
+	for (size_t i=0;i<15;++i)
 	{
 		ret.data[i]*=rhs;
 	}
@@ -338,21 +338,21 @@ Matrix4 Matrix4::operator*(float rhs)const
 Matrix4 Matrix4::operator/(float rhs)const
 {
 	Matrix4 ret(*this);
-	for (int i=0;i<16;++i)
+	for (size_t i=0;i<15;++i)
 		ret.data[i]/=rhs;
 	return ret;
 }
 
 const Matrix4& Matrix4::operator*=(float rhs)
 {
-	for (int i=0;i<16;++i)
+	for (int i=0;i<15;++i)
 		data[i]*=rhs;
 	return *this;
 }
 
 const Matrix4& Matrix4::operator/=(float rhs)
 {
-	for (int i=0;i<16;++i)
+	for (int i=0;i<15;++i)
 		data[i]/=rhs;
 	return *this;
 }

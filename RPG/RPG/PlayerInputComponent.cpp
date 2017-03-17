@@ -88,7 +88,7 @@ void PlayerInputComponent::frame(float dTime)
 				fx = ccc->right;
 				fy = ccc->front;
 
-				mob->cam_facing = ccc->front;
+				//mob->cam_facing = ccc->front;
 			}
 
 			float l = move.Len();
@@ -139,8 +139,6 @@ void PlayerInputComponent::tick(float dTime)
 				mob->input["attack"] = buffer_duration;
 			if (cs.active.find("strafe") != cs.active.end())
 				mob->strafe = !mob->strafe;
-
-			//mob->cam_facing = Vec3(-sin(cs.input["facing"]), cos(cs.input["facing"]), 0.0f);
 
 			if (cs.active.find("warp") != cs.active.end())
 				mob->input["warp"] = buffer_duration;
