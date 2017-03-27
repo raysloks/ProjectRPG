@@ -110,6 +110,7 @@ void MobComponent::tick(float dTime)
 
 					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
 					g->decs.items.front()->local *= 0.0127f;
+					g->decs.items.front()->local.data[15] = 1.0f;
 
 					entity->world->AddEntity(ent);
 				};
