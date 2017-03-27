@@ -989,7 +989,7 @@ void Client::render_world(void)
 		}
 
 		// stencils
-		if (stencil_prog->IsReady() && flat_stencil_prog->IsReady())
+		if (stencil_prog->IsReady() && flat_stencil_prog->IsReady() && shadow_quality != 0)
 		{
 			// render flat stencil
 			if (flat_stencil_prog->Use())

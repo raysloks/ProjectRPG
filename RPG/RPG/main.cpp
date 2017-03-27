@@ -68,17 +68,17 @@ public:
 				ent->addComponent(c);
 				ent->addComponent(g);
 
-				std::string ao = "data/assets/terrain/textures/ao.tga";
+				std::string ao = "data/assets/escape-ao.tga";
 
-				Resource::load(ao, { "!sRGB" });
+				//Resource::load(ao, { "!sRGB" });
 
 				MaterialList materials;
-				materials.materials.push_back(Material("data/assets/terrain/textures/nrock.tga"));
+				materials.materials.push_back(Material("data/assets/escape-ao.tga"));
 				materials.materials.push_back(Material("data/assets/terrain/textures/ngrass.tga"));
 				materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
 
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/terrain/nworld.gmdl", materials, 0)));
-				g->decs.items.front()->local *= 1.0f;
+				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/escape.gmdl", materials, 0)));
+				g->decs.items.front()->local *= 10.0f;
 				g->decs.items.front()->local.mtrx[3][3] = 1.0f;
 				g->decs.items.front()->final = g->decs.items.front()->local;
 
@@ -297,8 +297,6 @@ public:
 			CameraControlComponent * cam = new CameraControlComponent();
 			AnimationControlComponent * acc = new AnimationControlComponent();
 			InventoryComponent * inv = new InventoryComponent();
-			HitComponent * hit = new HitComponent();
-			LineComponent * line = new LineComponent();
 			PoseComponent * pose = new PoseComponent();
 
 			ent->addComponent(p);
@@ -308,9 +306,9 @@ public:
 			ent->addComponent(cam);
 			ent->addComponent(acc);
 			ent->addComponent(inv);
-			ent->addComponent(hit);
-			ent->addComponent(line);
 			ent->addComponent(pose);
+
+			p->p = Vec3(-15.0f, -5.0f, 23.0f);
 
 			/*for (int i = 1; i < 23; ++i)
 			{
@@ -324,14 +322,13 @@ public:
 			g->decs.items.front()->local.data[15] = 1.0f;
 			g->decs.items.front()->final = g->decs.items.front()->local;*/
 
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga")/*"data/assets/empty.tga"*/)));
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
-			g->decs.items.back()->priority = 1;
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
-			g->decs.items.back()->priority = 2;
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
-			g->decs.items.back()->priority = 3;
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", Material("data/assets/items/weapons/swords/claymore.tga"), 15)));
+			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga")/*"data/assets/empty.tga"*/)));
+			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
+			//g->decs.items.back()->priority = 1;
+			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
+			//g->decs.items.back()->priority = 2;
+			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
+			//g->decs.items.back()->priority = 3;
 
 			data.unit_id = world->AddEntity(ent);
 		}

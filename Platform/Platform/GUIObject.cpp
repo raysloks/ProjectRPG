@@ -169,6 +169,8 @@ namespace Platform
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)this);
 		pContext = std::shared_ptr<RenderContext>(new RenderContext(hWnd, z_depth));
 		ShowWindow(hWnd, SW_SHOW);
+		SetFocus(hWnd);
+		SetForegroundWindow(hWnd);
 	}
 
 	GUIObject::GUIObject(const std::string& name, int x, int y, int w, int h, int depth_depth, bool fullscreen)

@@ -13,21 +13,21 @@ anisotropic_filtering = 16.0;
 shadow_res = 1024;
 shadow_splits = 1;
 
-shadow_quality = 2;
+shadow_quality = 0;
 
 ao_quality = 1;
 
-supersampling_x = 2;
-supersampling_y = 2;
+supersampling_x = 4;
+supersampling_y = 4;
 supersampling_r = 1;
 
 fov = 80.0;
 
 near_z = 0.1;
 far_z = 500.0;
-depth_partitions = 2;
+depth_partitions = 1;
 
-sensitivity = 0.0005;
+sensitivity = 0.00025;
 sensitivity_x = 1.0;
 sensitivity_y = 1.0;
 

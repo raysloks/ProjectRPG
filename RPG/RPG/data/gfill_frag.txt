@@ -32,6 +32,8 @@ void main()
 
 	intensity *= 1.0;
 
+	intensity = 1.0;
+
 	vec4 color = texture(diffuse, texco);
 
 	final_color = vec4(color.rgb * (vec3(intensity) + texture(light_buffer, position.xy / position.w * 0.5 + 0.5).rgb * 0.1), color.a);

@@ -2,6 +2,8 @@
 #define MOB_COMPONENT_H
 
 #include "Component.h"
+
+#include "GlobalPosition.h"
 #include "Vec3.h"
 #include "Vec2.h"
 
@@ -58,7 +60,6 @@ public:
 	Vec3 move;
 	bool run, landed;
 	float dodge;
-
 	bool strafe;
 
 	std::map<std::string, float> input;
@@ -66,6 +67,8 @@ public:
 	std::shared_ptr<ActionData> action;
 
 	bool hit;
+
+	GlobalPosition spawn_position;
 };
 
 #endif

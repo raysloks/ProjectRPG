@@ -21,6 +21,8 @@ const AutoSerialFactory<CameraControlComponent> CameraControlComponent::_factory
 
 CameraControlComponent::CameraControlComponent(void) : Serializable(_factory.id)
 {
+	cam_rot_basic = Vec2(0.0f, M_PI_2);
+
 	cam_rot *= Quaternion(M_PI / 2.0f, Vec3(1.0f, 0.0f, 0.0f));
 
 	front = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
@@ -91,6 +93,11 @@ void CameraControlComponent::frame(float dTime)
 
 			mouse_move += Vec2(f.x*controller_sensitivity_x, -f.y*controller_sensitivity_y)*controller_sensitivity*dTime;
 
+			cam_rot_basic += mouse_move;
+			
+			cam_rot_basic.x = std::fmodf(cam_rot_basic.x, M_PI * 2.0f);
+			cam_rot_basic.y = std::fminf(M_PI, std::fmaxf(0.0f, cam_rot_basic.y));
+
 			if (p == 0) {
 				PositionComponent * pc = entity->getComponent<PositionComponent>();
 				if (pc != 0)
@@ -100,46 +107,23 @@ void CameraControlComponent::frame(float dTime)
 			//set camera position relative to focus point
 			if (p != 0) {
 
-				Vec3 totes_up(0.0f, 0.0f, 1.0f);
-				Vec3 up;
+				cam_rot = Quaternion();
 
-				auto mob = entity->getComponent<MobComponent>();
-				if (mob != nullptr)
-				{
-					totes_up = mob->up.Normalized();
-					//if (mob->landed)
-						up = mob->up.Normalized();
-				}
-
-				front = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
-				top = Vec3(0.0f, 1.0f, 0.0f) * cam_rot;
-				right = Vec3(-1.0f, 0.0f, 0.0f) * cam_rot;
-
-				Vec3 flat_right = front.Cross(up).Normalize();
-
-				//cam_rot = Quaternion(front * dTime) * cam_rot;
-				//cam_rot = Quaternion(top * dTime) * cam_rot;
-
-				float pole_coeff = 1.0f - abs(up.Dot(front));
-				pole_coeff *= 5.0f;
-				pole_coeff *= pole_coeff;
-				pole_coeff *= pole_coeff;
-				pole_coeff = std::min(1.0f, pole_coeff);
-
-				cam_rot = Quaternion((acos(flat_right.Dot(top)) - M_PI / 2.0f) * dTime * 10.0f * pole_coeff, front) * cam_rot;
-				//cam_rot = Quaternion((acos(front.Dot(up)) - M_PI / 2.0f), flat_right) * cam_rot;
-
-				cam_rot *= Quaternion(mouse_move.x, Vec3(0.0f, -1.0f, 0.0f));
-				cam_rot *= Quaternion(mouse_move.y, Vec3(1.0f, 0.0f, 0.0f));
+				cam_rot = Quaternion(cam_rot_basic.y, Vec3(1.0f, 0.0f, 0.0f)) * cam_rot;
+				cam_rot = Quaternion(cam_rot_basic.x, Vec3(0.0f, 0.0f, -1.0f)) * cam_rot;
 
 				cam_rot.Normalize();
 
+				forward = Vec3(0.0f, -1.0f, 0.0f) * Quaternion(cam_rot_basic.x, Vec3(0.0f, 0.0f, -1.0f));
+				up = Vec3(0.0f, 0.0f, 1.0f);
+
 				front = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
 				top = Vec3(0.0f, 1.0f, 0.0f) * cam_rot;
+
 				right = Vec3(-1.0f, 0.0f, 0.0f) * cam_rot;
 
 				entity->world->cam_rot = cam_rot;
-				entity->world->cam_pos = *p + totes_up * 0.5f + top * 0.5f - front * 4.0f;
+				entity->world->cam_pos = *p + up * 1.2f;
 			}
 		}
 	}

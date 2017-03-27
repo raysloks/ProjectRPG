@@ -3,6 +3,7 @@
 
 #include "Component.h"
 
+#include "Vec2.h"
 #include "Vec3.h"
 #include "Quaternion.h"
 #include "GlobalPosition.h"
@@ -39,9 +40,12 @@ public:
 
 	GlobalPosition * p;
 
+	Vec2 cam_rot_basic;
 	Quaternion cam_rot;
 
-	Vec3 front, top, right;
+	Vec3 forward, up;
+	Vec3 front, top;
+	Vec3 right;
 };
 
 #endif

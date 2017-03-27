@@ -7,6 +7,8 @@
 #include "PositionComponent.h"
 #include "CameraControlComponent.h"
 #include "ColliderComponent.h"
+#include "GraphicsComponent.h"
+#include "ProjectileComponent.h"
 
 #include "GlobalPosition.h"
 
@@ -72,14 +74,57 @@ void MobComponent::tick(float dTime)
 		}
 
 		auto pc = entity->getComponent<PositionComponent>();
-		if (pc!=0)
+		if (pc != nullptr)
+		{
+			if (p == nullptr)
+			{
+				spawn_position = pc->p;
+			}
 			p = &pc->p;
+		}
 
 		if (move.Len()>1.0f)
 			move.Normalize();
 
 		if (p!=0)
 		{
+
+			if (input.find("attack") != input.end())
+			{
+				auto spawn_bullet = [this](const Vec3& muzzle_velocity)
+				{
+					NewEntity * ent = new NewEntity();
+
+					PositionComponent * pos = new PositionComponent();
+					ProjectileComponent * projectile = new ProjectileComponent();
+					GraphicsComponent * g = new GraphicsComponent(false);
+
+					ent->addComponent(pos);
+					ent->addComponent(projectile);
+					ent->addComponent(g);
+
+					pos->p = *p + Vec3(0.0f, 0.0f, 1.0f);
+
+					projectile->v = muzzle_velocity;
+					projectile->drag = 0.015f;
+
+					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
+					g->decs.items.front()->local *= 0.0127f;
+
+					entity->world->AddEntity(ent);
+				};
+
+				std::default_random_engine random;
+				std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
+
+				for (size_t i = 0; i < 100; i++)
+				{
+					spawn_bullet((cam_facing + Vec3(dist(random), dist(random), dist(random)) * 0.05f).Normalized() * 500.0f);
+				}
+
+				input.erase("attack");
+			}
+
 			/*{
 				std::vector<std::shared_ptr<Collision>> list;
 				ColliderComponent::DiskCast(*p + Vec3(0.0f, 0.0f, -0.9f), *p + Vec3(0.0f, 0.0f, -1.1f), 0.25f, list);
@@ -110,7 +155,7 @@ void MobComponent::tick(float dTime)
 
 			if (input.find("warp") != input.end())
 			{
-				*p = GlobalPosition();
+				*p = spawn_position;
 			}
 
 			//v += move * dTime * 100.0f;
@@ -121,9 +166,9 @@ void MobComponent::tick(float dTime)
 
 			if (land_g != Vec3())
 			{
-				Vec3 nup = -land_g.Normalized();
-				if (nup != Vec3())
-					up = nup;//bu_sphere(up, -land_g, up, -15.0f, 0.0f, dTime);
+				//Vec3 nup = -land_g.Normalized();
+				//if (nup != Vec3())
+				//	up = nup;//bu_sphere(up, -land_g, up, -15.0f, 0.0f, dTime);
 				land_g *= exp(log(0.1f) * dTime);
 			}
 
@@ -339,7 +384,7 @@ void MobComponent::tick(float dTime)
 			{
 				float speed = 5.0f;
 				speed += run && input.find("run_delay")==input.end() ? 400.0f : 0.0f * std::max(0.0f, move.Dot(move_facing));
-				speed -= action != 0 ? 3.0f : 0.0f;
+				//speed -= action != 0 ? 3.0f : 0.0f;
 
 				Vec3 target = move * speed;
 				target -= land_n * land_n.Dot(target);

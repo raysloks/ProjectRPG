@@ -26,6 +26,7 @@
     <ClCompile Include="AIComponent.cpp" />
     <ClCompile Include="HitBox.cpp" />
     <ClCompile Include="OrbitComponent.cpp" />
+    <ClCompile Include="ProjectileComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -52,6 +53,7 @@
     <ClInclude Include="AIComponent.h" />
     <ClInclude Include="HitBox.h" />
     <ClInclude Include="OrbitComponent.h" />
+    <ClInclude Include="ProjectileComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

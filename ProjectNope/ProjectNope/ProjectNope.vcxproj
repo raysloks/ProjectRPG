@@ -224,6 +224,7 @@
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="SkeletalAnimation.cpp" />
     <ClCompile Include="Sound.cpp" />
+    <ClCompile Include="SpriteComponent.cpp" />
     <ClCompile Include="StandardHUD.cpp" />
     <ClCompile Include="StringResource.cpp" />
     <ClCompile Include="Synchronizer.cpp" />
@@ -263,6 +264,7 @@
     <ClInclude Include="PoseComponent.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderProgram.h" />
+    <ClInclude Include="SpriteComponent.h" />
     <ClInclude Include="Synchronizer.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="LineComponent.h" />

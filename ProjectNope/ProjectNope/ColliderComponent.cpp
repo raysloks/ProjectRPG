@@ -93,6 +93,22 @@ void ColliderComponent::update(const GlobalPosition& next_position, float dTime)
 	v = Vec3(next-p)/dTime;
 }
 
+void ColliderComponent::LineCheck(const GlobalPosition& sP, const GlobalPosition& eP, std::vector<std::shared_ptr<Collision>>& list)
+{
+	for (auto i = all.begin(); i != all.end(); ++i) {
+		if (*i != 0) {
+			int j = list.size();
+			(*i)->mesh.LineCheck(sP - (*i)->p, eP - (*i)->p, list);
+			for (; j<list.size(); ++j) {
+				list[j]->comp = *i;
+				list[j]->poc += (*i)->p;
+				list[j]->poo += (*i)->p;
+				list[j]->v += (*i)->v;
+			}
+		}
+	}
+}
+
 void ColliderComponent::SphereCast(const GlobalPosition& sP, const GlobalPosition& eP, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
 	for (auto i=all.begin();i!=all.end();++i) {
@@ -109,7 +125,7 @@ void ColliderComponent::SphereCast(const GlobalPosition& sP, const GlobalPositio
 	}
 }
 
-void ColliderComponent::DiskCast(const GlobalPosition & sP, const GlobalPosition & eP, float r, std::vector<std::shared_ptr<Collision>>& list)
+void ColliderComponent::DiskCast(const GlobalPosition& sP, const GlobalPosition& eP, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
 	for (auto i = all.begin(); i != all.end(); ++i) {
 		if (*i != 0) {
@@ -125,7 +141,7 @@ void ColliderComponent::DiskCast(const GlobalPosition & sP, const GlobalPosition
 	}
 }
 
-void ColliderComponent::LowerDisk(const Vec3 & lock, const Vec3 & center, const Vec3 & axis, const Vec3 & dir, float r, std::vector<std::shared_ptr<Collision>>& list)
+void ColliderComponent::LowerDisk(const Vec3& lock, const Vec3& center, const Vec3& axis, const Vec3& dir, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
 	for (auto i = all.begin(); i != all.end(); ++i) {
 		if (*i != 0) {

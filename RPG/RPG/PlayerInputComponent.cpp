@@ -86,9 +86,9 @@ void PlayerInputComponent::frame(float dTime)
 			if (ccc != nullptr)
 			{
 				fx = ccc->right;
-				fy = ccc->front;
+				fy = ccc->forward;
 
-				//mob->cam_facing = ccc->front;
+				mob->cam_facing = ccc->front;
 			}
 
 			float l = move.Len();
