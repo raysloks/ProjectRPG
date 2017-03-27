@@ -117,7 +117,7 @@ void MobComponent::tick(float dTime)
 				std::default_random_engine random;
 				std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
 
-				for (size_t i = 0; i < 100; i++)
+				for (size_t i = 0; i < 10; i++)
 				{
 					spawn_bullet((cam_facing + Vec3(dist(random), dist(random), dist(random)) * 0.05f).Normalized() * 500.0f);
 				}

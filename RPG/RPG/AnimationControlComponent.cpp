@@ -425,10 +425,11 @@ bool AnimationControlComponent::start_action(const std::string& fname)
 void AnimationControlComponent::tick(float dTime)
 {
 	if (anim == nullptr) {
-		anim = Resource::get<SkeletalAnimation>("data/assets/units/player/KnightGuy.anim");
-		if (anim != nullptr) {
+		auto anim_loaded = Resource::get<SkeletalAnimation>("data/assets/units/player/KnightGuy.anim");
+		if (anim_loaded != nullptr) {
 			auto pc = entity->getComponent<PoseComponent>();
 			if (pc != nullptr) {
+				anim = anim_loaded;
 				pc->pose = anim->armature;
 				pose = &pc->pose;
 				initAPL();
@@ -439,7 +440,7 @@ void AnimationControlComponent::tick(float dTime)
 		mob = entity->getComponent<MobComponent>();
 	if (mob != nullptr && pose != nullptr) {
 		tickAPL(dTime);
-		//apl->tick(dTime, pose);
+		apl->tick(dTime, pose);
 		pose->bones[0].transform = anim->armature.bones[0].transform;
 		pose->bones[0].transform *= Matrix3(mob->move_facing.Cross(mob->up), mob->move_facing, mob->up);
 		pose->bones[0].transform *= Matrix4::Translation(-mob->up * 0.5f);
