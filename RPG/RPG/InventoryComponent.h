@@ -22,7 +22,7 @@ public:
 	void connect(NewEntity * pEntity, bool authority);
 	void disconnect(void);
 
-	void frame(float dTime);
+	void pre_frame(float dTime);
 	void tick(float dTime);
 
 	void writeLog(outstream& os, ClientData& client);

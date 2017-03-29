@@ -250,15 +250,14 @@ void Mesh::getPose(const Pose& pose, Mesh * mesh)
 	QueryPerformanceFrequency(&freq);
 	QueryPerformanceCounter(&start);
 
-	if (pose.rest!=0)
+	if (pose.rest != nullptr)
 	{
 		std::vector<Matrix4> dif(pose.bones.size());
-		for (int i=0;i<pose.bones.size();++i)
+		for (size_t i = 0; i < pose.bones.size(); i++)
 		{
 			dif[i] = pose.rest->bones[i].total_inverse*pose.bones[i].total_transform;
 		}
 
-		std::map<int, float>::iterator it;
 		int size = vert.size();
 		for (int i=0;i<size;++i)
 		{
@@ -266,7 +265,7 @@ void Mesh::getPose(const Pose& pose, Mesh * mesh)
 			mesh->vert[i].p = Vec3();
 			mesh->vert[i].n = Vec3();
 			Vec3 p;
-			for (it=mesh->vert[i].w.begin();it!=mesh->vert[i].w.end();++it)
+			for (auto it = mesh->vert[i].w.begin(); it != mesh->vert[i].w.end(); ++it)
 			{
 				if (it->second>0.0f)
 				{

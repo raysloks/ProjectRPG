@@ -1,21 +1,15 @@
-#ifndef LIGHT_COMPONENT_H
-#define LIGHT_COMPONENT_H
-
-#include <memory>
+#ifndef WEAPON_COMPONENT_H
+#define WEAPON_COMPONENT_H
 
 #include "Component.h"
 
-#include "GlobalPosition.h"
-
-class Pose;
-
-class LightComponent :
+class WeaponComponent :
 	public Component
 {
 public:
-	LightComponent(void);
-	LightComponent(instream& is, bool full);
-	~LightComponent(void);
+	WeaponComponent(void);
+	WeaponComponent(instream& is, bool full);
+	~WeaponComponent(void);
 
 	void connect(NewEntity * pEntity, bool authority);
 	void disconnect(void);
@@ -34,15 +28,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	GlobalPosition p;
-
-	Pose * pose;
-
-	int bone_id;
-
-	static const AutoSerialFactory<LightComponent> _factory;
-
-	static std::vector<LightComponent*> all;
+	static const AutoSerialFactory<WeaponComponent> _factory;
 };
 
 #endif

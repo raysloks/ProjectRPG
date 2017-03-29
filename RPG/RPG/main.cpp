@@ -20,6 +20,7 @@
 #include "AIComponent.h"
 #include "PoseComponent.h"
 #include "OrbitComponent.h"
+#include "WeaponComponent.h"
 
 #include "ClientData.h"
 
@@ -73,8 +74,9 @@ public:
 				//Resource::load(ao, { "!sRGB" });
 
 				MaterialList materials;
-				materials.materials.push_back(Material("data/assets/escape-ao.tga"));
-				materials.materials.push_back(Material("data/assets/terrain/textures/ngrass.tga"));
+				materials.materials.push_back(Material("data/assets/terrain/textures/concrete.tga"));
+				materials.materials.push_back(Material("data/assets/terrain/textures/asphalt.tga"));
+				materials.materials.push_back(Material("data/assets/terrain/textures/plank.tga"));
 				materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
 
 				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/escape.gmdl", materials, 0)));
@@ -246,17 +248,17 @@ public:
 			NewEntity * ent = new NewEntity();
 
 			PositionComponent * p = new PositionComponent();
-			p->p = Vec3(15.0f * i, 20.0f, 25.0f);
+			p->p = Vec3(25.0f + 5.0f * i, 20.0f, 25.0f);
 			GraphicsComponent * g = new GraphicsComponent();
-			AIComponent * ai = new AIComponent();
-			ai->random.seed(i);
+			//AIComponent * ai = new AIComponent();
+			//ai->random.seed(i);
 			MobComponent * mob = new MobComponent();
 			AnimationControlComponent * acc = new AnimationControlComponent();
 			PoseComponent * pose = new PoseComponent();
 
 			ent->addComponent(p);
 			ent->addComponent(g);
-			ent->addComponent(ai);
+			//ent->addComponent(ai);
 			ent->addComponent(mob);
 			ent->addComponent(acc);
 			ent->addComponent(pose);
@@ -283,20 +285,20 @@ public:
 		{
 			NewEntity * ent = new NewEntity();
 
+			CameraControlComponent * cam = new CameraControlComponent();
 			PositionComponent * p = new PositionComponent();
 			GraphicsComponent * g = new GraphicsComponent();
 			PlayerInputComponent * input = new PlayerInputComponent();
 			MobComponent * mob = new MobComponent();
-			CameraControlComponent * cam = new CameraControlComponent();
 			AnimationControlComponent * acc = new AnimationControlComponent();
 			InventoryComponent * inv = new InventoryComponent();
 			PoseComponent * pose = new PoseComponent();
 
+			ent->addComponent(cam);
 			ent->addComponent(p);
 			ent->addComponent(g);
 			ent->addComponent(input);
 			ent->addComponent(mob);
-			ent->addComponent(cam);
 			ent->addComponent(acc);
 			ent->addComponent(inv);
 			ent->addComponent(pose);
@@ -324,6 +326,24 @@ public:
 			//g->decs.items.back()->priority = 3;
 
 			data.unit_id = world->AddEntity(ent);
+
+			{
+				NewEntity * ent = new NewEntity();
+
+				PositionComponent * p = new PositionComponent();
+				GraphicsComponent * g = new GraphicsComponent();
+				WeaponComponent * w = new WeaponComponent();
+
+				ent->addComponent(p);
+				ent->addComponent(g);
+				ent->addComponent(w);
+
+				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/pistol.gmdl", Material("data/assets/pistol.tga"), 0)));
+
+				mob->weapon = w;
+
+				world->AddEntity(ent);
+			}
 		}
 	}
 };

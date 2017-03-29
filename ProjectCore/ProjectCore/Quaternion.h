@@ -24,4 +24,7 @@ public:
 	static Quaternion lookAt(const Vec3& forward, const Vec3& up);
 };
 
+outstream& operator<<(outstream& os, const Quaternion& q);
+instream& operator>>(instream& is, Quaternion& q);
+
 #endif

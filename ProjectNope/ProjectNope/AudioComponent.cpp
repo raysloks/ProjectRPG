@@ -35,7 +35,7 @@ void AudioComponent::disconnect(void)
 {
 }
 
-void AudioComponent::frame(float dTime)
+void AudioComponent::pre_frame(float dTime)
 {
 	if (p == nullptr)
 	{

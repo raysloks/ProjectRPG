@@ -22,7 +22,7 @@ void ExampleComponent::disconnect(void)
 {
 }
 
-void ExampleComponent::frame(float dTime)
+void ExampleComponent::pre_frame(float dTime)
 {
 }
 

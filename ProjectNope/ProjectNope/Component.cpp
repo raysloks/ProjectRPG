@@ -20,9 +20,11 @@ void Component::writeLog(outstream& os) {}
 
 void Component::readLog(instream& is, ClientData& client) {}
 
-void Component::frame(float dTime){}
+void Component::pre_frame(float dTime) {}
 
-void Component::tick(float dTime){}
+void Component::post_frame(float dTime) {}
+
+void Component::tick(float dTime) {}
 
 void Component::interpolate(Component * pComponent, float fWeight) {}
 

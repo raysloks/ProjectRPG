@@ -24,7 +24,8 @@ public:
 	virtual void writeLog(outstream& os);
 	virtual void readLog(instream& is, ClientData& client);
 
-	virtual void frame(float dTime);
+	virtual void pre_frame(float dTime);
+	virtual void post_frame(float dTime);
 	virtual void tick(float dTime);
 
 	virtual void interpolate(Component * pComponent, float fWeight);

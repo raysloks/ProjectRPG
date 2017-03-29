@@ -6,6 +6,7 @@
 
 #include "PositionComponent.h"
 #include "ColliderComponent.h"
+#include "MobComponent.h"
 
 const AutoSerialFactory<ProjectileComponent> ProjectileComponent::_factory("ProjectileComponent");
 
@@ -29,18 +30,30 @@ void ProjectileComponent::disconnect(void)
 {
 }
 
-void ProjectileComponent::frame(float dTime)
+void ProjectileComponent::pre_frame(float dTime)
 {
 }
 
 void ProjectileComponent::tick(float dTime)
 {
 	auto pc = entity->getComponent<PositionComponent>();
-	if (pc != nullptr)
+	if (pc != nullptr && entity->world->authority)
 	{
 		Vec3 g = Vec3(0.0f, 0.0f, -1.0f) * 9.8f;
 
 		Vec3 dp = v * dTime + g * dTime * dTime;
+
+		auto mobs = entity->world->GetNearestComponents<MobComponent>(pc->p);
+		for each (auto mob in mobs)
+		{
+			auto col = Wall::SphereLine(Vec3(), dp, *mob.second->p - pc->p, 0.5f);
+			if (col != nullptr)
+			{
+				mob.second->health.current -= 20.0f;
+				mob.second->hit = true;
+				v = mob.second->v;
+			}
+		}
 
 		std::vector<std::shared_ptr<Collision>> list;
 		ColliderComponent::LineCheck(pc->p, pc->p + dp, list);
@@ -58,7 +71,10 @@ void ProjectileComponent::tick(float dTime)
 			if (v.LenPwr() > 100.0f)
 			{
 				v -= list.front()->n * list.front()->n.Dot(v) * 2.0f;
-				v *= 0.1f;
+				float v_mod = 1.0f - v.Normalized().Dot(list.front()->n);
+				v_mod *= v_mod;
+				v_mod *= v_mod;
+				v *= v_mod;
 			}
 			else
 			{
@@ -72,6 +88,8 @@ void ProjectileComponent::tick(float dTime)
 
 		if (pc->p.z < -10)
 			entity->world->SetEntity(entity->id, nullptr);
+
+		pc->update();
 	}
 }
 

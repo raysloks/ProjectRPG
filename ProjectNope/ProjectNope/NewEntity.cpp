@@ -73,11 +73,18 @@ std::vector<Component*>::iterator NewEntity::removeComponent(Component * pCompon
 	return components.end();
 }
 
-void NewEntity::frame(float dTime)
+void NewEntity::pre_frame(float dTime)
 {
 	for (auto i=components.begin();i!=components.end();++i)
 		if (*i!=0)
-			(*i)->frame(dTime);
+			(*i)->pre_frame(dTime);
+}
+
+void NewEntity::post_frame(float dTime)
+{
+	for (auto i = components.begin(); i != components.end(); ++i)
+		if (*i != 0)
+			(*i)->post_frame(dTime);
 }
 
 void NewEntity::tick(float dTime)

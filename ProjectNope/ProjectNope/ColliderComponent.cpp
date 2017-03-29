@@ -44,7 +44,7 @@ void ColliderComponent::tick(float dTime)
 		auto gc = entity->getComponent<GraphicsComponent>();
 		if (gc != 0)
 		{
-			gc->frame(0.0f);
+			gc->pre_frame(0.0f);
 			if (gc->decs.items.size() != 0)
 			{
 				if (gc->decs.items.front()->skin != 0)

@@ -31,7 +31,8 @@ public:
 	std::vector<Component*>::iterator addComponent(Component * pComponent, bool authority = true);
 	std::vector<Component*>::iterator removeComponent(Component * pComponent);
 
-	void frame(float dTime);
+	void pre_frame(float dTime);
+	void post_frame(float dTime);
 	void tick(float dTime);
 
 	void writeLog(outstream& os, ClientData& client);

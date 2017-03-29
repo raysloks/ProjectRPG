@@ -22,7 +22,7 @@ void PoseComponent::disconnect(void)
 {
 }
 
-void PoseComponent::frame(float dTime)
+void PoseComponent::pre_frame(float dTime)
 {
 }
 

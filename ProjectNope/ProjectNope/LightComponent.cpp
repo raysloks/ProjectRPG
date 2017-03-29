@@ -38,7 +38,7 @@ void LightComponent::disconnect(void)
 {
 }
 
-void LightComponent::frame(float dTime)
+void LightComponent::pre_frame(float dTime)
 {
 	PositionComponent * pc = entity->getComponent<PositionComponent>();
 	if (pc != nullptr)

@@ -27,7 +27,7 @@ void OrbitComponent::disconnect(void)
 {
 }
 
-void OrbitComponent::frame(float dTime)
+void OrbitComponent::pre_frame(float dTime)
 {
 }
 

@@ -37,12 +37,21 @@ World::~World(void)
 	chunks.clear();
 }
 
-void World::frame(float dTime)
+void World::pre_frame(float dTime)
 {
-	for (int i=0;i<units.size();++i) {
+	for (size_t i = 0; i < units.size(); i++) {
 		NewEntity * ent = units[i];
-		if (ent!=0)
-			ent->frame(dTime);
+		if (ent != 0)
+			ent->pre_frame(dTime);
+	}
+}
+
+void World::post_frame(float dTime)
+{
+	for (size_t i = 0; i < units.size(); i++) {
+		NewEntity * ent = units[i];
+		if (ent != 0)
+			ent->post_frame(dTime);
 	}
 }
 
@@ -317,9 +326,9 @@ void World::SetEntity(int id, NewEntity * unit)
 {
 	try
 	{
-		if (id<0)
+		if (id < 0)
 			return;
-		if (unit!=0) {
+		if (unit != nullptr) {
 			if (id>=units.size()) {
 				units.resize(id+1);
 				uid.resize(id+1);
@@ -331,8 +340,8 @@ void World::SetEntity(int id, NewEntity * unit)
 			else
 				uid[id]++;
 		}
-		if (units.at(id)!=0) {
-			if (server!=0 && authority)
+		if (units.at(id) != nullptr) {
+			if (server != nullptr && authority)
 				server->NotifyOfRemoval(id, uid[id]);
 			/*if (units[id]->chunk!=0)
 				units[id]->chunk->remove(units[id]->cid);*/

@@ -9,6 +9,7 @@
 #include "ColliderComponent.h"
 #include "GraphicsComponent.h"
 #include "ProjectileComponent.h"
+#include "WeaponComponent.h"
 
 #include "GlobalPosition.h"
 
@@ -22,7 +23,7 @@
 
 const AutoSerialFactory<MobComponent> MobComponent::_factory("MobComponent");
 
-MobComponent::MobComponent(void) : Serializable(_factory.id), health(20), stamina(20)
+MobComponent::MobComponent(void) : Serializable(_factory.id), health(100), stamina(100)
 {
 	facing = Vec3(0.0f, 1.0f, 0.0f);
 	move_facing = facing;
@@ -32,7 +33,7 @@ MobComponent::MobComponent(void) : Serializable(_factory.id), health(20), stamin
 
 MobComponent::MobComponent(instream& is, bool full) : Serializable(_factory.id)
 {
-	is >> facing >> move_facing >> up;
+	is >> facing >> move_facing >> cam_facing >> up;
 }
 
 MobComponent::~MobComponent(void)
@@ -86,8 +87,28 @@ void MobComponent::tick(float dTime)
 		if (move.Len()>1.0f)
 			move.Normalize();
 
-		if (p!=0)
+		if (p != nullptr)
 		{
+			auto mobs = entity->world->GetNearestComponents<MobComponent>(*p);
+			for each (auto mob in mobs)
+			{
+				if (mob.first < 1.0f && mob.second != this)
+				{
+					Vec3 dif = *p - *mob.second->p;
+					float l = dif.Len();
+					dif /= l;
+
+					Vec3 vdif = v - mob.second->v;
+					vdif = dif * dif.Dot(vdif);
+
+					v -= vdif * 0.5f;
+					mob.second->v += vdif * 0.5f;
+
+					dif *= 1.0f - l;
+					dp += dif * 0.5f;
+					mob.second->dp -= dif * 0.5f;
+				}
+			}
 
 			if (input.find("attack") != input.end())
 			{
@@ -103,25 +124,24 @@ void MobComponent::tick(float dTime)
 					ent->addComponent(projectile);
 					ent->addComponent(g);
 
-					pos->p = *p + Vec3(0.0f, 0.0f, 1.0f);
+					pos->p = *p + up * 1.2f;
 
 					projectile->v = muzzle_velocity;
-					projectile->drag = 0.015f;
+					projectile->drag = 0.01f;
 
 					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
-					g->decs.items.front()->local *= 0.0127f;
+					g->decs.items.front()->local *= 0.0127f * 0.5f;
 					g->decs.items.front()->local.data[15] = 1.0f;
 
 					entity->world->AddEntity(ent);
 				};
 
-				std::default_random_engine random;
-				std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
-
 				for (size_t i = 0; i < 10; i++)
 				{
-					spawn_bullet((cam_facing + Vec3(dist(random), dist(random), dist(random)) * 0.05f).Normalized() * 500.0f);
+					spawn_bullet(cam_facing * 470.0f);
 				}
+
+				recoil += 0.3f;
 
 				input.erase("attack");
 			}
@@ -157,6 +177,7 @@ void MobComponent::tick(float dTime)
 			if (input.find("warp") != input.end())
 			{
 				*p = spawn_position;
+				v = Vec3();
 			}
 
 			//v += move * dTime * 100.0f;
@@ -176,7 +197,7 @@ void MobComponent::tick(float dTime)
 			Vec3 g_dir = Vec3(0.0f, 0.0f, -1.0f);//-Vec3(*p).Normalized();
 			Vec3 g = g_dir * 9.8f;
 
-			Vec3 dp = (g/2.0f * dTime + v) * dTime;
+			dp += (g/2.0f * dTime + v) * dTime;
 
 			float t = 1.0f;
 
@@ -358,10 +379,14 @@ void MobComponent::tick(float dTime)
 
 					land_g += col->n*col->n.Dot(v);
 
+					float fall_damage = std::max(0.0f, -10.0f - col->n.Dot(v));
+					fall_damage *= 40.0f;
+					health.current -= fall_damage;
+
 					v -= col->n*col->n.Dot(v);
 					v += col->v;
 
-					dp = v * dTime;
+					dp -= col->n*col->n.Dot(dp);
 
 					bool should_break = false;
 					for (auto i=previous.begin();i!=previous.end();++i)
@@ -380,6 +405,8 @@ void MobComponent::tick(float dTime)
 					break;
 				}
 			}
+			
+			dp = Vec3();
 
 			if (landed)
 			{
@@ -471,17 +498,34 @@ void MobComponent::tick(float dTime)
 
 		facing.Normalize();
 	}
+
+	if (weapon != nullptr)
+	{
+		auto wpc = weapon->entity->getComponent<PositionComponent>();
+		if (wpc != nullptr)
+		{
+			wpc->p = *p + up * 1.2f + Vec3(-0.25f, -0.5f + recoil * 0.25f, 0.75f - recoil) * cam_rot;
+			wpc->update();
+			auto wgc = weapon->entity->getComponent<GraphicsComponent>();
+			if (wgc != nullptr)
+			{
+				wgc->decs.items.front()->local = cam_rot * Quaternion(recoil, Vec3(-1.0f, 0.0f, 0.0f));
+				wgc->decs.update(0);
+			}
+		}
+		recoil *= exp(log(0.05f) * dTime);
+	}
 }
 
 void MobComponent::writeLog(outstream& os, ClientData& client)
 {
-	os << facing << move_facing << up;
+	os << facing << move_facing << cam_facing << up;
 	os << v << land_n << land_v << landed;
 }
 
 void MobComponent::readLog(instream& is)
 {
-	is >> facing >> move_facing >> up;
+	is >> facing >> move_facing >> cam_facing >> up;
 	is >> v >> land_n >> land_v >> landed;
 }
 
@@ -510,7 +554,7 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 
 void MobComponent::write_to(outstream& os, ClientData& client) const
 {
-	os << facing << move_facing << up;
+	os << facing << move_facing << cam_facing << up;
 }
 
 void MobComponent::write_to(outstream& os) const

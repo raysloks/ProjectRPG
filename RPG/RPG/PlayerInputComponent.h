@@ -3,6 +3,7 @@
 
 #include "Component.h"
 
+#include "Quaternion.h"
 #include "Vec3.h"
 #include "Vec2.h"
 #include "GlobalPosition.h"
@@ -22,7 +23,7 @@ public:
 	void connect(NewEntity * pEntity, bool authority);
 	void disconnect(void);
 
-	void frame(float dTime);
+	void post_frame(float dTime);
 	void tick(float dTime);
 
 	void writeLog(outstream& os, ClientData& client);
@@ -44,6 +45,8 @@ public:
 
 	GlobalPosition * p = 0;
 
+	Vec3 move;
+	Quaternion cam_rot;
 	ControlState cs;
 	bool run;
 };

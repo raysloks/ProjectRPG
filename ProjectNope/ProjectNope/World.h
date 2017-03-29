@@ -29,7 +29,8 @@ public:
 	World(void);
 	~World(void);
 
-	void frame(float dTime);
+	void pre_frame(float dTime);
+	void post_frame(float dTime);
 	void tick(float dTime);
 	void render(RenderSetup& rs);
 

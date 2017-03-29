@@ -6,6 +6,7 @@
 #include "GlobalPosition.h"
 #include "Vec3.h"
 #include "Vec2.h"
+#include "Quaternion.h"
 
 #include "HealthBar.h"
 
@@ -14,6 +15,7 @@
 
 class GlobalPosition;
 class ActionData;
+class WeaponComponent;
 
 class MobComponent :
 	public Component
@@ -47,14 +49,19 @@ public:
 	HealthBar health;
 	HealthBar stamina;
 
+	WeaponComponent * weapon;
+	float recoil;
+
 	//facing
 	Vec3 facing, up, move_facing;
 	Vec3 cam_facing, follow;
+	Quaternion cam_rot;
 
 	float time_under_control;
 
 	//movement
 	Vec3 v;
+	Vec3 dp;
 	Vec3 land_n, land_v, land_g;
 	Vec3 c_move;
 	Vec3 move;

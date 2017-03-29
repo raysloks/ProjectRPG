@@ -56,7 +56,7 @@ void GraphicsComponent::readLog(instream& is)
 	decs.readLog(is);
 }
 
-void GraphicsComponent::frame(float dTime)
+void GraphicsComponent::pre_frame(float dTime)
 {
 	if (p == nullptr) {
 		auto pc = entity->getComponent<PositionComponent>();
@@ -66,7 +66,7 @@ void GraphicsComponent::frame(float dTime)
 
 	if (pose != nullptr) {
 		for (auto i=decs.items.begin();i!=decs.items.end();++i) {
-			if (*i!=0) {
+			if (*i != nullptr) {
 				(*i)->attach(*pose);
 			}
 		}
@@ -75,7 +75,7 @@ void GraphicsComponent::frame(float dTime)
 		if (pc != nullptr)
 			pose = &pc->pose;
 		for (auto i=decs.items.begin();i!=decs.items.end();++i) {
-			if (*i!=0) {
+			if (*i != nullptr) {
 				(*i)->attach();
 			}
 		}

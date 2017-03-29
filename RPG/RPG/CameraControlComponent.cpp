@@ -46,7 +46,29 @@ void CameraControlComponent::disconnect(void)
 {
 }
 
-void CameraControlComponent::frame(float dTime)
+void CameraControlComponent::pre_frame(float dTime)
+{
+	Client * client = entity->world->client;
+	if (client != 0)
+	{
+		if (client->clientData->unit_id == entity->id || !entity->world->authority)
+		{
+			if (p == 0) {
+				PositionComponent * pc = entity->getComponent<PositionComponent>();
+				if (pc != 0)
+					p = &pc->p;
+			}
+
+			//set camera position relative to focus point
+			if (p != 0) {
+				entity->world->cam_rot = cam_rot;
+				entity->world->cam_pos = *p + up * 1.2f;
+			}
+		}
+	}
+}
+
+void CameraControlComponent::post_frame(float dTime)
 {
 	Client * client = entity->world->client;
 	if (client!=0)
@@ -93,38 +115,27 @@ void CameraControlComponent::frame(float dTime)
 
 			mouse_move += Vec2(f.x*controller_sensitivity_x, -f.y*controller_sensitivity_y)*controller_sensitivity*dTime;
 
+
 			cam_rot_basic += mouse_move;
 			
 			cam_rot_basic.x = std::fmodf(cam_rot_basic.x, M_PI * 2.0f);
 			cam_rot_basic.y = std::fminf(M_PI, std::fmaxf(0.0f, cam_rot_basic.y));
 
-			if (p == 0) {
-				PositionComponent * pc = entity->getComponent<PositionComponent>();
-				if (pc != 0)
-					p = &pc->p;
-			}
 
-			//set camera position relative to focus point
-			if (p != 0) {
+			cam_rot = Quaternion();
 
-				cam_rot = Quaternion();
+			cam_rot = Quaternion(cam_rot_basic.y, Vec3(1.0f, 0.0f, 0.0f)) * cam_rot;
+			cam_rot = Quaternion(cam_rot_basic.x, Vec3(0.0f, 0.0f, -1.0f)) * cam_rot;
 
-				cam_rot = Quaternion(cam_rot_basic.y, Vec3(1.0f, 0.0f, 0.0f)) * cam_rot;
-				cam_rot = Quaternion(cam_rot_basic.x, Vec3(0.0f, 0.0f, -1.0f)) * cam_rot;
+			cam_rot.Normalize();
 
-				cam_rot.Normalize();
+			forward = Vec3(0.0f, -1.0f, 0.0f) * Quaternion(cam_rot_basic.x, Vec3(0.0f, 0.0f, -1.0f));
+			up = Vec3(0.0f, 0.0f, 1.0f);
 
-				forward = Vec3(0.0f, -1.0f, 0.0f) * Quaternion(cam_rot_basic.x, Vec3(0.0f, 0.0f, -1.0f));
-				up = Vec3(0.0f, 0.0f, 1.0f);
+			front = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
+			top = Vec3(0.0f, 1.0f, 0.0f) * cam_rot;
 
-				front = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
-				top = Vec3(0.0f, 1.0f, 0.0f) * cam_rot;
-
-				right = Vec3(-1.0f, 0.0f, 0.0f) * cam_rot;
-
-				entity->world->cam_rot = cam_rot;
-				entity->world->cam_pos = *p + up * 1.2f;
-			}
+			right = Vec3(-1.0f, 0.0f, 0.0f) * cam_rot;
 		}
 	}
 }

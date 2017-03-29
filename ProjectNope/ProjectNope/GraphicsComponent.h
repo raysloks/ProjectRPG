@@ -35,7 +35,7 @@ public:
 	void writeLog(outstream& os, ClientData& client);
 	void readLog(instream& is);
 
-	void frame(float dTime);
+	void pre_frame(float dTime);
 
 	void interpolate(Component * pComponent, float fWeight);
 

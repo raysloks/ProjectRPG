@@ -22,7 +22,7 @@ void SpriteComponent::disconnect(void)
 {
 }
 
-void SpriteComponent::frame(float dTime)
+void SpriteComponent::pre_frame(float dTime)
 {
 }
 

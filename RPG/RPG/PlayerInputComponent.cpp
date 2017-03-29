@@ -40,7 +40,7 @@ void PlayerInputComponent::disconnect(void)
 {
 }
 
-void PlayerInputComponent::frame(float dTime)
+void PlayerInputComponent::post_frame(float dTime)
 {
 	if (p == nullptr) {
 		auto pc = entity->getComponent<PositionComponent>();
@@ -56,7 +56,7 @@ void PlayerInputComponent::frame(float dTime)
 		{
 			const Input& input = client->input;
 
-			Vec3 move = client->input.ctrl[0].left_analog.out;
+			move = client->input.ctrl[0].left_analog.out;
 
 			if (move.Len() > 1.0f)
 				move.Normalize();
@@ -88,17 +88,13 @@ void PlayerInputComponent::frame(float dTime)
 				fx = ccc->right;
 				fy = ccc->forward;
 
-				mob->cam_facing = ccc->front;
+				cam_rot = ccc->cam_rot;
 			}
 
 			float l = move.Len();
 			move = fy * move.y + fx * move.x;
 			move.Normalize();
 			move *= l;
-
-			cs.input["x"] = move.x;
-			cs.input["y"] = move.y;
-			cs.input["z"] = move.z;
 
 			cs.input["run"] = input.isDown(Platform::KeyEvent::LSHIFT) || input.ctrl[0].b.down;
 			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].a.pressed)
@@ -129,7 +125,9 @@ void PlayerInputComponent::tick(float dTime)
 		{
 			float buffer_duration = 0.4f;
 
-			mob->move = Vec3(cs.input["x"], cs.input["y"], cs.input["z"]);
+			mob->move = move;
+			mob->cam_facing = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
+			mob->cam_rot = cam_rot;
 
 			mob->run = cs.input["run"];
 			if (cs.active.find("jump") != cs.active.end())
@@ -162,13 +160,13 @@ void PlayerInputComponent::readLog(instream& is)
 
 void PlayerInputComponent::writeLog(outstream& os)
 {
-	os << cs;
+	os << cs << move << cam_rot;
 }
 
 void PlayerInputComponent::readLog(instream& is, ClientData& client)
 {
 	ControlState ncs;
-	is >> ncs;
+	is >> ncs >> move >> cam_rot;
 	ncs.update(cs);
 }
 

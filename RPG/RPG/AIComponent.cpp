@@ -26,7 +26,7 @@ void AIComponent::disconnect(void)
 {
 }
 
-void AIComponent::frame(float dTime)
+void AIComponent::pre_frame(float dTime)
 {
 }
 

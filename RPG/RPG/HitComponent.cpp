@@ -32,7 +32,7 @@ void HitComponent::disconnect(void)
 {
 }
 
-void HitComponent::frame(float dTime)
+void HitComponent::pre_frame(float dTime)
 {
 }
 

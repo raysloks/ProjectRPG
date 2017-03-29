@@ -233,7 +233,7 @@ void Client::setup(void)
 	}
 }
 
-void Client::tick(float dTime)
+void Client::pre_frame(float dTime)
 {
 	isActive = true;
 	ActiveEvent * ae = new ActiveEvent();
@@ -326,7 +326,12 @@ void Client::tick(float dTime)
 			packet_loss_sim = 1.0f;
 	}
 
-	world->frame(dTime);
+	world->pre_frame(dTime);
+}
+
+void Client::post_frame(float dTime)
+{
+	world->post_frame(dTime);
 }
 
 #include "Mesh.h"
@@ -382,12 +387,12 @@ void Client::render(void)
 		view[2] = gpPlatform->get_width();
 		view[3] = gpPlatform->get_height();
 
-		/*if (frame==0) {
+		/*if (pre_frame==0) {
 			std::vector<GLenum> gbuf;
 			gbuf.push_back(GL_RGB16F);
-			frame = std::make_shared<FrameBuffer>(view[2]*supersample_x, view[3]*supersample_y, gbuf, GL_NONE);
+			pre_frame = std::make_shared<FrameBuffer>(view[2]*supersample_x, view[3]*supersample_y, gbuf, GL_NONE);
 		} else {
-			frame->resize(view[2]*supersample_x, view[3]*supersample_y);
+			pre_frame->resize(view[2]*supersample_x, view[3]*supersample_y);
 		}
 
 		if (frame2==0) {
@@ -536,7 +541,7 @@ void Client::render(void)
 		/*{
 			GLenum err = GL_NO_ERROR;
 			while ((err = glGetError()) != GL_NO_ERROR)
-				std::cout << "OpenGL error at end of frame: 0x" << (void*)err << std::endl;
+				std::cout << "OpenGL error at end of pre_frame: 0x" << (void*)err << std::endl;
 		}*/
 	}
 }
@@ -625,7 +630,7 @@ void Client::render_world(void)
 	flat_stencil_buf->resize(buffer_w, buffer_h);
 
 	
-	// initialize and maintain frame buffers
+	// initialize and maintain pre_frame buffers
 	if (depth_prepass_fb == nullptr)
 		depth_prepass_fb = std::make_shared<FrameBuffer>();
 	depth_prepass_fb->depth = depth_buf;
@@ -1454,6 +1459,7 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 						break;
 				NewEntity * unit = new NewEntity(in, false);
 				world->SetEntity(id, unit);
+				world->uid[id] = uid;
 				NewEntity * copy = new NewEntity();
 				for (auto i=unit->components.begin();i!=unit->components.end();++i) {
 					if (*i!=0) {
@@ -1533,17 +1539,17 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 			{
 				int id, uid;
 				in >> id >> uid;
-				if (id>=0)
+				if (id >= 0)
 				{
-					if (id<world->units.size())
+					if (id < world->units.size())
 					{
-						if (uid==world->uid[id])
+						if (uid == world->uid[id])
 						{
-							world->SetEntity(id, 0);
+							world->SetEntity(id, nullptr);
 							if (id < interpol_targets.size()) {
-								if (interpol_targets[id]!=0)
+								if (interpol_targets[id] != nullptr)
 									delete interpol_targets[id];
-								interpol_targets[id] = 0;
+								interpol_targets[id] = nullptr;
 							}
 						}
 					}
@@ -1590,12 +1596,12 @@ void Client::sync(void)
 		for (int i=0;i<world->units.size();++i)
 		{
 			NewEntity * ent = world->GetEntity(i);
-			if (ent==0)
+			if (ent == nullptr)
 			{
-				if (clientData->known_units[i]>=0)
-				{
-					missing.insert(i); // wtf? this need fixing // what needs fixing? dammit past me!
-				}
+				//if (clientData->known_units[i]>=0)
+				//{
+				//	missing.insert(i); // wtf? this need fixing // what needs fixing? dammit past me!
+				//}
 			}
 			else
 			{

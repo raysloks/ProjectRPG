@@ -41,7 +41,8 @@ public:
 
 	bool IsAlive(void);
 
-	virtual void tick(float dTime);
+	virtual void pre_frame(float dTime);
+	virtual void post_frame(float dTime);
 	virtual void render(void);
 //protected:
 

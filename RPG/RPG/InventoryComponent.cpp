@@ -36,7 +36,7 @@ void InventoryComponent::disconnect(void)
 {
 }
 
-void InventoryComponent::frame(float dTime)
+void InventoryComponent::pre_frame(float dTime)
 {
 	set_display(true);
 }
