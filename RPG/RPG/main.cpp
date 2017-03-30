@@ -112,32 +112,29 @@ public:
 					world->AddEntity(ent);
 				}
 			}*/
-			//for (int y = 0; y < 20; ++y)
-			//{
-			//	for (int i = 0; i < 20; ++i)
-			//	{
-			//		NewEntity * ent = new NewEntity();
+			for (int y = 0; y < 20; ++y)
+			{
+				for (int i = 0; i < 20; ++i)
+				{
+					NewEntity * ent = new NewEntity();
 
-			//		PositionComponent * p = new PositionComponent();
-			//		p->p += Vec3(2.0f * i, 2.0f * y + 0.5f * i, 1.5f * i + 0.5f * y - 12.0f);
-			//		ColliderComponent * c = new ColliderComponent();
-			//		GraphicsComponent * g = new GraphicsComponent(false);
+					PositionComponent * p = new PositionComponent();
+					p->p += Vec3(0.2f * i, 0.2f * y + 0.05f * i, 0.15f * i + 0.05f * y + 20.0f);
+					ColliderComponent * c = new ColliderComponent();
+					GraphicsComponent * g = new GraphicsComponent(false);
 
-			//		ent->addComponent(p);
-			//		ent->addComponent(c);
-			//		ent->addComponent(g);
+					ent->addComponent(p);
+					ent->addComponent(c);
+					ent->addComponent(g);
 
-			//		std::vector<std::string> tex;
-			//		tex.push_back("data/assets/terrain/textures/RockPlate.tga");
+					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/terrain/textures/RockPlate.tga"), 0)));
+					g->decs.items.front()->local *= 0.1f;
+					g->decs.items.front()->local.mtrx[3][3] = 1.0f;
+					g->decs.items.front()->final = g->decs.items.front()->local;
 
-			//		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", tex, 0)));
-			//		//g->decs.items.front()->local *= 0.1f;
-			//		//g->decs.items.front()->local.mtrx[3][3] = 1.0f;
-			//		g->decs.items.front()->final = g->decs.items.front()->local;
-
-			//		world->AddEntity(ent);
-			//	}
-			//}
+					world->AddEntity(ent);
+				}
+			}
 			/*{
 				NewEntity * ent = new NewEntity();
 
@@ -243,7 +240,7 @@ public:
 		}
 
 		// create ai entity
-		for (int i = 0; i < 2; ++i)
+		for (int i = 0; i < 0; ++i)
 		{
 			NewEntity * ent = new NewEntity();
 
@@ -293,6 +290,7 @@ public:
 			AnimationControlComponent * acc = new AnimationControlComponent();
 			InventoryComponent * inv = new InventoryComponent();
 			PoseComponent * pose = new PoseComponent();
+			LineComponent * line = new LineComponent();
 
 			ent->addComponent(cam);
 			ent->addComponent(p);
@@ -302,6 +300,7 @@ public:
 			ent->addComponent(acc);
 			ent->addComponent(inv);
 			ent->addComponent(pose);
+			ent->addComponent(line);
 
 			p->p = Vec3(-15.0f, -5.0f, 23.0f);
 
@@ -312,8 +311,8 @@ public:
 				ent->addComponent(light);
 			}*/
 
-			/*g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube_bevel.gmdl", Material("data/assets/empty.tga"), 15)));
-			g->decs.items.front()->local *= 0.15f;
+			/*g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube_bevel.gmdl", Material("data/assets/empty.tga"), 0)));
+			g->decs.items.front()->local *= 0.25f;
 			g->decs.items.front()->local.data[15] = 1.0f;
 			g->decs.items.front()->final = g->decs.items.front()->local;*/
 

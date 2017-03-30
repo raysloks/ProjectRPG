@@ -389,6 +389,7 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3 & sP, const Vec3 & eP, floa
 		{
 			col.reset(new Collision());
 			col->t = ld1 / l;
+			col->n = n; // is this an edge or a corner?
 			col->poo = sP + dir * ld1;
 			col->poc = p1;
 			return col;
@@ -406,6 +407,7 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3 & sP, const Vec3 & eP, floa
 		{
 			col.reset(new Collision());
 			col->t = ld2 / l;
+			col->n = n; // is this an edge or a corner?
 			col->poo = sP + dir * ld2;
 			col->poc = p2;
 			return col;
@@ -423,6 +425,7 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3 & sP, const Vec3 & eP, floa
 		{
 			col.reset(new Collision());
 			col->t = ld3 / l;
+			col->n = n; // is this an edge or a corner?
 			col->poo = sP + dir * ld3;
 			col->poc = p3;
 			return col;

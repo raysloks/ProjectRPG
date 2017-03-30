@@ -1248,8 +1248,38 @@ void Client::render_world(void)
 	}
 
 
+	//{
+	//	RenderSetup rs;
+
+	//	glUseProgram(0);
+
+	//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	//	//set matrix to camera for editor
+	//	glMatrixMode(GL_PROJECTION);
+	//	glLoadIdentity();
+	//	glMultMatrixf(proj.data);
+	//	glMatrixMode(GL_MODELVIEW);
+	//	glLoadIdentity();
+
+	//	if (LineComponent::mode != 0)
+	//		glEnable(GL_DEPTH_TEST);
+	//	LineComponent::render_all(rs);
+
+	//	if (LineComponent::mode == 2)
+	//	{
+	//		rs.pass = 3;
+	//		glDepthFunc(GL_NOTEQUAL);
+	//		LineComponent::render_all(rs);
+	//	}
+
+	//	glLoadIdentity();
+	//}
+
+
 	// render to screen
-	if (dof_prog->Use()) {
+	if (dof_prog->Use())
+	{
 		glDisable(GL_CULL_FACE);
 		glDisable(GL_DEPTH_TEST);
 
@@ -1280,36 +1310,6 @@ void Client::render_world(void)
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
-
-	//glUseProgram(0);
-
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	////set matrix to camera for editor
-	//glMatrixMode(GL_PROJECTION);
-	//glLoadIdentity();
-	//glMultMatrixf(proj.data);
-	//glMatrixMode(GL_MODELVIEW);
-	//glLoadIdentity();
-
-	//rs.pass = 2;
-
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, buffer->depth, 0); //bind the scene depth
-
-	//if (LineComponent::mode != 0)
-	//	glEnable(GL_DEPTH_TEST);
-	//LineComponent::render_all(rs);
-
-	//if (LineComponent::mode == 2)
-	//{
-	//	rs.pass = 3;
-	//	glDepthFunc(GL_NOTEQUAL);
-	//	LineComponent::render_all(rs);
-	//}
-
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);//unbind the scene depth to allow proper deferred rendering
-
-	//glLoadIdentity();
 }
 
 bool Client::HandleEvent(IEvent * pEvent)

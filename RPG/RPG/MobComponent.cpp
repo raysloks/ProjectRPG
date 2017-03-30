@@ -222,13 +222,14 @@ void MobComponent::tick(float dTime)
 					float disk_radius = 0.5f;
 					float offset = 0.5f;
 					float height = 0.5f;
-					//ColliderComponent::DiskCast(*p - up * offset, *p - up * (offset + height), disk_radius, list);
+					ColliderComponent::DiskCast(*p - up * offset, *p - up * (offset + height), disk_radius, list);
 					if (list.size() > 0)
 					{
 						std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
 						Vec3 axis = Vec3(list.front()->poc - list.front()->poo).Cross(up).Normalize();
 						GlobalPosition pivot = list.front()->poc;
 						GlobalPosition center = list.front()->poo;
+						Vec3 n = list.front()->n;
 						float tdt = list.front()->t;
 						list.clear();
 
@@ -257,6 +258,8 @@ void MobComponent::tick(float dTime)
 							col->n = up;
 							col->poo = center + up * (offset + height * 0.5f);
 							list.push_back(col);
+
+							std::cout << "flat" << std::endl;
 						}
 						else
 						{
@@ -327,8 +330,46 @@ void MobComponent::tick(float dTime)
 										line->color[9].first = Vec3(0.0f, 0.0f, 0.0f);
 										line->color[9].second = Vec3(1.0f, 1.0f, 1.0f);
 									}
+
+									std::cout << 3 << std::endl;
+								}
+								else
+								{
+									std::shared_ptr<Collision> col(new Collision());
+									col->t = 0.0f;
+									col->n = axis.Cross(pivot - center).Normalize();
+									col->poo = center + up * (offset + height * 0.5f);
+									list.push_back(col);
+
+									std::cout << 2 << std::endl;
 								}
 							}
+							else
+							{
+								std::shared_ptr<Collision> col(new Collision());
+								col->t = 0.0f;
+								col->n = n;
+								col->poo = center + up * (offset + height * 0.5f);
+								list.push_back(col);
+
+								std::cout << 1 << std::endl;
+							}
+						}
+					}
+					else
+					{
+						std::cout << 0 << std::endl;
+					}
+
+					if (list.size() > 0)
+					{
+						landed = true;
+						land_n = list.front()->n;
+						land_v = list.front()->v;
+
+						if (up.Dot(list.front()->poo - *p) < 0.0f)
+						{
+							list.clear();
 						}
 					}
 				}
@@ -420,6 +461,8 @@ void MobComponent::tick(float dTime)
 				c_move -= land_n * land_n.Dot(c_move);
 
 				v -= land_v;
+				float nv = v.Dot(land_n);
+				v -= land_n * nv;
 
 				land_g -= c_move - v;
 
@@ -427,6 +470,7 @@ void MobComponent::tick(float dTime)
 
 				c_move = v;
 
+				v += land_n * nv;
 				v += land_v;
 
 				if (input.find("jump") != input.end()) {

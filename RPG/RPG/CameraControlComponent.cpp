@@ -62,7 +62,7 @@ void CameraControlComponent::pre_frame(float dTime)
 			//set camera position relative to focus point
 			if (p != 0) {
 				entity->world->cam_rot = cam_rot;
-				entity->world->cam_pos = *p + up * 1.2f;
+				entity->world->cam_pos = *p + up * 1.2f - front * 4.0f;
 			}
 		}
 	}
