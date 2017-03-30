@@ -78,6 +78,7 @@ public:
 				materials.materials.push_back(Material("data/assets/terrain/textures/asphalt.tga"));
 				materials.materials.push_back(Material("data/assets/terrain/textures/plank.tga"));
 				materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
+				materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
 
 				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/escape.gmdl", materials, 0)));
 				g->decs.items.front()->local *= 10.0f;
@@ -112,7 +113,7 @@ public:
 					world->AddEntity(ent);
 				}
 			}*/
-			for (int y = 0; y < 20; ++y)
+			/*for (int y = 0; y < 20; ++y)
 			{
 				for (int i = 0; i < 20; ++i)
 				{
@@ -134,7 +135,7 @@ public:
 
 					world->AddEntity(ent);
 				}
-			}
+			}*/
 			/*{
 				NewEntity * ent = new NewEntity();
 
@@ -311,8 +312,9 @@ public:
 				ent->addComponent(light);
 			}*/
 
-			/*g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube_bevel.gmdl", Material("data/assets/empty.tga"), 0)));
-			g->decs.items.front()->local *= 0.25f;
+			/*g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cylinder32.gmdl", Material("data/assets/empty.tga"), 0)));
+			g->decs.items.front()->local *= 0.5f;
+			g->decs.items.front()->local.mtrx[1][1] = 0.25f;
 			g->decs.items.front()->local.data[15] = 1.0f;
 			g->decs.items.front()->final = g->decs.items.front()->local;*/
 

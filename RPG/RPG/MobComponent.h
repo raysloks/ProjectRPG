@@ -65,7 +65,8 @@ public:
 	Vec3 land_n, land_v, land_g;
 	Vec3 c_move;
 	Vec3 move;
-	bool run, landed;
+	bool run, crouch;
+	bool landed;
 	float dodge;
 	bool strafe;
 

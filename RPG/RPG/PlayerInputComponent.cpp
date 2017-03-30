@@ -96,7 +96,8 @@ void PlayerInputComponent::post_frame(float dTime)
 			move.Normalize();
 			move *= l;
 
-			cs.input["run"] = input.isDown(Platform::KeyEvent::LSHIFT) || input.ctrl[0].b.down;
+			cs.input["run"] = input.isDown(Platform::KeyEvent::LSHIFT) || input.ctrl[0].left_thumb.down;
+			cs.input["crouch"] = input.isDown(Platform::KeyEvent::LCTRL) || input.ctrl[0].b.down;
 			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].a.pressed)
 				cs.activate("jump");
 			if (input.isPressed(Platform::KeyEvent::LMB) || input.ctrl[0].right_trigger.pressed)
@@ -130,6 +131,7 @@ void PlayerInputComponent::tick(float dTime)
 			mob->cam_rot = cam_rot;
 
 			mob->run = cs.input["run"];
+			mob->crouch = cs.input["crouch"];
 			if (cs.active.find("jump") != cs.active.end())
 				mob->input["jump"] = buffer_duration;
 

@@ -114,6 +114,8 @@ void GameLoop::tick(void)
 	float last_frame_duration = durationInSeconds;
 
 	if (client!=0) {
+		if (client->input.isDown(Platform::KeyEvent::M))
+			Sleep(100);
 		client->pre_frame(last_frame_duration);
 		client->render();
 		client->input.clear();
@@ -143,7 +145,7 @@ void GameLoop::tick(void)
 	} else {
 		if (lag>secondsPerStep*0.5) { // TODO fix
 			if (world->authority)
-				server->tick(lag);
+				server->tick(secondsPerStep);
 			/*if (client != 0)
 				client->tick(lag);*/
 			lag -= lag;

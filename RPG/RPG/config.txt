@@ -23,7 +23,7 @@ supersampling_r = 1;
 
 fov = 80.0;
 
-near_z = 0.1;
+near_z = 0.05;
 far_z = 500.0;
 depth_partitions = 1;
 

@@ -278,6 +278,10 @@ std::shared_ptr<Collision> Wall::DiskCastLine(const Vec3& sP, const Vec3& eP, co
 				if (col->dist <= cl && col->dist >= 0.0f)
 				{
 					col->t = col->dist / cl;
+					col->n = l.Cross(dir).Cross(l);
+					col->n.Normalize();
+					if (col->n.Dot(dir) > 0.0f)
+						col->n = -col->n;
 					col->poo = vP + dir * col->dist;
 					col->poc = poc;
 					return col;
@@ -349,7 +353,7 @@ std::shared_ptr<Collision> Wall::SphereCast(const Vec3& sP, const Vec3& eP, floa
 	return 0;
 }
 
-std::shared_ptr<Collision> Wall::DiskCast(const Vec3 & sP, const Vec3 & eP, float r)
+std::shared_ptr<Collision> Wall::DiskCast(const Vec3& sP, const Vec3& eP, float r)
 {
 	std::shared_ptr<Collision> col;
 
@@ -357,9 +361,12 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3 & sP, const Vec3 & eP, floa
 	float l = dif.Len();
 	Vec3 dir = dif / l;
 
-	Vec3 uphill_flat = n.Cross(dir).Cross(dir) * r;
+	Vec3 uphill_flat = n.Cross(dir).Cross(dir);
 	uphill_flat -= dir*dir.Dot(uphill_flat);
+	uphill_flat.Normalize();
+	uphill_flat *= r;
 
+	// face
 	col = LineCheck(sP + uphill_flat, eP + uphill_flat);
 	if (col != nullptr)
 	{
@@ -379,17 +386,19 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3 & sP, const Vec3 & eP, floa
 	float r2 = r*r;
 	if (ld1 < ld2 && ld1 < ld3)
 	{
+		// edges
 		col = DiskCastLine(p1, p2, sP, dir, l, r);
 		if (col != nullptr)
 			return col;
 		col = DiskCastLine(p1, p3, sP, dir, l, r);
 		if (col != nullptr)
 			return col;
-		if (f1.LenPwr() <= r2)
+		// vertex
+		if (f1.LenPwr() <= r2 && ld1 >= 0.0f && ld1 <= l)
 		{
 			col.reset(new Collision());
 			col->t = ld1 / l;
-			col->n = n; // is this an edge or a corner?
+			col->n = -dir;
 			col->poo = sP + dir * ld1;
 			col->poc = p1;
 			return col;
@@ -397,17 +406,19 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3 & sP, const Vec3 & eP, floa
 	}
 	else if (ld2 < ld3)
 	{
+		// edges
 		col = DiskCastLine(p2, p1, sP, dir, l, r);
 		if (col != nullptr)
 			return col;
 		col = DiskCastLine(p2, p3, sP, dir, l, r);
 		if (col != nullptr)
 			return col;
-		if (f2.LenPwr() <= r2)
+		// vertex
+		if (f2.LenPwr() <= r2 && ld2 >= 0.0f && ld2 <= l)
 		{
 			col.reset(new Collision());
 			col->t = ld2 / l;
-			col->n = n; // is this an edge or a corner?
+			col->n = -dir;
 			col->poo = sP + dir * ld2;
 			col->poc = p2;
 			return col;
@@ -415,17 +426,19 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3 & sP, const Vec3 & eP, floa
 	}
 	else
 	{
+		// edges
 		col = DiskCastLine(p3, p1, sP, dir, l, r);
 		if (col != nullptr)
 			return col;
 		col = DiskCastLine(p3, p2, sP, dir, l, r);
 		if (col != nullptr)
 			return col;
-		if (f3.LenPwr() <= r2)
+		// vertex
+		if (f3.LenPwr() <= r2 && ld3 >= 0.0f && ld3 <= l)
 		{
 			col.reset(new Collision());
 			col->t = ld3 / l;
-			col->n = n; // is this an edge or a corner?
+			col->n = -dir;
 			col->poo = sP + dir * ld3;
 			col->poc = p3;
 			return col;

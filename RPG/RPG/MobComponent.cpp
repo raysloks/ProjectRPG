@@ -124,7 +124,7 @@ void MobComponent::tick(float dTime)
 					ent->addComponent(projectile);
 					ent->addComponent(g);
 
-					pos->p = *p + up * 1.2f;
+					pos->p = *p + up * 0.45f;
 
 					projectile->v = muzzle_velocity;
 					projectile->drag = 0.01f;
@@ -204,6 +204,13 @@ void MobComponent::tick(float dTime)
 			std::set<void*> ignored;
 			std::set<Vec3> previous;
 
+			/*auto wpc = weapon->entity->getComponent<PositionComponent>();
+			if (wpc != nullptr)
+			{
+				wpc->p = *p;
+				wpc->update();
+			}*/
+
 			while (t>0.0f)
 			{
 				std::vector<std::shared_ptr<Collision>> list;
@@ -219,9 +226,22 @@ void MobComponent::tick(float dTime)
 						line->color.resize(16);
 					}
 
-					float disk_radius = 0.5f;
-					float offset = 0.5f;
-					float height = 0.5f;
+					/*ColliderComponent::DiskCast(*p, *p - up * (0.25f), 0.5f, list);
+					if (!list.empty())
+					{
+						std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
+						if (list.front()->n.Dot(up) > 0.5f)
+						{
+							v += up * dTime * 25.0f;
+							landed = true;
+						}
+					}
+					list.clear();*/
+
+					float disk_radius = 0.25f;
+					float offset = 0.0f;
+					float height = crouch ? 1.0f : 1.5f;
+					float standing_height = crouch ? 0.75f : 1.25f;
 					ColliderComponent::DiskCast(*p - up * offset, *p - up * (offset + height), disk_radius, list);
 					if (list.size() > 0)
 					{
@@ -229,6 +249,14 @@ void MobComponent::tick(float dTime)
 						Vec3 axis = Vec3(list.front()->poc - list.front()->poo).Cross(up).Normalize();
 						GlobalPosition pivot = list.front()->poc;
 						GlobalPosition center = list.front()->poo;
+
+						/*auto wpc = weapon->entity->getComponent<PositionComponent>();
+						if (wpc != nullptr)
+						{
+							wpc->p = list.front()->poc;
+							wpc->update();
+						}*/
+
 						Vec3 n = list.front()->n;
 						float tdt = list.front()->t;
 						list.clear();
@@ -255,115 +283,26 @@ void MobComponent::tick(float dTime)
 						{
 							std::shared_ptr<Collision> col(new Collision());
 							col->t = 0.0f;
-							col->n = up;
-							col->poo = center + up * (offset + height * 0.5f);
+							col->n = n;
+							col->poo = center + up * standing_height;
 							list.push_back(col);
-
-							std::cout << "flat" << std::endl;
 						}
 						else
 						{
-							ColliderComponent::LowerDisk(pivot, center, axis, -up * (1.0f - tdt) * height, disk_radius, list);
-							if (list.size() > 0)
-							{
-								std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
-								axis = Vec3(pivot - list.front()->poc).Normalize();
-								GlobalPosition second_pivot = list.front()->poc;
-								center = list.front()->poo;
-								tdt += list.front()->t * (1.0f - tdt);
-								list.clear();
-
-								if (line != 0)
-								{
-									line->lines[1].first = second_pivot - *p;
-									line->lines[1].second = second_pivot + up - *p;
-									line->color[1].first = Vec3(1.0f, 1.0f, 1.0f);
-									line->color[1].second = Vec3(0.0f, 1.0f, 0.0f);
-
-									line->lines[4].first = second_pivot - *p;
-									line->lines[4].second = center - *p;
-									line->color[4].first = Vec3(0.0f, 1.0f, 0.0f);
-									line->color[4].second = Vec3(0.0f, 1.0f, 0.0f);
-
-									line->lines[7].first = second_pivot - *p;
-									line->lines[7].second = second_pivot + axis - *p;
-									line->color[7].first = Vec3(0.0f, 1.0f, 0.0f);
-									line->color[7].second = Vec3(0.0f, 0.0f, 0.0f);
-								}
-
-								ColliderComponent::LowerDisk(pivot, center, axis, -up * (1.0f - tdt) * height, disk_radius, list);
-								if (list.size() > 0)
-								{
-									std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
-									center = list.front()->poo;
-									Vec3 n = axis.Cross(pivot - list.front()->poc).Normalize();
-									GlobalPosition third_pivot = list.front()->poc;
-									if (n.z < 0.0f)
-										n = -n;
-									tdt += list.front()->t * (1.0f - tdt);
-									list.clear();
-									std::shared_ptr<Collision> col(new Collision());
-									col->t = 0.0f;
-									col->n = n;
-									col->poo = center + up * (offset + height * 0.5f);
-									list.push_back(col);
-
-									if (line != 0)
-									{
-										line->lines[2].first = third_pivot - *p;
-										line->lines[2].second = third_pivot + up - *p;
-										line->color[2].first = Vec3(1.0f, 1.0f, 1.0f);
-										line->color[2].second = Vec3(0.0f, 0.0f, 1.0f);
-
-										line->lines[5].first = third_pivot - *p;
-										line->lines[5].second = center - *p;
-										line->color[5].first = Vec3(0.0f, 0.0f, 1.0f);
-										line->color[5].second = Vec3(0.0f, 0.0f, 1.0f);
-
-										line->lines[8].first = third_pivot - *p;
-										line->lines[8].second = third_pivot + axis - *p;
-										line->color[8].first = Vec3(0.0f, 0.0f, 1.0f);
-										line->color[8].second = Vec3(0.0f, 0.0f, 0.0f);
-
-										line->lines[9].first = center - *p;
-										line->lines[9].second = center + n - *p;
-										line->color[9].first = Vec3(0.0f, 0.0f, 0.0f);
-										line->color[9].second = Vec3(1.0f, 1.0f, 1.0f);
-									}
-
-									std::cout << 3 << std::endl;
-								}
-								else
-								{
-									std::shared_ptr<Collision> col(new Collision());
-									col->t = 0.0f;
-									col->n = axis.Cross(pivot - center).Normalize();
-									col->poo = center + up * (offset + height * 0.5f);
-									list.push_back(col);
-
-									std::cout << 2 << std::endl;
-								}
-							}
-							else
-							{
-								std::shared_ptr<Collision> col(new Collision());
-								col->t = 0.0f;
-								col->n = n;
-								col->poo = center + up * (offset + height * 0.5f);
-								list.push_back(col);
-
-								std::cout << 1 << std::endl;
-							}
+							std::shared_ptr<Collision> col(new Collision());
+							col->t = 0.0f;
+							col->n = n;
+							col->poo = center + up * standing_height;
+							list.push_back(col);
 						}
-					}
-					else
-					{
-						std::cout << 0 << std::endl;
 					}
 
 					if (list.size() > 0)
 					{
-						landed = true;
+						if (list.front()->n.Dot(up) > 0.5f)
+						{
+							landed = true;
+						}
 						land_n = list.front()->n;
 						land_v = list.front()->v;
 
@@ -423,6 +362,8 @@ void MobComponent::tick(float dTime)
 					float fall_damage = std::max(0.0f, -10.0f - col->n.Dot(v));
 					fall_damage *= 40.0f;
 					health.current -= fall_damage;
+					if (fall_damage > 0.0f)
+						hit = true;
 
 					v -= col->n*col->n.Dot(v);
 					v += col->v;
@@ -451,12 +392,13 @@ void MobComponent::tick(float dTime)
 
 			if (landed)
 			{
-				float speed = 5.0f;
-				speed += run && input.find("run_delay")==input.end() ? 400.0f : 0.0f * std::max(0.0f, move.Dot(move_facing));
-				//speed -= action != 0 ? 3.0f : 0.0f;
+				float speed = crouch ? 2.0f : run ? 9.0f : 5.0f;
 
-				Vec3 target = move * speed;
-				target -= land_n * land_n.Dot(target);
+				Vec3 target = move;
+				Vec3 target_right = target.Cross(up);
+				target = land_n.Cross(target_right);
+				target.Normalize();
+				target *= speed;
 
 				c_move -= land_n * land_n.Dot(c_move);
 
@@ -548,7 +490,7 @@ void MobComponent::tick(float dTime)
 		auto wpc = weapon->entity->getComponent<PositionComponent>();
 		if (wpc != nullptr)
 		{
-			wpc->p = *p + up * 1.2f + Vec3(-0.25f, -0.5f + recoil * 0.25f, 0.75f - recoil) * cam_rot;
+			wpc->p = *p + up * 0.45f + Vec3(-0.25f, -0.5f + recoil * 0.25f, 0.75f - recoil * 0.5f) * cam_rot;
 			wpc->update();
 			auto wgc = weapon->entity->getComponent<GraphicsComponent>();
 			if (wgc != nullptr)
@@ -557,7 +499,9 @@ void MobComponent::tick(float dTime)
 				wgc->decs.update(0);
 			}
 		}
+		recoil -= run;
 		recoil *= exp(log(0.05f) * dTime);
+		recoil += run;
 	}
 }
 
