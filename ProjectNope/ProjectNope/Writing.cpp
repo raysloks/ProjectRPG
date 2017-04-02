@@ -131,20 +131,11 @@ void Writing::render(const std::string& text)
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	LARGE_INTEGER freq, start, end;
-	QueryPerformanceFrequency(&freq);
-	QueryPerformanceCounter(&start);
-
 	glPushMatrix();
 	GlyphString gs(text);
 	gs.font = font;
 	gs.render();
 	glPopMatrix();
-
-	QueryPerformanceCounter(&end);
-	double durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
-
-	Profiler::add("font-render", durationInSeconds);
 
 	/*auto font = Resource::get<FontResource>("data/assets/fonts/Lora-Regular.ttf");
 	if (font!=0)

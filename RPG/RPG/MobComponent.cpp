@@ -89,7 +89,7 @@ void MobComponent::tick(float dTime)
 
 		if (p != nullptr)
 		{
-			auto mobs = entity->world->GetNearestComponents<MobComponent>(*p);
+			auto mobs = entity->world->GetNearestComponents<MobComponent>(*p, 2.0f);
 			for each (auto mob in mobs)
 			{
 				if (mob.first < 1.0f && mob.second != this)
@@ -136,10 +136,7 @@ void MobComponent::tick(float dTime)
 					entity->world->AddEntity(ent);
 				};
 
-				for (size_t i = 0; i < 10; i++)
-				{
-					spawn_bullet(cam_facing * 470.0f);
-				}
+				spawn_bullet(cam_facing * 470.0f);
 
 				recoil += 0.3f;
 
@@ -178,6 +175,8 @@ void MobComponent::tick(float dTime)
 			{
 				*p = spawn_position;
 				v = Vec3();
+				if (temp_team == 1)
+					entity->world->SetEntity(entity->id, nullptr);
 			}
 
 			//v += move * dTime * 100.0f;
@@ -398,7 +397,7 @@ void MobComponent::tick(float dTime)
 				Vec3 target_right = target.Cross(up);
 				target = land_n.Cross(target_right);
 				target.Normalize();
-				target *= speed;
+				target *= move.Len() * speed;
 
 				c_move -= land_n * land_n.Dot(c_move);
 

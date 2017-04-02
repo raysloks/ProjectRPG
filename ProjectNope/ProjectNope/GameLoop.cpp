@@ -110,7 +110,6 @@ void GameLoop::init(void)
 
 void GameLoop::tick(void)
 {
-	Profiler::add("fps", 1.0/durationInSeconds);
 	float last_frame_duration = durationInSeconds;
 
 	if (client!=0) {

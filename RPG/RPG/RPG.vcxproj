@@ -167,6 +167,7 @@
     <ClCompile Include="PlayerInputComponent.cpp" />
     <ClCompile Include="ProjectileComponent.cpp" />
     <ClCompile Include="SkillNode.cpp" />
+    <ClCompile Include="SpawnComponent.cpp" />
     <ClCompile Include="WeaponComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -197,6 +198,7 @@
     <ClInclude Include="PlayerInputComponent.h" />
     <ClInclude Include="ProjectileComponent.h" />
     <ClInclude Include="SkillNode.h" />
+    <ClInclude Include="SpawnComponent.h" />
     <ClInclude Include="WeaponComponent.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

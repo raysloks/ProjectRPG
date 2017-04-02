@@ -34,6 +34,38 @@ void Wall::Recalculate(void)
 	l31 = (p3-p1).Len();
 }
 
+std::pair<Vec3, Vec3> Wall::GetAABB(void)
+{
+	Vec3 aabb_min = Vec3(INFINITE, INFINITE, INFINITE);
+	Vec3 aabb_max = -aabb_min;
+
+	aabb_max.x = std::fmaxf(aabb_max.x, p1.x);
+	aabb_max.y = std::fmaxf(aabb_max.y, p1.y);
+	aabb_max.z = std::fmaxf(aabb_max.z, p1.z);
+
+	aabb_max.x = std::fmaxf(aabb_max.x, p2.x);
+	aabb_max.y = std::fmaxf(aabb_max.y, p2.y);
+	aabb_max.z = std::fmaxf(aabb_max.z, p2.z);
+
+	aabb_max.x = std::fmaxf(aabb_max.x, p3.x);
+	aabb_max.y = std::fmaxf(aabb_max.y, p3.y);
+	aabb_max.z = std::fmaxf(aabb_max.z, p3.z);
+
+	aabb_min.x = std::fminf(aabb_min.x, p1.x);
+	aabb_min.y = std::fminf(aabb_min.y, p1.y);
+	aabb_min.z = std::fminf(aabb_min.z, p1.z);
+
+	aabb_min.x = std::fminf(aabb_min.x, p2.x);
+	aabb_min.y = std::fminf(aabb_min.y, p2.y);
+	aabb_min.z = std::fminf(aabb_min.z, p2.z);
+
+	aabb_min.x = std::fminf(aabb_min.x, p3.x);
+	aabb_min.y = std::fminf(aabb_min.y, p3.y);
+	aabb_min.z = std::fminf(aabb_min.z, p3.z);
+
+	return std::make_pair(aabb_min, aabb_max);
+}
+
 std::shared_ptr<Collision> ForceOut(const Vec3& p, const Vec3& v, float r)
 {
 	float tmpf = v.Len();

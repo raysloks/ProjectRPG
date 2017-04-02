@@ -49,6 +49,8 @@ public:
 	HealthBar health;
 	HealthBar stamina;
 
+	size_t temp_team;
+
 	WeaponComponent * weapon;
 	float recoil;
 

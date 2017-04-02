@@ -43,43 +43,40 @@ void ProjectileComponent::tick(float dTime)
 
 		Vec3 dp = v * dTime + g * dTime * dTime;
 
+		std::vector<std::pair<MobComponent*, std::shared_ptr<Collision>>> hits;
 		auto mobs = entity->world->GetNearestComponents<MobComponent>(pc->p);
 		for each (auto mob in mobs)
 		{
 			auto col = Wall::SphereLine(Vec3(), dp, *mob.second->p - pc->p, 0.5f);
 			if (col != nullptr)
 			{
-				mob.second->health.current -= 20.0f;
-				mob.second->hit = true;
-				v = mob.second->v;
+				hits.push_back(std::make_pair(mob.second, col));
 			}
 		}
 
 		std::vector<std::shared_ptr<Collision>> list;
 		ColliderComponent::LineCheck(pc->p, pc->p + dp, list);
-		if (list.empty())
+		for each (auto col in list)
+		{
+			hits.push_back(std::make_pair(nullptr, col));
+		}
+
+		if (hits.empty())
 		{
 			pc->p += v * dTime + g * dTime * dTime;
 		}
 		else
 		{
-			std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& lhs, const std::shared_ptr<Collision>& rhs) -> bool {
+			std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& lhs, const std::shared_ptr<Collision>& rhs) {
 				return lhs->t < rhs->t;
 			});
-			pc->p = list.front()->poc;
-			//entity->removeComponent(this);
-			if (v.LenPwr() > 100.0f)
+			pc->p = hits.front().second->poo;
+			if (hits.front().first != nullptr)
 			{
-				v -= list.front()->n * list.front()->n.Dot(v) * 2.0f;
-				float v_mod = 1.0f - v.Normalized().Dot(list.front()->n);
-				v_mod *= v_mod;
-				v_mod *= v_mod;
-				v *= v_mod;
+				hits.front().first->health.current -= 20.0f;
+				hits.front().first->hit = true;
 			}
-			else
-			{
-				entity->world->SetEntity(entity->id, nullptr);
-			}
+			entity->world->SetEntity(entity->id, nullptr);
 		}
 
 		v += g * dTime;

@@ -60,7 +60,7 @@ void AIComponent::tick(float dTime)
 
 			for (auto i = nearby_mobs.begin(); i != nearby_mobs.end(); ++i)
 			{
-				if (i->second != mob)
+				if (i->second != mob && i->second->temp_team != mob->temp_team)
 				{
 					other = i->second;
 					break;
@@ -72,7 +72,7 @@ void AIComponent::tick(float dTime)
 				charge += dTime;
 
 				float distance = Vec3(*other->p - *mob->p).Len();
-				
+
 				if (charge > 1.0f)
 					mob->move = *other->p - *mob->p;
 

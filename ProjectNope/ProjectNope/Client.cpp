@@ -347,9 +347,13 @@ void Client::render(void)
 {
 	setup();
 
-	LARGE_INTEGER freq, start, end;
-	QueryPerformanceFrequency(&freq);
-	QueryPerformanceCounter(&start);
+	if (input.isPressed(Platform::KeyEvent::P))
+	{
+		std::cout << Profiler::get() << std::endl;
+	}
+	Profiler::reset();
+
+	Timeslot timeslot_render("render");
 
 	//if (hud==0) {
 	//	hud.reset(new StandardHUD(world, this, 0, 0, 0, 0));
@@ -963,10 +967,6 @@ void Client::render_world(void)
 							}
 						}
 					}
-
-					QueryPerformanceCounter(&end);
-					double durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
-					Profiler::add("shadow-look-up", durationInSeconds);
 				}
 
 				// push shadow look-up table to gpu
@@ -1277,10 +1277,25 @@ void Client::render_world(void)
 	//}
 
 
+	// render GUI
+	if (dof_prog->Use())
+	{
+		glDisable(GL_DEPTH_TEST);
+
+		deferred_fb->bind();
+		glViewport(0, 0, view_w, view_h);
+
+		glActiveTexture(GL_TEXTURE0);
+		dof_prog->Uniform("diffuse", 0);
+		glBindTexture(GL_TEXTURE_2D, color_buf->gl_texture_id);
+
+		RenderSetup rs;
+	}
+
+
 	// render to screen
 	if (dof_prog->Use())
 	{
-		glDisable(GL_CULL_FACE);
 		glDisable(GL_DEPTH_TEST);
 
 		deferred_fb->unbind();

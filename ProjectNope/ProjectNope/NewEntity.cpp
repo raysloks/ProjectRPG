@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+#include "Profiler.h"
+
 NewEntity::NewEntity(void)
 {
 }
@@ -75,23 +77,38 @@ std::vector<Component*>::iterator NewEntity::removeComponent(Component * pCompon
 
 void NewEntity::pre_frame(float dTime)
 {
-	for (auto i=components.begin();i!=components.end();++i)
-		if (*i!=0)
+	for (auto i = components.begin(); i != components.end(); ++i)
+	{
+		if (*i != nullptr)
+		{
+			Timeslot timeslot_component(Serializable::getName((*i)->getSerialID()));
 			(*i)->pre_frame(dTime);
+		}
+	}
 }
 
 void NewEntity::post_frame(float dTime)
 {
 	for (auto i = components.begin(); i != components.end(); ++i)
-		if (*i != 0)
+	{
+		if (*i != nullptr)
+		{
+			Timeslot timeslot_component(Serializable::getName((*i)->getSerialID()));
 			(*i)->post_frame(dTime);
+		}
+	}
 }
 
 void NewEntity::tick(float dTime)
 {
-	for (auto i=components.begin();i!=components.end();++i)
-		if (*i!=0)
+	for (auto i = components.begin(); i != components.end(); ++i)
+	{
+		if (*i != nullptr)
+		{
+			Timeslot timeslot_component(Serializable::getName((*i)->getSerialID()));
 			(*i)->tick(dTime);
+		}
+	}
 }
 
 void NewEntity::writeLog(outstream& os, ClientData& client)

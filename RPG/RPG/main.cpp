@@ -21,6 +21,7 @@
 #include "PoseComponent.h"
 #include "OrbitComponent.h"
 #include "WeaponComponent.h"
+#include "SpawnComponent.h"
 
 #include "ClientData.h"
 
@@ -79,6 +80,7 @@ public:
 				materials.materials.push_back(Material("data/assets/terrain/textures/plank.tga"));
 				materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
 				materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
+				materials.materials.push_back(Material("data/assets/terrain/textures/brick2.tga"));
 
 				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/escape.gmdl", materials, 0)));
 				g->decs.items.front()->local *= 10.0f;
@@ -238,6 +240,18 @@ public:
 
 				world->AddEntity(ent);
 			}*/
+			{
+				NewEntity * ent = new NewEntity();
+
+				SpawnComponent * spawn = new SpawnComponent();
+
+				ent->addComponent(spawn);
+
+				spawn->aabb_min = Vec3(21.0f, -10.0f, 21.0f);
+				spawn->aabb_max = Vec3(31.0f, 40.0f, 30.0f);
+
+				world->AddEntity(ent);
+			}
 		}
 
 		// create ai entity
@@ -288,7 +302,7 @@ public:
 			GraphicsComponent * g = new GraphicsComponent();
 			PlayerInputComponent * input = new PlayerInputComponent();
 			MobComponent * mob = new MobComponent();
-			AnimationControlComponent * acc = new AnimationControlComponent();
+			//AnimationControlComponent * acc = new AnimationControlComponent();
 			InventoryComponent * inv = new InventoryComponent();
 			PoseComponent * pose = new PoseComponent();
 			LineComponent * line = new LineComponent();
@@ -298,7 +312,7 @@ public:
 			ent->addComponent(g);
 			ent->addComponent(input);
 			ent->addComponent(mob);
-			ent->addComponent(acc);
+			//ent->addComponent(acc);
 			ent->addComponent(inv);
 			ent->addComponent(pose);
 			ent->addComponent(line);

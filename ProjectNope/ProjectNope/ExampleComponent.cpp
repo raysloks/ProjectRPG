@@ -26,6 +26,10 @@ void ExampleComponent::pre_frame(float dTime)
 {
 }
 
+void ExampleComponent::post_frame(float dTime)
+{
+}
+
 void ExampleComponent::tick(float dTime)
 {
 }

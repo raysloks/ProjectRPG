@@ -3,14 +3,22 @@
 
 #include <string>
 
+class Timeslot
+{
+public:
+	Timeslot(const std::string& slot);
+	~Timeslot(void);
+};
+
 class Profiler
 {
 public:
 	Profiler(void);
 	~Profiler(void);
 
-	static void add(const std::string& name, double time);
-	static void print(void);
+	static void start(const std::string& slot);
+	static void stop(void);
+	static void reset(void);
 	static std::string get(void);
 };
 

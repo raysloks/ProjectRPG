@@ -28,6 +28,7 @@
     <ClCompile Include="OrbitComponent.cpp" />
     <ClCompile Include="ProjectileComponent.cpp" />
     <ClCompile Include="WeaponComponent.cpp" />
+    <ClCompile Include="SpawnComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -56,6 +57,7 @@
     <ClInclude Include="OrbitComponent.h" />
     <ClInclude Include="ProjectileComponent.h" />
     <ClInclude Include="WeaponComponent.h" />
+    <ClInclude Include="SpawnComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

@@ -15,6 +15,8 @@ public:
 
 	void Recalculate(void);
 
+	std::pair<Vec3, Vec3> GetAABB(void);
+
 	std::shared_ptr<Collision> SphereCheck(const Vec3& vP, float r);
 	std::shared_ptr<Collision> LineCheck(const Vec3& sP, const Vec3& eP);
 	std::shared_ptr<Collision> LineCheck(const Vec3& sP, const Vec3& eP, float r);

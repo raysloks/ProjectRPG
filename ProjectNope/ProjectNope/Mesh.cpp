@@ -246,9 +246,7 @@ void Mesh::transform(const Matrix4& mtrx, Mesh * mesh)
 
 void Mesh::getPose(const Pose& pose, Mesh * mesh)
 {
-	LARGE_INTEGER freq, start, end;
-	QueryPerformanceFrequency(&freq);
-	QueryPerformanceCounter(&start);
+	Timeslot timeslot_skinning("skinning");
 
 	if (pose.rest != nullptr)
 	{
@@ -289,10 +287,6 @@ void Mesh::getPose(const Pose& pose, Mesh * mesh)
 
 		mesh->vbo_latest = false;
 	}
-
-	QueryPerformanceCounter(&end);
-	double durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
-	Profiler::add("skinning", durationInSeconds);
 }
 
 void Mesh::addVBO(size_t set, Vec3 * v_data, Vec3 * n_data, Vec2 * t_data, Matrix4 mtrx)
@@ -323,10 +317,6 @@ void Mesh::addVBO(size_t set, Vec3 * v_data, Vec3 * n_data, Vec2 * t_data, Matri
 
 void Mesh::buildVBO(void)
 {
-	LARGE_INTEGER freq, start, end;
-	QueryPerformanceFrequency(&freq);
-	QueryPerformanceCounter(&start);
-
 	if (sets.size()>vbos.size())
 		vbos.resize(sets.size());
 	for (auto i=vbos.begin();i!=vbos.end();++i)
@@ -396,8 +386,4 @@ void Mesh::buildVBO(void)
 
 		vbo_latest = true;
 	}
-
-	QueryPerformanceCounter(&end);
-	double durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
-	Profiler::add("vbo-build", durationInSeconds);
 }

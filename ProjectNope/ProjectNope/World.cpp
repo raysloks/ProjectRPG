@@ -5,7 +5,7 @@
 #include "streams.h"
 #include <fstream>
 
-#include "StaticProp.h"
+#include "Profiler.h"
 
 #include "PositionComponent.h"
 
@@ -39,6 +39,8 @@ World::~World(void)
 
 void World::pre_frame(float dTime)
 {
+	Timeslot timeslot_pre_frame("pre_frame");
+
 	for (size_t i = 0; i < units.size(); i++) {
 		NewEntity * ent = units[i];
 		if (ent != 0)
@@ -48,6 +50,8 @@ void World::pre_frame(float dTime)
 
 void World::post_frame(float dTime)
 {
+	Timeslot timeslot_post_frame("post_frame");
+
 	for (size_t i = 0; i < units.size(); i++) {
 		NewEntity * ent = units[i];
 		if (ent != 0)
@@ -57,11 +61,13 @@ void World::post_frame(float dTime)
 
 void World::tick(float dTime)
 {
+	Timeslot timeslot_tick("tick");
+
 	std::vector<int> pos;
 	bool chunk_loaded;
-	for (int i=0;i<units.size();++i) {
+	for (size_t i = 0; i< units.size(); i++) {
 		NewEntity * ent = units[i];
-		if (ent!=0) {
+		if (ent != nullptr) {
 			if (use_chunks) {
 				chunk_loaded = true;
 				PositionComponent * p = ent->getComponent<PositionComponent>();
@@ -255,10 +261,6 @@ void World::UnloadChunk(const std::vector<int>& pos)
 
 void World::render(RenderSetup& rs)
 {
-	LARGE_INTEGER freq, start, end;
-	QueryPerformanceFrequency(&freq);
-	QueryPerformanceCounter(&start);
-
 	rs.origin = cam_pos;
 
 	GraphicsComponent::render_all(rs);
@@ -268,10 +270,6 @@ void World::render(RenderSetup& rs)
 		if (units[i]!=0)
 			units[i]->render(cam_pos);
 	}*/
-
-	QueryPerformanceCounter(&end);
-	double durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
-	Profiler::add("world-render-pass", durationInSeconds);
 }
 
 int World::AddEntity(NewEntity * unit)
@@ -375,6 +373,8 @@ NewEntity * World::GetEntity(int id, int unid)
 
 std::multimap<float, NewEntity*> World::GetNearestEntities(const GlobalPosition& p)
 {
+	Timeslot timeslot_get_nearest("get_nearest");
+
 	std::multimap<float, NewEntity*> ret;
 
 	for (auto i = units.begin(); i != units.end(); ++i)
@@ -395,6 +395,8 @@ std::multimap<float, NewEntity*> World::GetNearestEntities(const GlobalPosition&
 
 std::multimap<float, NewEntity*> World::GetNearestEntities(const GlobalPosition& p, float r)
 {
+	Timeslot timeslot_get_nearest("get_nearest");
+
 	std::multimap<float, NewEntity*> ret;
 
 	for (auto i = units.begin(); i != units.end(); ++i)

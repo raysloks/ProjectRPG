@@ -13,6 +13,8 @@
 #include "Quaternion.h"
 #include "PositionComponent.h"
 
+#include "Profiler.h"
+
 class TypeIteratorBase;
 class ScriptMemory;
 class Matrix3;
@@ -56,6 +58,8 @@ public:
 	template <class T>
 	std::multimap<float, T*> GetNearestComponents(const GlobalPosition& p)
 	{
+		Timeslot timeslot_get_nearest("get_nearest");
+
 		std::multimap<float, T*> ret;
 
 		for (auto i = units.begin(); i != units.end(); ++i)
@@ -81,6 +85,8 @@ public:
 	template <class T>
 	std::multimap<float, T*> GetNearestComponents(const GlobalPosition& p, float r)
 	{
+		Timeslot timeslot_get_nearest("get_nearest");
+
 		std::multimap<float, T*> ret;
 
 		for (auto i = units.begin(); i != units.end(); ++i)
