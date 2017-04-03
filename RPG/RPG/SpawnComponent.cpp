@@ -116,8 +116,11 @@ MobComponent * SpawnComponent::spawn(void)
 			entity->world->AddEntity(ent);
 
 			std::uniform_real_distribution<float> uni_dist;
+			std::uniform_real_distribution<float> angle_dist(0.0f, M_PI * 2.0f);
 			mob->p = &p->p;
-			mob->spawn_position = Vec3(20.0f, 20.0f, 20.0f) + Vec3(1.0f, 1.0f, 1.0f) * uni_dist(random) * 10.0f;
+			float angle = angle_dist(random);
+			mob->cam_facing = Vec3(cosf(angle), sinf(angle), 0.0f);
+			mob->strafe = false;
 			mob->temp_team = 1;
 
 			return mob;

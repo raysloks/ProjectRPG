@@ -3,11 +3,46 @@
 #include "NewEntity.h"
 #include "World.h"
 #include "MobComponent.h"
+#include "ColliderComponent.h"
 
 const AutoSerialFactory<AIComponent> AIComponent::_factory("AIComponent");
 
 AIComponent::AIComponent(void) : Serializable(_factory.id)
 {
+	idle = [this](float time_over)
+	{
+		std::uniform_real_distribution<float> uni_dist;
+
+		if (uni_dist(random) > 0.75f)
+		{
+			std::uniform_real_distribution<float> angle_distribution(0.0f, M_PI * 2.0f);
+
+			float angle = angle_distribution(random);
+			mob->move = mob->cam_facing + Vec3(cos(angle), sin(angle), 0.0f) * 1.1f;
+			mob->move.Normalize();
+			mob->cam_facing = mob->move;
+			mob->move *= 0.25f;
+		}
+		else
+		{
+			mob->move = Vec3();
+		}
+
+		checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 4.0f + time_over, idle));
+	};
+
+	fall = [this](float time_over)
+	{
+		std::vector<std::shared_ptr<Collision>> list;
+		ColliderComponent::LineCheck(*mob->p, *mob->p + (mob->cam_facing - Vec3(mob->up)) * 2.0f, list);
+
+		if (list.empty())
+		{
+			mob->move = Vec3();
+		}
+
+		checks.insert(std::make_pair(0.5f + time_over, fall));
+	};
 }
 
 AIComponent::AIComponent(instream& is, bool full) : Serializable(_factory.id)
@@ -39,52 +74,36 @@ void AIComponent::tick(float dTime)
 
 	if (mob != nullptr)
 	{
-		std::uniform_real_distribution<float> simple_distribution;
-		if (simple_distribution(random) > std::powf(0.5f, dTime))
-		{
-			std::uniform_real_distribution<float> angle_distribution(0.0f, M_PI * 2.0f);
-
-			float angle = angle_distribution(random);
-			wander += Vec3(cos(angle), sin(angle), 0.0f) * 1.1f;
-			wander.Normalize();
-		}
-
-		mob->move = wander * 0.5f;
-		mob->strafe = false;
-
 		if (mob->p != nullptr)
 		{
-			auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(*mob->p, 10.0f);
+			mob->strafe = false;
 
-			MobComponent * other = nullptr;
-
-			for (auto i = nearby_mobs.begin(); i != nearby_mobs.end(); ++i)
+			if (checks.empty())
 			{
-				if (i->second != mob && i->second->temp_team != mob->temp_team)
-				{
-					other = i->second;
-					break;
-				}
-			}
-
-			if (other != nullptr)
-			{
-				charge += dTime;
-
-				float distance = Vec3(*other->p - *mob->p).Len();
-
-				if (charge > 1.0f)
-					mob->move = *other->p - *mob->p;
-
-				if (charge > 2.0f) {
-					mob->input["attack"] = 1.0f;
-					charge = 0.0f;
-				}
-
-				mob->strafe = true;
-				mob->cam_facing = Vec3(*other->p - *mob->p).Normalize();
+				checks.insert(std::make_pair(1.0f + dTime, idle));
+				checks.insert(std::make_pair(dTime, fall));
 			}
 		}
+	}
+
+	std::multimap<float, std::function<void(float)>> nchecks;
+	std::vector<std::pair<float, std::function<void(float)>>> checks_ready;
+	for each (auto check in checks)
+	{
+		if (check.first - dTime <= 0.0f)
+		{
+			checks_ready.push_back(std::make_pair(check.first - dTime, check.second));
+		}
+		else
+		{
+			nchecks.insert(std::make_pair(check.first - dTime, check.second));
+		}
+	}
+	checks = nchecks;
+
+	for each (auto check in checks_ready)
+	{
+		check.second(check.first);
 	}
 }
 

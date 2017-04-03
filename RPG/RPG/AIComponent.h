@@ -4,6 +4,8 @@
 #include "Component.h"
 
 #include <random>
+#include <map>
+#include <functional>
 
 #include "Vec3.h"
 
@@ -38,8 +40,8 @@ public:
 
 	MobComponent * mob;
 
-	float charge;
-	Vec3 wander;
+	std::multimap<float, std::function<void(float)>> checks;
+	std::function<void(float)> idle, fall;
 
 	std::default_random_engine random;
 };

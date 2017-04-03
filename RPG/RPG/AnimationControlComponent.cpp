@@ -441,16 +441,16 @@ void AnimationControlComponent::tick(float dTime)
 	if (mob == nullptr)
 		mob = entity->getComponent<MobComponent>();
 	if (mob != nullptr && pose != nullptr) {
-		{
+		/*{
 			Timeslot timeslot_tick_apl("tick_apl");
 			tickAPL(dTime);
 		}
 		{
 			Timeslot timeslot_apl_tick("apl_tick");
 			apl->tick(dTime, pose);
-		}
+		}*/
 		pose->bones[0].transform = anim->armature.bones[0].transform;
-		pose->bones[0].transform *= Matrix3(mob->move_facing.Cross(mob->up), mob->move_facing, mob->up);
+		pose->bones[0].transform *= Matrix3(mob->cam_facing.Cross(mob->up), mob->cam_facing, mob->up);
 		pose->bones[0].transform *= Matrix4::Translation(-mob->up * 1.25f);
 
 		Timeslot timeslot_pose_update("pose_update");
