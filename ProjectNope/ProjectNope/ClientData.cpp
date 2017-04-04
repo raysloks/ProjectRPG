@@ -69,6 +69,13 @@ int ClientData::getUnit(int id) const
 	return -1;
 }
 
+int ClientData::getRealID(int id) const
+{
+	if (id >= 0 && id < known_units.size())
+		return known_units[id];
+	return -1;
+}
+
 void ClientData::write(outstream& os)
 {
 	os << getUnit(unit_id) << loading;

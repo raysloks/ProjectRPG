@@ -17,6 +17,7 @@ public:
 	int addKnownUnit(int real_id);
 	int forgetUnit(int real_id);
 	int getUnit(int real_id) const;
+	int getRealID(int client_side_id) const;
 
 	void read(instream& is);
 	void write(outstream& os);

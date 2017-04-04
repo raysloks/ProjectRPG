@@ -28,7 +28,25 @@ AIComponent::AIComponent(void) : Serializable(_factory.id)
 			mob->move = Vec3();
 		}
 
-		checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 4.0f + time_over, idle));
+		auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(*mob->p, 5.0f);
+		MobComponent * other = nullptr;
+		for each (auto nearby in nearby_mobs)
+		{
+			if (nearby.second->temp_team != mob->temp_team)
+			{
+				other = nearby.second;
+				break;
+			}
+		}
+
+		if (other != nullptr)
+		{
+			checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 4.0f + time_over, chase));
+		}
+		else
+		{
+			checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 4.0f + time_over, idle));
+		}
 	};
 
 	fall = [this](float time_over)
@@ -42,6 +60,10 @@ AIComponent::AIComponent(void) : Serializable(_factory.id)
 		}
 
 		checks.insert(std::make_pair(0.5f + time_over, fall));
+	};
+
+	chase = [this](float time_over)
+	{
 	};
 }
 

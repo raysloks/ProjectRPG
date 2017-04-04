@@ -527,7 +527,7 @@ void MobComponent::readLog(instream& is, ClientData& client)
 void MobComponent::interpolate(Component * pComponent, float fWeight)
 {
 	auto mob = dynamic_cast<MobComponent*>(pComponent);
-	if (mob!=0)
+	if (mob != nullptr)
 	{
 		facing = bu_sphere(mob->facing, facing, up, fWeight);
 		move_facing = bu_sphere(mob->move_facing, move_facing, up, fWeight);

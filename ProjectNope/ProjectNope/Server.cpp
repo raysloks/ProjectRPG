@@ -458,7 +458,7 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 	try
 	{
 		in >> type;
-		switch(type) {
+		switch (type) {
 		case 0:
 			{
 				unsigned int client_protocol;
@@ -478,16 +478,16 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 			}
 		case 1:
 			{
-				int id, sync;
+				uint32_t id, sync;
 				uint32_t size, index;
 				in >> id >> size;
-				for (auto i=0;i<size;++i)
+				for (size_t i = 0; i < size; i++)
 				{
 					in >> index >> sync;
-					if (id<conn->data->sync.size())
+					if (id < conn->data->sync.size())
 					{
-						if (conn->data->sync[id].find(index)!=conn->data->sync[id].end())
-							if (conn->data->sync[id][index]==sync)
+						if (conn->data->sync[id].find(index) != conn->data->sync[id].end())
+							if (conn->data->sync[id][index] == sync)
 								conn->data->sync[id].erase(index);
 					}
 				}
@@ -495,14 +495,14 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 			}
 		case 2:
 			{
-				int id;
+				uint32_t id;
 				uint32_t size;
 				in >> size;
-				for (auto i=0;i<size;++i)
+				for (size_t i = 0; i < size; i++)
 				{
 					in >> id;
 					if (id>=0 && id<conn->data->known_units.size())
-						conn->data->known_units[id]=-1;
+						conn->data->known_units[id] = 0xffffffff;
 				}
 				break;
 			}
@@ -511,9 +511,9 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 				NewEntity * ent = world->GetEntity(conn->data->unit_id);
 				GlobalPosition pos;
 				in >> pos;
-				if (ent!=0) {
+				if (ent != nullptr) {
 					PositionComponent * p = ent->getComponent<PositionComponent>();
-					if (p!=0) {
+					if (p != nullptr) {
 						p->p = pos;
 					}
 				}
@@ -526,7 +526,7 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 				std::set<int> ids;
 				in >> subtype >> l;
 				int id;
-				for (int i=0;i<l;++i) {
+				for (size_t i = 0; i < l; i++) {
 					in >> id;
 					ids.insert(id);
 				}
@@ -536,10 +536,10 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 					{
 						Vec3 v;
 						in >> v;
-						for (auto i=ids.begin();i!=ids.end();++i)
+						for (auto i = ids.begin(); i != ids.end(); ++i)
 						{
 							NewEntity * ent = world->GetEntity(*i);
-							if (ent==0)
+							if (ent == nullptr)
 								break;
 							/*ent->set_changed();
 							StaticProp * statprop = dynamic_cast<StaticProp*>(ent);
@@ -646,15 +646,15 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 		case 5:
 			{
 				NewEntity * ent = new NewEntity(in, true);
-				if (ent!=0) {
-					int id = world->AddEntity(ent);
+				if (ent != nullptr) {
+					int32_t id = world->AddEntity(ent);
 					PositionComponent * p = ent->getComponent<PositionComponent>();
-					if (p!=0) {
+					if (p != nullptr) {
 						std::vector<int> pos;
 						pos.push_back((p->p.x)/(chunk_size));
 						pos.push_back((p->p.y)/(chunk_size));
 						pos.push_back((p->p.z)/(chunk_size));
-						if (world->chunks[pos]==0)
+						if (world->chunks[pos] == nullptr)
 							world->LoadChunk(pos);
 						world->chunks[pos]->add(id);
 					}
@@ -663,7 +663,7 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 			}
 		case 6:
 			{
-				int id;
+				uint32_t id;
 				in >> id;
 				if (id < 0 || id>=conn->data->known_units.size())
 					break;
@@ -683,10 +683,10 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 			}
 		case 7:
 			{
-				int id;
+				uint32_t id;
 				in >> id;
-				NewEntity * ent = world->GetEntity(id);
-				if (ent!=0)
+				NewEntity * ent = world->GetEntity(conn->data->getRealID(id));
+				if (ent != nullptr)
 					ent->readLog(in, *conn->data);
 				break;
 			}

@@ -242,6 +242,19 @@ std::vector<size_t> CollisionMesh::GetCellsInAABB(Vec3 box_min, Vec3 box_max) co
 
 std::vector<size_t> CollisionMesh::GetWallsInAABB(Vec3 box_min, Vec3 box_max) const
 {
+	if (grid.empty())
+	{
+		std::vector<size_t> ret;
+		ret.resize(walls.size());
+
+		for (size_t i = 0; i < walls.size(); i++)
+		{
+			ret[i] = i;
+		}
+
+		return ret;
+	}
+
 	Vec3 dif = aabb_max - aabb_min;
 
 	Vec3 min_scaled = box_min - aabb_min;

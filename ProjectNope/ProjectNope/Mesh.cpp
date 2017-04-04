@@ -157,7 +157,7 @@ Mesh::Mesh(instream& is) : vbo_latest(false)
 			{
 			case 0:
 				sets.back().uv_points.push_back(Face(i, 0, 0));
-				sets.back().nTextures = ++nts;
+				sets.back().nTextures = nts + 1;
 				nt = 1;
 				break;
 			case 1:
@@ -167,6 +167,7 @@ Mesh::Mesh(instream& is) : vbo_latest(false)
 			case 2:
 				sets.back().uv_points.back().c = i;
 				nt = 0;
+				++nts;
 				break;
 			}
 		}
@@ -345,7 +346,7 @@ void Mesh::buildVBO(void)
 			}
 		}
 
-		//generate data
+		// generate data
 		Vec3 * v_data = new Vec3[setref.vertices.size() * 3];
 		for (auto p=setref.vertices.begin();p!=setref.vertices.end();++p)
 		{
@@ -363,11 +364,17 @@ void Mesh::buildVBO(void)
 		}
 
 		Vec2 * t_data = new Vec2[setref.uv_points.size() * 3];
-		for (auto p=setref.uv_points.begin();p!=setref.uv_points.end();++p)
+		size_t block = 0;
+		for (auto p=setref.uv_points.begin();p!=setref.uv_points.end();)
 		{
-			t_data[(p-setref.uv_points.begin())*3] = uv[p->a];
-			t_data[(p-setref.uv_points.begin())*3+1] = uv[p->b];
-			t_data[(p-setref.uv_points.begin())*3+2] = uv[p->c];
+			for (size_t j = 0; j < setref.nTextures; j++)
+			{
+				t_data[block + j] = uv[p->a];
+				t_data[block + j + setref.nTextures] = uv[p->b];
+				t_data[block + j + setref.nTextures * 2] = uv[p->c];
+				++p;
+			}
+			block += 3 * setref.nTextures;
 		}
 
 		// push buffer data

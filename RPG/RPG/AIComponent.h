@@ -41,7 +41,7 @@ public:
 	MobComponent * mob;
 
 	std::multimap<float, std::function<void(float)>> checks;
-	std::function<void(float)> idle, fall;
+	std::function<void(float)> idle, fall, chase;
 
 	std::default_random_engine random;
 };

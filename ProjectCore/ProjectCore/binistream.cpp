@@ -15,50 +15,50 @@ namespace std
 		return is;
 	}
 
-	binistream& operator >> (binistream& is, int8_t& i8)
+	binistream& operator>>(binistream& is, int8_t& i8)
 	{
 		is.read((char*)&i8, sizeof(i8));
 		return is;
 	}
 
-	binistream& operator >> (binistream& is, uint8_t& u8)
+	binistream& operator>>(binistream& is, uint8_t& u8)
 	{
 		is.read((char*)&u8, sizeof(u8));
 		return is;
 	}
 
-	binistream& operator >> (binistream& is, int16_t& i16)
+	binistream& operator>>(binistream& is, int16_t& i16)
 	{
 		is.read((char*)&i16, sizeof(i16));
 		return is;
 	}
 
-	binistream& operator >> (binistream& is, uint16_t& u16)
+	binistream& operator>>(binistream& is, uint16_t& u16)
 	{
 		is.read((char*)&u16, sizeof(u16));
 		return is;
 	}
 
-	binistream& operator >> (binistream& is, int32_t& i32)
+	binistream& operator>>(binistream& is, int32_t& i32)
 	{
 		is.read((char*)&i32, sizeof(i32));
 		return is;
 	}
 
-	binistream& operator >> (binistream& is, uint32_t& u32)
+	binistream& operator>>(binistream& is, uint32_t& u32)
 	{
 		is.read((char*)&u32, sizeof(u32));
 		return is;
 	}
 
 
-	binistream& operator >> (binistream& is, int64_t& i64)
+	binistream& operator>>(binistream& is, int64_t& i64)
 	{
 		is.read((char*)&i64, sizeof(i64));
 		return is;
 	}
 
-	binistream& operator >> (binistream& is, uint64_t& u64)
+	binistream& operator>>(binistream& is, uint64_t& u64)
 	{
 		is.read((char*)&u64, sizeof(u64));
 		return is;

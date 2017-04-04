@@ -1466,7 +1466,7 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 			}
 		case 1: // notify of entity
 			{
-				int id, uid;
+				int32_t id, uid;
 				in >> id >> uid;
 				NewEntity * current_entity = world->GetEntity(id);
 				if (current_entity!=0)
@@ -1503,18 +1503,18 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 			}
 		case 2: // entity log
 			{
-				int id, uid, sync;
+				uint32_t id, uid, sync;
 				in >> id >> uid >> sync;
 				if (id < interpol_targets.size())
 				{
 					auto ent = world->GetEntity(id);
-					if (ent!=0) {
+					if (ent != nullptr) {
 						if (SyncState::is_ordered(world->uid[id], uid)) {
-							world->SetEntity(id, 0);
+							world->SetEntity(id, nullptr);
 							if (id < interpol_targets.size()) {
-								if (interpol_targets[id]!=0)
+								if (interpol_targets[id] != nullptr)
 									delete interpol_targets[id];
-								interpol_targets[id] = 0;
+								interpol_targets[id] = nullptr;
 							}
 							break; //TODO cache log until notification of entity creation is received
 						}
@@ -1542,7 +1542,7 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 								SEND_PACKET
 							}
 
-							if (interpol_targets[id]!=0)
+							if (interpol_targets[id] != nullptr)
 								interpol_targets[id]->readLog(in);
 							interpol_elapsed[id] = 0.0f;
 						}
@@ -1552,9 +1552,9 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 			}
 		case 3: // delete entity
 			{
-				int id, uid;
+				uint32_t id, uid;
 				in >> id >> uid;
-				if (id >= 0)
+				if (id != 0xffffffff)
 				{
 					if (id < world->units.size())
 					{
@@ -1607,8 +1607,8 @@ void Client::sync(void)
 {
 	if (clientData!=0)
 	{
-		std::set<int> missing;
-		for (int i=0;i<world->units.size();++i)
+		std::set<int32_t> missing;
+		for (size_t i = 0; i < world->units.size(); i++)
 		{
 			NewEntity * ent = world->GetEntity(i);
 			if (ent == nullptr)
@@ -1627,7 +1627,7 @@ void Client::sync(void)
 				{
 					MAKE_PACKET
 
-					out << (unsigned char)7 << i;
+					out << (unsigned char)7 << (uint32_t)i;
 					out.write(cbuf.str().data(), cbuf.str().size());
 
 					SEND_PACKET
@@ -1641,7 +1641,7 @@ void Client::sync(void)
 			out << (unsigned char)2;
 
 			out << (uint32_t)missing.size();
-			for (auto i=missing.begin();i!=missing.end();++i)
+			for (auto i = missing.begin();i != missing.end(); ++i)
 			{
 				out << *i;
 			}

@@ -147,33 +147,33 @@ void NewEntity::readLog(instream& is)
 	while (!is.eof()) {
 		int index, sync;
 		is >> index;
-		if (index>=0) {
+		if (index >= 0) {
 			is >> sync;
 			auto factory = Serializable::unserialize(is);
 			Component * comp;
-			if (factory!=0)
+			if (factory != nullptr)
 				comp = dynamic_cast<Component*>(factory->create(is, false));
 			else
-				comp = 0;
-			if (components.size()<=index) {
+				comp = nullptr;
+			if (components.size() <= index) {
 				components.resize(index);
 				components.push_back(comp);
 				component_sync.resize(index);
 				component_sync.push_back(sync);
 			} else {
 				if (sync>component_sync[index] || (sync<INT_MIN/2 && component_sync[index]>INT_MAX/2)) {
-					if (components[index]!=0) {
+					if (components[index] != nullptr) {
 						components[index]->disconnect();
 						delete components[index];
 					}
 					component_sync[index] = sync;
 					components[index] = comp;
-					if (comp!=0) {
+					if (comp != nullptr) {
 						comp->connect(this, false);
 						comp->entity = this;
 					}
 				} else {
-					if (comp!=0)
+					if (comp != nullptr)
 						delete comp;
 				}
 			}
@@ -183,9 +183,9 @@ void NewEntity::readLog(instream& is)
 	while (!is.eof()) {
 		int index;
 		is >> index;
-		if (index>=0) {
-			if (index<components.size())
-				if (components[index]!=0)
+		if (index >= 0) {
+			if (index < components.size())
+				if (components[index] != nullptr)
 					components[index]->readLog(is);
 		} else
 			break;
@@ -195,8 +195,8 @@ void NewEntity::readLog(instream& is)
 void NewEntity::writeLog(outstream& os)
 {
 	bool has_written = false;
-	for (auto i=components.begin();i!=components.end();++i) {
-		if (*i!=0) {
+	for (auto i = components.begin(); i != components.end(); ++i) {
+		if (*i != nullptr) {
 			std::stringbuf cbuf;
 			outstream comp(&cbuf);
 			(*i)->writeLog(comp);
@@ -204,31 +204,42 @@ void NewEntity::writeLog(outstream& os)
 				has_written = true;
 				os << (uint32_t)std::distance(components.begin(), i);
 				os.write(cbuf.str().data(), cbuf.str().size());
+				//std::cout << "write log " << Serializable::getName((*i)->getSerialID()) << std::endl;
 			}
 		}
 	}
 	if (has_written)
-		os << int(-1);
+		os << uint32_t(0xffffffff);
 }
 
 void NewEntity::readLog(instream& is, ClientData& client)
 {
-	while (!is.eof()) {
-		int index;
+	while (!is.eof())
+	{
+		uint32_t index;
 		is >> index;
-		if (index>=0) {
-			if (index<components.size())
-				if (components[index]!=0)
+		if (index != uint32_t(0xffffffff))
+		{
+			if (index < components.size())
+			{
+				if (components[index] != nullptr)
+				{
+					//std::cout << "read log " << Serializable::getName(components[index]->getSerialID()) << std::endl;
 					components[index]->readLog(is, client);
-		} else
+				}
+			}
+		}
+		else
+		{
 			break;
+		}
 	}
 }
 
 void NewEntity::interpolate(NewEntity * pEntity, float fWeight)
 {
-	for (auto i=components.begin();i!=components.end();++i)
-		if (*i!=0)
+	for (auto i = components.begin(); i != components.end(); ++i)
+		if (*i != nullptr)
 			(*i)->interpolate(*(pEntity->components.begin()+std::distance(components.begin(), i)), fWeight);
 }
 
@@ -237,7 +248,7 @@ void NewEntity::write_to(outstream& os, ClientData& client) const
 	os << (uint32_t)components.size();
 	for (auto i=components.begin();i!=components.end();++i) {
 		os << ss.sync[component_syncref[std::distance(components.begin(), i)]];
-		if (*i!=0)
+		if (*i != nullptr)
 			if ((*i)->visible(client)) {
 				os << (*i)->getSerialID();
 				(*i)->write_to(os, client);
@@ -252,7 +263,7 @@ void NewEntity::write_to(outstream& os) const
 {
 	os << (uint32_t)components.size();
 	for (auto i=components.begin();i!=components.end();++i) {
-		if (*i!=0) {
+		if (*i != nullptr) {
 			os << (*i)->getSerialID();
 			(*i)->write_to(os);
 		} else
@@ -263,17 +274,17 @@ void NewEntity::write_to(outstream& os) const
 Component * NewEntity::getComponent(size_t type) const
 {
 	for (auto i=components.begin();i!=components.end();++i)
-		if (*i!=0)
+		if (*i != nullptr)
 			if ((*i)->getSerialID()==type)
 				return *i;
-	return 0;
+	return nullptr;
 }
 
 std::vector<Component*> NewEntity::getComponents(size_t type) const
 {
 	std::vector<Component*> ret;
 	for (auto i=components.begin();i!=components.end();++i)
-		if (*i!=0)
+		if (*i != nullptr)
 			if ((*i)->getSerialID()==type)
 				ret.push_back(*i);
 	return ret;
