@@ -8,9 +8,7 @@ extern Client * client;
 
 ClientData::ClientData(void)
 {
-	unit_id = -1;
-	client_id = -1;
-	client_type = -1;
+	client_id = 0xffffffff;
 	networked = true;
 	loading = true;
 }
@@ -25,11 +23,11 @@ ClientData::~ClientData(void)
 {
 }
 
-int ClientData::addKnownUnit(int id)
+uint32_t ClientData::addKnownUnit(uint32_t id)
 {
-	for (int i=0;i<known_units.size();++i)
+	for (size_t i = 0; i < known_units.size(); i++)
 	{
-		if (known_units[i]<0 || known_units[i]==id) {
+		if (known_units[i] != 0xffffffff || known_units[i]==id) {
 			known_units[i] = id;
 			return i;
 		}
@@ -40,48 +38,46 @@ int ClientData::addKnownUnit(int id)
 	return known_units.size()-1;
 }
 
-int ClientData::forgetUnit(int id)
+uint32_t ClientData::forgetUnit(uint32_t id)
 {
-	if (id==unit_id)
-		unit_id = -1;
-	for (int i=0;i<known_units.size();++i)
+	for (size_t i = 0; i < known_units.size(); i++)
 	{
-		if (known_units[i]==id) {
-			int ret = i;
-			known_units[i] = -1;
+		if (known_units[i] == id) {
+			uint32_t ret = i;
+			known_units[i] = 0xffffffff;
 			sync[i].clear();
 			return ret;
 		}
 	}
-	return -1;
+	return 0xffffffff;
 }
 
-int ClientData::getUnit(int id) const
+uint32_t ClientData::getUnit(uint32_t id) const
 {
 	if (!networked)
 		return id;
-	for (int i=0;i<known_units.size();++i)
+	for (size_t i = 0; i < known_units.size(); i++)
 	{
-		if (known_units[i]==id) {
+		if (known_units[i] == id) {
 			return i;
 		}
 	}
-	return -1;
+	return 0xffffffff;
 }
 
-int ClientData::getRealID(int id) const
+uint32_t ClientData::getRealID(uint32_t id) const
 {
-	if (id >= 0 && id < known_units.size())
+	if (id < known_units.size())
 		return known_units[id];
-	return -1;
+	return 0xffffffff;
 }
 
 void ClientData::write(outstream& os)
 {
-	os << getUnit(unit_id) << loading;
+	os << loading;
 }
 
 void ClientData::read(instream& is)
 {
-	is >> unit_id >> loading;
+	is >> loading;
 }

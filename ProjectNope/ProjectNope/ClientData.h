@@ -14,10 +14,10 @@ public:
 	ClientData(instream& is);
 	~ClientData(void);
 
-	int addKnownUnit(int real_id);
-	int forgetUnit(int real_id);
-	int getUnit(int real_id) const;
-	int getRealID(int client_side_id) const;
+	uint32_t addKnownUnit(uint32_t real_id);
+	uint32_t forgetUnit(uint32_t real_id);
+	uint32_t getUnit(uint32_t real_id) const;
+	uint32_t getRealID(uint32_t client_side_id) const;
 
 	void read(instream& is);
 	void write(outstream& os);
@@ -25,15 +25,13 @@ public:
 	bool networked;
 	bool loading;
 
-	int client_id;
-	int unit_id;
-	int client_type;
+	uint32_t client_id;
 	std::vector<int> known_units;
 	std::vector<int> per_entity_sync;
-	std::vector<std::map<size_t, int>> sync;
+	std::vector<std::map<size_t, uint32_t>> sync;
 
 	std::vector<Syncable*> meta_data;
-	std::vector<std::map<size_t, int>> meta_sync;
+	std::vector<std::map<size_t, uint32_t>> meta_sync;
 	std::vector<bool> meta_new;
 	//TODO add stack for faster allocation
 };

@@ -25,7 +25,6 @@ MainMenuWindow::MainMenuWindow(World * pWorld, Client * pClient, int px, int py,
 		if (client->clientData==0) {
 			client->clientData = new ClientData();
 			client->clientData->networked = false;
-			client->clientData->client_type = 0;
 		}
 		this->state = 2;
 	};

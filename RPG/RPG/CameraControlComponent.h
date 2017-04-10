@@ -39,6 +39,8 @@ public:
 
 	static const AutoSerialFactory<CameraControlComponent> _factory;
 
+	uint32_t client_id;
+
 	GlobalPosition * p;
 
 	Vec2 cam_rot_basic;

@@ -34,7 +34,7 @@ public:
 	MyServer(World * pWorld, unsigned short port) : Server(pWorld, port) {}
 	MyServer(World * pWorld) : Server(pWorld) {}
 
-	void connectClientToEntity(ClientData& data)
+	void onClientConnect(ClientData& data)
 	{
 		if (world->units.size() == 0)
 		{
@@ -340,7 +340,10 @@ public:
 			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
 			//g->decs.items.back()->priority = 3;
 
-			data.unit_id = world->AddEntity(ent);
+			world->AddEntity(ent);
+
+			input->client_id = data.client_id;
+			cam->client_id = data.client_id;
 
 			{
 				NewEntity * ent = new NewEntity();
@@ -435,6 +438,7 @@ void main()
 	{
 		client = new Client(world);
 		server = new MyServer(world);
+		server->onClientConnect(*client->clientData);
 	}
 	if (option=='c')
 	{
@@ -455,6 +459,7 @@ void main()
 		std::cin >> port;
 		client = new Client(world);
 		server = new MyServer(world, port);
+		server->onClientConnect(*client->clientData);
 	}
 	if (option=='s')
 	{

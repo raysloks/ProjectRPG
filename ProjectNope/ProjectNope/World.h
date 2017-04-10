@@ -42,8 +42,6 @@ public:
 	void LoadChunk(const std::vector<int>& pos);
 	void LoadSurroundings(NewEntity * entity);
 
-	NewEntity * NearestPlayer(const GlobalPosition& p);
-
 	void UnloadChunk(const std::vector<int>& pos);
 
 	int AddEntity(NewEntity * entity); // use this one over SetEntity most of the time

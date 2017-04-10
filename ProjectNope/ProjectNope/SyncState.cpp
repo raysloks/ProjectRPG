@@ -50,21 +50,23 @@ void SyncState::set(size_t index, int value)
 }
 
 
-void SyncState::prep(const std::map<size_t, int>& map, ClientData& client_data)
+void SyncState::prep(const std::map<size_t, uint32_t>& map, ClientData& client_data)
 {
 	npass = 0;
-	for (auto i=map.cbegin();i!=map.cend();++i)
+	for (auto i = map.cbegin(); i != map.cend(); ++i)
 	{
-		if (i->first<condition.size() && i->first<func.size()) {
+		if (i->first<condition.size() && i->first<func.size())
+		{
 			bool passed = true;
-			if (condition[i->first]!=0)
+			if (condition[i->first] != nullptr)
 				passed = condition[i->first](client_data);
-			if (passed) {
-				if (func[i->first]!=0)
+			if (passed)
+			{
+				if (func[i->first] != nullptr)
 					func[i->first](client_data);
 				++npass;
 			}
-			pass[i->first]=passed;
+			pass[i->first] = passed;
 		}
 	}
 }
@@ -77,7 +79,20 @@ void SyncState::increment(int& i)
 		++i;
 }
 
+//void SyncState::increment(uint32_t& ui32)
+//{
+//	if (ui32 == 0xffffffff)
+//		ui32 = 0;
+//	else
+//		++ui32;
+//}
+
 bool SyncState::is_ordered(const int& first, const int& second)
 {
 	return first<second || (second<INT_MIN/2 && first>INT_MAX/2);
 }
+
+//bool SyncState::is_ordered(const uint32_t& first, const uint32_t& second)
+//{
+//	return first < second || (second < 0x0f000000 && first > 0xff000000);
+//}

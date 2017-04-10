@@ -194,55 +194,6 @@ void World::LoadSurroundings(NewEntity * ent)
 	}
 }
 
-NewEntity * World::NearestPlayer(const GlobalPosition& pos)
-{
-	NewEntity * player = 0;
-	float distance = 0.0f;
-
-	if (client!=0)
-	{
-		if (client->clientData!=0)
-		{
-			NewEntity * ent = GetEntity(client->clientData->unit_id);
-			if (ent!=0)
-			{
-				PositionComponent * p = ent->getComponent<PositionComponent>();
-				if (p!=0) {
-					player = ent;
-					distance = Vec3(p->p-pos).LenPwr();
-				}
-			}
-		}
-	}
-
-	for (auto i=server->conns.begin();i!=server->conns.end();++i)
-	{
-		NewEntity * ent = GetEntity(i->second->data->unit_id);
-		if (ent!=0)
-		{
-			PositionComponent * p = ent->getComponent<PositionComponent>();
-			if (p!=0) {
-				float l = Vec3(p->p-pos).LenPwr();
-				if (player!=0)
-				{
-					if (l<distance)
-					{
-						player = ent;
-						distance = l;
-					}
-				}
-				else
-				{
-					player = ent;
-					distance = l;
-				}
-			}
-		}
-	}
-
-	return player;
-}
-
 void World::UnloadChunk(const std::vector<int>& pos)
 {
 	if (chunks[pos]!=0)

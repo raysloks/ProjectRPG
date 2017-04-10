@@ -126,5 +126,6 @@ void InventoryComponent::write_to(outstream& os) const
 
 bool InventoryComponent::visible(ClientData& client) const
 {
-	return client.unit_id == entity->id;
+	return true;
+	//return client.unit_id == entity->id;
 }

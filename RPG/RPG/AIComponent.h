@@ -6,8 +6,10 @@
 #include <random>
 #include <map>
 #include <functional>
+#include <queue>
 
 #include "Vec3.h"
+#include "GlobalPosition.h"
 
 class MobComponent;
 
@@ -41,7 +43,8 @@ public:
 	MobComponent * mob;
 
 	std::multimap<float, std::function<void(float)>> checks;
-	std::function<void(float)> idle, fall, chase;
+	std::function<void(float)> idle, fall, chase, search;
+	std::queue<GlobalPosition> path;
 
 	std::default_random_engine random;
 };

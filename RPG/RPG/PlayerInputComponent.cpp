@@ -52,7 +52,7 @@ void PlayerInputComponent::post_frame(float dTime)
 	Client * client = entity->world->client;
 	if (client != nullptr)
 	{
-		if (client->clientData->unit_id == entity->id || !entity->world->authority)
+		if (client->clientData->client_id == client_id || !entity->world->authority)
 		{
 			const Input& input = client->input;
 
@@ -167,9 +167,12 @@ void PlayerInputComponent::writeLog(outstream& os)
 
 void PlayerInputComponent::readLog(instream& is, ClientData& client)
 {
-	ControlState ncs;
-	is >> ncs >> move >> cam_rot;
-	ncs.update(cs);
+	if (client.client_id = client_id)
+	{
+		ControlState ncs;
+		is >> ncs >> move >> cam_rot;
+		ncs.update(cs);
+	}
 }
 
 void PlayerInputComponent::interpolate(Component * pComponent, float fWeight)
@@ -187,5 +190,5 @@ void PlayerInputComponent::write_to(outstream& os) const
 
 bool PlayerInputComponent::visible(ClientData& client) const
 {
-	return client.unit_id == entity->id;
+	return client.client_id == client_id;
 }

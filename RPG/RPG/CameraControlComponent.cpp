@@ -49,18 +49,20 @@ void CameraControlComponent::disconnect(void)
 void CameraControlComponent::pre_frame(float dTime)
 {
 	Client * client = entity->world->client;
-	if (client != 0)
+	if (client != nullptr)
 	{
-		if (client->clientData->unit_id == entity->id || !entity->world->authority)
+		if (client->clientData->client_id == client_id || !entity->world->authority)
 		{
-			if (p == 0) {
+			if (p == nullptr)
+			{
 				PositionComponent * pc = entity->getComponent<PositionComponent>();
-				if (pc != 0)
+				if (pc != nullptr)
 					p = &pc->p;
 			}
 
 			//set camera position relative to focus point
-			if (p != 0) {
+			if (p != nullptr)
+			{
 				entity->world->cam_rot = cam_rot;
 				entity->world->cam_pos = *p + up * 0.45f;
 			}
@@ -71,9 +73,9 @@ void CameraControlComponent::pre_frame(float dTime)
 void CameraControlComponent::post_frame(float dTime)
 {
 	Client * client = entity->world->client;
-	if (client!=0)
+	if (client != nullptr)
 	{
-		if (client->clientData->unit_id == entity->id || !entity->world->authority)
+		if (client->clientData->client_id == client_id || !entity->world->authority)
 		{
 			const Input& input = client->input;
 
@@ -170,5 +172,5 @@ void CameraControlComponent::write_to(outstream& os) const
 
 bool CameraControlComponent::visible(ClientData& client) const
 {
-	return client.unit_id == entity->id;
+	return client.client_id == client_id;
 }

@@ -41,9 +41,11 @@ public:
 
 	static const AutoSerialFactory<PlayerInputComponent> _factory;
 
-	MobComponent * mob = 0;
+	uint32_t client_id;
 
-	GlobalPosition * p = 0;
+	MobComponent * mob = nullptr;
+
+	GlobalPosition * p = nullptr;
 
 	Vec3 move;
 	Quaternion cam_rot;

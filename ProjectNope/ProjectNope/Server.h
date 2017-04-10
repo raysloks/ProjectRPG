@@ -38,9 +38,9 @@ public:
 
 	virtual void tick(float dTime);
 
-	void NotifyOfCreation(int id);
-	void NotifyOfRemoval(int id, int uid);
-//private:
+	void NotifyOfCreation(uint32_t id);
+	void NotifyOfRemoval(uint32_t id, uint32_t uid);
+
 	void handle_packet(const std::shared_ptr<Packet>& packet);
 
 	std::shared_ptr<Connection> con;
@@ -59,8 +59,7 @@ public:
 
 	std::shared_ptr<ScriptMemory> mem;
 
-	virtual void connectClientToEntity(ClientData& data);
-	virtual bool isVisibleTo(NewEntity * ent, ClientData& data);
+	virtual void onClientConnect(ClientData& data);
 	virtual void onClientDisconnect(ClientData& data);
 };
 

@@ -35,9 +35,6 @@
 
 #include "Chunk.h"
 
-class Server;
-extern Server * server;
-
 extern double secondsPerStep;
 extern double fpsCap;
 extern bool forceCap;
@@ -246,34 +243,6 @@ void Client::pre_frame(float dTime)
 	}
 	delete ae;
 
-	if (con==0)
-	{
-		if (clientData!=0)
-		{
-			if (clientData->unit_id==-1) {
-				server->connectClientToEntity(*clientData);
-			}
-			if (clientData->unit_id!=-1) {
-				PNEntity * unit = 0;//world->GetEntity(clientData->unit_id);
-				if (unit!=0)
-				{
-					//world->LoadSurroundings(world->GetEntity(clientData->unit_id));
-
-					//std::vector<int> pos; //TODO make function for this
-					//pos.push_back((unit->p.x)/(chunk_size));
-					//pos.push_back((unit->p.y)/(chunk_size));
-					//pos.push_back((unit->p.z)/(chunk_size));
-
-					//clientData->loading = true;
-					//if (world->chunks[pos]!=0)
-					//	clientData->loading = world->chunks[pos]->loading;
-				}
-			}
-			if (!world->use_chunks)
-				clientData->loading = false;
-		}
-	}
-
 	Vec3 pole = light.Cross(Vec3(1.0f, 2.0f, 0.0f));
 	pole.Normalize();
 	float lspeed = M_PI / 60.0f / 60.0f / 12.0f * 50.0f;
@@ -293,9 +262,9 @@ void Client::pre_frame(float dTime)
 	if (input.isPressed(Platform::KeyEvent::P))
 		show_entity_list = !show_entity_list;
 
-	if (con!=0)
+	if (con != nullptr)
 	{
-		if (clientData!=0)
+		if (clientData != nullptr)
 		{
 			MAKE_PACKET;
 			out << (unsigned char)255;
@@ -320,9 +289,9 @@ void Client::pre_frame(float dTime)
 			packet_loss_sim += dTime;
 		if (input.isDown(Platform::KeyEvent::K))
 			packet_loss_sim -= dTime;
-		if (packet_loss_sim<0.0f)
+		if (packet_loss_sim < 0.0f)
 			packet_loss_sim = 0.0f;
-		if (packet_loss_sim>1.0f)
+		if (packet_loss_sim > 1.0f)
 			packet_loss_sim = 1.0f;
 	}
 
@@ -502,7 +471,7 @@ void Client::render(void)
 		//}
 
 		hideCursor = true;
-		for (std::vector<std::shared_ptr<Window>>::iterator win=windows.begin();win!=windows.end();++win)
+		for (auto win = windows.begin(); win != windows.end(); ++win)
 		{
 			dynamic_cast<RectangleWindow*>(win->get())->x = view[0];
 			dynamic_cast<RectangleWindow*>(win->get())->y = view[1];
@@ -1378,57 +1347,6 @@ bool Client::IsAlive(void)
 {
 	return isAlive;
 }
-
-/*void Client::updateControlState(void)
-{
-	Vec3 f = input.ctrl[0].left_analog.out;
-
-	if (isActive)
-	{
-		if (input.isDown(Platform::KeyEvent::W))
-			f.y += 4.0f;
-		if (input.isDown(Platform::KeyEvent::A))
-			f.x -= 4.0f;
-		if (input.isDown(Platform::KeyEvent::S))
-			f.y -= 4.0f;
-		if (input.isDown(Platform::KeyEvent::D))
-			f.x += 4.0f;
-	}
-
-	Vec2 local_dir = f;
-	f.x = local_dir.x*cos(camera.x)-local_dir.y*sin(camera.x);
-	f.y = local_dir.x*sin(camera.x)+local_dir.y*cos(camera.x);
-
-	cs.input["x"] = f.x;
-	cs.input["y"] = f.y;
-	cs.input["z"] = f.z;
-
-	cs.input["dir_x"] = camera.x;
-	cs.input["dir_y"] = camera.y;
-
-	if (isActive)
-	{
-		if (input.isPressed(Platform::KeyEvent::SPACE))
-			cs.activate("jump");
-
-		if (input.isPressed(Platform::KeyEvent::LMB))
-			cs.activate("attack");
-		
-		if (input.isPressed(Platform::KeyEvent::RMB))
-			cs.activate("block");
-	}
-
-	//cs.input["lock"] = keysDown.find(Platform::KeyEvent::RMB)!=keysDown.cend() && isActive ? 1.0f : 0.0f;
-
-	cs.input["shift"] = input.isDown(Platform::KeyEvent::LSHIFT) && isActive ? 1.0f : 0.0f;
-	cs.input["shift"] += input.ctrl[0].right_trigger.out;
-
-	cs.input["emote"] = input.isDown(Platform::KeyEvent::V) && isActive ? 1.0f : 0.0f;
-
-	cs.input["jump"] = input.isDown(Platform::KeyEvent::SPACE) && isActive ? 1.0f : 0.0f;
-	cs.input["jump"] += input.ctrl[0].left_trigger.out;
-	cs.input["jump"] += input.ctrl[0].a.down;
-}*/
 
 void Client::process_network_data(void)
 {
