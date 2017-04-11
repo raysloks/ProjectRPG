@@ -63,14 +63,14 @@ instream& operator>>(instream& is, ControlState& cs)
 	std::string str;
 	float f;
 	is >> l;
-	for (int i=0;i<l;++i)
+	for (size_t i = 0; i < l; i++)
 	{
 		is >> str >> f;
 		cs.input[str] = f;
 	}
 	int val;
 	is >> l;
-	for (int i=0;i<l;++i)
+	for (size_t i = 0; i < l; i++)
 	{
 		is >> str >> val;
 		cs.check[str] = val;

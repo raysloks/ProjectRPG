@@ -12,7 +12,7 @@ Synchronizer::~Synchronizer(void)
 
 void Synchronizer::blend(Synchronizer& other)
 {
-	for (int i = 0; i < other.val.size() && i < var.size(); ++i)
+	for (size_t i = 0; i < other.val.size() && i < var.size(); i++)
 	{
 		*var[i].second = other.val[i];
 	}
@@ -31,6 +31,6 @@ void Synchronizer::readLog(instream& is)
 	uint32_t size;
 	is >> size;
 	val.resize(size);
-	for (int i = 0; i < size; ++i)
+	for (size_t i = 0; i < size; i++)
 		is >> val[i];
 }

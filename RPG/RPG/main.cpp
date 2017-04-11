@@ -340,10 +340,10 @@ public:
 			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
 			//g->decs.items.back()->priority = 3;
 
-			world->AddEntity(ent);
-
 			input->client_id = data.client_id;
 			cam->client_id = data.client_id;
+
+			world->AddEntity(ent);
 
 			{
 				NewEntity * ent = new NewEntity();

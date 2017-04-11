@@ -59,9 +59,9 @@ Server::~Server(void)
 
 void Server::tick(float dTime)
 {
-	if (mem==0) {
+	if (mem == nullptr) {
 		std::shared_ptr<StringResource> config = Resource::get<StringResource>("server_config.txt");
-		if (config!=0)
+		if (config != nullptr)
 		{
 			mem.reset(new ScriptMemory());
 			Script script(std::istringstream(config->string));
@@ -69,9 +69,9 @@ void Server::tick(float dTime)
 		}
 	}
 
-	if (con!=0)
+	if (con != nullptr)
 	{
-		for (auto i=conns.begin();i!=conns.end();++i)
+		for (auto i = conns.begin(); i != conns.end(); ++i)
 		{
 			auto& conn = i->second;
 			conn->silent_time += dTime;
@@ -79,11 +79,11 @@ void Server::tick(float dTime)
 
 		con->mutex.lock();
 		std::queue<std::shared_ptr<Packet>> recv_buf(con->recv_buf);
-		while(con->recv_buf.size())
+		while (con->recv_buf.size())
 			con->recv_buf.pop();
 		con->mutex.unlock();
 
-		while(recv_buf.size())
+		while (recv_buf.size())
 		{
 			handle_packet(recv_buf.front());
 			recv_buf.pop();
@@ -119,11 +119,11 @@ void Server::tick(float dTime)
 		for (auto i = conns.begin(); i != conns.end(); ++i)
 		{
 			std::shared_ptr<ClientConnection> conn = i->second;
-			if (conn->data!=0)
+			if (conn->data != nullptr)
 			{
 				for (size_t j = 0; j < world->units.size(); j++)
 				{
-					if (conn->data->getUnit(j)<0)
+					if (conn->data->getUnit(j) == 0xffffffff)
 					{
 						NewEntity * ent = world->units[j];
 						if (ent != nullptr)
@@ -162,14 +162,14 @@ void Server::tick(float dTime)
 		if (--snapshotTimer <= 0)
 		{
 			snapshotTimer += snapshotRate;
-			for (auto i=conns.begin();i!=conns.end();++i)
+			for (auto i = conns.begin(); i != conns.end(); ++i)
 			{
 				std::shared_ptr<ClientConnection> conn = i->second;
 				for (size_t j = 0; j < conn->data->known_units.size(); j++)
 				{
 					if (conn->data->getRealID(j) != 0xffffffff)
 					{
-						NewEntity * ent = world->GetEntity(conn->data->known_units[j]);
+						NewEntity * ent = world->GetEntity(conn->data->getRealID(j));
 						if (ent != nullptr)
 						{
 							auto sync_map = conn->data->sync[j];
@@ -257,9 +257,9 @@ void Server::NotifyOfRemoval(uint32_t id, uint32_t uid)
 	for (auto i=conns.begin();i!=conns.end();++i)
 	{
 		std::shared_ptr<ClientConnection> conn = i->second;
-		MAKE_PACKET
+		MAKE_PACKET;
 		out << (unsigned char)3 << conn->data->forgetUnit(id) << uid;
-		SEND_PACKET(conn->endpoint)
+		SEND_PACKET(conn->endpoint);
 	}
 
 	if (client != nullptr)
@@ -296,20 +296,8 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 	try
 	{
 		in >> type;
-		switch (type) {
-		case 0:
-			{
-				uint32_t client_protocol;
-				in >> client_protocol;
-				if (client_protocol==protocol)
-				{
-				}
-				else
-				{
-					//TODO send wrong protocol version message
-				}
-				break;
-			}
+		switch (type)
+		{
 		case 1:
 			{
 				uint32_t id, sync;

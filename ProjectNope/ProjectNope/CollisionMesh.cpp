@@ -201,7 +201,7 @@ void CollisionMesh::CalcGrid(void)
 	{
 		auto aabb = walls[i].GetAABB();
 		auto cells = GetCellsInAABB(aabb.first, aabb.second);
-		std::cout << cells.size() << std::endl;
+		//std::cout << cells.size() << std::endl;
 		for each (auto cell in cells)
 		{
 			grid[cell].push_back(i);

@@ -27,7 +27,7 @@ uint32_t ClientData::addKnownUnit(uint32_t id)
 {
 	for (size_t i = 0; i < known_units.size(); i++)
 	{
-		if (known_units[i] != 0xffffffff || known_units[i]==id) {
+		if (known_units[i] == 0xffffffff || known_units[i] == id) {
 			known_units[i] = id;
 			return i;
 		}

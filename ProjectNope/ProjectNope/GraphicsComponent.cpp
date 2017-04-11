@@ -42,13 +42,12 @@ void GraphicsComponent::connect(NewEntity * pEntity, bool authority)
 
 void GraphicsComponent::disconnect(void)
 {
-	decs.setSyncState(0);
+	decs.setSyncState(nullptr);
 }
 
 void GraphicsComponent::writeLog(outstream& os, ClientData& client)
 {
-	if (decs.conf.size())
-		decs.writeLog(os);
+	decs.writeLog(os);
 }
 
 void GraphicsComponent::readLog(instream& is)
@@ -58,24 +57,32 @@ void GraphicsComponent::readLog(instream& is)
 
 void GraphicsComponent::pre_frame(float dTime)
 {
-	if (p == nullptr) {
+	if (p == nullptr)
+	{
 		auto pc = entity->getComponent<PositionComponent>();
 		if (pc != nullptr)
 			p = &pc->p;
 	}
 
-	if (pose != nullptr) {
-		for (auto i=decs.items.begin();i!=decs.items.end();++i) {
-			if (*i != nullptr) {
+	if (pose != nullptr)
+	{
+		for (auto i = decs.items.begin(); i != decs.items.end(); ++i)
+		{
+			if (*i != nullptr)
+			{
 				(*i)->attach(*pose);
 			}
 		}
-	} else {
+	}
+	else
+	{
 		auto pc = entity->getComponent<PoseComponent>();
 		if (pc != nullptr)
 			pose = &pc->pose;
-		for (auto i=decs.items.begin();i!=decs.items.end();++i) {
-			if (*i != nullptr) {
+		for (auto i = decs.items.begin(); i != decs.items.end(); ++i)
+		{
+			if (*i != nullptr)
+			{
 				(*i)->attach();
 			}
 		}
@@ -85,7 +92,8 @@ void GraphicsComponent::pre_frame(float dTime)
 void GraphicsComponent::interpolate(Component * pComponent, float fWeight)
 {
 	GraphicsComponent * pGraphicsComponent = dynamic_cast<GraphicsComponent*>(pComponent);
-	if (pGraphicsComponent!=0) {
+	if (pGraphicsComponent != nullptr)
+	{
 		decs = pGraphicsComponent->decs;
 	}
 }
@@ -104,12 +112,12 @@ void GraphicsComponent::render(RenderSetup& rs)
 	rs.pushTransform();
 
 	GlobalPosition offset = -rs.origin;
-	if (p==0) {
+	if (p == nullptr) {
 		PositionComponent * pc = entity->getComponent<PositionComponent>();
-		if (pc!=0)
+		if (pc != nullptr)
 			p = &pc->p;
 	}
-	if (p!=0)
+	if (p != nullptr)
 		offset += *p;
 	rs.addTransform(Matrix4::Translation(offset));
 

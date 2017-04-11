@@ -16,7 +16,7 @@ NewEntity::NewEntity(instream& is, bool full)
 {
 	uint32_t n;
 	is >> n;
-	for (size_t i = 0; i != n; ++i)
+	for (size_t i = 0; i != n; i++)
 	{
 		if (!full)
 		{
@@ -37,17 +37,17 @@ NewEntity::NewEntity(instream& is, bool full)
 NewEntity::~NewEntity(void)
 {
 	//maybe call disconnect on all components?
-	for (auto i=components.begin();i!=components.end();++i)
-		if (*i!=0)
+	for (auto i = components.begin(); i != components.end(); ++i)
+		if (*i != nullptr)
 			delete *i;
-	for (auto i=component_syncref.begin();i!=component_syncref.end();++i)
+	for (auto i = component_syncref.begin(); i != component_syncref.end(); ++i)
 		ss.deallocate(*i);
 }
 
 std::vector<Component*>::iterator NewEntity::addComponent(Component * pComponent, bool authority)
 {
 	components.push_back(pComponent);
-	if (pComponent != 0)
+	if (pComponent != nullptr)
 	{
 		pComponent->connect(this, authority);
 		pComponent->entity = this;
@@ -64,11 +64,13 @@ std::vector<Component*>::iterator NewEntity::addComponent(Component * pComponent
 
 std::vector<Component*>::iterator NewEntity::removeComponent(Component * pComponent)
 {
-	for (auto i=components.begin();i!=components.end();++i) {
-		if (*i==pComponent) {
+	for (auto i = components.begin();i != components.end(); ++i)
+	{
+		if (*i == pComponent)
+		{
 			(*i)->disconnect();
 			delete *i;
-			*i = 0;
+			*i = nullptr;
 			return i;
 		}	
 	}
@@ -115,39 +117,48 @@ void NewEntity::writeLog(outstream& os, ClientData& client)
 {
 	std::stringbuf logs_buf;
 	outstream logs(&logs_buf);
-	for (auto i=components.begin();i!=components.end();++i) {
-		if (*i!=0) {
-			if ((*i)->visible(client)) {
+	for (auto i = components.begin(); i != components.end(); ++i)
+	{
+		if (*i != nullptr)
+		{
+			if ((*i)->visible(client))
+			{
 				std::stringbuf cbuf;
 				outstream comp(&cbuf);
 				(*i)->writeLog(comp, client);
-				if (cbuf.str().size()) {
+				if (cbuf.str().size())
+				{
 					logs << (uint32_t)std::distance(components.begin(), i); //maybe use 8 or 16 bits instead
 					logs.write(cbuf.str().data(), cbuf.str().size());
 				}
 			}
 		}
 	}
-	if (logs_buf.str().size() || conf.size()) {
-		for (auto i=conf.begin();i!=conf.end();++i) {
-			os << int(*i) << ss.sync[component_syncref[std::distance(conf.begin(), i)]];
+
+	if (logs_buf.str().size() || conf.size())
+	{
+		for (auto i = conf.begin(); i != conf.end(); ++i)
+		{
+			os << uint32_t(*i) << ss.sync[component_syncref[std::distance(conf.begin(), i)]];
 			Serializable::serialize(os, components[*i]);
-			if (components[*i]!=0)
+			if (components[*i] != nullptr)
 				components[*i]->write_to(os, client);
 		}
 		conf.clear();
-		os << int(-1);
+		os << (uint32_t)0xffffffff;
 		os.write(logs_buf.str().data(), logs_buf.str().size());
-		os << int(-1);
+		os << (uint32_t)0xffffffff;
 	}
 }
 
 void NewEntity::readLog(instream& is)
 {
-	while (!is.eof()) {
-		int index, sync;
+	while (!is.eof())
+	{
+		uint32_t index, sync;
 		is >> index;
-		if (index >= 0) {
+		if (index != 0xffffffff)
+		{
 			is >> sync;
 			auto factory = Serializable::unserialize(is);
 			Component * comp;
@@ -155,39 +166,52 @@ void NewEntity::readLog(instream& is)
 				comp = dynamic_cast<Component*>(factory->create(is, false));
 			else
 				comp = nullptr;
-			if (components.size() <= index) {
+			if (components.size() <= index)
+			{
 				components.resize(index);
 				components.push_back(comp);
 				component_sync.resize(index);
 				component_sync.push_back(sync);
-			} else {
-				if (sync>component_sync[index] || (sync<INT_MIN/2 && component_sync[index]>INT_MAX/2)) {
-					if (components[index] != nullptr) {
+			}
+			else
+			{
+				if (SyncState::is_ordered(component_sync[index], sync))
+				{
+					if (components[index] != nullptr)
+					{
 						components[index]->disconnect();
 						delete components[index];
 					}
 					component_sync[index] = sync;
 					components[index] = comp;
-					if (comp != nullptr) {
+					if (comp != nullptr)
+					{
 						comp->connect(this, false);
 						comp->entity = this;
 					}
-				} else {
+				}
+				else
+				{
 					if (comp != nullptr)
 						delete comp;
 				}
 			}
-		} else
+		}
+		else
 			break;
 	}
-	while (!is.eof()) {
-		int index;
+
+	while (!is.eof())
+	{
+		uint32_t index;
 		is >> index;
-		if (index >= 0) {
+		if (index != 0xffffffff)
+		{
 			if (index < components.size())
 				if (components[index] != nullptr)
 					components[index]->readLog(is);
-		} else
+		}
+		else
 			break;
 	}
 }
@@ -195,12 +219,15 @@ void NewEntity::readLog(instream& is)
 void NewEntity::writeLog(outstream& os)
 {
 	bool has_written = false;
-	for (auto i = components.begin(); i != components.end(); ++i) {
-		if (*i != nullptr) {
+	for (auto i = components.begin(); i != components.end(); ++i)
+	{
+		if (*i != nullptr)
+		{
 			std::stringbuf cbuf;
 			outstream comp(&cbuf);
 			(*i)->writeLog(comp);
-			if (cbuf.str().size()) {
+			if (cbuf.str().size())
+			{
 				has_written = true;
 				os << (uint32_t)std::distance(components.begin(), i);
 				os.write(cbuf.str().data(), cbuf.str().size());
@@ -218,7 +245,7 @@ void NewEntity::readLog(instream& is, ClientData& client)
 	{
 		uint32_t index;
 		is >> index;
-		if (index != uint32_t(0xffffffff))
+		if (index != 0xffffffff)
 		{
 			if (index < components.size())
 			{
@@ -246,13 +273,15 @@ void NewEntity::interpolate(NewEntity * pEntity, float fWeight)
 void NewEntity::write_to(outstream& os, ClientData& client) const
 {
 	os << (uint32_t)components.size();
-	for (auto i=components.begin();i!=components.end();++i) {
+	for (auto i = components.begin(); i != components.end(); ++i) {
 		os << ss.sync[component_syncref[std::distance(components.begin(), i)]];
 		if (*i != nullptr)
-			if ((*i)->visible(client)) {
+			if ((*i)->visible(client))
+			{
 				os << (*i)->getSerialID();
 				(*i)->write_to(os, client);
-			} else
+			}
+			else
 				os << uint32_t(0);
 		else
 			os << uint32_t(0);

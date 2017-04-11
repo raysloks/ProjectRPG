@@ -264,18 +264,11 @@ void Client::pre_frame(float dTime)
 
 	if (con != nullptr)
 	{
-		if (clientData != nullptr)
-		{
-			MAKE_PACKET;
-			out << (unsigned char)255;
-			SEND_PACKET;
-		}
-		else
-		{
-			MAKE_PACKET;
-			out << (unsigned char)0 << protocol << (unsigned char)0;
-			SEND_PACKET;
-		}
+		MAKE_PACKET;
+
+		out << (unsigned char)0;
+
+		SEND_PACKET;
 
 		process_network_data();
 
@@ -1373,15 +1366,8 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 	in >> type;
 	//try
 	{
-		switch(type) {
-		case 0:
-			{
-				/*if (clientData==0)
-					clientData = new ClientData(in);
-				else
-					clientData->read(in);*/
-				break;
-			}
+		switch (type)
+		{
 		case 1: // notify of entity
 			{
 				int32_t id, uid;
@@ -1394,14 +1380,17 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 				world->SetEntity(id, unit);
 				world->uid[id] = uid;
 				NewEntity * copy = new NewEntity();
-				for (auto i=unit->components.begin();i!=unit->components.end();++i) {
-					if (*i!=0) {
+				for (auto i = unit->components.begin(); i != unit->components.end(); ++i)
+				{
+					if (*i != nullptr)
+					{
 						copy->components.push_back(dynamic_cast<Component*>(Serializable::getFactory((*i)->getSerialID())->create(*i)));
 						(*i)->connect(unit, false);
 						(*i)->entity = unit;
 						copy->components.back()->connect(copy, false);
 						copy->components.back()->entity = copy;
-					} else
+					}
+					else
 						copy->components.push_back(0);
 				}
 				copy->component_sync = unit->component_sync;
@@ -1503,15 +1492,21 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 
 void Client::interpolate(float dTime)
 {
-	for (int i=0;i<world->units.size();++i)
+	for (size_t i = 0; i < world->units.size(); i++)
 	{
 		NewEntity * ent = world->GetEntity(i);
-		if (ent!=0) {
-			if (i<interpol_targets.size()) {
-				if (interpol_targets[i]!=0) {
-					if (interpol_elapsed[i]>=interpol_delay) {
+		if (ent != nullptr)
+		{
+			if (i < interpol_targets.size())
+			{
+				if (interpol_targets[i] != nullptr)
+				{
+					if (interpol_elapsed[i]>=interpol_delay)
+					{
 						ent->interpolate(interpol_targets[i], 1.0f);
-					} else {
+					}
+					else
+					{
 						ent->interpolate(interpol_targets[i], std::min(1.0f, std::max(0.0f, dTime/(interpol_delay-interpol_elapsed[i]))));
 						interpol_elapsed[i] += dTime;
 					}
@@ -1523,7 +1518,7 @@ void Client::interpolate(float dTime)
 
 void Client::sync(void)
 {
-	if (clientData!=0)
+	if (clientData != nullptr)
 	{
 		std::set<int32_t> missing;
 		for (size_t i = 0; i < world->units.size(); i++)
@@ -1552,7 +1547,8 @@ void Client::sync(void)
 				}
 			}
 		}
-		if (missing.size()>0)
+
+		if (!missing.empty())
 		{
 			MAKE_PACKET
 
