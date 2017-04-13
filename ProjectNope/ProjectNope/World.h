@@ -39,11 +39,6 @@ public:
 	void clean(void);
 	void clear(void);
 
-	void LoadChunk(const std::vector<int>& pos);
-	void LoadSurroundings(NewEntity * entity);
-
-	void UnloadChunk(const std::vector<int>& pos);
-
 	int AddEntity(NewEntity * entity); // use this one over SetEntity most of the time
 	
 	void SetEntity(int id, NewEntity * entity);
@@ -131,11 +126,6 @@ public:
 
 	GlobalPosition cam_pos;
 	Quaternion cam_rot;
-
-	bool use_chunks;
-	std::map<std::vector<int>, Chunk*> chunks;
-
-	std::string level, save;
 
 	std::shared_ptr<ScriptMemory> mem;
 		

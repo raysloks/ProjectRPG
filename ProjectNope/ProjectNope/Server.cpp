@@ -17,31 +17,9 @@ const unsigned int protocol = 0;
 #define MAKE_PACKET std::shared_ptr<Packet> _packet_(new Packet());outstream out(&_packet_->buffer);
 #define SEND_PACKET(x) con->SendTo(_packet_, x);
 
-float load_distance_sqr = 500000.0f;
-float unload_distance_sqr = 600000.0f;
-
-Server::Server(World * pWorld, unsigned short port)
-{
-	world = pWorld;
-
-	ep = boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port);
-	con = std::shared_ptr<Connection>(new Connection(ep));
-
-	snapshotTimer = 0;
-	snapshotRate = 2;
-
-	snapshotBeforeTick = false;
-
-	world->level = "test";
-	world->save = "test_save";
-}
-
 Server::Server(World * pWorld)
 {
 	world = pWorld;
-
-	world->level = "test";
-	world->save = "test_save";
 }
 
 Server::~Server(void)
@@ -275,6 +253,22 @@ void Server::onClientConnect(ClientData& data)
 
 void Server::onClientDisconnect(ClientData& data)
 {
+}
+
+void Server::open(unsigned short port)
+{
+	ep = boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port);
+	con = std::shared_ptr<Connection>(new Connection(ep));
+
+	snapshotTimer = 0;
+	snapshotRate = 2;
+
+	snapshotBeforeTick = false;
+}
+
+void Server::close(void)
+{
+	con.reset();
 }
 
 void Server::handle_packet(const std::shared_ptr<Packet>& packet)

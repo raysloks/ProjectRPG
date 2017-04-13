@@ -32,7 +32,6 @@ public:
 class Server
 {
 public:
-	Server(World * pWorld, unsigned short port);
 	Server(World * pWorld);
 	virtual ~Server(void);
 
@@ -40,6 +39,9 @@ public:
 
 	void NotifyOfCreation(uint32_t id);
 	void NotifyOfRemoval(uint32_t id, uint32_t uid);
+
+	void open(unsigned short port);
+	void close(void);
 
 	void handle_packet(const std::shared_ptr<Packet>& packet);
 

@@ -34,7 +34,7 @@ public:
 
 	void setup(void);
 
-	void connect(const std::string& address, unsigned short port);
+	void connect(const std::string& address, uint16_t port);
 	void disconnect(void);
 
 	virtual bool HandleEvent(IEvent * pEvent);

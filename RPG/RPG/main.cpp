@@ -27,38 +27,19 @@
 
 #include "Matrix3.h"
 
+#include <regex>
+
 class MyServer :
 	public Server
 {
 public:
-	MyServer(World * pWorld, unsigned short port) : Server(pWorld, port) {}
 	MyServer(World * pWorld) : Server(pWorld) {}
 
 	void onClientConnect(ClientData& data)
 	{
-		if (world->units.size() == 0)
+		if (world->units.empty())
 		{
-			/*{
-				NewEntity * ent = new NewEntity();
-
-				PositionComponent * p = new PositionComponent();
-				GraphicsComponent * g = new GraphicsComponent();
-				PlayerInputComponent * input = new PlayerInputComponent();
-				MobComponent * mob = new MobComponent();
-				AnimationControlComponent * acc = new AnimationControlComponent();
-				InventoryComponent * inv = new InventoryComponent();
-
-				ent->addComponent(p);
-				ent->addComponent(g);
-				ent->addComponent(input);
-				ent->addComponent(mob);
-				ent->addComponent(acc);
-				ent->addComponent(inv);
-
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", "data/assets/empty.tga")));
-
-				world->AddEntity(ent);
-			}*/
+			// create level
 			{
 				NewEntity * ent = new NewEntity();
 
@@ -89,157 +70,8 @@ public:
 
 				world->AddEntity(ent);
 			}
-			/*for (int x = -40; x < 40; ++x)
-			{
-				for (int y = -40; y < 40; ++y)
-				{
-					NewEntity * ent = new NewEntity();
 
-					PositionComponent * p = new PositionComponent();
-					p->p += Vec3(2.5f * x, 2.5f * y, -2.0f);
-					ColliderComponent * c = new ColliderComponent();
-					GraphicsComponent * g = new GraphicsComponent(false);
-
-					ent->addComponent(p);
-					ent->addComponent(c);
-					ent->addComponent(g);
-
-					std::vector<std::string> tex;
-					tex.push_back("data/assets/terrain/textures/grass.tga");
-
-					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", tex, 0)));
-					g->decs.items.front()->local *= 1.0f;
-					g->decs.items.front()->local.mtrx[3][3] = 1.0f;
-					g->decs.items.front()->final = g->decs.items.front()->local;
-
-					world->AddEntity(ent);
-				}
-			}*/
-			/*for (int y = 0; y < 20; ++y)
-			{
-				for (int i = 0; i < 20; ++i)
-				{
-					NewEntity * ent = new NewEntity();
-
-					PositionComponent * p = new PositionComponent();
-					p->p += Vec3(0.2f * i, 0.2f * y + 0.05f * i, 0.15f * i + 0.05f * y + 20.0f);
-					ColliderComponent * c = new ColliderComponent();
-					GraphicsComponent * g = new GraphicsComponent(false);
-
-					ent->addComponent(p);
-					ent->addComponent(c);
-					ent->addComponent(g);
-
-					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/terrain/textures/RockPlate.tga"), 0)));
-					g->decs.items.front()->local *= 0.1f;
-					g->decs.items.front()->local.mtrx[3][3] = 1.0f;
-					g->decs.items.front()->final = g->decs.items.front()->local;
-
-					world->AddEntity(ent);
-				}
-			}*/
-			/*{
-				NewEntity * ent = new NewEntity();
-
-				PositionComponent * p = new PositionComponent();
-				p->p += Vec3(10.0f, 8.0f, -11.5f);
-				ColliderComponent * c = new ColliderComponent();
-				GraphicsComponent * g = new GraphicsComponent(false);
-
-				ent->addComponent(p);
-				ent->addComponent(c);
-				ent->addComponent(g);
-
-				std::vector<std::string> tex;
-				tex.push_back("data/assets/terrain/textures/RockPlate.tga");
-
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/triangle_ds_test.gmdl", tex, 0)));
-				g->decs.items.front()->final = g->decs.items.front()->local;
-
-				world->AddEntity(ent);
-			}
-			{
-				NewEntity * ent = new NewEntity();
-
-				PositionComponent * p = new PositionComponent();
-				p->p += Vec3(15.0f, 0.0f, -11.5f);
-				ColliderComponent * c = new ColliderComponent();
-				GraphicsComponent * g = new GraphicsComponent(false);
-
-				ent->addComponent(p);
-				ent->addComponent(c);
-				ent->addComponent(g);
-
-				std::vector<std::string> tex;
-				tex.push_back("data/assets/terrain/textures/RockPlate.tga");
-
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/octagon_ds_test.gmdl", tex, 0)));
-				g->decs.items.front()->final = g->decs.items.front()->local;
-
-				world->AddEntity(ent);
-			}*/
-			/*for (int i = 0; i < 10; ++i)
-			{
-				NewEntity * ent = new NewEntity();
-
-				PositionComponent * p = new PositionComponent();
-				p->p += Vec3(5.0f, 0.0f, -1.0f + 2.0f * i);
-				ColliderComponent * c = new ColliderComponent();
-				GraphicsComponent * g = new GraphicsComponent(false);
-
-				ent->addComponent(p);
-				ent->addComponent(c);
-				ent->addComponent(g);
-
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube_bevel.gmdl", Material("data/assets/terrain/textures/RockPlate.tga"), 0)));
-				g->decs.items.front()->final = g->decs.items.front()->local;
-
-				world->AddEntity(ent);
-			}*/
-			/*{
-				NewEntity * ent = new NewEntity();
-
-				PositionComponent * p = new PositionComponent();
-				p->p += Vec3(0.0f, 0.0f, 200.0f);
-				ColliderComponent * c = new ColliderComponent();
-				GraphicsComponent * g = new GraphicsComponent(false);
-				OrbitComponent * orbit = new OrbitComponent();
-
-				ent->addComponent(p);
-				ent->addComponent(c);
-				ent->addComponent(g);
-				ent->addComponent(orbit);
-
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/props/rocks/rock.gmdl", Material("data/assets/props/rocks/rock.tga"), 0)));
-				g->decs.items.front()->local *= 10.0f;
-				g->decs.items.front()->local.data[15] = 1.0f;
-				g->decs.items.front()->final = g->decs.items.front()->local;
-
-				orbit->center = Vec3(0.0f, 0.0f, 0.0f);
-				orbit->offset = p->p;
-				orbit->angle = orbit->offset.Normalized().Cross(Vec3(1.0f, 0.0f, 0.0f));
-				orbit->period = 100.0f;
-
-				world->AddEntity(ent);
-			}
-			{
-				NewEntity * ent = new NewEntity();
-
-				PositionComponent * p = new PositionComponent();
-				ColliderComponent * c = new ColliderComponent();
-				GraphicsComponent * g = new GraphicsComponent(false);
-
-				ent->addComponent(p);
-				ent->addComponent(c);
-				ent->addComponent(g);
-
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/planet_test.gmdl", Material("data/assets/terrain/textures/RockPlate.tga"), 0)));
-				g->decs.items.front()->local *= 100.0f;
-				g->decs.items.front()->local.data[15] = 1.0f;
-				g->decs.items.front()->final = g->decs.items.front()->local;
-
-				world->AddEntity(ent);
-			}*/
+			// create spawner
 			{
 				NewEntity * ent = new NewEntity();
 
@@ -252,45 +84,6 @@ public:
 
 				world->AddEntity(ent);
 			}
-		}
-
-		// create ai entity
-		for (int i = 0; i < 0; ++i)
-		{
-			NewEntity * ent = new NewEntity();
-
-			PositionComponent * p = new PositionComponent();
-			p->p = Vec3(25.0f + 5.0f * i, 20.0f, 25.0f);
-			GraphicsComponent * g = new GraphicsComponent();
-			//AIComponent * ai = new AIComponent();
-			//ai->random.seed(i);
-			MobComponent * mob = new MobComponent();
-			AnimationControlComponent * acc = new AnimationControlComponent();
-			PoseComponent * pose = new PoseComponent();
-
-			ent->addComponent(p);
-			ent->addComponent(g);
-			//ent->addComponent(ai);
-			ent->addComponent(mob);
-			ent->addComponent(acc);
-			ent->addComponent(pose);
-
-			/*for (int i = 1; i < 23; ++i)
-			{
-				LightComponent * light = new LightComponent();
-				light->bone_id = i;
-				ent->addComponent(light);
-			}*/
-
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/empty.tga")/*"data/assets/empty.tga"*/)));
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
-			g->decs.items.back()->priority = 1;
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
-			g->decs.items.back()->priority = 2;
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
-			g->decs.items.back()->priority = 3;
-
-			world->AddEntity(ent);
 		}
 
 		// create player entity
@@ -368,116 +161,60 @@ public:
 
 #include "ScriptCode.h"
 
-void main()
-//INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-//    PSTR lpCmdLine, INT nCmdShow)
+//int main(int argc, char* argv[])
+INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+    PSTR lpCmdLine, INT nCmdShow)
 {
-	if (false)
+	std::string address;
+	uint16_t port = 7777;
+	uint64_t lobby_id = 0;
+	char option = 'h';
+
+	std::cmatch match_connect;
+	std::regex reg_connect("\\+connect (.*):(.*)");
+	if (std::regex_match(lpCmdLine, match_connect, reg_connect))
 	{
-		size_t max_mem_size = 65536;
-		void * mem = VirtualAlloc(nullptr, max_mem_size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-
-		while (true)
-		{
-			try
-			{
-
-				char buffer[4096];
-
-				std::cin.getline(buffer, sizeof(buffer));
-
-				ScriptCode code = ScriptCode(std::istringstream(buffer));
-
-				ScriptCompile comp(mem);
-
-				for (auto i = code.statements.begin(); i != code.statements.end(); ++i)
-				{
-					std::cout << i->output() << std::endl;
-					i->compile(comp);
-				}
-
-				size_t mem_size = comp.ss.tellp();
-
-				std::cout << "code bytes: " << mem_size << std::endl;
-
-				comp.ss.read((char*)mem, mem_size);
-
-				auto found_class = comp.classes.find("Main");
-				if (found_class != comp.classes.end())
-				{
-					auto found_func = found_class->second->functions.find("main");
-					if (found_func != found_class->second->functions.end())
-					{
-						typedef unsigned int func(unsigned int);
-
-						func * f = static_cast<func*>(found_func->second.second);
-
-						for (int i = 0; i < 20; ++i)
-							std::cout << f(i) << std::endl;
-					}
-				}
-
-			}
-			catch (std::runtime_error& e)
-			{
-				std::cout << e.what() << std::endl;
-			}
-		}
-
-		VirtualFree(mem, max_mem_size, MEM_RELEASE);
+		option = 'c';
+		address = match_connect[1];
+		port = std::atoi(match_connect[2].str().c_str());
 	}
 
+	std::cmatch match_connect_lobby;
+	std::regex reg_connect_lobby("\\+connect_lobby (.*)");
+	std::regex_match(lpCmdLine, match_connect_lobby, reg_connect_lobby);
+
 	World * world = new World();
-	Server * server = 0;
-	Client * client = 0;
-	world->use_chunks = false;
-	char option;
-	std::cout << "'p', 'c', 'h' or 's': ";
-	std::cin >> option;
+	Server * server = new MyServer(world);
+	Client * client = new Client(world);
+
 	if (option=='p')
 	{
-		client = new Client(world);
-		server = new MyServer(world);
 		server->onClientConnect(*client->clientData);
 	}
 	if (option=='c')
 	{
-		std::string address;
-		unsigned int port;
-		std::cout << "Address: ";
-		std::cin >> address;
-		std::cout << "Port: ";
-		std::cin >> port;
-		client = new Client(world);
 		client->connect(address, port);
-		server = new MyServer(world);
 	}
 	if (option == 'h')
 	{
-		unsigned int port;
-		std::cout << "Port: ";
-		std::cin >> port;
-		client = new Client(world);
-		server = new MyServer(world, port);
+		server->open(port);
 		server->onClientConnect(*client->clientData);
 	}
 	if (option=='s')
 	{
-		unsigned int port;
-		std::cout << "Port: ";
-		std::cin >> port;
-		server = new MyServer(world, port);
+		server->open(port);
 	}
+
 	world->client = client;
 	world->server = server;
-	if (server!=0)
+	if (server != nullptr)
 	{
 		server->client = client;
-		if (client!=0)
+		if (client != nullptr)
 			client->server = server;
 		GameLoop gl(world, server, client);
 		gl.init();
-		if (client!=0)
+		if (client != nullptr)
 		{
 			while (client->IsAlive())
 				gl.tick();

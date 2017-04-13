@@ -67,8 +67,6 @@ Client::Client(World * pWorld)
 	light *= Matrix3(0.0f, pole);
 	light_size = 0.003f;
 
-	clientData = 0;
-
 	windows.push_back(std::shared_ptr<Window>(new MainMenuWindow(world, this, 0, 0, 0, 0)));
 
 	interpol_delay = 2.0f/60.0f;
@@ -91,7 +89,7 @@ Client::Client(World * pWorld)
 	flat_stencil_prog = std::make_shared<ShaderProgram>("data/flat_stencil_vert.txt", "data/flat_stencil_geom.txt", "data/flat_stencil_frag.txt");
 }
 
-void Client::connect(const std::string& address, unsigned short port)
+void Client::connect(const std::string& address, uint16_t port)
 {
 	endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(address), port);
 	con = std::shared_ptr<Connection>(new Connection(boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0)));
@@ -101,12 +99,12 @@ void Client::connect(const std::string& address, unsigned short port)
 
 void Client::disconnect(void)
 {
-	if (con!=0)
+	if (con != nullptr)
 		con->socket_.close();
-	con = 0;
-	if (clientData!=0)
+	con = nullptr;
+	if (clientData != nullptr)
 		delete clientData;
-	clientData = 0;
+	clientData = nullptr;
 	
 	world->authority = true;
 }

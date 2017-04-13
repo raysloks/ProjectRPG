@@ -17,34 +17,21 @@
 World::World(void)
 {
 	authority = true;
-	use_chunks = true;
 }
 
 World::~World(void)
 {
-	clean();
-	for (int i=0;i<units.size();++i) {
-		NewEntity * unit = units[i];
-		if (unit!=0)
-			delete unit;
-	}
-	units.clear();
-	for (auto i=chunks.begin();i!=chunks.end();++i) {
-		Chunk * chunk = i->second;
-		if (chunk!=0)
-			delete chunk;
-	}
-	chunks.clear();
+	clear();
 }
 
 void World::pre_frame(float dTime)
 {
 	Timeslot timeslot_pre_frame("pre_frame");
 
-	for (size_t i = 0; i < units.size(); i++) {
-		NewEntity * ent = units[i];
-		if (ent != 0)
-			ent->pre_frame(dTime);
+	for (size_t i = 0; i < units.size(); i++)
+	{
+		if (units[i] != nullptr)
+			units[i]->pre_frame(dTime);
 	}
 }
 
@@ -52,10 +39,10 @@ void World::post_frame(float dTime)
 {
 	Timeslot timeslot_post_frame("post_frame");
 
-	for (size_t i = 0; i < units.size(); i++) {
-		NewEntity * ent = units[i];
-		if (ent != 0)
-			ent->post_frame(dTime);
+	for (size_t i = 0; i < units.size(); i++)
+	{
+		if (units[i] != nullptr)
+			units[i]->post_frame(dTime);
 	}
 }
 
@@ -63,37 +50,16 @@ void World::tick(float dTime)
 {
 	Timeslot timeslot_tick("tick");
 
-	std::vector<int> pos;
-	bool chunk_loaded;
-	for (size_t i = 0; i< units.size(); i++) {
-		NewEntity * ent = units[i];
-		if (ent != nullptr) {
-			if (use_chunks) {
-				chunk_loaded = true;
-				PositionComponent * p = ent->getComponent<PositionComponent>();
-				if (p!=0)
-				{
-					chunk_loaded = false;
-					pos.clear();
-					pos.push_back((p->p.x)/(chunk_size));
-					pos.push_back((p->p.y)/(chunk_size));
-					pos.push_back((p->p.z)/(chunk_size));
-					if (!authority)
-						chunk_loaded = true;
-					if (chunks[pos]!=0)
-						chunk_loaded = !chunks[pos]->loading;
-				}
-				ent->tick(chunk_loaded ? dTime : 0.0f);
-			} else {
-				ent->tick(dTime);
-			}
-		}
+	for (size_t i = 0; i < units.size(); i++)
+	{
+		if (units[i] != nullptr)
+			units[i]->tick(dTime);
 	}
 }
 
 void World::clean(void)
 {
-	for (auto i=removed.begin();i!=removed.end();++i)
+	for (auto i = removed.begin(); i != removed.end(); ++i)
 		delete *i;
 	removed.clear();
 }
@@ -101,110 +67,15 @@ void World::clean(void)
 void World::clear(void)
 {
 	clean();
-	for (auto i=units.begin();i!=units.end();++i) {
-		if (*i!=0)
+	for (auto i = units.begin(); i != units.end(); ++i) {
+		if (*i != nullptr)
 			delete *i;
 	}
 	units.clear();
 	uid.clear();
-	while (alloc.size())
-		alloc.pop();
-	for (auto i=chunks.begin();i!=chunks.end();++i) {
-		Chunk * chunk = i->second;
-		if (chunk!=0)
-			delete chunk;
-	}
-	chunks.clear();
+	alloc = std::stack<size_t>();
 	mem.reset();
 }
-
-void World::LoadChunk(const std::vector<int>& pos)
-{
-	if (chunks[pos]==0)
-	{
-		std::vector<std::string> tex;
-		tex.push_back("data/assets/terrain/textures/grass.tga");
-		tex.push_back("data/assets/terrain/textures/RockPlate.tga");
-		tex.push_back("data/assets/terrain/textures/temple.tga");
-
-		/*if (low==0)
-		{
-			Matrix3 mtrx;
-			mtrx *= 600.0f;
-			low = new StaticProp(GlobalPosition(), std::string("data/assets/terrain/") + level + "/low.gmdl", tex, mtrx);
-			low->collision = false;
-			low->camera_collision = false;
-			low->range = 0.0f;
-			world->AddEntity(low);
-		}*/
-
-		std::string chunk = std::to_string((_Longlong)pos[0]) + std::string("_") + std::to_string((_Longlong)pos[1]) + std::string("_") + std::to_string((_Longlong)pos[2]) + std::string(".dat");
-
-		std::string fname = std::string("save/") + save + "/chunks/" + chunk;
-		std::ifstream f(fname);
-		if (f.good())
-		{
-			f.close();
-			chunks[pos] = new Chunk(this, pos, fname);
-		}
-		else
-		{
-			std::string fname = std::string("data/level/") + level + "/" + chunk;
-			std::ifstream f(fname);
-			if (f.good())
-			{
-				f.close();
-				chunks[pos] = new Chunk(this, pos, fname);
-				return;
-			}
-
-			chunks[pos] = new Chunk(this, pos);
-
-			/*PNEntity * terrain = new StaticProp(GlobalPosition(Vec3(), pos[0]*chunk_size, pos[1]*chunk_size, pos[2]*chunk_size), std::string("data/assets/terrain/") + level + "/high_" +
-				std::to_string((long long)pos[0]) + "_" + std::to_string((long long)pos[1]) + "_" + std::to_string((long long)pos[2]) + ".gmdl", tex);
-			chunks[pos]->add(AddEntity(terrain));*/
-		}
-	}
-}
-
-void World::LoadSurroundings(NewEntity * ent)
-{
-	if (ent!=0 && use_chunks)
-	{
-		PositionComponent * p = ent->getComponent<PositionComponent>();
-		if (p!=0)
-		{
-			int dist = 1;
-			std::vector<int> pos;
-			for (int x = -dist;x<dist;++x)
-			{
-				for (int y = -dist;y<dist;++y)
-				{
-					for (int z = -dist;z<dist;++z)
-					{
-						pos.clear();
-						pos.push_back(std::floorf((p->p.x+chunk_size_half)/(chunk_size))+x);
-						pos.push_back(std::floorf((p->p.y+chunk_size_half)/(chunk_size))+y);
-						pos.push_back(std::floorf((p->p.z+chunk_size_half)/(chunk_size))+z);
-						LoadChunk(pos);
-					}
-				}
-			}
-		}
-	}
-}
-
-void World::UnloadChunk(const std::vector<int>& pos)
-{
-	if (chunks[pos]!=0)
-	{
-		std::string folder = "save/" + save + "/chunks/";
-		chunks[pos]->save(folder);
-		chunks[pos]->unload();
-	}
-}
-
-#include "Profiler.h"
 
 #include "GraphicsComponent.h"
 
@@ -225,7 +96,7 @@ void World::render(RenderSetup& rs)
 
 int World::AddEntity(NewEntity * unit)
 {
-	if (unit!=0 && authority) {
+	if (unit != nullptr && authority) {
 		int id = -1;
 		while (id==-1)
 		{

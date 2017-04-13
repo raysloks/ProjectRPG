@@ -14,33 +14,36 @@ template <class T>
 class SyncContainer
 {
 public:
-	SyncContainer(void):ss(0){}
-	SyncContainer(SyncState * sync_state):ss(sync_state)
+	SyncContainer(void) : ss(nullptr) {}
+	SyncContainer(SyncState * sync_state) : ss(sync_state)
 	{
-		cs = ss->allocate(0);
+		cs = ss->allocate(nullptr);
 	}
 	~SyncContainer(void)
 	{
-		if (ss!=0) // maybe bracket everything
+		if (ss != nullptr) // maybe bracket everything
 			ss->deallocate(cs);
-		for (auto i=sync.begin();i!=sync.end();++i)
+		for (auto i = sync.begin(); i != sync.end(); ++i)
 			ss->deallocate(*i);
 	}
 
 	void setSyncState(SyncState * sync_state)
 	{
-		if (ss!=0) {
+		if (ss != nullptr)
+		{
 			ss->deallocate(cs);
-			for (auto i=sync.begin();i!=sync.end();++i)
+			for (auto i = sync.begin(); i != sync.end(); ++i)
 				ss->deallocate(*i);
 		}
 		ss = sync_state;
-		if (sync_state!=0)
+		if (sync_state != nullptr)
 		{
 			cs = sync_state->allocate(std::function<void(ClientData&)>(), std::function<bool(ClientData&)>());
-			for (auto i=sync.begin();i!=sync.end();++i) {
+			for (auto i = sync.begin(); i != sync.end(); ++i)
+			{
 				const int id = std::distance(sync.begin(), i);
-				*i = sync_state->allocate([this, id] (ClientData&) { //TODO function for visibility check
+				*i = sync_state->allocate([this, id] (ClientData&) //TODO function for visibility check
+				{
 					conf.insert(id);
 				}, std::function<bool(ClientData&)>());
 			}
@@ -52,7 +55,7 @@ public:
 		if (conf.empty())
 			return;
 		os << (uint32_t)conf.size();
-		for (auto i=conf.begin();i!=conf.end();++i)
+		for (auto i = conf.begin(); i != conf.end(); ++i)
 		{
 			os << (uint32_t)*i;
 			auto p = items[*i];
@@ -74,7 +77,7 @@ public:
 		uint32_t size, index;
 		unsigned char type;
 		is >> size;
-		for (size_t i=0;i<size;++i)
+		for (size_t i = 0; i < size; i++)
 		{
 			is >> index >> type;
 			if (type!=0)
@@ -88,22 +91,26 @@ public:
 			else
 			{
 				if (index<items.size())
-					items[index] = 0;
+					items[index] = nullptr;
 			}
 		}
 	}
 
 	size_t add(const std::shared_ptr<T>& item)
 	{
-		if (alloc.size()) {
+		if (alloc.size())
+		{
 			size_t id = alloc.top();
 			items[id] = item;
 			alloc.pop();
 			return id;
-		} else {
+		}
+		else
+		{
 			size_t id = items.size();
 			items.push_back(item);
-			sync.push_back(ss->allocate([this, id] (ClientData&) { //TODO function for visibility check
+			sync.push_back(ss->allocate([this, id] (ClientData&) //TODO function for visibility check
+			{
 				conf.insert(id);
 			}, std::function<bool(ClientData&)>()));
 			return id;
@@ -113,9 +120,9 @@ public:
 	void remove(size_t index)
 	{
 		if (index<items.size())
-			if (items[index]!=0)
+			if (items[index] != nullptr)
 			{
-				items[index]=0;
+				items[index].reset();
 				alloc.push(index);
 			}
 	}
