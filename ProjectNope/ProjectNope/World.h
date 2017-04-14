@@ -6,7 +6,8 @@
 #include <set>
 #include <stack>
 #include <memory>
-#include <boost\thread.hpp>
+#include <thread>
+#include <mutex>
 
 #include "Serializable.h"//for SerialID
 #include "GlobalPosition.h"
@@ -130,7 +131,7 @@ public:
 	std::shared_ptr<ScriptMemory> mem;
 		
 	bool authority;
-	boost::mutex auth_break;
+	std::mutex auth_break;
 };
 
 #endif

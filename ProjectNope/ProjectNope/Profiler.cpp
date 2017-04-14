@@ -2,7 +2,8 @@
 
 #include <map>
 #include <vector>
-#include <boost\thread.hpp>
+#include <thread>
+#include <mutex>
 #include <chrono>
 
 class TimeslotData
@@ -38,7 +39,7 @@ public:
 TimeslotData timeslot;
 std::vector<std::string> slot_path;
 
-boost::mutex profiler_mutex;
+std::mutex profiler_mutex;
 
 Profiler::Profiler(void)
 {
@@ -50,7 +51,7 @@ Profiler::~Profiler(void)
 
 void Profiler::start(const std::string& slot)
 {
-	boost::lock_guard<boost::mutex> lock(profiler_mutex);
+	std::lock_guard<std::mutex> lock(profiler_mutex);
 	TimeslotData * current_timeslot = &timeslot;
 	for each (auto path in slot_path)
 	{
@@ -64,7 +65,7 @@ void Profiler::start(const std::string& slot)
 
 void Profiler::stop(void)
 {
-	boost::lock_guard<boost::mutex> lock(profiler_mutex);
+	std::lock_guard<std::mutex> lock(profiler_mutex);
 	TimeslotData * current_timeslot = &timeslot;
 	for each (auto path in slot_path)
 	{
@@ -76,14 +77,14 @@ void Profiler::stop(void)
 
 void Profiler::reset(void)
 {
-	boost::lock_guard<boost::mutex> lock(profiler_mutex);
+	std::lock_guard<std::mutex> lock(profiler_mutex);
 	timeslot.map.clear();
 	//timeslot.reset();
 }
 
 std::string Profiler::get(void)
 {
-	boost::lock_guard<boost::mutex> lock(profiler_mutex);
+	std::lock_guard<std::mutex> lock(profiler_mutex);
 	return timeslot.get(0);
 }
 

@@ -2,7 +2,6 @@
 #include "IEventListener.h"
 #include "GameEventManager.h"
 #include <algorithm>
-#include <boost\timer.hpp>
 
 GameEventManager::GameEventManager(void)
 {

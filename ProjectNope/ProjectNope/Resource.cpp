@@ -14,7 +14,7 @@
 
 std::unordered_map<std::string, std::shared_ptr<Resource>> resources;
 std::unordered_set<std::string> loading;
-boost::mutex mutex;
+std::mutex mutex;
 
 Resource::Resource(void)
 {
@@ -110,7 +110,7 @@ std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set
 				resources.erase(it);
 			} else {
 				mutex.unlock();
-				boost::lock_guard<boost::mutex> lock(mutex);
+				std::lock_guard<std::mutex> lock(mutex);
 				if (it->second!=0)
 					return resources[name];
 				else
@@ -121,7 +121,7 @@ std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set
 		loading.insert(name);
 		mutex.unlock();
 		//_load(name, options);
-		boost::thread t(boost::bind(&_load, name, options));
+		std::thread t(std::bind(&_load, name, options));
 		return 0;
 	}
 	mutex.unlock();

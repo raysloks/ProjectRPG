@@ -2,12 +2,12 @@
 
 Connection::Connection(void) : service_(), socket_(service_), work(service_)
 {
-	t = boost::thread(boost::bind(&Connection::start, this));
+	t = std::thread(std::bind(&Connection::start, this));
 }
 
 Connection::Connection(const boost::asio::ip::udp::endpoint& ep) : service_(), socket_(service_, ep), work(service_)
 {
-	t = boost::thread(boost::bind(&Connection::start, this));
+	t = std::thread(std::bind(&Connection::start, this));
 }
 
 Connection::~Connection(void)
@@ -20,7 +20,7 @@ Connection::~Connection(void)
 void Connection::Receive(size_t n)
 {
 	std::shared_ptr<Packet> packet(new Packet());
-	socket_.async_receive_from(boost::asio::buffer(packet->buffer.prepare(n)), packet->endpoint, boost::bind(&Connection::OnReceive, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred, packet));
+	socket_.async_receive_from(boost::asio::buffer(packet->buffer.prepare(n)), packet->endpoint, std::bind(&Connection::OnReceive, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred, packet));
 }
 
 void Connection::OnReceive(const boost::system::error_code& e, size_t n, std::shared_ptr<Packet> packet)
@@ -45,7 +45,7 @@ void Connection::Send(const std::shared_ptr<Packet>& packet)
 	send_buf.insert(packet);
 	mutex.unlock();
 	//std::cout << "sending to " << packet->endpoint << std::endl;
-	socket_.async_send_to(boost::asio::buffer(packet->buffer.data()), packet->endpoint, boost::bind(&Connection::OnSend, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred, packet));
+	socket_.async_send_to(boost::asio::buffer(packet->buffer.data()), packet->endpoint, std::bind(&Connection::OnSend, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred, packet));
 }
 
 void Connection::SendTo(const std::shared_ptr<Packet>& packet, const boost::asio::ip::udp::endpoint& ep)

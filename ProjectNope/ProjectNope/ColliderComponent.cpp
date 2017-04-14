@@ -1,5 +1,7 @@
 #include "ColliderComponent.h"
 
+#include <algorithm>
+
 #include "NewEntity.h"
 #include "World.h"
 

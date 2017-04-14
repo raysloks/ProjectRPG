@@ -12,9 +12,11 @@ Window::Window(Window * pParent)
 
 Window::~Window(void)
 {
-	if (parent!=0) {
-		for (std::vector<Window*>::iterator it=children.begin();it!=children.end();++it) {
-			if (*it==this)
+	if (parent != nullptr)
+	{
+		for (auto it = children.begin(); it != children.end(); ++it)
+		{
+			if (*it == this)
 				parent->children.erase(it);
 		}
 	}
@@ -22,9 +24,9 @@ Window::~Window(void)
 
 void Window::render(void)
 {
-	for (std::vector<Window*>::iterator it=children.begin();it!=children.end();++it)
+	for (auto it = children.begin(); it != children.end(); ++it)
 	{
-		if (!(*it)->onRender.empty())
+		if (!(*it)->onRender)
 			(*it)->onRender();
 		(*it)->render();
 	}
@@ -32,9 +34,11 @@ void Window::render(void)
 
 bool Window::addChild(Window * child)
 {
-	if (child->parent!=0) {
-		for (std::vector<Window*>::iterator it=child->parent->children.begin();it!=child->parent->children.end();++it) {
-			if (it[0]==child)
+	if (child->parent != nullptr)
+	{
+		for (auto it = child->parent->children.begin(); it != child->parent->children.end(); ++it)
+		{
+			if (*it == child)
 				child->parent->children.erase(it);
 		}
 	}
@@ -45,7 +49,7 @@ bool Window::addChild(Window * child)
 
 bool Window::handleEvent(IEvent * pEvent)
 {
-	for (std::vector<Window*>::iterator it=children.begin();it!=children.end();++it)
+	for (auto it = children.begin(); it != children.end(); ++it)
 	{
 		if ((*it)->handleEvent(pEvent))
 			return true;

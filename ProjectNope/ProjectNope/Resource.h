@@ -2,7 +2,7 @@
 
 #include <set>
 
-#include <boost\thread.hpp>
+#include <thread>
 
 #ifndef RESOURCE_H
 #define RESOURCE_H

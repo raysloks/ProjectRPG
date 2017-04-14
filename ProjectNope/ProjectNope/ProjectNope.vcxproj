@@ -179,7 +179,6 @@
     <ClCompile Include="PoseComponent.cpp" />
     <ClCompile Include="RenderSetup.cpp" />
     <ClCompile Include="RigidBodyComponent.cpp" />
-    <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="ClientData.cpp" />
     <ClCompile Include="ClientEvents.cpp" />
     <ClCompile Include="Collision.cpp" />
@@ -271,7 +270,6 @@
     <ClInclude Include="MicrophoneComponent.h" />
     <ClInclude Include="RenderSetup.h" />
     <ClInclude Include="RigidBodyComponent.h" />
-    <ClInclude Include="Chunk.h" />
     <ClInclude Include="ClientData.h" />
     <ClInclude Include="ClientEvents.h" />
     <ClInclude Include="Collision.h" />

@@ -2,8 +2,10 @@
 #define CONNECTION_H
 
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <boost/thread.hpp>
+
+#include <functional>
+#include <mutex>
+#include <thread>
 
 #include <queue>
 #include <set>
@@ -38,10 +40,10 @@ public:
 	std::set<std::shared_ptr<Packet>> send_buf;
 	std::queue<std::shared_ptr<Packet>> recv_buf;
 
-	boost::mutex mutex;
+	std::mutex mutex;
 
 private:
-	boost::thread t;
+	std::thread t;
 	boost::asio::io_service::work work;
 
 	void start(void);

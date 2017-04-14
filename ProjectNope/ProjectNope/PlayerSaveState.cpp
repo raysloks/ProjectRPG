@@ -1,6 +1,6 @@
 #include "PlayerSaveState.h"
 #include <fstream>
-#include <boost\thread.hpp>
+#include <thread>
 
 PlayerSaveState::PlayerSaveState(void)
 {
@@ -31,7 +31,7 @@ void PlayerSaveState::save(void)
 void PlayerSaveState::save_async(void)
 {
 	std::shared_ptr<PlayerSaveState> pss(new PlayerSaveState(*this));
-	boost::thread t([=] (void) {
+	std::thread t([=] (void) {
 		pss->save();
 	});
 }

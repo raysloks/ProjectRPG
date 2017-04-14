@@ -1,5 +1,7 @@
 #include "ProjectileComponent.h"
 
+#include <algorithm>
+
 #include "NewEntity.h"
 
 #include "World.h"

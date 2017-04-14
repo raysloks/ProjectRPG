@@ -1,5 +1,7 @@
 #include "GraphicsComponent.h"
 
+#include <algorithm>
+
 #include "NewEntity.h"
 
 #include "PositionComponent.h"

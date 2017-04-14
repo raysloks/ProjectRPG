@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "IEvent.h"
-#include <boost\function.hpp>
+#include <functional>
 
 class Window
 {
@@ -18,7 +18,7 @@ public:
 
 	virtual bool handleEvent(IEvent * pEvent);
 
-	boost::function<void(void)> onClick, onRender;
+	std::function<void(void)> onClick, onRender;
 	
 protected:
 	Window * parent;
