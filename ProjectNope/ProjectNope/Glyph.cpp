@@ -38,10 +38,10 @@ Glyph::Glyph(FT_Face face, unsigned long code)
 	mesh->uv.push_back(Vec2(1.0f, 1.0f));
 	mesh->uv.push_back(Vec2(0.0f, 1.0f));
 
-	mesh->vert.push_back(Vec3(bitmap->left, bitmap->top, 0.0f));
-	mesh->vert.push_back(Vec3(bitmap->left + bitmap->bitmap.width, bitmap->top, 0.0f));
-	mesh->vert.push_back(Vec3(bitmap->left + bitmap->bitmap.width, (int)bitmap->top + bitmap->bitmap.rows, 0.0f));
-	mesh->vert.push_back(Vec3(bitmap->left, (int)bitmap->top + bitmap->bitmap.rows, 0.0f));
+	mesh->vert.push_back(Vec3(bitmap->left, -bitmap->top, 0.0f));
+	mesh->vert.push_back(Vec3(bitmap->left + bitmap->bitmap.width, -bitmap->top, 0.0f));
+	mesh->vert.push_back(Vec3(bitmap->left + bitmap->bitmap.width, -(int)bitmap->top + bitmap->bitmap.rows, 0.0f));
+	mesh->vert.push_back(Vec3(bitmap->left, -(int)bitmap->top + bitmap->bitmap.rows, 0.0f));
 
 	mesh->sets.push_back(FaceSet());
 	mesh->sets.front().nTextures = 1;

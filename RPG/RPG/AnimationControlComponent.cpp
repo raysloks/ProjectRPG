@@ -93,7 +93,7 @@ void AnimationControlComponent::initAPL(void)
 			if (step>0 && set->find(step)==set->end() && mob->landed)
 			{
 				set->insert(step);
-				//world->AddEntity(new AudioParticle(p, v, "data/assets/audio/punch.wav", std::min(0.1f, v.Len()*0.1f)));
+				//world->AddEntity(new AudioParticle(p, v, "data/assets/audio/punch.wav", std::fminf(0.1f, v.Len()*0.1f)));
 			}
 			return true;
 		};
@@ -214,7 +214,7 @@ void AnimationControlComponent::tickAPL(float dTime)
 		src->on_tick = [=](float dTime) -> bool {
 			auto src = w_src.lock();
 			auto layer = w_layer.lock();
-			layer->weight = -cos(std::min(1.0f, std::min(blend_in == 0.0f ? 1.0f : src->time / blend_in, blend_out == 0.0f ? 1.0f : (src->action->length - src->time) / blend_out)) * M_PI) * 0.5f + 0.5f;
+			layer->weight = -cos(std::fminf(1.0f, std::fminf(blend_in == 0.0f ? 1.0f : src->time / blend_in, blend_out == 0.0f ? 1.0f : (src->action->length - src->time) / blend_out)) * M_PI) * 0.5f + 0.5f;
 
 			return true;
 		};
@@ -303,14 +303,14 @@ void AnimationControlComponent::tickAPL(float dTime)
 	prev_lr *= exp(-8.0f*dTime);
 	prev_lr += lr;
 
-	right_blend_apl->weight = std::max<float>(0.0f, asin(std::min(prev_lr, 1.0f)) / M_PI*2.0f);
-	left_blend_apl->weight = std::max<float>(0.0f, asin(std::min(-prev_lr, 1.0f)) / M_PI*2.0f);
-	back_right_blend_apl->weight = std::max<float>(0.0f, asin(std::min(prev_lr, 1.0f)) / M_PI*2.0f);
-	back_left_blend_apl->weight = std::max<float>(0.0f, asin(std::min(-prev_lr, 1.0f)) / M_PI*2.0f);
+	right_blend_apl->weight = std::fmaxf(0.0f, asin(std::fminf(prev_lr, 1.0f)) / M_PI*2.0f);
+	left_blend_apl->weight = std::fmaxf(0.0f, asin(std::fminf(-prev_lr, 1.0f)) / M_PI*2.0f);
+	back_right_blend_apl->weight = std::fmaxf(0.0f, asin(std::fminf(prev_lr, 1.0f)) / M_PI*2.0f);
+	back_left_blend_apl->weight = std::fmaxf(0.0f, asin(std::fminf(-prev_lr, 1.0f)) / M_PI*2.0f);
 
 	float turn = mob->move_facing.Cross(mob->up).Dot(mob->facing);
-	turn_left_src_apl->time = std::max<float>(0.0f, asin(std::min(-turn, 1.0f)) / M_PI * 60.0f);
-	turn_right_src_apl->time = std::max<float>(0.0f, asin(std::min(turn, 1.0f)) / M_PI * 60.0f);
+	turn_left_src_apl->time = std::fmaxf(0.0f, asin(std::fminf(-turn, 1.0f)) / M_PI * 60.0f);
+	turn_right_src_apl->time = std::fmaxf(0.0f, asin(std::fminf(turn, 1.0f)) / M_PI * 60.0f);
 
 	walk_spd_apl->speed = leg_move;
 	arms_walk_spd_apl->speed = leg_move;
@@ -389,7 +389,7 @@ bool AnimationControlComponent::start_action(const std::string& fname)
 			src->on_tick = [=](float dTime) -> bool {
 				auto src = w_src.lock();
 				auto layer = w_layer.lock();
-				layer->weight = -cos(std::min(1.0f, std::min(blend_in == 0.0f ? 1.0f : src->time / blend_in, blend_out == 0.0f ? 1.0f : (src->action->length - src->time) / blend_out)) * M_PI) * 0.5f + 0.5f;
+				layer->weight = -cos(std::fminf(1.0f, std::fminf(blend_in == 0.0f ? 1.0f : src->time / blend_in, blend_out == 0.0f ? 1.0f : (src->action->length - src->time) / blend_out)) * M_PI) * 0.5f + 0.5f;
 
 				if (mob->action == aData)
 				{

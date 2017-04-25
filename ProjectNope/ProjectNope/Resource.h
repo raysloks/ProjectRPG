@@ -1,11 +1,11 @@
+#ifndef RESOURCE_H
+#define RESOURCE_H
+
 #include <string>
 
 #include <set>
 
 #include <thread>
-
-#ifndef RESOURCE_H
-#define RESOURCE_H
 
 class Resource
 {

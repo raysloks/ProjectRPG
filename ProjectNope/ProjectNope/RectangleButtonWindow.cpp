@@ -34,7 +34,7 @@ bool RectangleButtonWindow::handleEvent(IEvent * pEvent)
 		if (ev->key==Platform::KeyEvent::LMB || ev->key==Platform::KeyEvent::MMB || ev->key==Platform::KeyEvent::RMB)
 		{
 			if (ev->x>=x && ev->y>=y && ev->x<=x+w && ev->y<=y+h) {
-				if (!onClick.empty())
+				if (onClick)
 					onClick();
 				pressed = true;
 			}

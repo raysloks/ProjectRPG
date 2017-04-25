@@ -63,7 +63,7 @@ void MobComponent::tick(float dTime)
 		}
 
 		stamina.current += dTime;
-		stamina.current = std::min(stamina.current, stamina.max);
+		stamina.current = std::fminf(stamina.current, stamina.max);
 
 		for (auto i = input.begin(); i != input.end();)
 		{
@@ -453,8 +453,8 @@ void MobComponent::tick(float dTime)
 				float fty = flat_target.Dot(cam_facing);
 				flat_target += cam_facing * 0.5f;
 				flat_target -= right*flat_target.Dot(right) * (1.0f - flat_target.Dot(cam_facing));
-				flat_target -= cam_facing * std::min(0.0f, flat_target.Dot(cam_facing))*2.0f;
-				flat_target += cam_facing * std::min(0.5f, std::max(0.0f, fty + 0.5f));
+				flat_target -= cam_facing * std::fminf(0.0f, flat_target.Dot(cam_facing))*2.0f;
+				flat_target += cam_facing * std::fminf(0.5f, std::max(0.0f, fty + 0.5f));
 			}
 			if (action)
 				flat_target = cam_facing;
@@ -472,7 +472,7 @@ void MobComponent::tick(float dTime)
 		move_facing = bu_sphere(flat_move_facing, follow, up, log(0.002f), -6.0f, dTime);
 		if (use_cam)
 		{
-			facing = bu_sphere(facing, cam_facing, up, log(0.1f), -std::max(std::min(time_under_control + dTime*dTime*0.5f, 0.4f)*50.0f, 6.0f), dTime);
+			facing = bu_sphere(facing, cam_facing, up, log(0.1f), -std::max(std::fminf(time_under_control + dTime*dTime*0.5f, 0.4f)*50.0f, 6.0f), dTime);
 			time_under_control += dTime;
 		}
 		else

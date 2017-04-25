@@ -5,8 +5,6 @@
 
 #include "PositionComponent.h"
 
-#include "Chunk.h"
-
 #include "Client.h"
 extern Client * client;
 

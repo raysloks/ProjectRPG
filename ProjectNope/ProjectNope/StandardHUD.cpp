@@ -51,7 +51,7 @@ void StandardHUD::render(void)
 	//		Unit * unit = dynamic_cast<Unit*>(ent);
 	//		if (unit!=0) {
 
-	//			float filled = std::max<float>(unit->health.current, 0.0f) / unit->health.max;
+	//			float filled = std::fmaxf(unit->health.current, 0.0f) / unit->health.max;
 
 	//			glColor3f(0.2f, 0.3f, 0.2f);
 	//			glBegin(GL_QUADS);

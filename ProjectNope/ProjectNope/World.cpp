@@ -10,7 +10,6 @@
 #include "PositionComponent.h"
 
 #include "World.h"
-#include "Chunk.h"
 
 #include "ClientData.h"
 
