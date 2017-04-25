@@ -8,9 +8,12 @@
 #include "FontResource.h"
 
 #include "ShaderProgram.h"
+#include "streams.h"
 
 #include <unordered_map>
 #include <unordered_set>
+#include <mutex>
+#include <sstream>
 
 std::unordered_map<std::string, std::shared_ptr<Resource>> resources;
 std::unordered_set<std::string> loading;
@@ -111,10 +114,10 @@ std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set
 			} else {
 				mutex.unlock();
 				std::lock_guard<std::mutex> lock(mutex);
-				if (it->second!=0)
+				if (it->second != nullptr)
 					return resources[name];
 				else
-					return 0;
+					return nullptr;
 			}
 		}
 
@@ -122,10 +125,11 @@ std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set
 		mutex.unlock();
 		//_load(name, options);
 		std::thread t(std::bind(&_load, name, options));
-		return 0;
+		t.detach();
+		return nullptr;
 	}
 	mutex.unlock();
-	return 0;
+	return nullptr;
 }
 
 //void add(const std::string& name, void* resource)

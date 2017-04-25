@@ -33,8 +33,6 @@
 
 #include "Profiler.h"
 
-#include "Chunk.h"
-
 extern double secondsPerStep;
 extern double fpsCap;
 extern bool forceCap;
@@ -224,7 +222,7 @@ void Client::setup(void)
 			float fMaxAnisotropicFiltering = 1.0f;
 			if (anisotropic_filtering>1.0f)
 				glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fMaxAnisotropicFiltering);
-			Texture::fGeneralAnisotropicFiltering = std::max(1.0f, std::min(fMaxAnisotropicFiltering, anisotropic_filtering));
+			Texture::fGeneralAnisotropicFiltering = std::max(1.0f, std::fminf(fMaxAnisotropicFiltering, anisotropic_filtering));
 		}
 	}
 }
@@ -1228,8 +1226,8 @@ void Client::render_world(void)
 
 		Writing::setColor(1.0f, 0.0f, 0.0f);
 		Writing::setFont("data/assets/fonts/Lora-Regular.ttf");
-		Writing::setSize(100);
-		Writing::render("TESTING O BOIIII", rs);
+		Writing::setSize(50);
+		Writing::render("This is a test", rs);
 
 		hideCursor = true;
 		for (auto win = windows.begin(); win != windows.end(); ++win)
@@ -1238,7 +1236,7 @@ void Client::render_world(void)
 			dynamic_cast<RectangleWindow*>(win->get())->y = -view_h / 2;
 			dynamic_cast<RectangleWindow*>(win->get())->w = view_w;
 			dynamic_cast<RectangleWindow*>(win->get())->h = view_h;
-			if (!win->get()->onRender.empty())
+			if (win->get()->onRender)
 				win->get()->onRender();
 			win->get()->render();
 		}
@@ -1512,7 +1510,7 @@ void Client::interpolate(float dTime)
 					}
 					else
 					{
-						ent->interpolate(interpol_targets[i], std::min(1.0f, std::max(0.0f, dTime/(interpol_delay-interpol_elapsed[i]))));
+						ent->interpolate(interpol_targets[i], std::fminf(1.0f, std::max(0.0f, dTime/(interpol_delay-interpol_elapsed[i]))));
 						interpol_elapsed[i] += dTime;
 					}
 				}
