@@ -4,6 +4,10 @@
 #include "FontResource.h"
 #include FT_GLYPH_H
 
+class RenderSetup;
+class Mesh;
+class Texture;
+
 class Glyph
 {
 public:
@@ -11,8 +15,13 @@ public:
 	Glyph(FT_Face face, unsigned long code);
 	~Glyph(void);
 
-	unsigned int index, texture;
+	void render(RenderSetup& rs);
+
+	unsigned int index;
 	FT_Glyph ftBitmap;
+
+	std::shared_ptr<Mesh> mesh;
+	std::shared_ptr<Texture> texture;
 };
 
 #endif

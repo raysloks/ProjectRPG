@@ -159,7 +159,7 @@ public:
 	}
 };
 
-#include "ScriptCode.h"
+#include "SteamWrapper.h"
 
 //int main(int argc, char* argv[])
 INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -183,6 +183,8 @@ INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	std::regex reg_connect_lobby("\\+connect_lobby (.*)");
 	std::regex_match(lpCmdLine, match_connect_lobby, reg_connect_lobby);
 
+	std::shared_ptr<ISteamWrapper> steam(ISteamWrapper::make());
+	
 	World * world = new World();
 	Server * server = new MyServer(world);
 	Client * client = new Client(world);

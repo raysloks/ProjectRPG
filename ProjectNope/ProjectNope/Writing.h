@@ -1,15 +1,18 @@
+#ifndef WRITING_H
+#define WRITING_H
+
 #include <string>
 #include "Vec2.h"
 
-#ifndef WRITING_H
-#define WRITING_H
+class RenderSetup;
 
 namespace Writing
 {
 	void setFont(const std::string& name);
 	void setColor(float r, float g, float b, float a = 1.0f);
-	void setSize(const Vec2& size);
-	void render(const std::string& text);
+	void setSize(size_t size);
+	void setSize(size_t x_size, size_t y_size);
+	void render(const std::string& text, RenderSetup& rs);
 
 	std::string::iterator erase(std::string& str, const std::string::iterator& p);
 

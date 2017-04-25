@@ -3,7 +3,6 @@
 #include "GUIObject.h"
 #include "World.h"
 #include "ClientData.h"
-#include "Unit.h"
 
 StandardHUD::StandardHUD(World * pWorld, Client * pClient, int px, int py, int width, int height) : RectangleWindow(px, py, width, height), world(pWorld), client(pClient)
 {

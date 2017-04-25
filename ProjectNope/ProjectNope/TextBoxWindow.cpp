@@ -23,12 +23,12 @@ void TextBoxWindow::render(void)
 	glEnd();
 	
 	glTranslatef(x, y, 0.0f);
-	Writing::setSize(size);
+	//Writing::setSize(size);
 	Writing::setColor(color.x, color.y, color.z, color.w);
-	if (text.size())
+	/*if (text.size())
 		Writing::render(text);
 	else
-		Writing::render(placeholder);
+		Writing::render(placeholder);*/
 
 	glTranslatef(-x, -y, 0.0f);
 

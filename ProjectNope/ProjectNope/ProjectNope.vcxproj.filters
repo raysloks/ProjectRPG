@@ -40,9 +40,6 @@
     <Filter Include="Source Files\Components">
       <UniqueIdentifier>{b6800811-b362-4dab-bb08-201ad9265bc4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\StrategyGame">
-      <UniqueIdentifier>{8875b84b-f3fc-4a3a-81a9-6064c0afb77e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\StrategyGame">
       <UniqueIdentifier>{64780a35-ba84-493f-bd33-044a896ee0bc}</UniqueIdentifier>
     </Filter>
@@ -219,9 +216,6 @@
     <ClCompile Include="Polynome.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GameLoop.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GraphicsComponent.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
@@ -239,9 +233,6 @@
     </ClCompile>
     <ClCompile Include="ColliderComponent.cpp">
       <Filter>Source Files\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="FieldTriangle.cpp">
-      <Filter>Source Files\StrategyGame</Filter>
     </ClCompile>
     <ClCompile Include="ExampleComponent.cpp">
       <Filter>Source Files\Components</Filter>
@@ -305,6 +296,18 @@
     </ClCompile>
     <ClCompile Include="SpriteComponent.cpp">
       <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="SteamWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GameLoop.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Packet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Connection.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -512,9 +515,6 @@
     <ClInclude Include="ColliderComponent.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="FieldTriangle.h">
-      <Filter>Header Files\StrategyGame</Filter>
-    </ClInclude>
     <ClInclude Include="ExampleComponent.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
@@ -577,6 +577,15 @@
     </ClInclude>
     <ClInclude Include="SpriteComponent.h">
       <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="SteamWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Connection.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

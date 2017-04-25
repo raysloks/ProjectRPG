@@ -53,17 +53,17 @@ GameLoop::~GameLoop(void)
 {
 	world->clear();
 
-	if (server!=0)
+	if (server != nullptr)
 		delete server;
-	if (client!=0)
+	if (client != nullptr)
 		delete client;
 	
-	if (world!=0)
+	if (world != nullptr)
 		delete world;
 
 	Resource::unload();
 
-	if (ftLibrary!=0) {
+	if (ftLibrary != nullptr) {
 		FT_Error ftError = FT_Done_FreeType(ftLibrary);
 	}
 
@@ -86,7 +86,7 @@ void GameLoop::init(void)
 		MessageBoxA(0, "FreeType error initializing library!", "ERROR", MB_OK | MB_ICONERROR);
 	}
 
-	if (client!=0)
+	if (client != nullptr)
 	{
 		gpEventManager->AddListener(client, KeyDownEvent::event_type);
 		gpEventManager->AddListener(client, KeyUpEvent::event_type);

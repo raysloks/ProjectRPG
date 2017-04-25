@@ -96,10 +96,10 @@ void RectangleButtonWindow::render(void)
 
 	Writing::setFont("data/assets/fonts/Lora-Regular.ttf");
 	Writing::setColor(0.0f, 0.0f, 0.0f, 1.0f);
-	Writing::setSize(Vec2(8.0f, 16.0f));
+	//Writing::setSize(Vec2(8.0f, 16.0f));
 
 	glTranslatef(x+offset.x, y+offset.y, 0.0f);
-	Writing::render(text);
+	//Writing::render(text);
 	glTranslatef(-x-offset.x, -y-offset.y, 0.0f);
 
 	RectangleWindow::render();

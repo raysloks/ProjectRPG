@@ -22,6 +22,6 @@ void Item::readLog(instream& is)
 
 void Item::render(void) //TODO move to ItemRender or InventoryRenderer or something
 {
-	Writing::render(name);
+	//Writing::render(name);
 	glTranslatef(0.0f, 16.0f, 0.0f);
 }

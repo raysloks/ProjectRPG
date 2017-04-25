@@ -71,22 +71,22 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Users\Emil\Documents\freetype-2.7\include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include</IncludePath>
+    <IncludePath>$(STEAM_SDK)\public\steam;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Users\Emil\Documents\freetype-2.7\include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include</IncludePath>
     <LibraryPath>
     </LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Users\Emil\Documents\freetype-2.7\include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include</IncludePath>
+    <IncludePath>$(STEAM_SDK)\public\steam;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Users\Emil\Documents\freetype-2.7\include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include</IncludePath>
     <LibraryPath>
     </LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Users\Emil\Documents\freetype-2.7\include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include</IncludePath>
+    <IncludePath>$(STEAM_SDK)\public\steam;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Users\Emil\Documents\freetype-2.7\include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include</IncludePath>
     <LibraryPath>
     </LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Users\Emil\Documents\freetype-2.7\include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include</IncludePath>
+    <IncludePath>$(STEAM_SDK)\public\steam;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(BOOST_ROOT);C:\Users\Emil\Documents\freetype-2.7\include;C:\Program Files %28x86%29\OpenAL 1.1 SDK\include</IncludePath>
     <LibraryPath>
     </LibraryPath>
   </PropertyGroup>
@@ -103,6 +103,10 @@
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32;C:\Users\Emil\Documents\Visual Studio 2010\Projects\Platform\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(STEAM_SDK)\redistributable_bin\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>steam_api.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -117,6 +121,10 @@
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32;C:\Users\Emil\Documents\Visual Studio 2010\Projects\Platform\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(STEAM_SDK)\redistributable_bin\win64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>steam_api64.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -137,6 +145,10 @@
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(STEAM_SDK)\redistributable_bin\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>steam_api.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -157,6 +169,10 @@
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(STEAM_SDK)\redistributable_bin\win64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>steam_api64.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AnimationPoseLayer.cpp" />
@@ -168,14 +184,16 @@
     <ClCompile Include="CascadedShadowMap.cpp" />
     <ClCompile Include="ColliderComponent.cpp" />
     <ClCompile Include="ColliderIterator.cpp" />
+    <ClCompile Include="Connection.cpp" />
     <ClCompile Include="ControllerState.cpp" />
     <ClCompile Include="ExampleComponent.cpp" />
-    <ClCompile Include="FieldTriangle.cpp" />
+    <ClCompile Include="GameLoop.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LineComponent.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MicrophoneComponent.cpp" />
+    <ClCompile Include="Packet.cpp" />
     <ClCompile Include="PoseComponent.cpp" />
     <ClCompile Include="RenderSetup.cpp" />
     <ClCompile Include="RigidBodyComponent.cpp" />
@@ -190,7 +208,6 @@
     <ClCompile Include="DynamicWall.cpp" />
     <ClCompile Include="EntityLinkContainer.cpp" />
     <ClCompile Include="FontResource.cpp" />
-    <ClCompile Include="GameLoop.cpp" />
     <ClCompile Include="GlobalPosition.cpp" />
     <ClCompile Include="Glyph.cpp" />
     <ClCompile Include="GlyphString.cpp" />
@@ -225,6 +242,7 @@
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="SpriteComponent.cpp" />
     <ClCompile Include="StandardHUD.cpp" />
+    <ClCompile Include="SteamWrapper.cpp" />
     <ClCompile Include="StringResource.cpp" />
     <ClCompile Include="Synchronizer.cpp" />
     <ClCompile Include="SyncState.cpp" />
@@ -254,16 +272,18 @@
     <ClInclude Include="CascadedShadowMap.h" />
     <ClInclude Include="ColliderComponent.h" />
     <ClInclude Include="ColliderIterator.h" />
+    <ClInclude Include="Connection.h" />
     <ClInclude Include="ControllerState.h" />
     <ClInclude Include="ExampleComponent.h" />
-    <ClInclude Include="FieldTriangle.h" />
     <ClInclude Include="IComponentIterator.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="Packet.h" />
     <ClInclude Include="PoseComponent.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="SpriteComponent.h" />
+    <ClInclude Include="SteamWrapper.h" />
     <ClInclude Include="Synchronizer.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="LineComponent.h" />

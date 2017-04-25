@@ -10,12 +10,7 @@
 #include <queue>
 #include <set>
 
-class Packet
-{
-public:
-	boost::asio::streambuf buffer;
-	boost::asio::ip::udp::endpoint endpoint;
-};
+#include "Packet.h"
 
 class Connection
 {

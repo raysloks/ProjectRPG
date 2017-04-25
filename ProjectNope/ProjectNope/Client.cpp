@@ -87,6 +87,7 @@ Client::Client(World * pWorld)
 	dof_prog = std::make_shared<ShaderProgram>("data/fullscreen_vert.txt", "data/dof_frag.txt");
 	stencil_prog = std::make_shared<ShaderProgram>("data/stencil_vert.txt", "data/stencil_geom.txt", "data/stencil_frag.txt");
 	flat_stencil_prog = std::make_shared<ShaderProgram>("data/flat_stencil_vert.txt", "data/flat_stencil_geom.txt", "data/flat_stencil_frag.txt");
+	gui_prog = std::make_shared<ShaderProgram>("data/gui_vert.txt", "data/gui_frag.txt");
 }
 
 void Client::connect(const std::string& address, uint16_t port)
@@ -461,19 +462,6 @@ void Client::render(void)
 		//	}
 		//}
 
-		hideCursor = true;
-		for (auto win = windows.begin(); win != windows.end(); ++win)
-		{
-			dynamic_cast<RectangleWindow*>(win->get())->x = view[0];
-			dynamic_cast<RectangleWindow*>(win->get())->y = view[1];
-			dynamic_cast<RectangleWindow*>(win->get())->w = view[2];
-			dynamic_cast<RectangleWindow*>(win->get())->h = view[3];
-			if (!win->get()->onRender.empty())
-				win->get()->onRender();
-			win->get()->render();
-		}
-		lockCursor = hideCursor; // allow cursor to escape window when visible
-
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		//glEnable(GL_TEXTURE_2D);
@@ -509,8 +497,6 @@ void Client::render(void)
 		}*/
 	}
 }
-
-#include "PoissonGenerator.h"
 
 void Client::render_world(void)
 {
@@ -777,26 +763,6 @@ void Client::render_world(void)
 					light_samples[i] = l.x;
 					light_samples[i + 1] = l.y;
 					light_samples[i + 2] = l.z;
-				}
-			}
-
-			// calculate poisson shadow sample distribution
-			if (input.isDown(Platform::KeyEvent::M))
-			{
-				std::uniform_int_distribution<uint32_t> seeder;
-				auto points = PoissonGenerator::GeneratePoissonPoints(128 * 2, PoissonGenerator::DefaultPRNG(seeder(random)));
-				light_samples.resize(128 * 3);
-				light_samples[0] = light.x;
-				light_samples[1] = light.y;
-				light_samples[2] = light.z;
-				Vec3 x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
-				Vec3 y = light.Cross(x).Normalize();
-				for (int i = 1; i < 128; ++i)
-				{
-					Vec3 l = (light + (x * (points[i].x * 2.0f - 1.0f) + y * (points[i].y * 2.0f - 1.0f)) * light_size).Normalize();
-					light_samples[i * 3] = l.x;
-					light_samples[i * 3 + 1] = l.y;
-					light_samples[i * 3 + 2] = l.z;
 				}
 			}
 
@@ -1238,7 +1204,48 @@ void Client::render_world(void)
 
 
 	// render GUI
-	if (dof_prog->Use())
+	if (gui_prog->IsReady())
+	{
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+
+		deferred_fb->bind();
+		glViewport(0, 0, buffer_w, buffer_h);
+
+		RenderSetup rs;
+
+		Matrix4 ortho;
+		ortho.mtrx[0][0] = 2.0f / view_w;
+		ortho.mtrx[1][1] = -2.0f / view_h;
+
+		ShaderMod mod(gui_prog, [this, ortho, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+			prog->Uniform("alpha", 0); // texture unit 0
+			prog->UniformMatrix4fv("transform", (rs.transform*ortho).data);
+			prog->UniformMatrix3fv("normal_transform", Matrix3(rs.transform).data);
+		});
+
+		rs.pushMod(mod);
+
+		Writing::setColor(1.0f, 0.0f, 0.0f);
+		Writing::setFont("data/assets/fonts/Lora-Regular.ttf");
+		Writing::setSize(100);
+		Writing::render("TESTING O BOIIII", rs);
+
+		hideCursor = true;
+		for (auto win = windows.begin(); win != windows.end(); ++win)
+		{
+			dynamic_cast<RectangleWindow*>(win->get())->x = -view_w / 2;
+			dynamic_cast<RectangleWindow*>(win->get())->y = -view_h / 2;
+			dynamic_cast<RectangleWindow*>(win->get())->w = view_w;
+			dynamic_cast<RectangleWindow*>(win->get())->h = view_h;
+			if (!win->get()->onRender.empty())
+				win->get()->onRender();
+			win->get()->render();
+		}
+		lockCursor = hideCursor; // allow cursor to escape window when visible
+	}
+
+	/*if (dof_prog->Use())
 	{
 		glDisable(GL_DEPTH_TEST);
 
@@ -1250,7 +1257,7 @@ void Client::render_world(void)
 		glBindTexture(GL_TEXTURE_2D, color_buf->gl_texture_id);
 
 		RenderSetup rs;
-	}
+	}*/
 
 
 	// render to screen

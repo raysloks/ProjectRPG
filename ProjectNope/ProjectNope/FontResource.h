@@ -18,8 +18,8 @@ public:
 	FontResource(const std::string& buffer);
 	~FontResource(void);
 
-	FT_Face getFace(void);
-	std::shared_ptr<Glyph> getGlyph(unsigned long code);
+	FT_Face getFace(size_t x_size, size_t y_size);
+	std::shared_ptr<Glyph> getGlyph(unsigned long code, size_t x_size, size_t y_size);
 
 	std::string buffer;
 

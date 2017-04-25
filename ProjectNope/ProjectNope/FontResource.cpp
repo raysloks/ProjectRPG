@@ -13,21 +13,22 @@ FontResource::~FontResource(void)
 		FT_Done_Face(ftFace);
 }
 
-FT_Face FontResource::getFace(void)
+FT_Face FontResource::getFace(size_t x_size, size_t y_size)
 {
-	if (ftFace==0)
+	if (ftFace == nullptr)
 		FT_New_Memory_Face(ftLibrary, (const FT_Byte*)buffer.c_str(), buffer.size(), 0, &ftFace);
-	FT_Set_Pixel_Sizes(ftFace, 0, 16);
+	FT_Set_Pixel_Sizes(ftFace, x_size, y_size);
 	return ftFace;
 }
 
-std::shared_ptr<Glyph> FontResource::getGlyph(unsigned long code)
+std::shared_ptr<Glyph> FontResource::getGlyph(unsigned long code, size_t x_size, size_t y_size)
 {
 	auto glyph = glyphs.find(code);
-	if (glyph==glyphs.end()) {
-		if (getFace()!=0)
+	if (glyph == glyphs.end())
+	{
+		if (getFace(x_size, y_size) != nullptr)
 		{
-			auto g = new Glyph(getFace(), code);
+			auto g = new Glyph(getFace(x_size, y_size), code);
 			auto glyph = std::shared_ptr<Glyph>(g);
 			glyphs.insert(std::make_pair(code, glyph));
 			return glyph;

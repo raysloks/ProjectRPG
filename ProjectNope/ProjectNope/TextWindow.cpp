@@ -16,9 +16,9 @@ TextWindow::~TextWindow(void)
 void TextWindow::render(void)
 {
 	glTranslatef(x, y, 0.0f);
-	Writing::setSize(size);
+	//Writing::setSize(size);
 	Writing::setColor(color.x, color.y, color.z, color.w);
-	Writing::render(text);
+	//Writing::render(text);
 
 	glTranslatef(-x, -y, 0.0f);
 

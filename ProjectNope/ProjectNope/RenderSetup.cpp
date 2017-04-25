@@ -22,12 +22,12 @@ bool RenderSetup::applyMods(void)
 {
 	auto previous_program = current_program;
 	for (auto i = mod_stack.begin(); i != mod_stack.end(); ++i)
-		if (i->shader != 0)
+		if (i->shader != nullptr)
 			current_program = i->shader;
 	if (current_program != previous_program)
 		current_program->Use();
 	for (auto i = mod_stack.begin(); i != mod_stack.end(); ++i)
-		if (i->mod!=0)
+		if (i->mod != nullptr)
 			i->mod(current_program);
 	return true;
 }

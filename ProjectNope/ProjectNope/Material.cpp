@@ -24,6 +24,9 @@ void Material::bindTextures()
 	{
 		if (loaded_tex[i] == nullptr)
 			loaded_tex[i] = Resource::get<Texture>(tex[i]);
+	}
+	for (size_t i = 0; i < loaded_tex.size(); i++)
+	{
 		if (loaded_tex[i] != nullptr)
 		{
 			glActiveTexture(GL_TEXTURE0 + i);

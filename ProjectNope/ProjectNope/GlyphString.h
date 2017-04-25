@@ -3,7 +3,7 @@
 
 #include <string>
 
-class Glyph;
+class RenderSetup;
 
 class GlyphString
 {
@@ -12,9 +12,10 @@ public:
 	GlyphString(const std::string& string);
 	~GlyphString(void);
 
-	void render(void);
+	void render(RenderSetup& rs);
 
 	std::string font, string;
+	size_t x_size, y_size;
 };
 
 #endif

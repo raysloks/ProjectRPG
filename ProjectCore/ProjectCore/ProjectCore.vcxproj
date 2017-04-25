@@ -23,7 +23,6 @@
     <ClInclude Include="binistream.h" />
     <ClInclude Include="binostream.h" />
     <ClInclude Include="BlendUtility.h" />
-    <ClInclude Include="Connection.h" />
     <ClInclude Include="Matrix3.h" />
     <ClInclude Include="Matrix4.h" />
     <ClInclude Include="Quaternion.h" />
@@ -41,7 +40,6 @@
     <ClCompile Include="binistream.cpp" />
     <ClCompile Include="binostream.cpp" />
     <ClCompile Include="BlendUtility.cpp" />
-    <ClCompile Include="Connection.cpp" />
     <ClCompile Include="Matrix3.cpp" />
     <ClCompile Include="Matrix4.cpp" />
     <ClCompile Include="Quaternion.cpp" />

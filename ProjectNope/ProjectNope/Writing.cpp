@@ -4,10 +4,11 @@
 #include "Texture.h"
 #include "Resource.h"
 #include "Glyph.h"
+#include "RenderSetup.h"
 
 std::string font;
 float r, g, b, a;
-Vec2 c_size;
+size_t x_size, y_size;
 
 void Writing::setFont(const std::string& name)
 {
@@ -22,9 +23,16 @@ void Writing::setColor(float nr, float ng, float nb, float na)
 	a = na;
 }
 
-void Writing::setSize(const Vec2& size)
+void Writing::setSize(size_t size)
 {
-	c_size = size;
+	x_size = 0;
+	y_size = size;
+}
+
+void Writing::setSize(size_t xs, size_t ys)
+{
+	x_size = xs;
+	y_size = ys;
 }
 
 std::pair<std::string::iterator, std::string::iterator> Writing::getRange(const std::string::iterator& begin, const std::string::iterator& pos, const std::string::iterator& end)
@@ -123,19 +131,21 @@ std::string::iterator Writing::erase(std::string& str, const std::string::iterat
 
 #include "Profiler.h"
 
-void Writing::render(const std::string& text)
+void Writing::render(const std::string& text, RenderSetup& rs)
 {
-	glEnable(GL_TEXTURE_2D);
+	ShaderMod mod(nullptr, [](const std::shared_ptr<ShaderProgram>& prog) {
+		prog->Uniform("color", Vec4(r, g, b, a));
+	});
 
-	glColor4f(r, g, b, a);
+	rs.pushMod(mod);
 
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glPushMatrix();
 	GlyphString gs(text);
 	gs.font = font;
-	gs.render();
-	glPopMatrix();
+	gs.x_size = x_size;
+	gs.y_size = y_size;
+	gs.render(rs);
+
+	rs.popMod();
 
 	/*auto font = Resource::get<FontResource>("data/assets/fonts/Lora-Regular.ttf");
 	if (font!=0)
@@ -182,7 +192,7 @@ void Writing::render(const std::string& text)
 		}
 	}*/
 	
-	unsigned int current_page = 0;
+	/*unsigned int current_page = 0;
 	loadBitmap(current_page);
 
 	glBegin(GL_QUADS);
@@ -213,5 +223,5 @@ void Writing::render(const std::string& text)
 		offset.x += std::get<3>(c_mapping).x*c_size.x;
 		offset.y += std::get<3>(c_mapping).y*c_size.y;
 	}
-	glEnd();
+	glEnd();*/
 }

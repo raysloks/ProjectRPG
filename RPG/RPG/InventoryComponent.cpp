@@ -77,7 +77,7 @@ void InventoryComponent::set_display(bool enable)
 					glTranslatef(rs.size.x * 0.1 + 60.0f, rs.size.y * 0.1 + 60.0f, 0.0f);
 					for (auto i = items.items.begin(); i != items.items.end(); ++i)
 					{
-						Writing::render(std::to_string((*i)->type));
+						//Writing::render(std::to_string((*i)->type));
 						glTranslatef(0.0f, 16.0f, 0.0f);
 					}
 					glPopMatrix();
