@@ -459,7 +459,9 @@ void AnimationControlComponent::tick(float dTime)
 		//pose->update();
 
 		auto g = entity->getComponent<GraphicsComponent>();
+		if (g)
 		{
+			if (!g->decs.items.empty())
 			{
 				g->decs.items[0]->local = Matrix4();
 				if (mob->cam_facing == Vec3())
