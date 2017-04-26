@@ -110,18 +110,16 @@ void GameLoop::init(void)
 
 void GameLoop::tick(void)
 {
-	float last_frame_duration = durationInSeconds;
-
-	if (client!=0) {
+	if (client != nullptr) {
 		if (client->input.isDown(Platform::KeyEvent::M))
 			Sleep(100);
-		client->pre_frame(last_frame_duration);
+		client->pre_frame(durationInSeconds);
 		client->render();
 		client->input.clear();
 		gpPlatform->input(gpEventManager, client->lockCursor, client->hideCursor);
 		gpEventManager->Tick();
 		client->input.update();
-		client->post_frame(last_frame_duration);
+		client->post_frame(durationInSeconds);
 	}
 
 	useFrameSync = fpsCap==secondsPerStep && secondsPerStep!=0.0;// && !gpPlatform->get_vsync(); //vsync can still desync with tickrate
@@ -156,19 +154,21 @@ void GameLoop::tick(void)
 
 	gpPlatform->set_vsync(useVSync);
 
-	gpPlatform->swap();
-
 	QueryPerformanceCounter(&end);
 	durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
 	if ((!useVSync || forceCap) && fpsCap>0.0) // capping fps cap to minimum 20/30/60 something might be a good idea
 	{
-		Sleep(std::max(fpsCap-durationInSeconds-fpsCorrection, 0.0)*1000.0);
+		Sleep(std::max(fpsCap - durationInSeconds - fpsCorrection, 0.0)*1000.0);
 		QueryPerformanceCounter(&end);
 		durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
-		fpsCorrection += durationInSeconds-fpsCap;
+		fpsCorrection += durationInSeconds - fpsCap;
 		if (fpsCorrection>fpsCap)
-			fpsCorrection=fpsCap;
+			fpsCorrection = fpsCap;
 	}
 	lag += durationInSeconds;
 	QueryPerformanceCounter(&start);
+
+	Profiler::set("fps", 1.0 / durationInSeconds);
+
+	gpPlatform->swap();
 }

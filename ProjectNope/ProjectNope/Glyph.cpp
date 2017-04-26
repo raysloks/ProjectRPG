@@ -6,11 +6,13 @@
 #include "Texture.h"
 #include "MaterialList.h"
 
+#include "GlyphAtlas.h"
+
 Glyph::Glyph(void)
 {
 }
 
-Glyph::Glyph(FT_Face face, unsigned long code)
+Glyph::Glyph(FT_Face face, unsigned long code, GlyphAtlas * atlas)
 {
 	index = FT_Get_Char_Index(face, code);
 	FT_Load_Glyph(face, index, 0);
@@ -22,49 +24,54 @@ Glyph::Glyph(FT_Face face, unsigned long code)
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	texture.reset(new Texture());
+	glBindTexture(GL_TEXTURE_2D, atlas->texture->texid);
 
-	glGenTextures(1, &texture->texid);
-	glBindTexture(GL_TEXTURE_2D, texture->texid);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, bitmap->bitmap.width, bitmap->bitmap.rows, 0, GL_ALPHA, GL_UNSIGNED_BYTE, bitmap->bitmap.buffer);
+	size_t offset_x, offset_y;
+	atlas->insert(bitmap->bitmap.width, bitmap->bitmap.rows, &offset_x, &offset_y);
 
-	mesh.reset(new Mesh());
-	mesh->uv.push_back(Vec2(0.0f, 0.0f));
-	mesh->uv.push_back(Vec2(1.0f, 0.0f));
-	mesh->uv.push_back(Vec2(1.0f, 1.0f));
-	mesh->uv.push_back(Vec2(0.0f, 1.0f));
+	glTexSubImage2D(GL_TEXTURE_2D, 0, offset_x, offset_y, bitmap->bitmap.width, bitmap->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, bitmap->bitmap.buffer);
 
-	mesh->vert.push_back(Vec3(bitmap->left, -bitmap->top, 0.0f));
-	mesh->vert.push_back(Vec3(bitmap->left + bitmap->bitmap.width, -bitmap->top, 0.0f));
-	mesh->vert.push_back(Vec3(bitmap->left + bitmap->bitmap.width, -(int)bitmap->top + bitmap->bitmap.rows, 0.0f));
-	mesh->vert.push_back(Vec3(bitmap->left, -(int)bitmap->top + bitmap->bitmap.rows, 0.0f));
+	pos[0] = bitmap->left;
+	pos[1] = -bitmap->top;
+	pos[2] = bitmap->left + bitmap->bitmap.width;
+	pos[3] = -bitmap->top;
+	pos[4] = bitmap->left + bitmap->bitmap.width;
+	pos[5] = -(int)bitmap->top + bitmap->bitmap.rows;
+	pos[6] = bitmap->left + bitmap->bitmap.width;
+	pos[7] = -(int)bitmap->top + bitmap->bitmap.rows;
+	pos[8] = bitmap->left;
+	pos[9] = -(int)bitmap->top + bitmap->bitmap.rows;
+	pos[10] = bitmap->left;
+	pos[11] = -bitmap->top;
 
-	mesh->sets.push_back(FaceSet());
-	mesh->sets.front().nTextures = 1;
-	mesh->sets.front().vertices.push_back(Face(0, 1, 2));
-	mesh->sets.front().uv_points.push_back(Face(0, 1, 2));
-	mesh->sets.front().vertices.push_back(Face(2, 3, 0));
-	mesh->sets.front().uv_points.push_back(Face(2, 3, 0));
+	uv[0] = float(offset_x) / atlas->w;
+	uv[1] = float(offset_y) / atlas->h;
+	uv[2] = float(offset_x + bitmap->bitmap.width) / atlas->w;
+	uv[3] = float(offset_y) / atlas->h;
+	uv[4] = float(offset_x + bitmap->bitmap.width) / atlas->w;
+	uv[5] = float(offset_y + bitmap->bitmap.rows) / atlas->h;
+	uv[6] = float(offset_x + bitmap->bitmap.width) / atlas->w;
+	uv[7] = float(offset_y + bitmap->bitmap.rows) / atlas->h;
+	uv[8] = float(offset_x) / atlas->w;
+	uv[9] = float(offset_y + bitmap->bitmap.rows) / atlas->h;
+	uv[10] = float(offset_x) / atlas->w;
+	uv[11] = float(offset_y) / atlas->h;
 }
 
 Glyph::~Glyph(void)
 {
-	mesh.reset();
-
-	if (texture != 0)
-		glDeleteTextures(1, &texture->texid);
-
 	FT_Done_Glyph(ftBitmap);
 }
 
-void Glyph::render(RenderSetup& rs)
+void Glyph::insert(float * p, float * t, float offset_x, float offset_y) const
 {
-	MaterialList mats;
-	mats.materials.push_back(Material());
-	mats.materials.back().loaded_tex.push_back(texture);
-	mesh->render(rs, mats);
+	for (size_t i = 0; i < 12;)
+	{
+		p[i] = pos[i] + offset_x;
+		++i;
+		p[i] = pos[i] + offset_y;
+		++i;
+	}
+
+	memcpy(t, uv, 12 * sizeof(float));
 }

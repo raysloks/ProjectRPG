@@ -309,6 +309,9 @@
     <ClCompile Include="Connection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GlyphAtlas.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IPlatform.h">
@@ -585,6 +588,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Connection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GlyphAtlas.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

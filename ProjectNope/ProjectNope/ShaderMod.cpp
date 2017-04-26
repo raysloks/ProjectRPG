@@ -19,3 +19,8 @@ ShaderMod::ShaderMod(const std::shared_ptr<ShaderProgram>& s, const std::functio
 ShaderMod::~ShaderMod()
 {
 }
+
+bool ShaderMod::operator==(const ShaderMod& rhs)
+{
+	return shader == rhs.shader && !mod && !rhs.mod;
+}

@@ -25,6 +25,8 @@ public:
 	std::vector<std::shared_ptr<Texture>> loaded_tex;
 
 	ShaderMod mod;
+
+	bool operator==(const Material& rhs);
 };
 
 outstream& operator<<(outstream& os, const Material& mat);

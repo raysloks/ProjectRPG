@@ -17,6 +17,7 @@
 #include "AudioComponent.h"
 #include "PositionComponent.h"
 #include "PoseComponent.h"
+#include "GraphicsComponent.h"
 
 #include "BlendUtility.h"
 
@@ -449,13 +450,17 @@ void AnimationControlComponent::tick(float dTime)
 			Timeslot timeslot_apl_tick("apl_tick");
 			apl->tick(dTime, pose);
 		}*/
-		pose->bones[0].transform = anim->armature.bones[0].transform;
-		pose->bones[0].transform *= Matrix3(mob->cam_facing.Cross(mob->up), mob->cam_facing, mob->up);
-		pose->bones[0].transform *= Matrix4::Translation(-mob->up * 1.25f);
+		//pose->bones[0].transform = anim->armature.bones[0].transform;
+		//pose->bones[0].transform *= Matrix3(mob->cam_facing.Cross(mob->up), mob->cam_facing, mob->up);
+		//pose->bones[0].transform *= Matrix4::Translation(-mob->up * 1.25f);
 
-		Timeslot timeslot_pose_update("pose_update");
+		//Timeslot timeslot_pose_update("pose_update");
 
-		pose->update();
+		//pose->update();
+		auto g = entity->getComponent<GraphicsComponent>();
+		g->decs.items[0]->local = Matrix4();
+		g->decs.items[0]->local *= Matrix3(mob->cam_facing.Cross(mob->up), mob->cam_facing, mob->up);
+		g->decs.items[0]->local *= Matrix4::Translation(-mob->up * 1.25f);
 	}
 }
 

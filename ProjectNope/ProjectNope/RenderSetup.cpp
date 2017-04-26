@@ -1,5 +1,7 @@
 #include "RenderSetup.h"
 
+#include "Profiler.h"
+
 RenderSetup::RenderSetup()
 {
 }
@@ -20,6 +22,8 @@ void RenderSetup::popMod(void)
 
 bool RenderSetup::applyMods(void)
 {
+	Timeslot timeslot_apply_mods("apply_mods");
+
 	auto previous_program = current_program;
 	for (auto i = mod_stack.begin(); i != mod_stack.end(); ++i)
 		if (i->shader != nullptr)

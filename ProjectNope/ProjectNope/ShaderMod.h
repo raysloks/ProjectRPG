@@ -15,6 +15,8 @@ public:
 	ShaderMod(const std::shared_ptr<ShaderProgram>& shader, const std::function<void(const std::shared_ptr<ShaderProgram>&)>& mod);
 	~ShaderMod();
 
+	bool operator==(const ShaderMod& rhs);
+
 	std::shared_ptr<ShaderProgram> shader;
 	std::function<void(const std::shared_ptr<ShaderProgram>&)> mod;
 };

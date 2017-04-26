@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 
+class GlyphAtlas;
 class Glyph;
 
 class FontResource :
@@ -26,6 +27,7 @@ public:
 	FT_Face ftFace;
 
 	std::unordered_map<unsigned long, std::shared_ptr<Glyph>> glyphs;
+	std::shared_ptr<GlyphAtlas> atlas;
 };
 
 #endif

@@ -61,6 +61,7 @@ public:
 
 	std::vector<std::pair<unsigned int, std::vector<VertexStruct>>> buffers;
 	size_t nIndices;
+	std::map<unsigned int, unsigned int> vaos;
 };
 
 class FaceSet

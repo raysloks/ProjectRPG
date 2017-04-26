@@ -3,9 +3,7 @@
 uniform sampler2D alpha;
 uniform vec4 color;
 
-in vec4 position;
 in vec2 texco;
-in vec3 norm;
 
 out vec4 final_color;
 
@@ -13,7 +11,7 @@ void main()
 {
 	vec4 temp_color = color;
 
-	temp_color.a *= texture(alpha, texco).a;
+	temp_color.a *= texture(alpha, texco).r;
 
 	final_color = temp_color;
 }

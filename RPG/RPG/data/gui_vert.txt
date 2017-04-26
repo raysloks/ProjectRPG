@@ -2,19 +2,15 @@
 
 out vec4 position;
 out vec2 texco;
-out vec3 norm;
 
 uniform mat4 transform;
 uniform mat3 normal_transform;
 
-in vec4 pos;
-in vec3 normal;
-in vec2 texCoord0;
+in vec2 pos;
+in vec2 uv;
 
 void main()
 {
-	norm = normal_transform * normal;
-	texco = texCoord0;
-	position = transform * pos;
-	gl_Position = transform * pos;
+	texco = uv;
+	gl_Position = transform * vec4(pos, 0.0f, 1.0f);
 }

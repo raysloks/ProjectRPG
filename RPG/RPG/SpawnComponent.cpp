@@ -105,13 +105,13 @@ MobComponent * SpawnComponent::spawn(void)
 			ent->addComponent(acc);
 			ent->addComponent(pose);
 
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/empty.tga")/*"data/assets/empty.tga"*/)));
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/empty.tga"), 0)));
+			/*g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
 			g->decs.items.back()->priority = 1;
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
 			g->decs.items.back()->priority = 2;
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
-			g->decs.items.back()->priority = 3;
+			g->decs.items.back()->priority = 3;*/
 
 			entity->world->AddEntity(ent);
 

@@ -304,13 +304,9 @@ extern IPlatform * gpPlatform;
 
 void Client::render(void)
 {
-	setup();
-
-	if (input.isPressed(Platform::KeyEvent::P))
-	{
-		std::cout << Profiler::get() << std::endl;
-	}
 	Profiler::reset();
+
+	setup();
 
 	Timeslot timeslot_render("render");
 
@@ -1204,6 +1200,8 @@ void Client::render_world(void)
 	// render GUI
 	if (gui_prog->IsReady())
 	{
+		Timeslot timeslot_gui("gui");
+
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE);
 
@@ -1224,10 +1222,25 @@ void Client::render_world(void)
 
 		rs.pushMod(mod);
 
-		Writing::setColor(1.0f, 0.0f, 0.0f);
+		Writing::setColor(0.0f, 0.0f, 0.0f);
 		Writing::setFont("data/assets/fonts/Lora-Regular.ttf");
-		Writing::setSize(50);
-		Writing::render("This is a test", rs);
+		Writing::setSize(12);
+
+		rs.addTransform(Matrix4::Translation(Vec3(40.0f - view_w / 2.0f, 40.0f - view_h / 2.0f, 0.0f)));
+
+		//if (input.isDown(Platform::KeyEvent::P))
+		{
+			Writing::render(Profiler::get(), rs);
+			rs.popTransform();
+			rs.addTransform(Matrix4::Translation(Vec3(-2.0f, 0.0f, 0.0f)));
+			Writing::render(Profiler::get(), rs);
+			rs.popTransform();
+
+			Writing::setColor(1.0f, 0.0f, 0.0f);
+			rs.addTransform(Matrix4::Translation(Vec3(1.0f, -1.0f, 0.0f)));
+			Writing::render(Profiler::get(), rs);
+			rs.popTransform();
+		}
 
 		hideCursor = true;
 		for (auto win = windows.begin(); win != windows.end(); ++win)

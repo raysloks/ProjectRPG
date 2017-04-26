@@ -42,6 +42,11 @@ void Material::setTexture(size_t index, const std::string& fname)
 	tex[index] = fname;
 }
 
+bool Material::operator==(const Material & rhs)
+{
+	return tex == rhs.tex && loaded_tex == rhs.loaded_tex && mod == rhs.mod;
+}
+
 outstream& operator<<(outstream& os, const Material& mat)
 {
 	unsigned char nTex = mat.tex.size();

@@ -66,7 +66,7 @@ void GraphicsComponent::pre_frame(float dTime)
 			p = &pc->p;
 	}
 
-	if (pose != nullptr)
+	/*if (pose != nullptr)
 	{
 		for (auto i = decs.items.begin(); i != decs.items.end(); ++i)
 		{
@@ -76,7 +76,7 @@ void GraphicsComponent::pre_frame(float dTime)
 			}
 		}
 	}
-	else
+	else*/
 	{
 		auto pc = entity->getComponent<PoseComponent>();
 		if (pc != nullptr)

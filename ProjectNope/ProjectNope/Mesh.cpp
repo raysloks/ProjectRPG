@@ -4,6 +4,8 @@
 #include "RenderSetup.h"
 #include "MaterialList.h"
 
+#include "Profiler.h"
+
 Vertex::Vertex(const Vec3& pos) : p(pos) {}
 
 Face::Face(unsigned short va, unsigned short vb, unsigned short vc) : a(va), b(vb), c(vc) {}
@@ -48,6 +50,8 @@ VBO::~VBO()
 	for (auto i = buffers.begin(); i != buffers.end(); ++i)
 		if (i->first != 0)
 			glDeleteBuffers(1, &i->first);
+	for each (auto vao in vaos)
+		glDeleteVertexArrays(1, &vao.second);
 }
 
 void VBO::addBuffer()
@@ -64,40 +68,50 @@ void VBO::addVertexStruct(const VertexStruct& vs)
 
 void VBO::draw(RenderSetup& rs)
 {
-	for (auto i = buffers.begin(); i != buffers.end(); ++i)
-	{
-		for (auto v = i->second.begin(); v != i->second.end(); ++v)
-		{
-			v->refresh(rs);
-		}
-	}
+	Timeslot timeslot_vbo_draw("vbo_draw");
 
-	for (auto i = buffers.begin(); i != buffers.end(); ++i)
+	auto vao_it = vaos.find(rs.current_program->gl_program);
+	if (vao_it == vaos.end())
 	{
-		for (auto v = i->second.begin(); v != i->second.end(); ++v)
-		{
-			v->enable();
-		}
-	}
+		unsigned int vao;
+		glGenVertexArrays(1, &vao);
+		glBindVertexArray(vao);
 
-	for (auto i = buffers.begin(); i != buffers.end(); ++i)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, i->first);
-		for (auto v = i->second.begin(); v != i->second.end(); ++v)
+		for (auto i = buffers.begin(); i != buffers.end(); ++i)
 		{
-			v->specify();
+			for (auto v = i->second.begin(); v != i->second.end(); ++v)
+			{
+				v->refresh(rs);
+			}
 		}
+
+		for (auto i = buffers.begin(); i != buffers.end(); ++i)
+		{
+			for (auto v = i->second.begin(); v != i->second.end(); ++v)
+			{
+				v->enable();
+			}
+		}
+
+		for (auto i = buffers.begin(); i != buffers.end(); ++i)
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, i->first);
+			for (auto v = i->second.begin(); v != i->second.end(); ++v)
+			{
+				v->specify();
+			}
+		}
+
+		vaos.insert(std::make_pair(rs.current_program->gl_program, vao));
+	}
+	else
+	{
+		glBindVertexArray(vao_it->second);
 	}
 
 	glDrawArrays(GL_TRIANGLES, 0, nIndices);
 
-	for (auto i = buffers.begin(); i != buffers.end(); ++i)
-	{
-		for (auto v = i->second.begin(); v != i->second.end(); ++v)
-		{
-			v->disable();
-		}
-	}
+	glBindVertexArray(0);
 }
 
 Mesh::Mesh(void) : vbo_latest(false)
@@ -211,10 +225,10 @@ Mesh::~Mesh(void)
 {
 }
 
-#include "Profiler.h"
-
 void Mesh::render(RenderSetup& rs, MaterialList& mats) // maybe should get mats to be const
 {
+	Timeslot timeslot_mesh_render("mesh_render");
+
 	if (!vbo_latest)
 		buildVBO();
 
@@ -223,6 +237,8 @@ void Mesh::render(RenderSetup& rs, MaterialList& mats) // maybe should get mats 
 		if (i < mats.materials.size())
 		{
 			mats.materials[i].bindTextures();
+
+			Timeslot timeslot_mod_draw("mod_draw");
 
 			rs.pushMod(mats.materials[i].mod);
 
@@ -318,6 +334,8 @@ void Mesh::addVBO(size_t set, Vec3 * v_data, Vec3 * n_data, Vec2 * t_data, Matri
 
 void Mesh::buildVBO(void)
 {
+	Timeslot timeslot_buildVBO("buildVBO");
+
 	if (sets.size()>vbos.size())
 		vbos.resize(sets.size());
 	for (auto i=vbos.begin();i!=vbos.end();++i)

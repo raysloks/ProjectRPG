@@ -1,5 +1,6 @@
 #include "FontResource.h"
 #include "Glyph.h"
+#include "GlyphAtlas.h"
 
 extern FT_Library ftLibrary;
 
@@ -9,7 +10,7 @@ FontResource::FontResource(const std::string& buf) : buffer(buf), ftFace(0)
 
 FontResource::~FontResource(void)
 {
-	if (ftFace!=0)
+	if (ftFace != nullptr)
 		FT_Done_Face(ftFace);
 }
 
@@ -23,17 +24,20 @@ FT_Face FontResource::getFace(size_t x_size, size_t y_size)
 
 std::shared_ptr<Glyph> FontResource::getGlyph(unsigned long code, size_t x_size, size_t y_size)
 {
+	if (!atlas)
+		atlas.reset(new GlyphAtlas(2048, 2048));
+
 	auto glyph = glyphs.find(code);
 	if (glyph == glyphs.end())
 	{
 		if (getFace(x_size, y_size) != nullptr)
 		{
-			auto g = new Glyph(getFace(x_size, y_size), code);
+			auto g = new Glyph(getFace(x_size, y_size), code, atlas.get());
 			auto glyph = std::shared_ptr<Glyph>(g);
 			glyphs.insert(std::make_pair(code, glyph));
 			return glyph;
 		}
-		return 0;
+		return nullptr;
 	}
 	return glyph->second;
 }
