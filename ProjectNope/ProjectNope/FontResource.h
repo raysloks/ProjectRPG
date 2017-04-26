@@ -7,6 +7,7 @@
 #include FT_FREETYPE_H
 
 #include <string>
+#include <map>
 #include <unordered_map>
 
 class GlyphAtlas;
@@ -26,7 +27,7 @@ public:
 
 	FT_Face ftFace;
 
-	std::unordered_map<unsigned long, std::shared_ptr<Glyph>> glyphs;
+	std::map<std::pair<unsigned long, std::pair<size_t, size_t>>, std::shared_ptr<Glyph>> glyphs;
 	std::shared_ptr<GlyphAtlas> atlas;
 };
 

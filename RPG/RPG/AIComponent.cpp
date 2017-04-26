@@ -95,13 +95,22 @@ AIComponent::AIComponent(void) : Serializable(_factory.id)
 		if (other != nullptr)
 		{
 			Vec3 dif = *other->p - *mob->p;
-			dif.Normalize();
+			float l = dif.Len();
+			dif /= l;
 			mob->move = dif;
 			mob->cam_facing = dif;
 			mob->cam_facing -= mob->up * mob->up.Dot(mob->cam_facing);
 			mob->cam_facing.Normalize();
 
-			checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 0.25f + 0.25f + time_over, chase));
+			if (l < 1.5f)
+			{
+				mob->move = Vec3();
+				checks.insert(std::make_pair(0.25f + time_over, attack));
+			}
+			else
+			{
+				checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 0.25f + 0.25f + time_over, chase));
+			}
 		}
 		else
 		{
@@ -152,6 +161,35 @@ AIComponent::AIComponent(void) : Serializable(_factory.id)
 				checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 0.25f + 0.25f + time_over, search));
 			}
 		}
+	};
+
+	attack = [this](float time_over)
+	{
+		std::uniform_real_distribution<float> uni_dist;
+
+		auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(*mob->p + mob->cam_facing * 0.75f, 0.75f);
+		MobComponent * other = nullptr;
+		for each (auto nearby in nearby_mobs)
+		{
+			if (nearby.second->temp_team != mob->temp_team)
+			{
+				std::vector<std::shared_ptr<Collision>> list;
+				ColliderComponent::LineCheck(*mob->p, *nearby.second->p, list);
+				if (list.empty())
+				{
+					other = nearby.second;
+					break;
+				}
+			}
+		}
+
+		if (other != nullptr)
+		{
+			other->hit = true;
+			other->health.current -= 5.0f;
+		}
+
+		checks.insert(std::make_pair(0.25f + time_over, chase));
 	};
 }
 

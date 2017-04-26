@@ -17,8 +17,8 @@ shadow_quality = 0;
 
 ao_quality = 1;
 
-supersampling_x = 4;
-supersampling_y = 4;
+supersampling_x = 1;
+supersampling_y = 1;
 supersampling_r = 1;
 
 fov = 80.0;

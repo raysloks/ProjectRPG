@@ -1242,6 +1242,11 @@ void Client::render_world(void)
 			rs.popTransform();
 		}
 
+		for (auto i = render2D.begin(); i != render2D.end(); ++i)
+		{
+			(**i)(rs);
+		}
+
 		hideCursor = true;
 		for (auto win = windows.begin(); win != windows.end(); ++win)
 		{

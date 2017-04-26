@@ -44,9 +44,11 @@ void SpawnComponent::post_frame(float dTime)
 
 void SpawnComponent::tick(float dTime)
 {
-	std::uniform_real_distribution<float> uni_dist;
-	if (uni_dist(random) > 0.99f)
+	for (size_t i = 0; i < 800; i++)
+	{
 		spawn();
+	}
+	entity->world->SetEntity(entity->id, nullptr);
 }
 
 void SpawnComponent::writeLog(outstream& os, ClientData& client)

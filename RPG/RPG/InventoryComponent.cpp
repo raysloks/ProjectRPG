@@ -11,6 +11,8 @@
 
 #include "Item.h"
 
+#include "MobComponent.h"
+
 const AutoSerialFactory<InventoryComponent> InventoryComponent::_factory("InventoryComponent");
 
 InventoryComponent::InventoryComponent(void) : Serializable(_factory.id)
@@ -23,13 +25,16 @@ InventoryComponent::InventoryComponent(instream& is, bool full) : Serializable(_
 
 InventoryComponent::~InventoryComponent(void)
 {
-	if (func != 0)
+	if (func)
 		set_display(false);
 }
 
 void InventoryComponent::connect(NewEntity * pEntity, bool authority)
 {
 	items.setSyncState(&pEntity->ss);
+	std::shared_ptr<Item> item(new Item());
+	item->type = 100;
+	items.add(item);
 }
 
 void InventoryComponent::disconnect(void)
@@ -50,47 +55,34 @@ void InventoryComponent::set_display(bool enable)
 	Client * client = entity->world->client;
 	if (client != nullptr)
 	{
-		enable = false;
 		if (client->clientData != nullptr)
 			enable &= visible(*client->clientData);
 		if (enable)
 		{
-			if (func==0)
+			if (!func)
 			{
-				func.reset(new std::function<void(RenderSetup&)>([this](RenderSetup& rs) {
-					glBegin(GL_QUADS);
-
-					glColor4f(0.0f, 0.0f, 0.0f, 0.85f);
-
-					glVertex2f(rs.size.x*0.1f, rs.size.y*0.1f);
-					glVertex2f(rs.size.x*0.9f, rs.size.y*0.1f);
-
-					glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
-
-					glVertex2f(rs.size.x*0.9f, rs.size.y);
-					glVertex2f(rs.size.x*0.1f, rs.size.y);
-
-					glEnd();
-
-					glPushMatrix();
-					glOrtho(0.0, rs.size.x, rs.size.y, 0.0, 0.0, 0.0);
-					glTranslatef(rs.size.x * 0.1 + 60.0f, rs.size.y * 0.1 + 60.0f, 0.0f);
-					for (auto i = items.items.begin(); i != items.items.end(); ++i)
-					{
-						//Writing::render(std::to_string((*i)->type));
-						glTranslatef(0.0f, 16.0f, 0.0f);
-					}
-					glPopMatrix();
-				}));
-				client->render2D.push_back(func);
+				auto mob = entity->getComponent<MobComponent>();
+				if (mob != nullptr)
+				{
+					func.reset(new std::function<void(RenderSetup&)>([this, mob](RenderSetup& rs) {
+						rs.addTransform(Matrix4::Translation(Vec3(100.0f, 100.0f, 0.0f)));
+						Writing::setSize(25);
+						Writing::render(std::to_string((int)std::ceilf(mob->health.current)) + " / " + std::to_string((int)std::ceilf(mob->health.max)), rs);
+						/*for (auto i = items.items.begin(); i != items.items.end(); ++i)
+						{
+							Writing::render(std::to_string((*i)->type), rs);
+						}*/
+					}));
+					client->render2D.push_back(func);
+				}
 			}
 		}
 		else
 		{
-			if (func!=0)
+			if (func)
 			{
 				client->render2D.erase(std::remove(client->render2D.begin(), client->render2D.end(), func), client->render2D.end());
-				func = 0;
+				func.reset();
 			}
 		}
 	}

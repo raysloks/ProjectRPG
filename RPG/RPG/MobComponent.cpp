@@ -58,8 +58,10 @@ void MobComponent::tick(float dTime)
 	{
 		if (health.current <= 0)
 		{
-			input["warp"] = 1.0f;
-			health.current = health.max;
+			move = Vec3();
+			health.current -= dTime * (temp_team == 1 ? 1000.0f : 1.0f);
+			if (health.current <= -300.0f)
+				input["warp"] = 1.0f;
 		}
 
 		stamina.current += dTime;
@@ -175,6 +177,7 @@ void MobComponent::tick(float dTime)
 			{
 				*p = spawn_position;
 				v = Vec3();
+				health.current = health.max;
 				if (temp_team == 1)
 					entity->world->SetEntity(entity->id, nullptr);
 			}
@@ -242,61 +245,68 @@ void MobComponent::tick(float dTime)
 					float height = crouch ? 1.0f : 1.5f;
 					float standing_height = crouch ? 0.75f : 1.25f;
 					ColliderComponent::DiskCast(*p - up * offset, *p - up * (offset + height), disk_radius, list);
-					if (list.size() > 0)
+					if (!list.empty())
 					{
-						std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
-						Vec3 axis = Vec3(list.front()->poc - list.front()->poo).Cross(up).Normalize();
-						GlobalPosition pivot = list.front()->poc;
-						GlobalPosition center = list.front()->poo;
-
-						/*auto wpc = weapon->entity->getComponent<PositionComponent>();
-						if (wpc != nullptr)
+						list.erase(std::remove_if(list.begin(), list.end(), [](const std::shared_ptr<Collision>& col)
 						{
+							return col->n.z <= 0.5f;
+						}), list.end());
+						if (!list.empty())
+						{
+							std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
+							Vec3 axis = Vec3(list.front()->poc - list.front()->poo).Cross(up).Normalize();
+							GlobalPosition pivot = list.front()->poc;
+							GlobalPosition center = list.front()->poo;
+
+							/*auto wpc = weapon->entity->getComponent<PositionComponent>();
+							if (wpc != nullptr)
+							{
 							wpc->p = list.front()->poc;
 							wpc->update();
-						}*/
+							}*/
 
-						Vec3 n = list.front()->n;
-						float tdt = list.front()->t;
-						list.clear();
+							Vec3 n = list.front()->n;
+							float tdt = list.front()->t;
+							list.clear();
 
-						if (line != 0)
-						{
-							line->lines[0].first = pivot - *p;
-							line->lines[0].second = pivot + up - *p;
-							line->color[0].first = Vec3(1.0f, 1.0f, 1.0f);
-							line->color[0].second = Vec3(1.0f, 0.0f, 0.0f);
+							if (line != 0)
+							{
+								line->lines[0].first = pivot - *p;
+								line->lines[0].second = pivot + up - *p;
+								line->color[0].first = Vec3(1.0f, 1.0f, 1.0f);
+								line->color[0].second = Vec3(1.0f, 0.0f, 0.0f);
 
-							line->lines[3].first = pivot - *p;
-							line->lines[3].second = center - *p;
-							line->color[3].first = Vec3(1.0f, 0.0f, 0.0f);
-							line->color[3].second = Vec3(1.0f, 0.0f, 0.0f);
+								line->lines[3].first = pivot - *p;
+								line->lines[3].second = center - *p;
+								line->color[3].first = Vec3(1.0f, 0.0f, 0.0f);
+								line->color[3].second = Vec3(1.0f, 0.0f, 0.0f);
 
-							line->lines[6].first = pivot - *p;
-							line->lines[6].second = pivot + axis - *p;
-							line->color[6].first = Vec3(1.0f, 0.0f, 0.0f);
-							line->color[6].second = Vec3(0.0f, 0.0f, 0.0f);
-						}
+								line->lines[6].first = pivot - *p;
+								line->lines[6].second = pivot + axis - *p;
+								line->color[6].first = Vec3(1.0f, 0.0f, 0.0f);
+								line->color[6].second = Vec3(0.0f, 0.0f, 0.0f);
+							}
 
-						if (pivot == center)
-						{
-							std::shared_ptr<Collision> col(new Collision());
-							col->t = 0.0f;
-							col->n = n;
-							col->poo = center + up * standing_height;
-							list.push_back(col);
-						}
-						else
-						{
-							std::shared_ptr<Collision> col(new Collision());
-							col->t = 0.0f;
-							col->n = n;
-							col->poo = center + up * standing_height;
-							list.push_back(col);
+							if (pivot == center)
+							{
+								std::shared_ptr<Collision> col(new Collision());
+								col->t = 0.0f;
+								col->n = n;
+								col->poo = center + up * standing_height;
+								list.push_back(col);
+							}
+							else
+							{
+								std::shared_ptr<Collision> col(new Collision());
+								col->t = 0.0f;
+								col->n = n;
+								col->poo = center + up * standing_height;
+								list.push_back(col);
+							}
 						}
 					}
 
-					if (list.size() > 0)
+					if (!list.empty())
 					{
 						if (list.front()->n.Dot(up) > 0.5f)
 						{

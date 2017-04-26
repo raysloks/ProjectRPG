@@ -80,7 +80,7 @@ public:
 				ent->addComponent(spawn);
 
 				spawn->aabb_min = Vec3(21.0f, -10.0f, 21.0f);
-				spawn->aabb_max = Vec3(31.0f, 40.0f, 30.0f);
+				spawn->aabb_max = Vec3(41.0f, 40.0f, 30.0f);
 
 				world->AddEntity(ent);
 			}

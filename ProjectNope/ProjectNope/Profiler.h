@@ -3,6 +3,8 @@
 
 #include <string>
 
+//#define USE_TIMESLOTS
+
 class Timeslot
 {
 public:

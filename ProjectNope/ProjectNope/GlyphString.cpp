@@ -30,8 +30,6 @@ void GlyphString::render(RenderSetup& rs)
 
 	Timeslot timeslot_string_render("string_render");
 
-	Profiler::start("allocation");
-
 	VBO vbo;
 	vbo.addBuffer();
 	vbo.addVertexStruct(VertexStruct("pos", 2, false, 0, 0));
@@ -46,8 +44,6 @@ void GlyphString::render(RenderSetup& rs)
 	size_t n_chars = 0;
 
 	float offset_x, offset_y;
-
-	Profiler::stop();
 
 	auto fr = Resource::get<FontResource>(font);
 	if (fr != nullptr)

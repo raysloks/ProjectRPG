@@ -106,10 +106,14 @@ std::string Profiler::get(void)
 
 Timeslot::Timeslot(const std::string& slot)
 {
+#ifdef USE_TIMESLOTS
 	Profiler::start(slot);
+#endif
 }
 
 Timeslot::~Timeslot(void)
 {
+#ifdef USE_TIMESLOTS
 	Profiler::stop();
+#endif
 }

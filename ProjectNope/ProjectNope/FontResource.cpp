@@ -27,14 +27,14 @@ std::shared_ptr<Glyph> FontResource::getGlyph(unsigned long code, size_t x_size,
 	if (!atlas)
 		atlas.reset(new GlyphAtlas(2048, 2048));
 
-	auto glyph = glyphs.find(code);
+	auto glyph = glyphs.find(std::make_pair(code, std::make_pair(x_size, y_size)));
 	if (glyph == glyphs.end())
 	{
 		if (getFace(x_size, y_size) != nullptr)
 		{
 			auto g = new Glyph(getFace(x_size, y_size), code, atlas.get());
 			auto glyph = std::shared_ptr<Glyph>(g);
-			glyphs.insert(std::make_pair(code, glyph));
+			glyphs.insert(std::make_pair(std::make_pair(code, std::make_pair(x_size, y_size)), glyph));
 			return glyph;
 		}
 		return nullptr;
