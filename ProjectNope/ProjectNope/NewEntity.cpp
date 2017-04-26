@@ -16,7 +16,7 @@ NewEntity::NewEntity(instream& is, bool full)
 {
 	uint32_t n;
 	is >> n;
-	for (size_t i = 0; i != n; i++)
+	for (size_t i = 0; i < n; i++)
 	{
 		if (!full)
 		{
@@ -26,10 +26,10 @@ NewEntity::NewEntity(instream& is, bool full)
 		}
 		auto factory = Serializable::unserialize(is);
 		Component * comp;
-		if (factory != 0)
+		if (factory != nullptr)
 			comp = dynamic_cast<Component*>(factory->create(is, full));
 		else
-			comp = 0;
+			comp = nullptr;
 		addComponent(comp, full);
 	}
 }

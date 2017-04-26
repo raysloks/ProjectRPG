@@ -95,7 +95,7 @@ public:
 			GraphicsComponent * g = new GraphicsComponent();
 			PlayerInputComponent * input = new PlayerInputComponent();
 			MobComponent * mob = new MobComponent();
-			//AnimationControlComponent * acc = new AnimationControlComponent();
+			AnimationControlComponent * acc = new AnimationControlComponent();
 			InventoryComponent * inv = new InventoryComponent();
 			PoseComponent * pose = new PoseComponent();
 			LineComponent * line = new LineComponent();
@@ -105,7 +105,7 @@ public:
 			ent->addComponent(g);
 			ent->addComponent(input);
 			ent->addComponent(mob);
-			//ent->addComponent(acc);
+			ent->addComponent(acc);
 			ent->addComponent(inv);
 			ent->addComponent(pose);
 			ent->addComponent(line);
@@ -125,7 +125,7 @@ public:
 			g->decs.items.front()->local.data[15] = 1.0f;
 			g->decs.items.front()->final = g->decs.items.front()->local;*/
 
-			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga")/*"data/assets/empty.tga"*/)));
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga"), 0)));
 			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
 			//g->decs.items.back()->priority = 1;
 			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));

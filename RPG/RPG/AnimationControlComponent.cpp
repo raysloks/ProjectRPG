@@ -459,7 +459,9 @@ void AnimationControlComponent::tick(float dTime)
 		//pose->update();
 		auto g = entity->getComponent<GraphicsComponent>();
 		g->decs.items[0]->local = Matrix4();
-		g->decs.items[0]->local *= Matrix3(mob->cam_facing.Cross(mob->up), mob->cam_facing, mob->up);
+		Vec3 flat_facing = mob->cam_facing - mob->up * mob->up.Dot(mob->cam_facing);
+		flat_facing.Normalize();
+		g->decs.items[0]->local *= Matrix3(flat_facing.Cross(mob->up), flat_facing, mob->up);
 		g->decs.items[0]->local *= Matrix4::Translation(-mob->up * 1.25f);
 	}
 }

@@ -36,11 +36,11 @@ Glyph::Glyph(FT_Face face, unsigned long code, GlyphAtlas * atlas)
 	pos[2] = bitmap->left + bitmap->bitmap.width;
 	pos[3] = -bitmap->top;
 	pos[4] = bitmap->left + bitmap->bitmap.width;
-	pos[5] = -(int)bitmap->top + bitmap->bitmap.rows;
+	pos[5] = -bitmap->top + (int)bitmap->bitmap.rows;
 	pos[6] = bitmap->left + bitmap->bitmap.width;
-	pos[7] = -(int)bitmap->top + bitmap->bitmap.rows;
+	pos[7] = -bitmap->top + (int)bitmap->bitmap.rows;
 	pos[8] = bitmap->left;
-	pos[9] = -(int)bitmap->top + bitmap->bitmap.rows;
+	pos[9] = -bitmap->top + (int)bitmap->bitmap.rows;
 	pos[10] = bitmap->left;
 	pos[11] = -bitmap->top;
 

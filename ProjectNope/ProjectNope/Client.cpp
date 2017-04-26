@@ -259,6 +259,12 @@ void Client::pre_frame(float dTime)
 	if (input.isPressed(Platform::KeyEvent::P))
 		show_entity_list = !show_entity_list;
 
+	if (input.isPressed(Platform::KeyEvent::N))
+	{
+		world->clear();
+		world->server->onClientConnect(*clientData);
+	}
+
 	if (con != nullptr)
 	{
 		MAKE_PACKET;
@@ -1226,10 +1232,13 @@ void Client::render_world(void)
 		Writing::setFont("data/assets/fonts/Lora-Regular.ttf");
 		Writing::setSize(12);
 
-		rs.addTransform(Matrix4::Translation(Vec3(40.0f - view_w / 2.0f, 40.0f - view_h / 2.0f, 0.0f)));
+		rs.addTransform(Matrix4::Translation(Vec3(-view_w / 2.0f, -view_h / 2.0f, 0.0f)));
 
 		//if (input.isDown(Platform::KeyEvent::P))
 		{
+			rs.pushTransform();
+			rs.addTransform(Matrix4::Translation(Vec3(40.0f, 40.0f, 0.0f)));
+
 			Writing::render(Profiler::get(), rs);
 			rs.popTransform();
 			rs.addTransform(Matrix4::Translation(Vec3(-2.0f, 0.0f, 0.0f)));
@@ -1240,11 +1249,15 @@ void Client::render_world(void)
 			rs.addTransform(Matrix4::Translation(Vec3(1.0f, -1.0f, 0.0f)));
 			Writing::render(Profiler::get(), rs);
 			rs.popTransform();
+
+			rs.popTransform();
 		}
 
 		for (auto i = render2D.begin(); i != render2D.end(); ++i)
 		{
+			rs.pushTransform();
 			(**i)(rs);
+			rs.popTransform();
 		}
 
 		hideCursor = true;

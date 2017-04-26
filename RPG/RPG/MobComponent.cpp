@@ -128,12 +128,13 @@ void MobComponent::tick(float dTime)
 
 					pos->p = *p + up * 0.45f;
 
-					projectile->v = muzzle_velocity;
+					projectile->v = muzzle_velocity + v;
 					projectile->drag = 0.01f;
 
 					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
 					g->decs.items.front()->local *= 0.0127f * 0.5f;
 					g->decs.items.front()->local.data[15] = 1.0f;
+					g->decs.items.front()->local *= cam_rot;
 
 					entity->world->AddEntity(ent);
 				};
@@ -368,8 +369,9 @@ void MobComponent::tick(float dTime)
 
 					land_g += col->n*col->n.Dot(v);
 
-					float fall_damage = std::max(0.0f, -10.0f - col->n.Dot(v));
+					float fall_damage = std::fmaxf(0.0f, -10.0f - col->n.Dot(v));
 					fall_damage *= 40.0f;
+					fall_damage = std::fminf(200.0f, fall_damage);
 					health.current -= fall_damage;
 					if (fall_damage > 0.0f)
 						hit = true;
@@ -541,6 +543,7 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 	{
 		facing = bu_sphere(mob->facing, facing, up, fWeight);
 		move_facing = bu_sphere(mob->move_facing, move_facing, up, fWeight);
+		cam_facing = bu_sphere(mob->cam_facing, cam_facing, up, fWeight);
 		up = bu_sphere(mob->up, up, facing.Cross(up), fWeight);
 		v = mob->v;// v*(1.0f - fWeight) + mob->v*fWeight;
 		land_n = mob->land_n;

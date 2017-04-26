@@ -65,13 +65,22 @@ void InventoryComponent::set_display(bool enable)
 				if (mob != nullptr)
 				{
 					func.reset(new std::function<void(RenderSetup&)>([this, mob](RenderSetup& rs) {
+						rs.pushTransform();
 						rs.addTransform(Matrix4::Translation(Vec3(100.0f, 100.0f, 0.0f)));
 						Writing::setSize(25);
 						Writing::render(std::to_string((int)std::ceilf(mob->health.current)) + " / " + std::to_string((int)std::ceilf(mob->health.max)), rs);
+						rs.popTransform();
+						rs.popTransform();
 						/*for (auto i = items.items.begin(); i != items.items.end(); ++i)
 						{
 							Writing::render(std::to_string((*i)->type), rs);
 						}*/
+						rs.pushTransform();
+						rs.addTransform(Matrix4::Translation(Vec3(960.0f, 540.0f, 0.0f)));
+						rs.addTransform(Matrix4::Translation(Vec3(-10.0f, 10.0f, 0.0f)));
+						Writing::render("O", rs);
+						rs.popTransform();
+						rs.popTransform();
 					}));
 					client->render2D.push_back(func);
 				}

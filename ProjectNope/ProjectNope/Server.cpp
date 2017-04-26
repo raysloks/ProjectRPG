@@ -275,6 +275,7 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 	{
 		conns.insert(std::pair<boost::asio::ip::udp::endpoint, std::shared_ptr<ClientConnection>>(packet->endpoint, std::shared_ptr<ClientConnection>(new ClientConnection(packet->endpoint))));
 		conns[packet->endpoint]->data = std::shared_ptr<ClientData>(new ClientData());
+		conns[packet->endpoint]->data->client_id = std::hash<std::string>()(packet->endpoint.address().to_string() + ":" + std::to_string(packet->endpoint.port()));
 		onClientConnect(*conns[packet->endpoint]->data);
 		std::cout << packet->endpoint << " connected." << std::endl;
 	}

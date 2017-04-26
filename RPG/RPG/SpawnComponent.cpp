@@ -44,7 +44,7 @@ void SpawnComponent::post_frame(float dTime)
 
 void SpawnComponent::tick(float dTime)
 {
-	for (size_t i = 0; i < 800; i++)
+	for (size_t i = 0; i < 40; i++)
 	{
 		spawn();
 	}
