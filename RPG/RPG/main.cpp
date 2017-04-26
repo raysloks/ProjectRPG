@@ -92,7 +92,7 @@ public:
 
 			CameraControlComponent * cam = new CameraControlComponent();
 			PositionComponent * p = new PositionComponent();
-			GraphicsComponent * g = new GraphicsComponent();
+			GraphicsComponent * g = new GraphicsComponent(false);
 			PlayerInputComponent * input = new PlayerInputComponent();
 			MobComponent * mob = new MobComponent();
 			AnimationControlComponent * acc = new AnimationControlComponent();
@@ -135,6 +135,7 @@ public:
 
 			input->client_id = data.client_id;
 			cam->client_id = data.client_id;
+			inv->client_id = data.client_id;
 
 			world->AddEntity(ent);
 

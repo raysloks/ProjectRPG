@@ -123,8 +123,10 @@ void GraphicsComponent::render(RenderSetup& rs)
 		offset += *p;
 	rs.addTransform(Matrix4::Translation(offset));
 
-	for (auto i=decs.items.begin();i!=decs.items.end();++i) {
-		if (*i!=0) {
+	for (auto i = decs.items.begin(); i != decs.items.end(); ++i)
+	{
+		if (*i != nullptr)
+		{
 			(*i)->render(rs);
 		}
 	}

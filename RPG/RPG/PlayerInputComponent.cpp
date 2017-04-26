@@ -113,7 +113,8 @@ void PlayerInputComponent::post_frame(float dTime)
 
 void PlayerInputComponent::tick(float dTime)
 {
-	if (p == nullptr) {
+	if (p == nullptr)
+	{
 		auto pc = entity->getComponent<PositionComponent>();
 		p = &pc->p;
 	}
@@ -167,7 +168,7 @@ void PlayerInputComponent::writeLog(outstream& os)
 
 void PlayerInputComponent::readLog(instream& is, ClientData& client)
 {
-	if (client.client_id = client_id)
+	if (client.client_id == client_id)
 	{
 		ControlState ncs;
 		is >> ncs >> move >> cam_rot;

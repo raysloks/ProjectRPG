@@ -42,6 +42,8 @@ public:
 
 	void set_display(bool enable);
 
+	uint32_t client_id;
+
 	std::shared_ptr<std::function<void(RenderSetup&)>> func;
 
 	SyncContainer<Item> items;

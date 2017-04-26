@@ -32,6 +32,13 @@ CameraControlComponent::CameraControlComponent(void) : Serializable(_factory.id)
 
 CameraControlComponent::CameraControlComponent(instream& is, bool full) : Serializable(_factory.id)
 {
+	cam_rot_basic = Vec2(0.0f, M_PI_2);
+
+	cam_rot *= Quaternion(M_PI / 2.0f, Vec3(1.0f, 0.0f, 0.0f));
+
+	front = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
+	top = Vec3(0.0f, 1.0f, 0.0f) * cam_rot;
+	right = Vec3(-1.0f, 0.0f, 0.0f) * cam_rot;
 }
 
 CameraControlComponent::~CameraControlComponent(void)

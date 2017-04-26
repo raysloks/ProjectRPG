@@ -449,7 +449,7 @@ void MobComponent::tick(float dTime)
 			}
 
 			if (prev != *p)
-				if (pc != 0)
+				if (pc != nullptr)
 					pc->update();
 		}
 
@@ -520,12 +520,14 @@ void MobComponent::writeLog(outstream& os, ClientData& client)
 {
 	os << facing << move_facing << cam_facing << up;
 	os << v << land_n << land_v << landed;
+	os << health;
 }
 
 void MobComponent::readLog(instream& is)
 {
 	is >> facing >> move_facing >> cam_facing >> up;
 	is >> v >> land_n >> land_v >> landed;
+	is >> health;
 }
 
 void MobComponent::writeLog(outstream& os)
@@ -549,6 +551,7 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 		land_n = mob->land_n;
 		land_v = mob->land_v;
 		landed = mob->landed;
+		health = mob->health;
 	}
 }
 

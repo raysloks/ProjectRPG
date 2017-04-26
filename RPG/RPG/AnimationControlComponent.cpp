@@ -457,8 +457,11 @@ void AnimationControlComponent::tick(float dTime)
 		//Timeslot timeslot_pose_update("pose_update");
 
 		//pose->update();
+
 		auto g = entity->getComponent<GraphicsComponent>();
 		g->decs.items[0]->local = Matrix4();
+		if (mob->cam_facing == Vec3())
+			mob->cam_facing = Vec3(0.0f, 1.0f, 0.0f);
 		Vec3 flat_facing = mob->cam_facing - mob->up * mob->up.Dot(mob->cam_facing);
 		flat_facing.Normalize();
 		g->decs.items[0]->local *= Matrix3(flat_facing.Cross(mob->up), flat_facing, mob->up);
