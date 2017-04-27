@@ -110,9 +110,9 @@ void Client::disconnect(void)
 
 Client::~Client(void)
 {
-	if (con!=0)
+	if (con)
 		con->socket_.close();
-	if (clientData!=0)
+	if (clientData)
 		delete clientData;
 	Sound::release();
 }
@@ -130,12 +130,12 @@ extern IPlatform * gpPlatform;
 
 void Client::setup(void)
 {
-	if (mem==0) {
-		std::shared_ptr<StringResource> config = Resource::get<StringResource>("config.txt");
-		if (config!=0 || Resource::is_loaded("config.txt"))
+	if (mem == nullptr) {
+		auto config = Resource::get<StringResource>("config.txt");
+		if (config || Resource::is_loaded("config.txt"))
 		{
 			mem.reset(new ScriptMemory());
-			if (config!=0)
+			if (config)
 			{
 				Script script(std::istringstream(config->string));
 				script.run(mem);
@@ -1240,18 +1240,24 @@ void Client::render_world(void)
 			rs.addTransform(Matrix4::Translation(Vec3(40.0f, 40.0f, 0.0f)));
 
 			Writing::render(Profiler::get(), rs);
-			rs.popTransform();
+			/*rs.popTransform();
 			rs.addTransform(Matrix4::Translation(Vec3(-2.0f, 0.0f, 0.0f)));
 			Writing::render(Profiler::get(), rs);
 			rs.popTransform();
 
 			Writing::setColor(1.0f, 0.0f, 0.0f);
 			rs.addTransform(Matrix4::Translation(Vec3(1.0f, -1.0f, 0.0f)));
-			Writing::render(Profiler::get(), rs);
+			Writing::render(Profiler::get(), rs);*/
 			rs.popTransform();
 
 			rs.popTransform();
 		}
+
+		rs.pushTransform();
+		rs.addTransform(Matrix4::Translation(Vec3(140.0f, 40.0f, 0.0f)));
+		Writing::render(std::to_string(world->units.size()), rs);
+		rs.popTransform();
+		rs.popTransform();
 
 		for (auto i = render2D.begin(); i != render2D.end(); ++i)
 		{
