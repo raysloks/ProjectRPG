@@ -3,7 +3,7 @@
 
 #include "GlobalPosition.h"
 
-class ColliderComponent;
+class Component;
 
 class Collision
 {
@@ -13,7 +13,7 @@ public:
 	GlobalPosition poo, poc;
 	Vec3 n, disp, v;
 	float dist, t;
-	ColliderComponent * comp;
+	Component * comp;
 	void * ce;
 };
 

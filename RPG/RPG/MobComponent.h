@@ -12,6 +12,7 @@
 
 #include <memory>
 #include <map>
+#include <functional>
 
 class GlobalPosition;
 class ActionData;
@@ -49,6 +50,8 @@ public:
 	HealthBar health;
 	HealthBar stamina;
 
+	std::function<void(void)> attack;
+
 	size_t temp_team;
 
 	WeaponComponent * weapon;
@@ -64,20 +67,18 @@ public:
 	//movement
 	Vec3 v;
 	Vec3 dp;
-	Vec3 land_n, land_v, land_g;
-	Vec3 c_move;
+	Vec3 land_n, land_v;
 	Vec3 move;
 	bool run, crouch;
 	bool landed;
-	float dodge;
-	bool strafe;
 
 	std::map<std::string, float> input;
 
+	// maybe rework
 	std::shared_ptr<ActionData> action;
 
+	// todo rework
 	bool hit;
-
 	GlobalPosition spawn_position;
 };
 

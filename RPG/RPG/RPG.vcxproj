@@ -157,6 +157,7 @@
     <ClCompile Include="AIComponent.cpp" />
     <ClCompile Include="AnimationControlComponent.cpp" />
     <ClCompile Include="CameraControlComponent.cpp" />
+    <ClCompile Include="GameStateComponent.cpp" />
     <ClCompile Include="HitBox.cpp" />
     <ClCompile Include="HitComponent.cpp" />
     <ClCompile Include="InventoryComponent.cpp" />
@@ -168,6 +169,7 @@
     <ClCompile Include="ProjectileComponent.cpp" />
     <ClCompile Include="SkillNode.cpp" />
     <ClCompile Include="SpawnComponent.cpp" />
+    <ClCompile Include="TriggerComponent.cpp" />
     <ClCompile Include="WeaponComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -189,6 +191,7 @@
     <ClInclude Include="AIComponent.h" />
     <ClInclude Include="AnimationControlComponent.h" />
     <ClInclude Include="CameraControlComponent.h" />
+    <ClInclude Include="GameStateComponent.h" />
     <ClInclude Include="HitBox.h" />
     <ClInclude Include="HitComponent.h" />
     <ClInclude Include="InventoryComponent.h" />
@@ -199,6 +202,7 @@
     <ClInclude Include="ProjectileComponent.h" />
     <ClInclude Include="SkillNode.h" />
     <ClInclude Include="SpawnComponent.h" />
+    <ClInclude Include="TriggerComponent.h" />
     <ClInclude Include="WeaponComponent.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -120,7 +120,6 @@ void ColliderComponent::LineCheck(const GlobalPosition& sP, const GlobalPosition
 void ColliderComponent::SphereCast(const GlobalPosition& sP, const GlobalPosition& eP, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
 	Timeslot timeslot_collision("collision");
-	Timeslot timeslot_sphere_cast("sphere_cast");
 
 	for (auto i=all.begin();i!=all.end();++i) {
 		if (*i!=0) {
@@ -139,7 +138,6 @@ void ColliderComponent::SphereCast(const GlobalPosition& sP, const GlobalPositio
 void ColliderComponent::DiskCast(const GlobalPosition& sP, const GlobalPosition& eP, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
 	Timeslot timeslot_collision("collision");
-	Timeslot timeslot_disk_cast("disk_cast");
 
 	for (auto i = all.begin(); i != all.end(); ++i) {
 		if (*i != 0) {

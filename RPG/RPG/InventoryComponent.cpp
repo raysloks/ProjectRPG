@@ -68,7 +68,16 @@ void InventoryComponent::set_display(bool enable)
 							rs.pushTransform();
 							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 100.0f, 0.0f)));
 							Writing::setSize(25);
+							Writing::setColor(1.0f, 0.0f, 0.0f);
 							Writing::render(std::to_string((int)std::ceilf(mob->health.current)) + " / " + std::to_string((int)std::ceilf(mob->health.max)), rs);
+							rs.popTransform();
+							rs.popTransform();
+
+							rs.pushTransform();
+							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 140.0f, 0.0f)));
+							Writing::setSize(25);
+							Writing::setColor(0.0f, 1.0f, 0.0f);
+							Writing::render(std::to_string((int)std::ceilf(mob->stamina.current)) + " / " + std::to_string((int)std::ceilf(mob->stamina.max)), rs);
 							rs.popTransform();
 							rs.popTransform();
 							/*for (auto i = items.items.begin(); i != items.items.end(); ++i)
@@ -78,6 +87,7 @@ void InventoryComponent::set_display(bool enable)
 							rs.pushTransform();
 							rs.addTransform(Matrix4::Translation(Vec3(960.0f, 540.0f, 0.0f)));
 							rs.addTransform(Matrix4::Translation(Vec3(-10.0f, 10.0f, 0.0f)));
+							Writing::setColor(1.0f, 1.0f, 1.0f);
 							Writing::render("O", rs);
 							rs.popTransform();
 							rs.popTransform();

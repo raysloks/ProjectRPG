@@ -1,5 +1,5 @@
 #include "Collision.h"
 
-Collision::Collision(void) : comp(0)
+Collision::Collision(void) : comp(nullptr)
 {
 }

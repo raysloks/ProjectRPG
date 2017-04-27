@@ -3,6 +3,8 @@
 #include "Resource.h"
 #include "Mesh.h"
 
+#include "Profiler.h"
+
 CollisionMesh::CollisionMesh(void)
 {
 }
@@ -242,6 +244,8 @@ std::vector<size_t> CollisionMesh::GetCellsInAABB(Vec3 box_min, Vec3 box_max) co
 
 std::vector<size_t> CollisionMesh::GetWallsInAABB(Vec3 box_min, Vec3 box_max) const
 {
+	Timeslot timeslot_get_walls("get_walls");
+
 	if (grid.empty())
 	{
 		std::vector<size_t> ret;
@@ -363,10 +367,12 @@ void CollisionMesh::SphereCast(const Vec3& sP, const Vec3& eP, float r, std::vec
 
 	auto walls_in_box = GetWallsInAABB(box_min, box_max);
 	//std::cout << walls_in_box.size() << std::endl;
+	Timeslot timeslot_sphere_cast("sphere_cast");
 	for each (auto wall in walls_in_box)
 	{
 		std::shared_ptr<Collision> col = walls[wall].SphereCast(sP, eP, r);
-		if (col != nullptr) {
+		if (col != nullptr)
+		{
 			col->ce = &walls[wall];
 			list.push_back(col);
 		}
@@ -399,10 +405,12 @@ void CollisionMesh::DiskCast(const Vec3& sP, const Vec3& eP, float r, std::vecto
 
 	auto walls_in_box = GetWallsInAABB(box_min, box_max);
 	//std::cout << walls_in_box.size() << std::endl;
+	Timeslot timeslot_disk_cast("disk_cast");
 	for each (auto wall in walls_in_box)
 	{
 		std::shared_ptr<Collision> col = walls[wall].DiskCast(sP, eP, r);
-		if (col != nullptr) {
+		if (col != nullptr)
+		{
 			col->ce = &walls[wall];
 			list.push_back(col);
 		}
@@ -411,10 +419,11 @@ void CollisionMesh::DiskCast(const Vec3& sP, const Vec3& eP, float r, std::vecto
 
 void CollisionMesh::LowerDisk(const Vec3 & lock, const Vec3 & center, const Vec3 & axis, const Vec3 & dir, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
-	for (int i = 0; i<walls.size(); ++i)
+	for (size_t i = 0; i < walls.size(); i++)
 	{
 		std::shared_ptr<Collision> col = walls[i].LowerDisk(lock, center, axis, dir, r);
-		if (col != 0) {
+		if (col != nullptr)
+		{
 			col->ce = &walls[i];
 			list.push_back(col);
 		}
@@ -428,7 +437,7 @@ void CollisionMesh::debug_render(void)
 
 	glBegin(GL_TRIANGLES);
 
-	for (int i=0;i<walls.size();++i)
+	for (size_t i = 0; i < walls.size(); i++)
 	{
 		glNormal3f(walls[i].n.x, walls[i].n.y, walls[i].n.z);
 		glVertex3f(walls[i].p1.x, walls[i].p1.y, walls[i].p1.z);
@@ -440,7 +449,7 @@ void CollisionMesh::debug_render(void)
 
 	glBegin(GL_LINES);
 
-	for (int i=0;i<walls.size();++i)
+	for (size_t i = 0; i < walls.size(); i++)
 	{
 		glNormal3f(walls[i].n.x, walls[i].n.y, walls[i].n.z);
 		Vec3 med = (walls[i].p1+walls[i].p2+walls[i].p3)/3.0f;

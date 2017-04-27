@@ -29,6 +29,8 @@
     <ClCompile Include="ProjectileComponent.cpp" />
     <ClCompile Include="WeaponComponent.cpp" />
     <ClCompile Include="SpawnComponent.cpp" />
+    <ClCompile Include="GameStateComponent.cpp" />
+    <ClCompile Include="TriggerComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -58,6 +60,8 @@
     <ClInclude Include="ProjectileComponent.h" />
     <ClInclude Include="WeaponComponent.h" />
     <ClInclude Include="SpawnComponent.h" />
+    <ClInclude Include="GameStateComponent.h" />
+    <ClInclude Include="TriggerComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

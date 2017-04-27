@@ -1,23 +1,21 @@
-#ifndef SPAWN_COMPONENT_H
-#define SPAWN_COMPONENT_H
+#ifndef TRIGGER_COMPONENT_H
+#define TRIGGER_COMPONENT_H
 
 #include "Component.h"
 
 #include <functional>
-#include <random>
 
 #include "GlobalPosition.h"
 
-class World;
 class MobComponent;
 
-class SpawnComponent :
+class TriggerComponent :
 	public Component
 {
 public:
-	SpawnComponent(void);
-	SpawnComponent(instream& is, bool full);
-	~SpawnComponent(void);
+	TriggerComponent(void);
+	TriggerComponent(instream& is, bool full);
+	~TriggerComponent(void);
 
 	void connect(NewEntity * pEntity, bool authority);
 	void disconnect(void);
@@ -37,20 +35,15 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	static const AutoSerialFactory<SpawnComponent> _factory;
+	static const AutoSerialFactory<TriggerComponent> _factory;
 
-	MobComponent * spawn(void);
-	MobComponent * spawn(const Vec3& v);
-	GlobalPosition select_position(void);
-
-	bool is_valid(const GlobalPosition& p) const;
 	bool inside_area(const GlobalPosition& p) const;
-
-	static bool in_view(const GlobalPosition& p, World * world, const std::function<bool(MobComponent*)>& pred);
 
 	GlobalPosition aabb_min, aabb_max;
 
-	std::default_random_engine random;
+	float delay, countdown;
+
+	std::function<void(MobComponent*)> func;
 };
 
 #endif

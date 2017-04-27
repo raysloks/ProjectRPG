@@ -22,6 +22,9 @@
 #include "OrbitComponent.h"
 #include "WeaponComponent.h"
 #include "SpawnComponent.h"
+#include "ProjectileComponent.h"
+#include "GameStateComponent.h"
+#include "TriggerComponent.h"
 
 #include "ClientData.h"
 
@@ -39,6 +42,17 @@ public:
 	{
 		if (world->units.empty())
 		{
+			// create game state
+			{
+				NewEntity * ent = new NewEntity();
+
+				GameStateComponent * game_state = new GameStateComponent();
+
+				ent->addComponent(game_state);
+
+				world->AddEntity(ent);
+			}
+
 			// create level
 			{
 				NewEntity * ent = new NewEntity();
@@ -79,8 +93,98 @@ public:
 
 				ent->addComponent(spawn);
 
-				spawn->aabb_min = Vec3(21.0f, -10.0f, 21.0f);
+				spawn->aabb_min = Vec3(21.0f, 20.0f, 21.0f);
 				spawn->aabb_max = Vec3(41.0f, 40.0f, 30.0f);
+
+				world->AddEntity(ent);
+
+				for (size_t i = 0; i < 20; i++)
+				{
+					spawn->spawn();
+				}
+			}
+
+			// create spawner
+			{
+				NewEntity * ent = new NewEntity();
+
+				SpawnComponent * spawn = new SpawnComponent();
+
+				ent->addComponent(spawn);
+
+				spawn->aabb_min = Vec3(21.0f, -10.0f, 19.0f);
+				spawn->aabb_max = Vec3(41.0f, 20.0f, 25.0f);
+
+				world->AddEntity(ent);
+
+				for (size_t i = 0; i < 20; i++)
+				{
+					spawn->spawn();
+				}
+			}
+
+			SpawnComponent * start_roof_spawn;
+			// create spawner
+			{
+				NewEntity * ent = new NewEntity();
+
+				SpawnComponent * spawn = new SpawnComponent();
+
+				ent->addComponent(spawn);
+
+				spawn->aabb_min = Vec3(-20.0f, -9.0f, 32.0f);
+				spawn->aabb_max = Vec3(-10.0f, 11.0f, 34.0f);
+
+				world->AddEntity(ent);
+
+				for (size_t i = 0; i < 5; i++)
+				{
+					spawn->spawn();
+				}
+
+				start_roof_spawn = spawn;
+			}
+
+			// create trigger volume
+			{
+				NewEntity * ent = new NewEntity();
+
+				TriggerComponent * trigger = new TriggerComponent();
+
+				ent->addComponent(trigger);
+
+				trigger->aabb_min = Vec3(-10.0f, -11.0f, 22.0f);
+				trigger->aabb_max = Vec3(12.0f, 13.0f, 30.0f);
+
+				trigger->delay = 1.0f;
+
+				trigger->func = [start_roof_spawn](MobComponent * mob)
+				{
+					for (size_t i = 0; i < 5; i++)
+					{
+						start_roof_spawn->spawn(Vec3(1.0f, 0.0f, 0.0f));
+					}
+				};
+
+				world->AddEntity(ent);
+			}
+
+			// create trigger volume
+			{
+				NewEntity * ent = new NewEntity();
+
+				TriggerComponent * trigger = new TriggerComponent();
+
+				ent->addComponent(trigger);
+
+				trigger->aabb_min = Vec3(21.0f, -10.0f, 19.0f);
+				trigger->aabb_max = Vec3(41.0f, 40.0f, 30.0f);
+
+				trigger->delay = 1.0f;
+
+				trigger->func = [](MobComponent * mob)
+				{
+				};
 
 				world->AddEntity(ent);
 			}
@@ -132,6 +236,40 @@ public:
 			//g->decs.items.back()->priority = 2;
 			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
 			//g->decs.items.back()->priority = 3;
+
+			mob->attack = [mob]()
+			{
+				auto spawn_bullet = [mob](const Vec3& muzzle_velocity)
+				{
+					NewEntity * ent = new NewEntity();
+
+					PositionComponent * pos = new PositionComponent();
+					ProjectileComponent * projectile = new ProjectileComponent();
+					GraphicsComponent * g = new GraphicsComponent(false);
+
+					ent->addComponent(pos);
+					ent->addComponent(projectile);
+					ent->addComponent(g);
+
+					pos->p = *mob->p + mob->up * 0.45f;
+
+					projectile->v = muzzle_velocity + mob->v;
+					projectile->drag = 0.01f;
+
+					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
+					g->decs.items.front()->local *= 0.0127f * 0.5f;
+					g->decs.items.front()->local.data[15] = 1.0f;
+					g->decs.items.front()->local *= mob->cam_rot;
+
+					mob->entity->world->AddEntity(ent);
+				};
+
+				spawn_bullet(mob->cam_facing * 470.0f);
+
+				mob->recoil += 0.3f;
+
+				mob->input.erase("attack");
+			};
 
 			input->client_id = data.client_id;
 			cam->client_id = data.client_id;

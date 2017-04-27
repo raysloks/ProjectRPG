@@ -44,11 +44,6 @@ void SpawnComponent::post_frame(float dTime)
 
 void SpawnComponent::tick(float dTime)
 {
-	for (size_t i = 0; i < 40; i++)
-	{
-		spawn();
-	}
-	entity->world->SetEntity(entity->id, nullptr);
 }
 
 void SpawnComponent::writeLog(outstream& os, ClientData& client)
@@ -107,7 +102,7 @@ MobComponent * SpawnComponent::spawn(void)
 			ent->addComponent(acc);
 			ent->addComponent(pose);
 
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/empty.tga"), 0)));
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/terrain/textures/ngrass.tga"), 0)));
 			/*g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
 			g->decs.items.back()->priority = 1;
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
@@ -122,13 +117,26 @@ MobComponent * SpawnComponent::spawn(void)
 			mob->p = &p->p;
 			float angle = angle_dist(random);
 			mob->cam_facing = Vec3(cosf(angle), sinf(angle), 0.0f);
-			mob->strafe = false;
 			mob->temp_team = 1;
 
 			return mob;
 		}
 	}
 	return nullptr;
+}
+
+MobComponent * SpawnComponent::spawn(const Vec3& v)
+{
+	auto mob = spawn();
+	if (mob)
+	{
+		auto ai = mob->entity->getComponent<AIComponent>();
+		if (ai)
+		{
+			mob->move = v;
+		}
+	}
+	return mob;
 }
 
 GlobalPosition SpawnComponent::select_position(void)

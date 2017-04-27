@@ -35,6 +35,7 @@ namespace Platform
 		if (key == VK_SPACE) { code = SPACE; return; }
 		if (key == VK_DELETE) { code = DEL; return; }
 		if (key == VK_RETURN) { code = ENTER; return; }
+		if (key == VK_TAB) { code = TAB; return; }
 		code = 0xffffffff;
 	}
 

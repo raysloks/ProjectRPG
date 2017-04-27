@@ -64,9 +64,6 @@ void MobComponent::tick(float dTime)
 				input["warp"] = 1.0f;
 		}
 
-		stamina.current += dTime;
-		stamina.current = std::fminf(stamina.current, stamina.max);
-
 		for (auto i = input.begin(); i != input.end();)
 		{
 			i->second -= dTime;
@@ -114,36 +111,7 @@ void MobComponent::tick(float dTime)
 
 			if (input.find("attack") != input.end())
 			{
-				auto spawn_bullet = [this](const Vec3& muzzle_velocity)
-				{
-					NewEntity * ent = new NewEntity();
-
-					PositionComponent * pos = new PositionComponent();
-					ProjectileComponent * projectile = new ProjectileComponent();
-					GraphicsComponent * g = new GraphicsComponent(false);
-
-					ent->addComponent(pos);
-					ent->addComponent(projectile);
-					ent->addComponent(g);
-
-					pos->p = *p + up * 0.45f;
-
-					projectile->v = muzzle_velocity + v;
-					projectile->drag = 0.01f;
-
-					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
-					g->decs.items.front()->local *= 0.0127f * 0.5f;
-					g->decs.items.front()->local.data[15] = 1.0f;
-					g->decs.items.front()->local *= cam_rot;
-
-					entity->world->AddEntity(ent);
-				};
-
-				spawn_bullet(cam_facing * 470.0f);
-
-				recoil += 0.3f;
-
-				input.erase("attack");
+				attack();
 			}
 
 			/*{
@@ -179,6 +147,7 @@ void MobComponent::tick(float dTime)
 				*p = spawn_position;
 				v = Vec3();
 				health.current = health.max;
+				stamina.current = stamina.max;
 				if (temp_team == 1)
 					entity->world->SetEntity(entity->id, nullptr);
 			}
@@ -188,14 +157,6 @@ void MobComponent::tick(float dTime)
 			landed = false;
 			land_n = Vec3(); // smooth these out for some cases
 			land_v = Vec3(); // -''-
-
-			if (land_g != Vec3())
-			{
-				//Vec3 nup = -land_g.Normalized();
-				//if (nup != Vec3())
-				//	up = nup;//bu_sphere(up, -land_g, up, -15.0f, 0.0f, dTime);
-				land_g *= exp(log(0.1f) * dTime);
-			}
 
 			Vec3 g_dir = Vec3(0.0f, 0.0f, -1.0f);//-Vec3(*p).Normalized();
 			Vec3 g = g_dir * 9.8f;
@@ -367,8 +328,6 @@ void MobComponent::tick(float dTime)
 
 					v -= col->v;
 
-					land_g += col->n*col->n.Dot(v);
-
 					float fall_damage = std::fmaxf(0.0f, -10.0f - col->n.Dot(v));
 					fall_damage *= 40.0f;
 					fall_damage = std::fminf(200.0f, fall_damage);
@@ -401,9 +360,15 @@ void MobComponent::tick(float dTime)
 			
 			dp = Vec3();
 
+			if (stamina.current <= 0.0f)
+				run = false;
+
 			if (landed)
 			{
-				float speed = crouch ? 2.0f : run ? 9.0f : 5.0f;
+				float speed = crouch ? 0.0f : run ? 7.0f : 3.5f;
+				if (!run)
+					speed *= stamina.current / 100.0f;
+				speed += 2.0f;
 
 				Vec3 target = move;
 				Vec3 target_right = target.Cross(up);
@@ -411,89 +376,40 @@ void MobComponent::tick(float dTime)
 				target.Normalize();
 				target *= move.Len() * speed;
 
-				c_move -= land_n * land_n.Dot(c_move);
+				if (target != Vec3() && run)
+					stamina.current -= dTime * 10.0f;
+				else
+					stamina.current += dTime * 10.0f * health.current / 100.0f;
 
 				v -= land_v;
 				float nv = v.Dot(land_n);
 				v -= land_n * nv;
 
-				land_g -= c_move - v;
-
 				v = bu_blend(v, target, -0.5f, -40.0f, dTime);
-
-				c_move = v;
 
 				v += land_n * nv;
 				v += land_v;
 
 				if (input.find("jump") != input.end()) {
+					
 					v -= land_v;
 					if (up.Dot(v)<0.0f)
 						v -= up * up.Dot(v);
 					v += land_v;
 					v += up * 4.0f;
+
+					stamina.current -= 10.0f;
+
 					input.erase("jump");
 				}
 
-				if (input.find("dodge") != input.end() && dodge <= 0.0f) {
-					dodge = 0.3f;
-					input.erase("dodge");
-				}
-			}
-
-			if (dodge > 0.0f) {
-				dodge -= dTime;
-				Vec3 target = move * (5000.0f * dodge + 5.0f);
-				target -= land_n*land_n.Dot(target);
-				v = target;
+				stamina.current = std::fmaxf(0.0f, std::fminf(stamina.current, stamina.max));
 			}
 
 			if (prev != *p)
 				if (pc != nullptr)
 					pc->update();
 		}
-
-		bool use_cam = !run && strafe;
-
-		Vec3 right = cam_facing.Cross(up);
-
-		Vec3 flat_target = move - up*up.Dot(move);
-		if (use_cam)
-		{
-			if (flat_target != Vec3())
-			{
-				float fty = flat_target.Dot(cam_facing);
-				flat_target += cam_facing * 0.5f;
-				flat_target -= right*flat_target.Dot(right) * (1.0f - flat_target.Dot(cam_facing));
-				flat_target -= cam_facing * std::fminf(0.0f, flat_target.Dot(cam_facing))*2.0f;
-				flat_target += cam_facing * std::fminf(0.5f, std::max(0.0f, fty + 0.5f));
-			}
-			if (action)
-				flat_target = cam_facing;
-		}
-		Vec3 flat_facing = facing-up*up.Dot(facing);
-		Vec3 flat_move_facing = move_facing-up*up.Dot(move_facing);
-
-		flat_target.Normalize();
-		flat_facing.Normalize();
-		flat_move_facing.Normalize();
-
-		if (flat_target != Vec3())
-			follow = bu_sphere(follow, flat_target, up, log(0.002f), -6.0f, dTime);
-
-		move_facing = bu_sphere(flat_move_facing, follow, up, log(0.002f), -6.0f, dTime);
-		if (use_cam)
-		{
-			facing = bu_sphere(facing, cam_facing, up, log(0.1f), -std::max(std::fminf(time_under_control + dTime*dTime*0.5f, 0.4f)*50.0f, 6.0f), dTime);
-			time_under_control += dTime;
-		}
-		else
-		{
-			facing = bu_sphere(flat_facing, follow, up, log(0.002f), -6.0f, dTime);
-			time_under_control = 0.0f;
-		}
-
-		facing.Normalize();
 	}
 
 	if (weapon != nullptr)

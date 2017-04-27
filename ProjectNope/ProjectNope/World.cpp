@@ -194,7 +194,7 @@ NewEntity * World::GetEntity(int id, int unid)
 
 std::multimap<float, NewEntity*> World::GetNearestEntities(const GlobalPosition& p)
 {
-	Timeslot timeslot_get_nearest("get_nearest");
+	Timeslot timeslot_get_nearest("get_nearest_entities");
 
 	std::multimap<float, NewEntity*> ret;
 
@@ -216,7 +216,7 @@ std::multimap<float, NewEntity*> World::GetNearestEntities(const GlobalPosition&
 
 std::multimap<float, NewEntity*> World::GetNearestEntities(const GlobalPosition& p, float r)
 {
-	Timeslot timeslot_get_nearest("get_nearest");
+	Timeslot timeslot_get_nearest("get_nearest_entities");
 
 	std::multimap<float, NewEntity*> ret;
 

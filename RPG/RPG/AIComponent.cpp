@@ -76,7 +76,7 @@ AIComponent::AIComponent(void) : Serializable(_factory.id)
 	{
 		std::uniform_real_distribution<float> uni_dist;
 
-		auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(*mob->p + mob->cam_facing * 10.0f, 20.0f);
+		auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(*mob->p + mob->cam_facing * 10.0f);
 		MobComponent * other = nullptr;
 		for each (auto nearby in nearby_mobs)
 		{
@@ -123,7 +123,7 @@ AIComponent::AIComponent(void) : Serializable(_factory.id)
 	{
 		std::uniform_real_distribution<float> uni_dist;
 
-		auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(*mob->p + mob->cam_facing * 10.0f, 20.0f);
+		auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(*mob->p + mob->cam_facing * 10.0f);
 		MobComponent * other = nullptr;
 		for each (auto nearby in nearby_mobs)
 		{
@@ -224,8 +224,6 @@ void AIComponent::tick(float dTime)
 	{
 		if (mob->p != nullptr)
 		{
-			mob->strafe = false;
-
 			if (checks.empty())
 			{
 				checks.insert(std::make_pair(1.0f + dTime, idle));
