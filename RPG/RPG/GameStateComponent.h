@@ -8,6 +8,13 @@
 
 class RenderSetup;
 
+enum GameState
+{
+	gameState_Setup,
+	gameState_Ongoing,
+	gameState_Over
+};
+
 class GameStateComponent :
 	public Component
 {
@@ -40,7 +47,7 @@ public:
 
 	std::shared_ptr<std::function<void(RenderSetup&)>> func;
 
-	bool game_over;
+	bool setting_up, game_over;
 	std::vector<size_t> scores;
 };
 

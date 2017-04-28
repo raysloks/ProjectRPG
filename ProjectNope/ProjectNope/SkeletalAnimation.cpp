@@ -59,7 +59,7 @@ Pose& Pose::operator=(const Pose& pose)
 	return *this;
 }
 
-void Pose::debug_render(void)const
+void Pose::debug_render(void) const
 {
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
@@ -317,7 +317,7 @@ SkeletalAnimation::SkeletalAnimation(instream& is)
 	}
 }
 
-std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const Action& act)const
+std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const Action& act) const
 {
 	std::shared_ptr<Pose> pose(new Pose());
 	pose->bones = std::vector<Bone>(armature.bones);
@@ -387,16 +387,16 @@ std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const Action& act)c
 		}
 		pose->bones[i].transform = rot*pos*armature.bones[i].transform;
 	}
-	for (int i=0;i<pose->bones.size();++i)
+	for (size_t i = 0; i < pose->bones.size(); i++)
 	{
 		pose->bones[i].parent = 0;
-		for (int j=0;j<armature.bones.size();++j)
+		for (size_t j = 0; j < armature.bones.size(); j++)
 		{
 			if (&(armature.bones[j])==armature.bones[i].parent)
 				pose->bones[i].parent = &(pose->bones[j]);
 		}
 	}
-	for (int i=0;i<pose->bones.size();++i)
+	for (size_t i = 0; i < pose->bones.size(); i++)
 	{
 		pose->bones[i].total_transform = pose->bones[i].getTransform();
 	}
@@ -404,14 +404,29 @@ std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const Action& act)c
 	return pose;
 }
 
-std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const std::string& action)const
+std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const std::string& action) const
 {
 	if (actions.find(action)!=actions.cend())
 	{
 		std::shared_ptr<Pose> pose = getPose(time, actions.at(action));
 		return pose;
 	}
-	return 0;
+	return nullptr;
+}
+
+void SkeletalAnimation::compileActions(float resolution)
+{
+	for each (auto action in actions)
+	{
+		for (float t = 0.0f; t <= action.second.length; t += resolution)
+		{
+			auto pose = getPose(t, action.second);
+			for (size_t i = 0; i < pose->bones.size(); i++)
+			{
+				compiled_actions.push_back(armature.bones[i].total_inverse * pose->bones[i].total_transform);
+			}
+		}
+	}
 }
 
 SkeletalAnimation::~SkeletalAnimation(void)

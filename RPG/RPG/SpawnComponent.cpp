@@ -133,7 +133,10 @@ MobComponent * SpawnComponent::spawn(const Vec3& v)
 		auto ai = mob->entity->getComponent<AIComponent>();
 		if (ai)
 		{
+			std::uniform_real_distribution<float> uni_dist;
 			mob->move = v;
+			mob->cam_facing = v.Normalized();
+			ai->checks.insert(std::make_pair(2.0f + uni_dist(random) * 6.0f, ai->chase));
 		}
 	}
 	return mob;

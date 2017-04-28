@@ -76,6 +76,7 @@ public:
 				materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
 				materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
 				materials.materials.push_back(Material("data/assets/terrain/textures/brick2.tga"));
+				materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
 
 				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/escape.gmdl", materials, 0)));
 				g->decs.items.front()->local *= 10.0f;
@@ -145,6 +146,23 @@ public:
 				start_roof_spawn = spawn;
 			}
 
+			SpawnComponent * road_chase_riverside_spawn;
+			// create spawner
+			{
+				NewEntity * ent = new NewEntity();
+
+				SpawnComponent * spawn = new SpawnComponent();
+
+				ent->addComponent(spawn);
+
+				spawn->aabb_min = Vec3(-45.0f, 60.0f, 0.0f);
+				spawn->aabb_max = Vec3(-40.0f, 69.0f, 2.0f);
+
+				world->AddEntity(ent);
+
+				road_chase_riverside_spawn = spawn;
+			}
+
 			// create trigger volume
 			{
 				NewEntity * ent = new NewEntity();
@@ -163,6 +181,30 @@ public:
 					for (size_t i = 0; i < 5; i++)
 					{
 						start_roof_spawn->spawn(Vec3(1.0f, 0.0f, 0.0f));
+					}
+				};
+
+				world->AddEntity(ent);
+			}
+
+			// create trigger volume
+			{
+				NewEntity * ent = new NewEntity();
+
+				TriggerComponent * trigger = new TriggerComponent();
+
+				ent->addComponent(trigger);
+
+				trigger->aabb_min = Vec3(-110.0f, -80.0f, 0.0f);
+				trigger->aabb_max = Vec3(-20.0f, 0.0f, 5.0f);
+
+				trigger->delay = 1.0f;
+
+				trigger->func = [road_chase_riverside_spawn](MobComponent * mob)
+				{
+					for (size_t i = 0; i < 2; i++)
+					{
+						road_chase_riverside_spawn->spawn(Vec3(-1.0f, 0.0f, 0.0f));
 					}
 				};
 

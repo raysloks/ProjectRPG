@@ -13,6 +13,8 @@ Texture::Texture(instream& is) : fAnisotropicFiltering(0.0f), sRGB(true)
 
 Texture::~Texture(void)
 {
+	if (texid != 0)
+		glDeleteTextures(1, &texid);
 }
 
 unsigned short Texture::getWidth(void)

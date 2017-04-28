@@ -24,7 +24,7 @@ public:
 	float LenPwr(void)const;
 	
 	Vec3& Normalize(void);
-	Vec3 Normalized(void);
+	Vec3 Normalized(void) const;
 
 	float Dot(const Vec3& rhs)const;
 

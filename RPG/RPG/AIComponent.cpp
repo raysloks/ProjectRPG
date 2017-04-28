@@ -96,11 +96,12 @@ AIComponent::AIComponent(void) : Serializable(_factory.id)
 		{
 			Vec3 dif = *other->p - *mob->p;
 			float l = dif.Len();
+			dif *= Quaternion((uni_dist(random) - uni_dist(random)) * (0.05f + atan(l / 100.0f)), Vec3(0.0f, 0.0f, 1.0f));
+			l = dif.Len();
 			dif /= l;
-			mob->move = dif;
-			mob->cam_facing = dif;
-			mob->cam_facing -= mob->up * mob->up.Dot(mob->cam_facing);
-			mob->cam_facing.Normalize();
+			mob->move += dif;
+			mob->move.Normalize();
+			mob->cam_facing = mob->move;
 
 			if (l < 1.5f)
 			{
@@ -145,8 +146,6 @@ AIComponent::AIComponent(void) : Serializable(_factory.id)
 			dif.Normalize();
 			mob->move = dif;
 			mob->cam_facing = dif;
-			mob->cam_facing -= mob->up * mob->up.Dot(mob->cam_facing);
-			mob->cam_facing.Normalize();
 
 			checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 0.25f + 0.25f + time_over, chase));
 		}

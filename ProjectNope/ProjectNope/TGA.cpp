@@ -84,11 +84,9 @@ TGA::TGA(instream& is, std::set<std::string> options)
 
 TGA::~TGA(void)
 {
-	if (FinalData!=0) {
+	if (FinalData != nullptr) {
 		free((void*)FinalData);
 	}
-	if (texid!=0)
-		glDeleteTextures(1, &texid);
 }
 
 void TGA::ReadRLE(void)

@@ -1,3 +1,6 @@
+#ifndef SKELETAL_ANIMATION_H
+#define SKELETAL_ANIMATION_H
+
 #include "Vec3.h"
 #include "Matrix3.h"
 #include "Matrix4.h"
@@ -5,9 +8,6 @@
 #include <vector>
 #include <map>
 #include <string>
-
-#ifndef SKELETAL_ANIMATION_H
-#define SKELETAL_ANIMATION_H
 
 class Bone;
 class SkeletalAnimation;
@@ -22,6 +22,7 @@ public:
 	std::vector<std::vector<std::map<float, float>>> keys;
 	float length;
 
+	float compiled_start, compiled_end;
 	SkeletalAnimation * anim;
 };
 
@@ -74,8 +75,12 @@ public:
 	std::shared_ptr<Pose> getPose(float time, const Action& action)const;
 	std::shared_ptr<Pose> getPose(float time, const std::string& action)const;
 
+	void compileActions(float resolution);
+
 	Pose armature;
 	std::map<std::string, Action> actions;
+
+	std::vector<Matrix4> compiled_actions;
 };
 
 #endif

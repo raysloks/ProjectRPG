@@ -338,7 +338,8 @@ void Mesh::buildVBO(void)
 
 	if (sets.size()>vbos.size())
 		vbos.resize(sets.size());
-	for (auto i=vbos.begin();i!=vbos.end();++i)
+
+	for (auto i = vbos.begin(); i != vbos.end(); ++i)
 	{
 		auto& setref = sets[i-vbos.begin()];
 
@@ -361,6 +362,14 @@ void Mesh::buildVBO(void)
 				{
 					(*i)->addVertexStruct(VertexStruct(std::string("texCoord") + std::to_string(j), 2, false, 8 * setref.nTextures, 8 * j));
 				}
+			}
+
+			if (!vert.front().w.empty())
+			{
+				(*i)->addBuffer();
+				(*i)->addVertexStruct(VertexStruct("bone_weight", 4, false, 0, 0));
+				(*i)->addBuffer();
+				(*i)->addVertexStruct(VertexStruct("bone_index", 4, false, 0, 0));
 			}
 		}
 
@@ -397,10 +406,10 @@ void Mesh::buildVBO(void)
 
 		// push buffer data
 		glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[0].first);
-		glBufferData(GL_ARRAY_BUFFER, setref.vertices.size() * 3 * sizeof(Vec3), v_data, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, setref.vertices.size() * 3 * sizeof(Vec3), v_data, GL_STATIC_DRAW);
 
 		glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[1].first);
-		glBufferData(GL_ARRAY_BUFFER, setref.vertices.size() * 3 * sizeof(Vec3), n_data, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, setref.vertices.size() * 3 * sizeof(Vec3), n_data, GL_STATIC_DRAW);
 
 		glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[2].first);
 		glBufferData(GL_ARRAY_BUFFER, setref.uv_points.size() * 3 * sizeof(Vec2), t_data, GL_STATIC_DRAW);

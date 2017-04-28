@@ -41,7 +41,7 @@ Vec3& Vec3::Normalize(void) {
 	return *this;
 }
 
-Vec3 Vec3::Normalized(void) {
+Vec3 Vec3::Normalized(void) const {
 	float l = Len();
 	if (l != 0.0f)
 		return *this / l;
