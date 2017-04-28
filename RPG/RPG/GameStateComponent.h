@@ -7,6 +7,8 @@
 #include <functional>
 
 class RenderSetup;
+class TeamData;
+class MobComponent;
 
 enum GameState
 {
@@ -43,12 +45,22 @@ public:
 
 	static const AutoSerialFactory<GameStateComponent> _factory;
 
+	void startGame(void);
+
+	MobComponent * createAvatar(uint32_t client_id, uint32_t team);
+
+	uint32_t getPlayerTeam(uint32_t client_id) const;
+	void addPlayer(uint32_t client_id, uint32_t team);
+	void removePlayer(uint32_t client_id);
+
 	void set_display(bool enable);
 
 	std::shared_ptr<std::function<void(RenderSetup&)>> func;
 
 	bool setting_up, game_over;
-	std::vector<size_t> scores;
+	std::vector<TeamData> teams;
+
+	uint32_t team_selection;
 };
 
 #endif

@@ -169,6 +169,7 @@
     <ClCompile Include="ProjectileComponent.cpp" />
     <ClCompile Include="SkillNode.cpp" />
     <ClCompile Include="SpawnComponent.cpp" />
+    <ClCompile Include="TeamData.cpp" />
     <ClCompile Include="TriggerComponent.cpp" />
     <ClCompile Include="WeaponComponent.cpp" />
   </ItemGroup>
@@ -202,6 +203,7 @@
     <ClInclude Include="ProjectileComponent.h" />
     <ClInclude Include="SkillNode.h" />
     <ClInclude Include="SpawnComponent.h" />
+    <ClInclude Include="TeamData.h" />
     <ClInclude Include="TriggerComponent.h" />
     <ClInclude Include="WeaponComponent.h" />
   </ItemGroup>

@@ -233,6 +233,7 @@ public:
 		}
 
 		// create player entity
+		if (false)
 		{
 			NewEntity * ent = new NewEntity();
 
