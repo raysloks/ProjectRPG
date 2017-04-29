@@ -42,13 +42,12 @@ void SyncState::update(size_t index)
 	conf.insert(std::make_pair(index, sync[index]));
 }
 
-void SyncState::set(size_t index, int value)
+void SyncState::set(size_t index, uint32_t value)
 {
-	if (index>=sync.size())
-		sync.resize(index+1);
+	if (index >= sync.size())
+		sync.resize(index + 1);
 	sync[index] = value;
 }
-
 
 void SyncState::prep(const std::map<size_t, uint32_t>& map, ClientData& client_data)
 {
@@ -71,28 +70,17 @@ void SyncState::prep(const std::map<size_t, uint32_t>& map, ClientData& client_d
 	}
 }
 
-void SyncState::increment(int& i)
+void SyncState::increment(uint32_t& ui32)
 {
-	if (i==INT_MAX)
-		i=INT_MIN;
-	else
-		++i;
+	++ui32;
 }
 
-//void SyncState::increment(uint32_t& ui32)
-//{
-//	if (ui32 == 0xffffffff)
-//		ui32 = 0;
-//	else
-//		++ui32;
-//}
-
-bool SyncState::is_ordered(const int& first, const int& second)
+bool SyncState::is_ordered(const uint32_t& first, const uint32_t& second)
 {
-	return first<second || (second<INT_MIN/2 && first>INT_MAX/2);
+	return first - second >= 0;
 }
 
-//bool SyncState::is_ordered(const uint32_t& first, const uint32_t& second)
-//{
-//	return first < second || (second < 0x0f000000 && first > 0xff000000);
-//}
+bool SyncState::is_ordered_strict(const uint32_t& first, const uint32_t& second)
+{
+	return first - second > 0;
+}

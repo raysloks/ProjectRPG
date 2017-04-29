@@ -163,11 +163,11 @@ void Server::tick(float dTime)
 
 								MAKE_PACKET;
 
-								out << (unsigned char)2 << j << world->uid[j] << conn->data->per_entity_sync[j];
+								out << (unsigned char)2 << (uint32_t)j << world->uid[j] << conn->data->per_entity_sync[j];
 
 								//send unconfirmed
 								out << (uint32_t)ent->ss.npass;
-								for (auto i=sync_map.begin();i!=sync_map.end();++i)
+								for (auto i = sync_map.begin(); i != sync_map.end(); i++)
 								{
 									if (ent->ss.pass[i->first])
 										out << (uint32_t)i->first << i->second;

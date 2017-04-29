@@ -76,6 +76,7 @@ Client::Client(World * pWorld)
 	wireframe = 0;
 
 	clientData = new ClientData();
+	clientData->client_id = 0;
 
 	depth_fill_prog = std::make_shared<ShaderProgram>("data/dfill_vert.txt", "data/dfill_frag.txt");
 	shader_program = std::make_shared<ShaderProgram>("data/gfill_vert.txt", "data/gfill_frag.txt");
@@ -94,6 +95,7 @@ void Client::connect(const std::string& address, uint16_t port)
 	con = std::shared_ptr<Connection>(new Connection(boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0)));
 
 	world->authority = false;
+	clientData->client_id = 0xffffffff;
 }
 
 void Client::disconnect(void)
@@ -106,6 +108,7 @@ void Client::disconnect(void)
 	clientData = nullptr;
 	
 	world->authority = true;
+	clientData->client_id = 0;
 }
 
 Client::~Client(void)
@@ -1413,7 +1416,7 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 				int32_t id, uid;
 				in >> id >> uid;
 				NewEntity * current_entity = world->GetEntity(id);
-				if (current_entity!=0)
+				if (current_entity != nullptr)
 					if (!SyncState::is_ordered(world->uid[id], uid))
 						break;
 				NewEntity * unit = new NewEntity(in, false);
@@ -1452,11 +1455,12 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 			{
 				uint32_t id, uid, sync;
 				in >> id >> uid >> sync;
+				Profiler::set("received", 1.0);
 				if (id < interpol_targets.size())
 				{
 					auto ent = world->GetEntity(id);
 					if (ent != nullptr) {
-						if (SyncState::is_ordered(world->uid[id], uid)) {
+						if (SyncState::is_ordered_strict(world->uid[id], uid)) {
 							world->SetEntity(id, nullptr);
 							if (id < interpol_targets.size()) {
 								if (interpol_targets[id] != nullptr)
@@ -1465,13 +1469,15 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 							}
 							break; //TODO cache log until notification of entity creation is received
 						}
+						Profiler::set("has_entity", 1.0);
+						Profiler::set("sync_dif", clientData->per_entity_sync[id] - sync);
 						if (SyncState::is_ordered(clientData->per_entity_sync[id], sync))
 						{
 							clientData->per_entity_sync[id] = sync;
-							int sync_val;
+							uint32_t sync_val;
 							uint32_t sync_len, sync_index;
 							in >> sync_len;
-							std::map<size_t, int> to_confirm;
+							std::map<size_t, uint32_t> to_confirm;
 							for (size_t i=0;i<sync_len;++i)
 							{
 								in >> sync_index >> sync_val;
@@ -1489,8 +1495,12 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 								SEND_PACKET
 							}
 
+							Profiler::set("read_log", 1.0);
 							if (interpol_targets[id] != nullptr)
+							{
 								interpol_targets[id]->readLog(in);
+								Profiler::set("interpol", 1.0);
+							}
 							interpol_elapsed[id] = 0.0f;
 						}
 					}

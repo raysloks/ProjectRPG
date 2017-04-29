@@ -26,13 +26,10 @@ public:
 	bool loading;
 
 	uint32_t client_id;
-	std::vector<int> known_units;
-	std::vector<int> per_entity_sync;
+	std::vector<uint32_t> known_units;
+	std::vector<uint32_t> per_entity_sync;
 	std::vector<std::map<size_t, uint32_t>> sync;
 
-	std::vector<Syncable*> meta_data;
-	std::vector<std::map<size_t, uint32_t>> meta_sync;
-	std::vector<bool> meta_new;
 	//TODO add stack for faster allocation
 };
 

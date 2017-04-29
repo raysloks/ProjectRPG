@@ -79,7 +79,6 @@ public:
 
 	// todo rework
 	bool hit;
-	GlobalPosition spawn_position;
 };
 
 #endif

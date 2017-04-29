@@ -61,7 +61,7 @@ void MobComponent::tick(float dTime)
 			move = Vec3();
 			health.current -= dTime * (temp_team == 1 ? 1000.0f : 1.0f);
 			if (health.current <= -300.0f)
-				input["warp"] = 1.0f;
+				entity->world->SetEntity(entity->id, nullptr);
 		}
 
 		for (auto i = input.begin(); i != input.end();)
@@ -76,10 +76,6 @@ void MobComponent::tick(float dTime)
 		auto pc = entity->getComponent<PositionComponent>();
 		if (pc != nullptr)
 		{
-			if (p == nullptr)
-			{
-				spawn_position = pc->p;
-			}
 			p = &pc->p;
 		}
 
@@ -141,16 +137,6 @@ void MobComponent::tick(float dTime)
 			}*/
 
 			GlobalPosition prev = *p;
-
-			if (input.find("warp") != input.end())
-			{
-				*p = spawn_position;
-				v = Vec3();
-				health.current = health.max;
-				stamina.current = stamina.max;
-				if (temp_team == 1)
-					entity->world->SetEntity(entity->id, nullptr);
-			}
 
 			//v += move * dTime * 100.0f;
 

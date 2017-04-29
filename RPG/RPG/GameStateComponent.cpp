@@ -31,7 +31,6 @@ GameStateComponent::GameStateComponent(instream& is, bool full) : Serializable(_
 
 GameStateComponent::~GameStateComponent(void)
 {
-	set_display(false);
 }
 
 void GameStateComponent::connect(NewEntity * pEntity, bool authority)
@@ -40,6 +39,7 @@ void GameStateComponent::connect(NewEntity * pEntity, bool authority)
 
 void GameStateComponent::disconnect(void)
 {
+	set_display(false);
 }
 
 void GameStateComponent::pre_frame(float dTime)
@@ -56,10 +56,19 @@ void GameStateComponent::pre_frame(float dTime)
 void GameStateComponent::post_frame(float dTime)
 {
 	Client * client = entity->world->client;
-	if (client->input.isPressed(Platform::KeyEvent::A))
-		team_selection = 0;
-	if (client->input.isPressed(Platform::KeyEvent::D))
-		team_selection = 1;
+	if (setting_up)
+	{
+		if (client->input.isPressed(Platform::KeyEvent::A))
+			team_selection = 0;
+		if (client->input.isPressed(Platform::KeyEvent::D))
+			team_selection = 1;
+		if (entity->world->authority)
+		{
+			addPlayer(client->clientData->client_id, team_selection);
+			if (client->input.isPressed(Platform::KeyEvent::SPACE))
+				startGame();
+		}
+	}
 }
 
 void GameStateComponent::tick(float dTime)
@@ -74,7 +83,7 @@ void GameStateComponent::writeLog(outstream& os, ClientData& client)
 {
 	bool client_setting_up = setting_up || getPlayerTeam(client.client_id) == 0xffffffff;
 	os << client_setting_up;
-	if (client_setting_up)
+	if (!client_setting_up)
 	{
 		os << game_over;
 	}
@@ -122,6 +131,22 @@ void GameStateComponent::write_to(outstream& os) const
 {
 }
 
+void GameStateComponent::startGame(void)
+{
+	if (setting_up && !teams[0].members.empty())
+	{
+		setting_up = false;
+
+		for (size_t i = 0; i < teams.size(); i++)
+		{
+			for (auto member = teams[i].members.begin(); member != teams[i].members.end(); ++member)
+			{
+				member->second = createAvatar(member->first, i);
+			}
+		}
+	}
+}
+
 #include "CameraControlComponent.h"
 #include "GraphicsComponent.h"
 #include "PlayerInputComponent.h"
@@ -131,22 +156,6 @@ void GameStateComponent::write_to(outstream& os) const
 #include "PoseComponent.h"
 #include "ProjectileComponent.h"
 #include "WeaponComponent.h"
-
-void GameStateComponent::startGame(void)
-{
-	if (setting_up && !teams[0].members.empty())
-	{
-		setting_up = false;
-
-		for (size_t i = 0; i < teams.size(); i++)
-		{
-			for each (auto member in teams[i].members)
-			{
-				createAvatar(member.first, i);
-			}
-		}
-	}
-}
 
 MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t team)
 {
@@ -170,7 +179,11 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	ent->addComponent(inv);
 	ent->addComponent(pose);
 
-	p->p = Vec3(-15.0f, -5.0f, 23.0f);
+	if (team == 0)
+		p->p = Vec3(-15.0f, -5.0f, 23.0f);
+	if (team == 1)
+		p->p = Vec3(-15.0f, -5.0f, 33.0f);
+	mob->temp_team = team;
 
 	g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga"), 0)));
 
@@ -213,6 +226,8 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	inv->client_id = client_id;
 
 	entity->world->AddEntity(ent);
+	
+	mob->p = &p->p;
 
 	{
 		NewEntity * ent = new NewEntity();
@@ -264,13 +279,13 @@ void GameStateComponent::addPlayer(uint32_t client_id, uint32_t team)
 
 void GameStateComponent::removePlayer(uint32_t client_id)
 {
-	for each (auto team in teams)
+	for (auto team = teams.begin(); team != teams.end(); ++team)
 	{
-		for (auto member = team.members.begin(); member != team.members.end(); ++member)
+		for (auto member = team->members.begin(); member != team->members.end(); ++member)
 		{
 			if (member->first == client_id)
 			{
-				team.members.erase(member);
+				team->members.erase(member);
 				return;
 			}
 		}
@@ -279,6 +294,8 @@ void GameStateComponent::removePlayer(uint32_t client_id)
 
 void GameStateComponent::set_display(bool enable)
 {
+	if (!entity->world)
+		return;
 	Client * client = entity->world->client;
 	if (client != nullptr)
 	{
@@ -324,7 +341,14 @@ void GameStateComponent::set_display(bool enable)
 							rs.popTransform();
 							rs.addTransform(Matrix4::Translation(Vec3(0.0f, 40.0f, 0.0f)));
 							Writing::setColor(0.9f, 0.9f, 0.9f);
-							Writing::render("Waiting for game to start.", rs);
+							if (entity->world->authority)
+							{
+								Writing::render("Press space to start game.", rs);
+							}
+							else
+							{
+								Writing::render("Waiting for host to start game.", rs);
+							}
 						}
 						rs.popTransform();
 						rs.popTransform();

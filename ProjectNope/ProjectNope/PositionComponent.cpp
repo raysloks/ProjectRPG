@@ -27,8 +27,9 @@ void PositionComponent::connect(NewEntity * pEntity, bool authority)
 
 void PositionComponent::disconnect(void)
 {
-	if (entity->world->authority)
-		entity->ss.deallocate(sync);
+	if (entity->world)
+		if (entity->world->authority)
+			entity->ss.deallocate(sync);
 }
 
 void PositionComponent::writeLog(outstream& os, ClientData& client)

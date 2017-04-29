@@ -117,18 +117,18 @@ void NewEntity::writeLog(outstream& os, ClientData& client)
 {
 	std::stringbuf logs_buf;
 	outstream logs(&logs_buf);
-	for (auto i = components.begin(); i != components.end(); ++i)
+	for (size_t i = 0; i < components.size(); i++)
 	{
-		if (*i != nullptr)
+		if (components[i] != nullptr)
 		{
-			if ((*i)->visible(client))
+			if (components[i]->visible(client))
 			{
 				std::stringbuf cbuf;
 				outstream comp(&cbuf);
-				(*i)->writeLog(comp, client);
+				components[i]->writeLog(comp, client);
 				if (cbuf.str().size())
 				{
-					logs << (uint32_t)std::distance(components.begin(), i); //maybe use 8 or 16 bits instead
+					logs << (uint32_t)i;
 					logs.write(cbuf.str().data(), cbuf.str().size());
 				}
 			}
@@ -139,7 +139,7 @@ void NewEntity::writeLog(outstream& os, ClientData& client)
 	{
 		for (auto i = conf.begin(); i != conf.end(); ++i)
 		{
-			os << uint32_t(*i) << ss.sync[component_syncref[std::distance(conf.begin(), i)]];
+			os << (uint32_t)*i << ss.sync[component_syncref[std::distance(conf.begin(), i)]];
 			Serializable::serialize(os, components[*i]);
 			if (components[*i] != nullptr)
 				components[*i]->write_to(os, client);
@@ -175,7 +175,7 @@ void NewEntity::readLog(instream& is)
 			}
 			else
 			{
-				if (SyncState::is_ordered(component_sync[index], sync))
+				if (SyncState::is_ordered_strict(component_sync[index], sync))
 				{
 					if (components[index] != nullptr)
 					{

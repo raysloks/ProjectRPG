@@ -102,9 +102,6 @@ void PlayerInputComponent::post_frame(float dTime)
 				cs.activate("jump");
 			if (input.isPressed(Platform::KeyEvent::LMB) || input.ctrl[0].right_trigger.pressed)
 				cs.activate("attack");
-
-			if (input.isPressed(Platform::KeyEvent::H) || input.ctrl[0].up.pressed)
-				cs.activate("warp");
 		}
 	}
 }
@@ -137,13 +134,8 @@ void PlayerInputComponent::tick(float dTime)
 			if (cs.active.find("attack") != cs.active.end())
 				mob->input["attack"] = buffer_duration;
 
-			if (cs.active.find("warp") != cs.active.end())
-				mob->input["warp"] = buffer_duration;
-
 			cs.active.erase("attack");
 			cs.active.erase("jump");
-
-			cs.active.erase("warp");
 		}
 	}
 }
