@@ -52,7 +52,7 @@ public:
 	template <class T>
 	std::multimap<float, T*> GetNearestComponents(const GlobalPosition& p)
 	{
-		Timeslot timeslot_get_nearest("get_nearest_components");
+		TimeslotC(get_nearest_components);
 
 		std::multimap<float, T*> ret;
 
@@ -79,7 +79,7 @@ public:
 	template <class T>
 	std::multimap<float, T*> GetNearestComponents(const GlobalPosition& p, float r)
 	{
-		Timeslot timeslot_get_nearest("get_nearest_components");
+		TimeslotC(get_nearest_components);
 
 		std::multimap<float, T*> ret;
 
@@ -109,7 +109,7 @@ public:
 	template <class T>
 	std::vector<T*> GetComponents()
 	{
-		Timeslot timeslot_get_nearest("get_components");
+		TimeslotC(get_components);
 
 		std::vector<T*> ret;
 		ret.reserve(units.size());

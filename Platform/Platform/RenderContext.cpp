@@ -1,5 +1,8 @@
 #include "RenderContext.h"
+
 #include <iostream>
+
+Platform::RenderContext * gRenderContext;
 
 PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = 0;
 PFNGLCREATESHADERPROC glCreateShader = 0;
@@ -59,6 +62,7 @@ PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers = 0;
 PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers = 0;
 PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer = 0;
 PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage = 0;
+PFNGLDRAWARRAYSINSTANCEDPROC glDrawArraysInstanced = 0;
 PFNGLACTIVETEXTUREPROC glActiveTexture = 0;
 PFNGLGENVERTEXARRAYSPROC glGenVertexArrays = 0;
 PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays = 0;
@@ -103,6 +107,8 @@ namespace Platform
 
 	RenderContext::RenderContext(HWND wnd, int depth)
 	{
+		gRenderContext = this;
+
 		PIXELFORMATDESCRIPTOR pfd= {
 			sizeof(PIXELFORMATDESCRIPTOR),
 			1,
@@ -123,12 +129,14 @@ namespace Platform
 			0,
 			0, 0, 0
 		};
+
 		hWnd = wnd;
 		hDC = GetDC(hWnd);
 		PixelFormat = ChoosePixelFormat(hDC, &pfd);
 		SetPixelFormat(hDC, PixelFormat, &pfd);
 		hRC = wglCreateContext(hDC);
 		wglMakeCurrent(hDC, hRC);
+
 		wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 		reportFunc("wglSwapIntervalEXT", wglSwapIntervalEXT);
 		glCreateShader = (PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader");
@@ -245,6 +253,8 @@ namespace Platform
 		reportFunc("glBindRenderbuffer", glBindRenderbuffer);
 		glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC)wglGetProcAddress("glRenderbufferStorage");
 		reportFunc("glRenderbufferStorage", glRenderbufferStorage);
+		glDrawArraysInstanced = (PFNGLDRAWARRAYSINSTANCEDPROC)wglGetProcAddress("glDrawArraysInstanced");
+		reportFunc("glDrawArraysInstanced", glDrawArraysInstanced);
 		glActiveTexture = (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture");
 		reportFunc("glActiveTexture", glActiveTexture);
 		glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)wglGetProcAddress("glGenVertexArrays");
@@ -289,6 +299,17 @@ namespace Platform
 		reportFunc("glStencilMaskSeparate", glStencilMaskSeparate);
 	}
 
+	RenderContext::~RenderContext(void)
+	{
+		glDeleteBuffers(buffers.size(), buffers.begin()._Ptr);
+		buffers.clear();
+
+		wglMakeCurrent(hDC, NULL);
+		wglDeleteContext(hRC);
+
+		gRenderContext = nullptr;
+	}
+
 	void RenderContext::Swap(void)
 	{
 		SwapBuffers(hDC);
@@ -299,10 +320,64 @@ namespace Platform
 		wglSwapIntervalEXT(value);
 	}
 
-	RenderContext::~RenderContext(void)
+	void RenderContext::ReserveBuffers(size_t n)
 	{
-		wglMakeCurrent(hDC, NULL);
-		wglDeleteContext(hRC);
+		if (buffers.size() < n)
+		{
+			AddBuffers(n - buffers.size());
+		}
+	}
+
+	void RenderContext::AddBuffers(size_t n)
+	{
+		buffers.resize(buffers.size() + n);
+		glGenBuffers(n, (buffers.end() - n)._Ptr);
+	}
+
+	GLuint RenderContext::GetBuffer(void)
+	{
+		if (buffers.size())
+		{
+			GLuint buffer = buffers.back();
+			buffers.pop_back();
+			return buffer;
+		}
+
+		GLuint buffer;
+		glGenBuffers(1, &buffer);
+		return buffer;
+	}
+
+	void RenderContext::ReserveVertexArrays(size_t n)
+	{
+		if (vertexArrays.size() < n)
+		{
+			AddVertexArrays(n - vertexArrays.size());
+		}
+	}
+
+	void RenderContext::AddVertexArrays(size_t n)
+	{
+		vertexArrays.resize(vertexArrays.size() + n);
+		glGenVertexArrays(n, (vertexArrays.end() - n)._Ptr);
+		for (size_t i = vertexArrays.size() - n; i < vertexArrays.size(); i++)
+		{
+			glBindVertexArray(vertexArrays[i]);
+		}
+	}
+
+	GLuint RenderContext::GetVertexArray(void)
+	{
+		if (vertexArrays.size())
+		{
+			GLuint vertexArray = vertexArrays.back();
+			vertexArrays.pop_back();
+			return vertexArray;
+		}
+
+		GLuint vertexArray;
+		glGenVertexArrays(1, &vertexArray);
+		return vertexArray;
 	}
 
 }

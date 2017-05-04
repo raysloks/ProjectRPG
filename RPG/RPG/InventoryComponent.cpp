@@ -85,7 +85,7 @@ void InventoryComponent::set_display(bool enable)
 								Writing::render(std::to_string((*i)->type), rs);
 							}*/
 							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec3(960.0f, 540.0f, 0.0f)));
+							rs.addTransform(Matrix4::Translation(Vec3(rs.size / 2.0f)));
 							rs.addTransform(Matrix4::Translation(Vec3(-10.0f, 10.0f, 0.0f)));
 							Writing::setColor(1.0f, 1.0f, 1.0f);
 							Writing::render("O", rs);

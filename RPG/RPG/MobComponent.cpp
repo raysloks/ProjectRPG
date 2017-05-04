@@ -314,12 +314,15 @@ void MobComponent::tick(float dTime)
 
 					v -= col->v;
 
-					float fall_damage = std::fmaxf(0.0f, -10.0f - col->n.Dot(v));
-					fall_damage *= 40.0f;
-					fall_damage = std::fminf(200.0f, fall_damage);
-					health.current -= fall_damage;
-					if (fall_damage > 0.0f)
-						hit = true;
+					if (temp_team == 0)
+					{
+						float fall_damage = std::fmaxf(0.0f, -10.0f - col->n.Dot(v));
+						fall_damage *= 40.0f;
+						fall_damage = std::fminf(200.0f, fall_damage);
+						health.current -= fall_damage;
+						if (fall_damage > 0.0f)
+							hit = true;
+					}
 
 					v -= col->n*col->n.Dot(v);
 					v += col->v;

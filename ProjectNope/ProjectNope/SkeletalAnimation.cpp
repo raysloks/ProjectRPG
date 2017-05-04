@@ -315,6 +315,8 @@ SkeletalAnimation::SkeletalAnimation(instream& is)
 			}
 		}
 	}
+
+	compileActions(1.0f);
 }
 
 std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const Action& act) const
@@ -427,6 +429,27 @@ void SkeletalAnimation::compileActions(float resolution)
 			}
 		}
 	}
+}
+
+#include "Texture.h"
+
+std::shared_ptr<Texture> SkeletalAnimation::getCompiledTexture(void)
+{
+	if (!compiled_texture && compiled_actions.size())
+	{
+		compiled_texture = std::make_shared<Texture>();
+
+		glGenTextures(1, &compiled_texture->texid);
+		glBindTexture(GL_TEXTURE_2D, compiled_texture->texid);
+
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, compiled_actions.size() / armature.bones.size(), armature.bones.size() * 4, 0, GL_RGBA, GL_FLOAT, compiled_actions.data());
+	}
+	return compiled_texture;
 }
 
 SkeletalAnimation::~SkeletalAnimation(void)

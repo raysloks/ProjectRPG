@@ -73,12 +73,8 @@ void ProjectileComponent::tick(float dTime)
 				return lhs->t < rhs->t;
 			});
 			pc->p = hits.front().second->poo;
-			if (hits.front().first != nullptr)
-			{
-				hits.front().first->health.current -= 20.0f;
-				hits.front().first->hit = true;
-			}
-			entity->world->SetEntity(entity->id, nullptr);
+			if (on_collision)
+				on_collision(hits.front().first);
 		}
 
 		v += g * dTime;

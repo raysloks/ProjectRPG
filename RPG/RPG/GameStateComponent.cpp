@@ -86,6 +86,7 @@ void GameStateComponent::writeLog(outstream& os, ClientData& client)
 	if (!client_setting_up)
 	{
 		os << game_over;
+		os << survivor_progress;
 	}
 }
 
@@ -95,6 +96,7 @@ void GameStateComponent::readLog(instream& is)
 	if (!setting_up)
 	{
 		is >> game_over;
+		is >> survivor_progress;
 	}
 	else
 	{
@@ -187,39 +189,97 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 
 	g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga"), 0)));
 
-	mob->attack = [mob]()
+	if (team == 0)
 	{
-		auto spawn_bullet = [mob](const Vec3& muzzle_velocity)
+		mob->attack = [mob]()
 		{
-			NewEntity * ent = new NewEntity();
+			auto spawn_bullet = [mob](const Vec3& muzzle_velocity)
+			{
+				NewEntity * ent = new NewEntity();
 
-			PositionComponent * pos = new PositionComponent();
-			ProjectileComponent * projectile = new ProjectileComponent();
-			GraphicsComponent * g = new GraphicsComponent(false);
+				PositionComponent * pos = new PositionComponent();
+				ProjectileComponent * projectile = new ProjectileComponent();
+				GraphicsComponent * g = new GraphicsComponent(false);
 
-			ent->addComponent(pos);
-			ent->addComponent(projectile);
-			ent->addComponent(g);
+				ent->addComponent(pos);
+				ent->addComponent(projectile);
+				ent->addComponent(g);
 
-			pos->p = *mob->p + mob->up * 0.45f;
+				pos->p = *mob->p + mob->up * 0.45f;
 
-			projectile->v = muzzle_velocity + mob->v;
-			projectile->drag = 0.01f;
+				projectile->v = muzzle_velocity + mob->v;
+				projectile->drag = 0.01f;
 
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
-			g->decs.items.front()->local *= 0.0127f * 0.5f;
-			g->decs.items.front()->local.data[15] = 1.0f;
-			g->decs.items.front()->local *= mob->cam_rot;
+				projectile->on_collision = [ent](MobComponent * target)
+				{
+					if (target)
+					{
+						target->health.current -= 20.0f;
+						target->hit = true;
+					}
+					ent->world->SetEntity(ent->id, nullptr);
+				};
 
-			mob->entity->world->AddEntity(ent);
+				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
+				g->decs.items.front()->local *= 0.0127f * 0.5f;
+				g->decs.items.front()->local.data[15] = 1.0f;
+				g->decs.items.front()->local *= mob->cam_rot;
+
+				mob->entity->world->AddEntity(ent);
+			};
+
+			spawn_bullet(mob->cam_facing * 470.0f);
+
+			mob->recoil += 0.3f;
+
+			mob->input.erase("attack");
 		};
+	}
 
-		spawn_bullet(mob->cam_facing * 470.0f);
+	if (team == 1)
+	{
+		mob->attack = [mob]()
+		{
+			auto spawn_bullet = [mob](const Vec3& muzzle_velocity)
+			{
+				NewEntity * ent = new NewEntity();
 
-		mob->recoil += 0.3f;
+				PositionComponent * pos = new PositionComponent();
+				ProjectileComponent * projectile = new ProjectileComponent();
+				GraphicsComponent * g = new GraphicsComponent(false);
 
-		mob->input.erase("attack");
-	};
+				ent->addComponent(pos);
+				ent->addComponent(projectile);
+				ent->addComponent(g);
+
+				pos->p = *mob->p + mob->up * 0.45f;
+
+				projectile->v = muzzle_velocity + mob->v;
+				projectile->drag = 0.04f;
+
+				projectile->on_collision = [ent](MobComponent * target)
+				{
+					if (!target)
+					{
+						ent->world->SetEntity(ent->id, nullptr);
+					}
+				};
+
+				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/terrain/textures/ngrass.tga"), 0)));
+				g->decs.items.front()->local *= 0.1f;
+				g->decs.items.front()->local.data[15] = 1.0f;
+				g->decs.items.front()->local *= mob->cam_rot;
+
+				mob->entity->world->AddEntity(ent);
+			};
+
+			spawn_bullet(mob->cam_facing * 40.0f);
+
+			mob->recoil += 0.3f;
+
+			mob->input.erase("attack");
+		};
+	}
 
 	input->client_id = client_id;
 	cam->client_id = client_id;
@@ -229,6 +289,7 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	
 	mob->p = &p->p;
 
+	if (team == 0)
 	{
 		NewEntity * ent = new NewEntity();
 

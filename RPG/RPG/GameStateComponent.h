@@ -61,6 +61,8 @@ public:
 	std::vector<TeamData> teams;
 
 	uint32_t team_selection;
+
+	float survivor_progress;
 };
 
 #endif

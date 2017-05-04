@@ -3,7 +3,11 @@
 
 #include "Component.h"
 
+#include <functional>
+
 #include "Vec3.h"
+
+class MobComponent;
 
 class ProjectileComponent :
 	public Component
@@ -34,6 +38,8 @@ public:
 
 	Vec3 v;
 	float drag;
+
+	std::function<void(MobComponent*)> on_collision;
 };
 
 #endif

@@ -3,7 +3,24 @@
 
 #include <string>
 
-//#define USE_TIMESLOTS
+#define TIMESLOT_LEVEL 3
+
+#define TimeslotA(x)
+#define TimeslotB(x)
+#define TimeslotC(x)
+
+#if TIMESLOT_LEVEL >= 1
+#undef TimeslotA(x)
+#define TimeslotA(x) Timeslot timeslot_ ## x ( #x )
+#endif
+#if TIMESLOT_LEVEL >= 2
+#undef TimeslotB(x)
+#define TimeslotB(x) Timeslot timeslot_ ## x ( #x )
+#endif
+#if TIMESLOT_LEVEL >= 3
+#undef TimeslotC(x)
+#define TimeslotC(x) Timeslot timeslot_ ## x ( #x )
+#endif
 
 class Timeslot
 {

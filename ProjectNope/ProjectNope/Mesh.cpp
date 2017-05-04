@@ -1,4 +1,7 @@
 #include "Mesh.h"
+
+#include <algorithm>
+
 #include "GUIObject.h"
 #include "Texture.h"
 #include "RenderSetup.h"
@@ -47,6 +50,7 @@ VBO::VBO(void)
 
 VBO::~VBO()
 {
+	TimeslotC(vbo_destructor);
 	for (auto i = buffers.begin(); i != buffers.end(); ++i)
 		if (i->first != 0)
 			glDeleteBuffers(1, &i->first);
@@ -56,8 +60,8 @@ VBO::~VBO()
 
 void VBO::addBuffer()
 {
-	GLuint buffer_id;
-	glGenBuffers(1, &buffer_id);
+	TimeslotC(vbo_add_buffer);
+	GLuint buffer_id = gRenderContext->GetBuffer();
 	buffers.push_back(std::make_pair(buffer_id, std::vector<VertexStruct>()));
 }
 
@@ -66,16 +70,18 @@ void VBO::addVertexStruct(const VertexStruct& vs)
 	buffers.back().second.push_back(vs);
 }
 
-void VBO::draw(RenderSetup& rs)
+void VBO::bind(RenderSetup& rs)
 {
-	Timeslot timeslot_vbo_draw("vbo_draw");
+	TimeslotC(vbo_bind);
 
 	auto vao_it = vaos.find(rs.current_program->gl_program);
 	if (vao_it == vaos.end())
 	{
-		unsigned int vao;
-		glGenVertexArrays(1, &vao);
+		GLuint vao = gRenderContext->GetVertexArray();
+		TimeslotC(vbo_bind_bind);
 		glBindVertexArray(vao);
+		
+		TimeslotC(vbo_bind_refresh_and_stuff);
 
 		for (auto i = buffers.begin(); i != buffers.end(); ++i)
 		{
@@ -106,10 +112,29 @@ void VBO::draw(RenderSetup& rs)
 	}
 	else
 	{
+		TimeslotC(vbo_bind_existing);
 		glBindVertexArray(vao_it->second);
 	}
+}
+
+void VBO::draw(RenderSetup& rs)
+{
+	TimeslotC(vbo_draw);
+
+	bind(rs);
 
 	glDrawArrays(GL_TRIANGLES, 0, nIndices);
+
+	glBindVertexArray(0);
+}
+
+void VBO::draw_instanced(RenderSetup & rs, unsigned int nInstances)
+{
+	TimeslotC(vbo_draw_instanced);
+
+	bind(rs);
+
+	glDrawArraysInstanced(GL_TRIANGLES, 0, nIndices, nInstances);
 
 	glBindVertexArray(0);
 }
@@ -227,7 +252,7 @@ Mesh::~Mesh(void)
 
 void Mesh::render(RenderSetup& rs, MaterialList& mats) // maybe should get mats to be const
 {
-	Timeslot timeslot_mesh_render("mesh_render");
+	TimeslotC(mesh_render);
 
 	if (!vbo_latest)
 		buildVBO();
@@ -238,13 +263,39 @@ void Mesh::render(RenderSetup& rs, MaterialList& mats) // maybe should get mats 
 		{
 			mats.materials[i].bindTextures();
 
-			Timeslot timeslot_mod_draw("mod_draw");
+			TimeslotC(mod_draw);
 
 			rs.pushMod(mats.materials[i].mod);
 
 			rs.applyMods();
 
 			vbos[i]->draw(rs);
+
+			rs.popMod();
+		}
+	}
+}
+
+void Mesh::render_instanced(RenderSetup& rs, MaterialList& mats, unsigned int nInstances)
+{
+	TimeslotC(mesh_render_instanced);
+
+	if (!vbo_latest)
+		buildVBO();
+
+	for (size_t i = 0; i < sets.size(); i++)
+	{
+		if (i < mats.materials.size())
+		{
+			mats.materials[i].bindTextures();
+
+			TimeslotC(mod_draw);
+
+			rs.pushMod(mats.materials[i].mod);
+
+			rs.applyMods();
+
+			vbos[i]->draw_instanced(rs, nInstances);
 
 			rs.popMod();
 		}
@@ -263,7 +314,7 @@ void Mesh::transform(const Matrix4& mtrx, Mesh * mesh)
 
 void Mesh::getPose(const Pose& pose, Mesh * mesh)
 {
-	Timeslot timeslot_skinning("skinning");
+	TimeslotC(skinning);
 
 	if (pose.rest != nullptr)
 	{
@@ -334,7 +385,7 @@ void Mesh::addVBO(size_t set, Vec3 * v_data, Vec3 * n_data, Vec2 * t_data, Matri
 
 void Mesh::buildVBO(void)
 {
-	Timeslot timeslot_buildVBO("buildVBO");
+	TimeslotB(buildVBO);
 
 	if (sets.size()>vbos.size())
 		vbos.resize(sets.size());
@@ -404,6 +455,51 @@ void Mesh::buildVBO(void)
 			block += 3 * setref.nTextures;
 		}
 
+		float * w_data = new float[setref.vertices.size() * 3 * 4];
+		float * i_data = new float[setref.vertices.size() * 3 * 4];
+		for (size_t i = 0; i < setref.vertices.size(); i++)
+		{
+			for (size_t j = 0; j < 3; j++)
+			{
+				unsigned int vertex_id;
+				switch (j)
+				{
+				case 0:
+					vertex_id =	setref.vertices[i].a;
+					break;
+				case 1:
+					vertex_id = setref.vertices[i].b;
+					break;
+				case 2:
+					vertex_id = setref.vertices[i].c;
+				}
+
+				std::vector<std::pair<int, float>> weights;
+				for each (auto weight in vert[vertex_id].w)
+				{
+					weights.push_back(weight);
+				}
+				std::stable_sort(weights.begin(), weights.end(), [](auto lhs, auto rhs)
+				{
+					return lhs.second > rhs.second;
+				});
+
+				for (size_t k = 0; k < 4; k++)
+				{
+					if (k < weights.size())
+					{
+						w_data[i * 3 * 4 + j * 4 + k] = weights[k].second;
+						i_data[i * 3 * 4 + j * 4 + k] = weights[k].first;
+					}
+					else
+					{
+						w_data[i * 3 * 4 + j * 4 + k] = 0.0f;
+						i_data[i * 3 * 4 + j * 4 + k] = 0.0f;
+					}
+				}
+			}
+		}
+
 		// push buffer data
 		glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[0].first);
 		glBufferData(GL_ARRAY_BUFFER, setref.vertices.size() * 3 * sizeof(Vec3), v_data, GL_STATIC_DRAW);
@@ -411,12 +507,26 @@ void Mesh::buildVBO(void)
 		glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[1].first);
 		glBufferData(GL_ARRAY_BUFFER, setref.vertices.size() * 3 * sizeof(Vec3), n_data, GL_STATIC_DRAW);
 
-		glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[2].first);
-		glBufferData(GL_ARRAY_BUFFER, setref.uv_points.size() * 3 * sizeof(Vec2), t_data, GL_STATIC_DRAW);
+		if (setref.nTextures > 0)
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[2].first);
+			glBufferData(GL_ARRAY_BUFFER, setref.uv_points.size() * 3 * sizeof(Vec2), t_data, GL_STATIC_DRAW);
+		}
 
-		delete [] v_data;
-		delete [] n_data;
-		delete [] t_data;
+		if (!vert.front().w.empty())
+		{
+			size_t buf = (setref.nTextures > 0) ? 3 : 2;
+			glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[buf].first);
+			glBufferData(GL_ARRAY_BUFFER, setref.vertices.size() * 3 * 4 * sizeof(float), w_data, GL_STATIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[buf + 1].first);
+			glBufferData(GL_ARRAY_BUFFER, setref.vertices.size() * 3 * 4 * sizeof(float), i_data, GL_STATIC_DRAW);
+		}
+
+		delete[] i_data;
+		delete[] w_data;
+		delete[] t_data;
+		delete[] v_data;
+		delete[] n_data;
 
 		vbo_latest = true;
 	}

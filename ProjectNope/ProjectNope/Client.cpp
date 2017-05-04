@@ -317,7 +317,7 @@ void Client::render(void)
 
 	setup();
 
-	Timeslot timeslot_render("render");
+	TimeslotA(render);
 
 	//if (hud==0) {
 	//	hud.reset(new StandardHUD(world, this, 0, 0, 0, 0));
@@ -503,8 +503,6 @@ void Client::render(void)
 
 void Client::render_world(void)
 {
-	GraphicsComponent::prep();
-
 	int view_w = gpPlatform->get_width();
 	int view_h = gpPlatform->get_height();
 
@@ -659,7 +657,7 @@ void Client::render_world(void)
 		sky_prog->Uniform("horizon", horizon);
 		sky_prog->Uniform("zenith", zenith);
 		sky_prog->Uniform("light", light);
-		sky_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
+		sky_prog->UniformMatrix4f("proj_inv", proj.Inverse().data);
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
@@ -685,7 +683,7 @@ void Client::render_world(void)
 
 
 		// render depth pre-pass
-		if (depth_fill_prog->IsReady())
+		if (depth_fill_prog->IsReady() && false)
 		{
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);
@@ -701,7 +699,7 @@ void Client::render_world(void)
 			rs.view = proj;
 
 			ShaderMod mod(depth_fill_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
-				prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
+				prog->UniformMatrix4f("transform", (rs.transform*proj).data);
 			});
 
 			rs.pushMod(mod);
@@ -714,7 +712,7 @@ void Client::render_world(void)
 
 
 		// render normals
-		if (normal_prog->IsReady())
+		if (normal_prog->IsReady() && false)
 		{
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);
@@ -733,8 +731,8 @@ void Client::render_world(void)
 
 			ShaderMod mod(normal_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
 				prog->Uniform("diffuse", 0); // texture unit 0
-				prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
-				prog->UniformMatrix3fv("normal_transform", Matrix3(rs.transform).data);
+				prog->UniformMatrix4f("transform", (rs.transform*proj).data);
+				prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
 			});
 
 			rs.pushMod(mod);
@@ -747,6 +745,7 @@ void Client::render_world(void)
 
 
 		// raytracing shadows setup
+		if (shadow_quality == 3)
 		{
 			// calculate noise shadow sample distribution
 			if (input.isDown(Platform::KeyEvent::N))
@@ -933,8 +932,8 @@ void Client::render_world(void)
 				glClearStencil(64);
 				glClear(GL_STENCIL_BUFFER_BIT);
 
-				flat_stencil_prog->UniformMatrix4fv("proj", proj.data);
-				flat_stencil_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
+				flat_stencil_prog->UniformMatrix4f("proj", proj.data);
+				flat_stencil_prog->UniformMatrix4f("proj_inv", proj.Inverse().data);
 
 				flat_stencil_prog->Uniform("light", light, 0.0f);
 
@@ -944,8 +943,8 @@ void Client::render_world(void)
 				rs.view = proj;
 
 				ShaderMod mod(flat_stencil_prog, [proj, light_alignment, &rs](const std::shared_ptr<ShaderProgram>& prog) {
-					prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
-					prog->UniformMatrix4fv("normal_transform", rs.transform.data);
+					prog->UniformMatrix4f("transform", (rs.transform*proj).data);
+					prog->UniformMatrix4f("normal_transform", rs.transform.data);
 				});
 
 				rs.pushMod(mod);
@@ -994,8 +993,8 @@ void Client::render_world(void)
 
 					stencil_prog->Use();
 
-					stencil_prog->UniformMatrix4fv("proj", proj.data);
-					stencil_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
+					stencil_prog->UniformMatrix4f("proj", proj.data);
+					stencil_prog->UniformMatrix4f("proj_inv", proj.Inverse().data);
 
 					stencil_prog->Uniform("zNear", near_z);
 					stencil_prog->Uniform("zFar", far_z);
@@ -1026,8 +1025,8 @@ void Client::render_world(void)
 					rs.view = proj;
 
 					ShaderMod mod(stencil_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
-						prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
-						prog->UniformMatrix4fv("normal_transform", rs.transform.data);
+						prog->UniformMatrix4f("transform", (rs.transform*proj).data);
+						prog->UniformMatrix4f("normal_transform", rs.transform.data);
 					});
 
 					rs.pushMod(mod);
@@ -1076,7 +1075,7 @@ void Client::render_world(void)
 
 
 		// render lights
-		if (light_prog->Use())
+		if (light_prog->Use() && false)
 		{
 			light_fb->bind();
 			glViewport(0, 0, buffer_w, buffer_h);
@@ -1088,7 +1087,7 @@ void Client::render_world(void)
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 
-				light_prog->UniformMatrix4fv("proj_inv", proj.Inverse().data);
+				light_prog->UniformMatrix4f("proj_inv", proj.Inverse().data);
 
 				glActiveTexture(GL_TEXTURE0);
 				light_prog->Uniform("normal", 0);
@@ -1117,14 +1116,15 @@ void Client::render_world(void)
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);
 			glEnable(GL_DEPTH_TEST);
-			glDepthFunc(GL_EQUAL);
-			glDepthMask(GL_FALSE);
+			glDepthFunc(GL_LESS);
+			glDepthMask(GL_TRUE);
 
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			deferred_fb->bind();
 			glViewport(0, 0, buffer_w, buffer_h);
+			glClear(GL_DEPTH_BUFFER_BIT);
 
 			RenderSetup rs;
 			rs.view = proj;
@@ -1132,45 +1132,13 @@ void Client::render_world(void)
 			ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality](const std::shared_ptr<ShaderProgram>& prog) {
 				prog->Uniform("light", light);
 				prog->Uniform("diffuse", 0); // texture unit 0
-				prog->Uniform("light_buffer", 1); // texture unit 1
-				prog->Uniform("stencil", 2); // texture unit 2
-				prog->UniformMatrix4fv("transform", (rs.transform*proj).data);
-				prog->UniformMatrix3fv("normal_transform", Matrix3(rs.transform).data);
-				prog->Uniform("shadow_quality", shadow_quality);
+				prog->UniformMatrix4f("transform", (rs.transform*proj).data);
+				prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
 			});
 
 			rs.pushMod(mod);
-			rs.pass = 2;
 
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, light_buf->gl_texture_id);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, stencil_buf->gl_texture_id);
-
-			if (shadow_quality == 2)
-			{
-				glEnable(GL_STENCIL_TEST);
-				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-
-				glStencilFunc(GL_EQUAL, 64, 0xff);
-				world->render(rs);
-
-				glStencilFunc(GL_NOTEQUAL, 64, 0xff);
-
-				ShaderMod mod2([](const std::shared_ptr<ShaderProgram>& prog) {
-					prog->Uniform("light", Vec3());
-				});
-
-				rs.pushMod(mod2);
-				world->render(rs);
-				rs.popMod();
-
-				glDisable(GL_STENCIL_TEST);
-			}
-			else
-			{
-				world->render(rs);
-			}
+			world->render(rs);
 
 			rs.popMod();
 		}
@@ -1209,7 +1177,7 @@ void Client::render_world(void)
 	// render GUI
 	if (gui_prog->IsReady())
 	{
-		Timeslot timeslot_gui("gui");
+		TimeslotA(gui);
 
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE);
@@ -1223,10 +1191,12 @@ void Client::render_world(void)
 		ortho.mtrx[0][0] = 2.0f / view_w;
 		ortho.mtrx[1][1] = -2.0f / view_h;
 
+		rs.size = Vec2(view_w, view_h);
+
 		ShaderMod mod(gui_prog, [this, ortho, &rs](const std::shared_ptr<ShaderProgram>& prog) {
 			prog->Uniform("alpha", 0); // texture unit 0
-			prog->UniformMatrix4fv("transform", (rs.transform*ortho).data);
-			prog->UniformMatrix3fv("normal_transform", Matrix3(rs.transform).data);
+			prog->UniformMatrix4f("transform", (rs.transform*ortho).data);
+			prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
 		});
 
 		rs.pushMod(mod);
@@ -1236,25 +1206,6 @@ void Client::render_world(void)
 		Writing::setSize(12);
 
 		rs.addTransform(Matrix4::Translation(Vec3(-view_w / 2.0f, -view_h / 2.0f, 0.0f)));
-
-		//if (input.isDown(Platform::KeyEvent::P))
-		{
-			rs.pushTransform();
-			rs.addTransform(Matrix4::Translation(Vec3(40.0f, 40.0f, 0.0f)));
-
-			Writing::render(Profiler::get(), rs);
-			/*rs.popTransform();
-			rs.addTransform(Matrix4::Translation(Vec3(-2.0f, 0.0f, 0.0f)));
-			Writing::render(Profiler::get(), rs);
-			rs.popTransform();
-
-			Writing::setColor(1.0f, 0.0f, 0.0f);
-			rs.addTransform(Matrix4::Translation(Vec3(1.0f, -1.0f, 0.0f)));
-			Writing::render(Profiler::get(), rs);*/
-			rs.popTransform();
-
-			rs.popTransform();
-		}
 
 		rs.pushTransform();
 		rs.addTransform(Matrix4::Translation(Vec3(140.0f, 40.0f, 0.0f)));
@@ -1281,6 +1232,28 @@ void Client::render_world(void)
 			win->get()->render();
 		}
 		lockCursor = hideCursor; // allow cursor to escape window when visible
+
+		//if (input.isDown(Platform::KeyEvent::P))
+		{
+			Writing::setColor(0.0f, 0.0f, 0.0f);
+			Writing::setSize(12);
+
+			rs.pushTransform();
+			rs.addTransform(Matrix4::Translation(Vec3(40.0f, 40.0f, 0.0f)));
+
+			Writing::render(Profiler::get(), rs);
+			/*rs.popTransform();
+			rs.addTransform(Matrix4::Translation(Vec3(-2.0f, 0.0f, 0.0f)));
+			Writing::render(Profiler::get(), rs);
+			rs.popTransform();
+
+			Writing::setColor(1.0f, 0.0f, 0.0f);
+			rs.addTransform(Matrix4::Translation(Vec3(1.0f, -1.0f, 0.0f)));
+			Writing::render(Profiler::get(), rs);*/
+			rs.popTransform();
+
+			rs.popTransform();
+		}
 	}
 
 	/*if (dof_prog->Use())

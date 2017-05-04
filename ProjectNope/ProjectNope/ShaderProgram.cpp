@@ -192,14 +192,24 @@ void ShaderProgram::Uniform4fv(const std::string& name, const std::vector<float>
 	glUniform4fv(GetUniformLocation(name), fv.size() / 4, fv.data());
 }
 
-void ShaderProgram::UniformMatrix3fv(const std::string& name, const float* fv)
+void ShaderProgram::UniformMatrix3f(const std::string& name, const float* fv)
 {
 	glUniformMatrix3fv(GetUniformLocation(name), 1, false, fv);
 }
 
-void ShaderProgram::UniformMatrix4fv(const std::string& name, const float* fv)
+void ShaderProgram::UniformMatrix4f(const std::string& name, const float* fv)
 {
 	glUniformMatrix4fv(GetUniformLocation(name), 1, false, fv);
+}
+
+void ShaderProgram::UniformMatrix3fv(const std::string& name, const std::vector<Matrix3>& fv)
+{
+	glUniformMatrix3fv(GetUniformLocation(name), fv.size(), false, (float*)fv.data());
+}
+
+void ShaderProgram::UniformMatrix4fv(const std::string& name, const std::vector<Matrix4>& fv)
+{
+	glUniformMatrix4fv(GetUniformLocation(name), fv.size(), false, (float*)fv.data());
 }
 
 void ShaderProgram::Uniform(const std::string& name, int i)

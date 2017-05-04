@@ -28,7 +28,7 @@ void GlyphString::render(RenderSetup& rs)
 
 	rs.applyMods();
 
-	Timeslot timeslot_string_render("string_render");
+	TimeslotC(string_render);
 
 	VBO vbo;
 	vbo.addBuffer();
@@ -43,13 +43,14 @@ void GlyphString::render(RenderSetup& rs)
 
 	size_t n_chars = 0;
 
-	float offset_x, offset_y;
+	float offset_x = 0.0f;
+	float offset_y = 0.0f;
 
 	auto fr = Resource::get<FontResource>(font);
 	if (fr != nullptr)
 	{
 		{
-			Timeslot timeslot_data_construction("data_construction");
+			TimeslotC(data_construction);
 
 			for (std::string::const_iterator c = string.cbegin(); c != string.cend();)
 			{
@@ -82,7 +83,7 @@ void GlyphString::render(RenderSetup& rs)
 		}
 
 		{
-			Timeslot timeslot_buffer_push("buffer_push");
+			TimeslotC(buffer_push);
 
 			glBindBuffer(GL_ARRAY_BUFFER, vbo.buffers[0].first);
 			glBufferData(GL_ARRAY_BUFFER, n_chars * 12 * sizeof(float), p_data, GL_STATIC_DRAW);

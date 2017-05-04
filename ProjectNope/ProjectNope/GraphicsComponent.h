@@ -57,12 +57,8 @@ public:
 	void render(RenderSetup& rs);
 
 	static std::vector<GraphicsComponent*> all;
-	static std::map<render_priority, std::pair<unsigned int, std::vector<PreparedVBO>>> standard_dynamic;
-	static std::vector<GraphicsComponent*> custom_dynamic;
-	static std::map<render_priority, std::pair<unsigned int, PreparedVBO>> standard_static;
-	static std::set<render_priority> complete;
 
-	static void prep(void);
+	static void prep(RenderSetup& rs);
 	static void render_all(RenderSetup& rs);
 };
 

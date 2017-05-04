@@ -57,7 +57,10 @@ public:
 	void addBuffer();
 	void addVertexStruct(const VertexStruct& vs);
 
+	void bind(RenderSetup& rs);
+
 	void draw(RenderSetup& rs);
+	void draw_instanced(RenderSetup& rs, unsigned int nInstances);
 
 	std::vector<std::pair<unsigned int, std::vector<VertexStruct>>> buffers;
 	size_t nIndices;
@@ -84,6 +87,7 @@ public:
 	~Mesh(void);
 
 	void render(RenderSetup& rs, MaterialList& mats);//const;?
+	void render_instanced(RenderSetup& rs, MaterialList& mats, unsigned int nInstances);
 
 	void transform(const Matrix4& mtrx, Mesh * mesh);//const;
 	void getPose(const Pose& pose, Mesh * mesh);//const;

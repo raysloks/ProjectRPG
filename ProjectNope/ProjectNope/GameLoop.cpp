@@ -170,5 +170,17 @@ void GameLoop::tick(void)
 
 	Profiler::set("fps", 1.0 / durationInSeconds);
 
+	Profiler::start("swap");
+
 	gpPlatform->swap();
+
+	Profiler::start("synced_operations");
+	if (gRenderContext)
+	{
+		gRenderContext->ReserveBuffers(16);
+		gRenderContext->ReserveVertexArrays(64);
+	}
+	Profiler::stop();
+
+	Profiler::stop();
 }

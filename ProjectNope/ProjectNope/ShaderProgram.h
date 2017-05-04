@@ -9,6 +9,8 @@
 #include "Vec2.h"
 #include "Vec3.h"
 #include "Vec4.h"
+#include "Matrix3.h"
+#include "Matrix4.h"
 
 class ShaderProgram
 {
@@ -40,8 +42,10 @@ public:
 	void Uniform3fv(const std::string& name, const std::vector<float>& fv);
 	void Uniform4fv(const std::string& name, const std::vector<Vec4>& fv);
 	void Uniform4fv(const std::string& name, const std::vector<float>& fv);
-	void UniformMatrix3fv(const std::string& name, const float* fv);
-	void UniformMatrix4fv(const std::string& name, const float* fv);
+	void UniformMatrix3f(const std::string& name, const float* fv);
+	void UniformMatrix4f(const std::string& name, const float* fv);
+	void UniformMatrix3fv(const std::string& name, const std::vector<Matrix3>& fv);
+	void UniformMatrix4fv(const std::string& name, const std::vector<Matrix4>& fv);
 	void Uniform(const std::string& name, int i);
 	void Uniform(const std::string& name, int i1, int i2);
 	void Uniform(const std::string& name, int i1, int i2, int i3);

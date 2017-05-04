@@ -25,7 +25,7 @@ World::~World(void)
 
 void World::pre_frame(float dTime)
 {
-	Timeslot timeslot_pre_frame("pre_frame");
+	TimeslotA(pre_frame);
 
 	for (size_t i = 0; i < units.size(); i++)
 	{
@@ -36,7 +36,7 @@ void World::pre_frame(float dTime)
 
 void World::post_frame(float dTime)
 {
-	Timeslot timeslot_post_frame("post_frame");
+	TimeslotA(post_frame);
 
 	for (size_t i = 0; i < units.size(); i++)
 	{
@@ -47,7 +47,7 @@ void World::post_frame(float dTime)
 
 void World::tick(float dTime)
 {
-	Timeslot timeslot_tick("tick");
+	TimeslotA(tick);
 
 	for (size_t i = 0; i < units.size(); i++)
 	{
@@ -84,6 +84,7 @@ void World::render(RenderSetup& rs)
 {
 	rs.origin = cam_pos;
 
+	GraphicsComponent::prep(rs);
 	GraphicsComponent::render_all(rs);
 
 	// TODO component rendering
@@ -194,7 +195,7 @@ NewEntity * World::GetEntity(int id, int unid)
 
 std::multimap<float, NewEntity*> World::GetNearestEntities(const GlobalPosition& p)
 {
-	Timeslot timeslot_get_nearest("get_nearest_entities");
+	TimeslotC(get_nearest_entities);
 
 	std::multimap<float, NewEntity*> ret;
 
@@ -216,7 +217,7 @@ std::multimap<float, NewEntity*> World::GetNearestEntities(const GlobalPosition&
 
 std::multimap<float, NewEntity*> World::GetNearestEntities(const GlobalPosition& p, float r)
 {
-	Timeslot timeslot_get_nearest("get_nearest_entities");
+	TimeslotC(get_nearest_entities);
 
 	std::multimap<float, NewEntity*> ret;
 

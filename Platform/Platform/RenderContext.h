@@ -65,6 +65,7 @@ extern PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
 extern PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
 extern PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
 extern PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
+extern PFNGLDRAWARRAYSINSTANCEDPROC glDrawArraysInstanced;
 extern PFNGLACTIVETEXTUREPROC glActiveTexture;
 extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 extern PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
@@ -90,6 +91,8 @@ extern PFNGLSTENCILMASKSEPARATEPROC glStencilMaskSeparate;
 #ifndef RENDER_CONTEXT_H
 #define RENDER_CONTEXT_H
 
+#include <vector>
+
 namespace Platform
 {
 
@@ -100,13 +103,27 @@ namespace Platform
 		void Swap(void);
 		void SetVSync(int value);
 		~RenderContext(void);
+
+		void ReserveBuffers(size_t n);
+		void AddBuffers(size_t n);
+		GLuint GetBuffer(void);
+
+		void ReserveVertexArrays(size_t n);
+		void AddVertexArrays(size_t n);
+		GLuint GetVertexArray(void);
+
 	private:
 		HDC hDC;
 		HWND hWnd;
 		HGLRC hRC;
 		GLuint PixelFormat;
+
+		std::vector<GLuint> buffers;
+		std::vector<GLuint> vertexArrays;
 	};
 
 }
+
+extern Platform::RenderContext * gRenderContext;
 
 #endif

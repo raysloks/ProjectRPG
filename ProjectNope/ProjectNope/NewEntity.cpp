@@ -83,7 +83,9 @@ void NewEntity::pre_frame(float dTime)
 	{
 		if (*i != nullptr)
 		{
+#if TIMESLOT_LEVEL == 4
 			Timeslot timeslot_component(Serializable::getName((*i)->getSerialID()));
+#endif
 			(*i)->pre_frame(dTime);
 		}
 	}
@@ -95,7 +97,9 @@ void NewEntity::post_frame(float dTime)
 	{
 		if (*i != nullptr)
 		{
+#if TIMESLOT_LEVEL == 4
 			Timeslot timeslot_component(Serializable::getName((*i)->getSerialID()));
+#endif
 			(*i)->post_frame(dTime);
 		}
 	}
@@ -107,7 +111,9 @@ void NewEntity::tick(float dTime)
 	{
 		if (*i != nullptr)
 		{
+#if TIMESLOT_LEVEL == 4
 			Timeslot timeslot_component(Serializable::getName((*i)->getSerialID()));
+#endif
 			(*i)->tick(dTime);
 		}
 	}

@@ -1,8 +1,6 @@
 #version 440
 
 uniform sampler2D diffuse;
-uniform sampler2D light_buffer;
-uniform usampler2D stencil;
 
 uniform vec3 light;
 
@@ -14,27 +12,12 @@ out vec4 final_color;
 
 void main()
 {
-	/*uvec4 stencil_sample = texture(stencil, position.xy / position.w * 0.5 + 0.5);
-	uint total_stencil = 0u;
-	for (int j = 0; j < 4; j++)
-	{
-		for (int i = 0; i < 32; i++)
-		{
-			total_stencil += (stencil_sample[j] >> i) & 1u;
-		}
-	}*/
-	float illumination = 1.0;
-	//illumination *= float(total_stencil) / 128.0;
-
 	float intensity = dot(light, normalize(norm));
 	intensity = clamp(intensity, 0.0, 1.0);
-	intensity *= illumination;
 
 	intensity *= 1.0;
 
-	//intensity = 1.0;
-
 	vec4 color = texture(diffuse, texco);
 
-	final_color = vec4(color.rgb * (vec3(intensity) + texture(light_buffer, position.xy / position.w * 0.5 + 0.5).rgb * 0.1), color.a);
+	final_color = vec4(color.rgb * (vec3(intensity) + vec3(0.1, 0.1, 0.2)), color.a);
 }

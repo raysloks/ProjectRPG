@@ -13,11 +13,6 @@ const AutoSerialFactory<GraphicsComponent> GraphicsComponent::_factory("Graphics
 
 std::vector<GraphicsComponent*> GraphicsComponent::all;
 
-std::map<render_priority, std::pair<unsigned int, std::vector<PreparedVBO>>> GraphicsComponent::standard_dynamic;
-std::vector<GraphicsComponent*> GraphicsComponent::custom_dynamic;
-std::map<render_priority, std::pair<unsigned int, PreparedVBO>> GraphicsComponent::standard_static;
-std::set<render_priority> GraphicsComponent::complete;
-
 GraphicsComponent::GraphicsComponent(bool dynamic) : Serializable(_factory.id), p(nullptr), pose(nullptr)
 {
 	all.push_back(this);
@@ -172,8 +167,59 @@ void GraphicsComponent::invalidate(void)
 	}*/
 }
 
-void GraphicsComponent::prep(void)
+std::vector<GraphicsComponent*> standard;
+
+std::shared_ptr<Mesh> instance_mesh;
+MaterialList instance_materials;
+std::shared_ptr<SkeletalAnimation> instance_animation;
+
+std::vector<Matrix4> instance_transforms;
+std::vector<float> instance_frames;
+size_t instance_count;
+
+std::shared_ptr<ShaderProgram> instance_shader = std::make_shared<ShaderProgram>("data/gfill_skinned_vert.txt", "data/gfill_frag.txt");
+
+void GraphicsComponent::prep(RenderSetup& rs)
 {
+	TimeslotA(prep);
+
+	instance_transforms.clear();
+	instance_frames.clear();
+	instance_count = 0;
+
+	standard.clear();
+
+	for each (auto g in all)
+	{
+		if (g->decs.items.size())
+		{
+			if (g->decs.items.front()->bone_id == -1)
+			{
+				instance_transforms.push_back(Matrix4::Translation(*g->p - rs.origin));
+				instance_frames.push_back(50.0f);
+				++instance_count;
+			}
+			else
+			{
+				standard.push_back(g);
+			}
+		}
+	}
+
+	for (size_t i = 0; i < 20000; i++)
+	{
+		instance_transforms.push_back(Matrix4::Translation(Vec3(50.0f, 50.0f, 50.0f) - rs.origin));
+		instance_frames.push_back(50.0f);
+		++instance_count;
+	}
+
+	instance_mesh = Resource::get<Mesh>("data/assets/units/player/KnightGuy.gmdl");
+	if (instance_materials.materials.empty())
+	{
+		instance_materials.materials.push_back(Material("data/assets/terrain/textures/ngrass.tga"));
+	}
+	instance_animation = Resource::get<SkeletalAnimation>("data/assets/units/player/KnightGuy.anim");
+
 	//standard_dynamic.clear();
 	//custom_dynamic.clear();
 
@@ -306,9 +352,31 @@ void GraphicsComponent::prep(void)
 
 void GraphicsComponent::render_all(RenderSetup& rs)
 {
-	for (auto i = all.begin(); i != all.end(); ++i)
+	for each (auto g in standard)
 	{
-		(*i)->render(rs);
+		g->render(rs);
+	}
+
+	if (instance_shader->IsReady())
+	{
+		ShaderMod mod(instance_shader, [&rs](const std::shared_ptr<ShaderProgram>& prog) {
+			prog->Uniform("animation_data", 1);
+		});
+
+		if (instance_animation)
+		{
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, instance_animation->getCompiledTexture()->texid);
+		}
+
+		rs.pushMod(mod);
+
+		if (instance_mesh)
+		{
+			instance_mesh->render_instanced(rs, instance_materials, instance_count);
+		}
+
+		rs.popMod();
 	}
 
 	/*if (rs.applyMods())

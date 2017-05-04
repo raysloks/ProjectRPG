@@ -65,6 +65,8 @@ public:
 
 #include "Resource.h"
 
+class Texture;
+
 class SkeletalAnimation
 	: public Resource
 {
@@ -76,11 +78,13 @@ public:
 	std::shared_ptr<Pose> getPose(float time, const std::string& action)const;
 
 	void compileActions(float resolution);
+	std::shared_ptr<Texture> getCompiledTexture(void);
 
 	Pose armature;
 	std::map<std::string, Action> actions;
 
 	std::vector<Matrix4> compiled_actions;
+	std::shared_ptr<Texture> compiled_texture;
 };
 
 #endif

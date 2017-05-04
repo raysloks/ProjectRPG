@@ -100,8 +100,7 @@ void ColliderComponent::update(const GlobalPosition& next_position, float dTime)
 
 void ColliderComponent::LineCheck(const GlobalPosition& sP, const GlobalPosition& eP, std::vector<std::shared_ptr<Collision>>& list)
 {
-	Timeslot timeslot_collision("collision");
-	Timeslot timeslot_line_check("line_check");
+	TimeslotB(collision);
 
 	for (auto i = all.begin(); i != all.end(); ++i) {
 		if (*i != 0) {
@@ -119,7 +118,7 @@ void ColliderComponent::LineCheck(const GlobalPosition& sP, const GlobalPosition
 
 void ColliderComponent::SphereCast(const GlobalPosition& sP, const GlobalPosition& eP, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
-	Timeslot timeslot_collision("collision");
+	TimeslotB(collision);
 
 	for (auto i=all.begin();i!=all.end();++i) {
 		if (*i!=0) {
@@ -137,7 +136,7 @@ void ColliderComponent::SphereCast(const GlobalPosition& sP, const GlobalPositio
 
 void ColliderComponent::DiskCast(const GlobalPosition& sP, const GlobalPosition& eP, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
-	Timeslot timeslot_collision("collision");
+	TimeslotB(collision);
 
 	for (auto i = all.begin(); i != all.end(); ++i) {
 		if (*i != 0) {

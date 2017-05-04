@@ -244,7 +244,7 @@ std::vector<size_t> CollisionMesh::GetCellsInAABB(Vec3 box_min, Vec3 box_max) co
 
 std::vector<size_t> CollisionMesh::GetWallsInAABB(Vec3 box_min, Vec3 box_max) const
 {
-	Timeslot timeslot_get_walls("get_walls");
+	TimeslotC(get_walls);
 
 	if (grid.empty())
 	{
@@ -331,6 +331,7 @@ void CollisionMesh::LineCheck(const Vec3& sP, const Vec3& eP, std::vector<std::s
 
 	auto walls_in_box = GetWallsInAABB(box_min, box_max);
 	//std::cout << walls_in_box.size() << std::endl;
+	TimeslotC(line_check);
 	for each (auto wall in walls_in_box)
 	{
 		std::shared_ptr<Collision> col = walls[wall].LineCheck(sP, eP);
@@ -367,7 +368,7 @@ void CollisionMesh::SphereCast(const Vec3& sP, const Vec3& eP, float r, std::vec
 
 	auto walls_in_box = GetWallsInAABB(box_min, box_max);
 	//std::cout << walls_in_box.size() << std::endl;
-	Timeslot timeslot_sphere_cast("sphere_cast");
+	TimeslotC(sphere_cast);
 	for each (auto wall in walls_in_box)
 	{
 		std::shared_ptr<Collision> col = walls[wall].SphereCast(sP, eP, r);
@@ -405,7 +406,7 @@ void CollisionMesh::DiskCast(const Vec3& sP, const Vec3& eP, float r, std::vecto
 
 	auto walls_in_box = GetWallsInAABB(box_min, box_max);
 	//std::cout << walls_in_box.size() << std::endl;
-	Timeslot timeslot_disk_cast("disk_cast");
+	TimeslotC(disk_cast);
 	for each (auto wall in walls_in_box)
 	{
 		std::shared_ptr<Collision> col = walls[wall].DiskCast(sP, eP, r);
