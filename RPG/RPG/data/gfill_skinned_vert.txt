@@ -4,7 +4,9 @@ out vec4 position;
 out vec2 texco;
 out vec3 norm;
 
-layout(std430) buffer instance_data_transform
+out vec3 trac;
+
+/*layout(std430) buffer instance_data_transform
 {
 	mat4 instance_transform[];
 };
@@ -12,46 +14,47 @@ layout(std430) buffer instance_data_transform
 layout(std430) buffer instance_data_frame
 {
 	float instance_frame[];
-};
+};*/
+
+uniform mat4 transform;
+
+uniform mat4 instance_transform[128];
+uniform float instance_frame[128];
 
 uniform sampler2D animation_data;
 
-uniform mat4 transform;
+uniform float bone_count;
+uniform float frame_count;
 
 in vec4 pos;
 in vec3 normal;
 in vec2 texCoord0;
 
-in vec4 bones_index;
-in vec4 bones_weight;
+in vec4 bone_index;
+in vec4 bone_weight;
 
 mat4 get_bone_transform(float index, float frame)
 {
 	return mat4(
-	texture(animation_data, vec2(index, frame)),
-	texture(animation_data, vec2(index, frame)),
-	texture(animation_data, vec2(index, frame)),
-	texture(animation_data, vec2(index, frame))
+	texture(animation_data, vec2((index * 4.0 + 0.5) / bone_count, frame / frame_count)),
+	texture(animation_data, vec2((index * 4.0 + 1.5) / bone_count, frame / frame_count)),
+	texture(animation_data, vec2((index * 4.0 + 2.5) / bone_count, frame / frame_count)),
+	texture(animation_data, vec2((index * 4.0 + 3.5) / bone_count, frame / frame_count))
 	);
 }
 
 void main()
 {
-	mat4 bone_transform = get_bone_transform(bones_index.x, instance_frame[gl_InstanceID]) * bones_weight.x;
-	bone_transform += get_bone_transform(bones_index.y, instance_frame[gl_InstanceID]) * bones_weight.y;
-	bone_transform += get_bone_transform(bones_index.z, instance_frame[gl_InstanceID]) * bones_weight.z;
-	bone_transform += get_bone_transform(bones_index.w, instance_frame[gl_InstanceID]) * bones_weight.w;
+	mat4 bone_transform = get_bone_transform(bone_index.x, instance_frame[gl_InstanceID]) * bone_weight.x;
+	bone_transform += get_bone_transform(bone_index.y, instance_frame[gl_InstanceID]) * bone_weight.y;
+	bone_transform += get_bone_transform(bone_index.z, instance_frame[gl_InstanceID]) * bone_weight.z;
+	bone_transform += get_bone_transform(bone_index.w, instance_frame[gl_InstanceID]) * bone_weight.w;
 
-	vec4 apos = pos;
-	apos.x += mod(float(gl_InstanceID), 140.0);
-	apos.y += float(gl_InstanceID / 140);
-	apos.z -= 40.0;
-
-	mat4 total_transform = mat4(1.0);// = bone_transform * instance_transform[gl_InstanceID];
+	mat4 total_transform = instance_transform[gl_InstanceID] * bone_transform;
 
 	norm = (total_transform * vec4(normal, 0.0)).xyz;
 	total_transform = transform * total_transform;
 	texco = texCoord0;
-	position = total_transform * apos;
-	gl_Position = total_transform * apos;
+	position = total_transform * pos;
+	gl_Position = total_transform * pos;
 }

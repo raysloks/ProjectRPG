@@ -91,14 +91,14 @@ MobComponent * SpawnComponent::spawn(void)
 			GraphicsComponent * g = new GraphicsComponent();
 			AIComponent * ai = new AIComponent();
 			ai->random.seed(random());
-			//MobComponent * mob = new MobComponent();
+			MobComponent * mob = new MobComponent();
 			AnimationControlComponent * acc = new AnimationControlComponent();
 			PoseComponent * pose = new PoseComponent();
 
 			ent->addComponent(p);
 			ent->addComponent(g);
 			ent->addComponent(ai);
-			//ent->addComponent(mob);
+			ent->addComponent(mob);
 			ent->addComponent(acc);
 			ent->addComponent(pose);
 
@@ -112,14 +112,14 @@ MobComponent * SpawnComponent::spawn(void)
 
 			entity->world->AddEntity(ent);
 
-			/*std::uniform_real_distribution<float> uni_dist;
+			std::uniform_real_distribution<float> uni_dist;
 			std::uniform_real_distribution<float> angle_dist(0.0f, M_PI * 2.0f);
 			mob->p = &p->p;
 			float angle = angle_dist(random);
 			mob->cam_facing = Vec3(cosf(angle), sinf(angle), 0.0f);
-			mob->temp_team = 1;*/
+			mob->temp_team = 1;
 
-			//return mob;
+			return mob;
 		}
 	}
 	return nullptr;

@@ -32,7 +32,7 @@ public:
 
 	static const AutoSerialFactory<PoseComponent> _factory;
 
-	Pose pose;
+	float frame;
 };
 
 #endif

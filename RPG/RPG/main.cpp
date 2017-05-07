@@ -174,7 +174,7 @@ public:
 				trigger->aabb_min = Vec3(-10.0f, -11.0f, 22.0f);
 				trigger->aabb_max = Vec3(12.0f, 13.0f, 30.0f);
 
-				trigger->delay = 1.0f;
+				trigger->delay = 5.0f;
 
 				trigger->func = [start_roof_spawn](MobComponent * mob)
 				{

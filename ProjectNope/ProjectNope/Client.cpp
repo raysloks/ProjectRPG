@@ -243,28 +243,14 @@ void Client::pre_frame(float dTime)
 	}
 	delete ae;
 
-	Vec3 pole = light.Cross(Vec3(1.0f, 2.0f, 0.0f));
-	pole.Normalize();
-	float lspeed = M_PI / 60.0f / 60.0f / 12.0f * 50.0f;
-	light *= Matrix3(dTime * lspeed, pole);
-	if (input.isDown(Platform::KeyEvent::L))
-		light *= Matrix3(dTime * lspeed * 50.0f, pole);
-	if (input.isDown(Platform::KeyEvent::J))
-		light *= Matrix3(-dTime * lspeed * 50.0f, pole);
-	light.Normalize();
-	if (input.isDown(Platform::KeyEvent::O))
-		light_size += dTime / 50.0f;
-	if (input.isDown(Platform::KeyEvent::I))
-		light_size -= dTime / 50.0f;
-	if (light_size < 0.0f)
-		light_size = 0.0f;
-
 	if (input.isPressed(Platform::KeyEvent::P))
 		show_entity_list = !show_entity_list;
 
 	if (input.isPressed(Platform::KeyEvent::N))
 	{
-		world->clear();
+		render2D.clear();
+		world->clear(true);
+		//server->conns.clear();
 		world->server->onClientConnect(*clientData);
 	}
 
@@ -272,7 +258,7 @@ void Client::pre_frame(float dTime)
 	{
 		MAKE_PACKET;
 
-		out << (unsigned char)0;
+		out << (uint8_t)0;
 
 		SEND_PACKET;
 
@@ -1396,6 +1382,7 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 				world->SetEntity(id, unit);
 				world->uid[id] = uid;
 				NewEntity * copy = new NewEntity();
+				copy->world = world;
 				for (auto i = unit->components.begin(); i != unit->components.end(); ++i)
 				{
 					if (*i != nullptr)
@@ -1407,18 +1394,20 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 						copy->components.back()->entity = copy;
 					}
 					else
-						copy->components.push_back(0);
+						copy->components.push_back(nullptr);
 				}
 				copy->component_sync = unit->component_sync;
-				if (id >= interpol_targets.size()) {
-					interpol_targets.resize(id+1);
-					interpol_elapsed.resize(id+1);
+				if (id >= interpol_targets.size())
+				{
+					interpol_targets.resize(id + 1);
+					interpol_elapsed.resize(id + 1);
 				}
-				if (id >= clientData->per_entity_sync.size()) {
-					clientData->per_entity_sync.resize(id+1);
+				if (id >= clientData->per_entity_sync.size())
+				{
+					clientData->per_entity_sync.resize(id + 1);
 				}
 
-				if (interpol_targets[id]!=0)
+				if (interpol_targets[id] != nullptr)
 					delete interpol_targets[id];
 				interpol_targets[id] = copy;
 				interpol_elapsed[id] = 0.0f;

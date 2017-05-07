@@ -36,12 +36,19 @@ NewEntity::NewEntity(instream& is, bool full)
 
 NewEntity::~NewEntity(void)
 {
-	//maybe call disconnect on all components?
 	for (auto i = components.begin(); i != components.end(); ++i)
+	{
 		if (*i != nullptr)
+		{
+			(*i)->disconnect();
 			delete *i;
+		}
+	}
+
 	for (auto i = component_syncref.begin(); i != component_syncref.end(); ++i)
+	{
 		ss.deallocate(*i);
+	}
 }
 
 std::vector<Component*>::iterator NewEntity::addComponent(Component * pComponent, bool authority)
@@ -52,13 +59,16 @@ std::vector<Component*>::iterator NewEntity::addComponent(Component * pComponent
 		pComponent->connect(this, authority);
 		pComponent->entity = this;
 	}
+
 	const size_t id = component_syncref.size();
 	if (authority)
-		component_syncref.push_back(ss.allocate([this, id] (ClientData&) {
+	{
+		component_syncref.push_back(ss.allocate([this, id](ClientData&) {
 			conf.insert(id);
-		}, [pComponent] (ClientData& client) -> bool {
+		}, [pComponent](ClientData& client) -> bool {
 			return pComponent->visible(client);
 		}));
+	}
 	return components.end()-1;
 }
 

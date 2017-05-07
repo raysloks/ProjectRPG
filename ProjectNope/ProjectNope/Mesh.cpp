@@ -483,6 +483,10 @@ void Mesh::buildVBO(void)
 				{
 					return lhs.second > rhs.second;
 				});
+				if (weights.size() > 4)
+				{
+					weights.resize(4);
+				}
 
 				for (size_t k = 0; k < 4; k++)
 				{

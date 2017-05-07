@@ -21,10 +21,12 @@ public:
 	}
 	~SyncContainer(void)
 	{
-		if (ss != nullptr) // maybe bracket everything
+		if (ss != nullptr)
+		{
 			ss->deallocate(cs);
-		for (auto i = sync.begin(); i != sync.end(); ++i)
-			ss->deallocate(*i);
+			for (auto i = sync.begin(); i != sync.end(); ++i)
+				ss->deallocate(*i);
+		}
 	}
 
 	void setSyncState(SyncState * sync_state)

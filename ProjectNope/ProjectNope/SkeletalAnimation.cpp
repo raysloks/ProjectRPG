@@ -418,16 +418,20 @@ std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const std::string& 
 
 void SkeletalAnimation::compileActions(float resolution)
 {
-	for each (auto action in actions)
+	float total_t = 0.0f;
+	for (auto action = actions.begin(); action != actions.end(); ++action)
 	{
-		for (float t = 0.0f; t <= action.second.length; t += resolution)
+		action->second.compiled_start = total_t + resolution * 0.5f;
+		for (float t = 0.0f; t <= action->second.length; t += resolution)
 		{
-			auto pose = getPose(t, action.second);
+			total_t += resolution;
+			auto pose = getPose(t, action->second);
 			for (size_t i = 0; i < pose->bones.size(); i++)
 			{
-				compiled_actions.push_back(armature.bones[i].total_inverse * pose->bones[i].total_transform);
+				compiled_actions.push_back(pose->rest->bones[i].total_inverse * pose->bones[i].total_transform);
 			}
 		}
+		action->second.compiled_end = total_t - resolution * 0.5f;
 	}
 }
 
@@ -447,7 +451,9 @@ std::shared_ptr<Texture> SkeletalAnimation::getCompiledTexture(void)
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, compiled_actions.size() / armature.bones.size(), armature.bones.size() * 4, 0, GL_RGBA, GL_FLOAT, compiled_actions.data());
+		compiled_texture->w = armature.bones.size() * 4;
+		compiled_texture->h = compiled_actions.size() / armature.bones.size();
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, compiled_texture->w, compiled_texture->h, 0, GL_RGBA, GL_FLOAT, compiled_actions.data());
 	}
 	return compiled_texture;
 }

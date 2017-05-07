@@ -20,7 +20,7 @@ World::World(void)
 
 World::~World(void)
 {
-	clear();
+	clear(false);
 }
 
 void World::pre_frame(float dTime)
@@ -63,15 +63,17 @@ void World::clean(void)
 	removed.clear();
 }
 
-void World::clear(void)
+void World::clear(bool notify)
 {
 	clean();
-	for (auto i = units.begin(); i != units.end(); ++i) {
-		if (*i != nullptr)
-			delete *i;
+	for (size_t i = 0; i < units.size(); i++)
+	{
+		if (units[i] != nullptr)
+			delete units[i];
+		if (notify)
+			server->NotifyOfRemoval(i, uid[i]);
 	}
 	units.clear();
-	uid.clear();
 	alloc = std::stack<size_t>();
 	mem.reset();
 }
@@ -103,7 +105,7 @@ int World::AddEntity(NewEntity * unit)
 			if (alloc.size()) {
 				int i = alloc.top();
 				alloc.pop();
-				if (units[i]==0) {
+				if (units[i] == nullptr) {
 					id = i;
 				}
 			} else {
@@ -144,36 +146,27 @@ int World::AddEntity(NewEntity * unit)
 
 void World::SetEntity(int id, NewEntity * unit)
 {
-	try
+	if (id >= units.size())
 	{
-		if (id < 0)
-			return;
-		if (unit != nullptr) {
-			if (id>=units.size()) {
-				units.resize(id+1);
-				uid.resize(id+1);
-			}
-			unit->id = id;
-			unit->world = this;
-			if (uid[id]==INT_MAX)
-				uid[id]=INT_MIN;
-			else
-				uid[id]++;
-		}
-		if (units.at(id) != nullptr) {
-			if (server != nullptr && authority)
-				server->NotifyOfRemoval(id, uid[id]);
-			/*if (units[id]->chunk!=0)
-				units[id]->chunk->remove(units[id]->cid);*/
-			removed.push_back(units[id]);
+		units.resize(id + 1);
+		uid.resize(id + 1);
+	}
+	if (units[id] != nullptr) {
+		if (server != nullptr && authority)
+			server->NotifyOfRemoval(id, uid[id]);
+		removed.push_back(units[id]);
+		if (unit == nullptr)
 			alloc.push(id);
-		}
-		units[id] = unit;
 	}
-	catch(std::exception& e)
-	{
-		std::cout << e.what() << std::endl;
+	if (unit != nullptr) {
+		unit->id = id;
+		unit->world = this;
+		if (uid[id]==INT_MAX)
+			uid[id]=INT_MIN;
+		else
+			uid[id]++;
 	}
+	units[id] = unit;
 }
 
 NewEntity * World::GetEntity(int id)

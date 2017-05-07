@@ -40,7 +40,7 @@ void LightComponent::disconnect(void)
 
 void LightComponent::pre_frame(float dTime)
 {
-	PositionComponent * pc = entity->getComponent<PositionComponent>();
+	/*PositionComponent * pc = entity->getComponent<PositionComponent>();
 	if (pc != nullptr)
 	{
 		p = pc->p;
@@ -57,7 +57,7 @@ void LightComponent::pre_frame(float dTime)
 			if (pose->bones.size() > bone_id)
 				p += Vec3() * pose->bones[bone_id].getTransform();
 		}
-	}
+	}*/
 }
 
 void LightComponent::tick(float dTime)

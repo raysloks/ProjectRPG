@@ -211,7 +211,7 @@ void Server::NotifyOfCreation(uint32_t id) //TODO merge duplicate code
 			{
 				if (conn->data->getUnit(id) == 0xffffffff)
 				{
-					int client_side_id = conn->data->addKnownUnit(id);
+					uint32_t client_side_id = conn->data->addKnownUnit(id);
 
 					MAKE_PACKET;
 					
@@ -230,12 +230,16 @@ void Server::NotifyOfCreation(uint32_t id) //TODO merge duplicate code
 
 void Server::NotifyOfRemoval(uint32_t id, uint32_t uid)
 {
-	for (auto i=conns.begin();i!=conns.end();++i)
+	for (auto i = conns.begin(); i != conns.end(); ++i)
 	{
 		std::shared_ptr<ClientConnection> conn = i->second;
-		MAKE_PACKET;
-		out << (unsigned char)3 << conn->data->forgetUnit(id) << uid;
-		SEND_PACKET(conn->endpoint);
+		uint32_t client_side_id = conn->data->forgetUnit(id);
+		if (client_side_id != 0xffffffff)
+		{
+			MAKE_PACKET;
+			out << (unsigned char)3 << client_side_id << uid;
+			SEND_PACKET(conn->endpoint);
+		}
 	}
 
 	if (client != nullptr)

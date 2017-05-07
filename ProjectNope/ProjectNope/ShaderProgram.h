@@ -35,6 +35,7 @@ public:
 	void Uniform(const std::string& name, float f1, float f2, float f3, float f4);
 	void Uniform(const std::string& name, const Vec3& v, float f4);
 	void Uniform(const std::string& name, const Vec4& v);
+	void Uniform1fv(const std::string& name, size_t count, const float* fv);
 	void Uniform1fv(const std::string& name, const std::vector<float>& fv);
 	void Uniform2fv(const std::string& name, const std::vector<Vec2>& fv);
 	void Uniform2fv(const std::string& name, const std::vector<float>& fv);
@@ -44,6 +45,8 @@ public:
 	void Uniform4fv(const std::string& name, const std::vector<float>& fv);
 	void UniformMatrix3f(const std::string& name, const float* fv);
 	void UniformMatrix4f(const std::string& name, const float* fv);
+	void UniformMatrix3fv(const std::string& name, size_t count, const Matrix3* fv);
+	void UniformMatrix4fv(const std::string& name, size_t count, const Matrix4* fv);
 	void UniformMatrix3fv(const std::string& name, const std::vector<Matrix3>& fv);
 	void UniformMatrix4fv(const std::string& name, const std::vector<Matrix4>& fv);
 	void Uniform(const std::string& name, int i);

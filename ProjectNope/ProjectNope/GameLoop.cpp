@@ -51,7 +51,7 @@ GameLoop::GameLoop(World * w, Server * s, Client * c)
 
 GameLoop::~GameLoop(void)
 {
-	world->clear();
+	world->clear(false);
 
 	if (server != nullptr)
 		delete server;
@@ -111,8 +111,6 @@ void GameLoop::init(void)
 void GameLoop::tick(void)
 {
 	if (client != nullptr) {
-		if (client->input.isDown(Platform::KeyEvent::M))
-			Sleep(100);
 		client->pre_frame(durationInSeconds);
 		client->render();
 		client->input.clear();

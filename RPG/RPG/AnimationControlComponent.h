@@ -3,26 +3,6 @@
 
 #include "Component.h"
 
-#include <memory>
-
-#include "Vec3.h"
-
-#include "Synchronizer.h"
-
-#include "ControlState.h"
-
-class SkeletalAnimation;
-class Pose;
-
-class AnimationPoseLayer;
-class APLList;
-class APLAdd;
-class APLBlend;
-class APLSpeed;
-class APLSource;
-
-class MobComponent;
-
 class AnimationControlComponent :
 	public Component
 {
@@ -49,30 +29,9 @@ public:
 
 	static const AutoSerialFactory<AnimationControlComponent> _factory;
 
-	void initAPL(void);
-	void tickAPL(float dTime);
+	void set_state(uint32_t new_state);
 
-	bool start_action(const std::string& fname);
-
-	MobComponent * mob;
-
-	Synchronizer synchro;
-
-	ControlState cs;
-
-	std::shared_ptr<AnimationPoseLayer> apl;
-	std::shared_ptr<APLList> apl_list, lower_apl, upper_apl, action_apl;
-	std::shared_ptr<APLBlend> arms_walk_blend_apl, idle_blend_apl, fall_blend_apl, walk_blend_apl, run_blend_apl, right_blend_apl, left_blend_apl, back_blend_apl, back_right_blend_apl, back_left_blend_apl, tilt_blend_apl;
-	std::shared_ptr<APLSpeed> fall_spd_apl, arms_walk_spd_apl, walk_spd_apl, turn_spd_apl;
-	std::shared_ptr<APLSource> turn_right_src_apl, turn_left_src_apl;
-
-	float back_limit;
-
-	Vec3 vp, vb;
-	float time_since_landed;
-
-	std::shared_ptr<SkeletalAnimation> anim;
-	Pose * pose;
+	uint32_t state;
 };
 
 #endif

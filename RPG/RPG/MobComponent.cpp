@@ -10,6 +10,9 @@
 #include "GraphicsComponent.h"
 #include "ProjectileComponent.h"
 #include "WeaponComponent.h"
+#include "PoseComponent.h"
+#include "AnimationControlComponent.h"
+#include "AIComponent.h"
 
 #include "GlobalPosition.h"
 
@@ -58,8 +61,20 @@ void MobComponent::tick(float dTime)
 	{
 		if (health.current <= 0)
 		{
+			auto acc = entity->getComponent<AnimationControlComponent>();
+			if (acc)
+			{
+				acc->set_state(1);
+			}
+			auto ai = entity->getComponent<AIComponent>();
+			if (ai)
+			{
+				ai->checks.clear();
+			}
+
 			move = Vec3();
-			health.current -= dTime * (temp_team == 1 ? 1000.0f : 1.0f);
+			crouch = true;
+			health.current -= dTime * (temp_team == 1 ? 100.0f : 1.0f);
 			if (health.current <= -300.0f)
 				entity->world->SetEntity(entity->id, nullptr);
 		}
@@ -349,7 +364,7 @@ void MobComponent::tick(float dTime)
 			
 			dp = Vec3();
 
-			if (stamina.current <= 0.0f)
+			if (crouch)
 				run = false;
 
 			if (landed)
@@ -369,6 +384,12 @@ void MobComponent::tick(float dTime)
 					stamina.current -= dTime * 10.0f;
 				else
 					stamina.current += dTime * 10.0f * health.current / 100.0f;
+
+				if (stamina.current < 0.0f)
+				{
+					health.current += stamina.current;
+					stamina.current = 0.0f;
+				}
 
 				v -= land_v;
 				float nv = v.Dot(land_n);
