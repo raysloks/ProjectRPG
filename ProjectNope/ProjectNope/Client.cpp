@@ -248,10 +248,7 @@ void Client::pre_frame(float dTime)
 
 	if (input.isPressed(Platform::KeyEvent::N))
 	{
-		render2D.clear();
-		world->clear(true);
-		//server->conns.clear();
-		world->server->onClientConnect(*clientData);
+		server->reset();
 	}
 
 	if (con != nullptr)
@@ -1179,6 +1176,8 @@ void Client::render_world(void)
 
 		rs.size = Vec2(view_w, view_h);
 
+		rs.view = proj;
+
 		ShaderMod mod(gui_prog, [this, ortho, &rs](const std::shared_ptr<ShaderProgram>& prog) {
 			prog->Uniform("alpha", 0); // texture unit 0
 			prog->UniformMatrix4f("transform", (rs.transform*ortho).data);
@@ -1192,12 +1191,6 @@ void Client::render_world(void)
 		Writing::setSize(12);
 
 		rs.addTransform(Matrix4::Translation(Vec3(-view_w / 2.0f, -view_h / 2.0f, 0.0f)));
-
-		rs.pushTransform();
-		rs.addTransform(Matrix4::Translation(Vec3(140.0f, 40.0f, 0.0f)));
-		Writing::render(std::to_string(world->units.size()), rs);
-		rs.popTransform();
-		rs.popTransform();
 
 		for (auto i = render2D.begin(); i != render2D.end(); ++i)
 		{
@@ -1219,8 +1212,15 @@ void Client::render_world(void)
 		}
 		lockCursor = hideCursor; // allow cursor to escape window when visible
 
+#if TIMESLOT_LEVEL >= 1
 		//if (input.isDown(Platform::KeyEvent::P))
 		{
+			rs.pushTransform();
+			rs.addTransform(Matrix4::Translation(Vec3(140.0f, 40.0f, 0.0f)));
+			Writing::render(std::to_string(world->units.size()), rs);
+			rs.popTransform();
+			rs.popTransform();
+
 			Writing::setColor(0.0f, 0.0f, 0.0f);
 			Writing::setSize(12);
 
@@ -1240,6 +1240,7 @@ void Client::render_world(void)
 
 			rs.popTransform();
 		}
+#endif
 	}
 
 	/*if (dof_prog->Use())
@@ -1417,7 +1418,6 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 			{
 				uint32_t id, uid, sync;
 				in >> id >> uid >> sync;
-				Profiler::set("received", 1.0);
 				if (id < interpol_targets.size())
 				{
 					auto ent = world->GetEntity(id);
@@ -1431,8 +1431,6 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 							}
 							break; //TODO cache log until notification of entity creation is received
 						}
-						Profiler::set("has_entity", 1.0);
-						Profiler::set("sync_dif", clientData->per_entity_sync[id] - sync);
 						if (SyncState::is_ordered(clientData->per_entity_sync[id], sync))
 						{
 							clientData->per_entity_sync[id] = sync;
@@ -1457,11 +1455,9 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 								SEND_PACKET
 							}
 
-							Profiler::set("read_log", 1.0);
 							if (interpol_targets[id] != nullptr)
 							{
 								interpol_targets[id]->readLog(in);
-								Profiler::set("interpol", 1.0);
 							}
 							interpol_elapsed[id] = 0.0f;
 						}

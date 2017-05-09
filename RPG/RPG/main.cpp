@@ -25,6 +25,7 @@
 #include "ProjectileComponent.h"
 #include "GameStateComponent.h"
 #include "TriggerComponent.h"
+#include "ChatComponent.h"
 
 #include "ClientData.h"
 
@@ -38,305 +39,295 @@ class MyServer :
 public:
 	MyServer(World * pWorld) : Server(pWorld) {}
 
-	void onClientConnect(ClientData& data)
+	void onServerActivated(void)
 	{
-		if (world->units.empty())
-		{
-			// create game state
-			{
-				NewEntity * ent = new NewEntity();
-
-				GameStateComponent * game_state = new GameStateComponent();
-
-				ent->addComponent(game_state);
-
-				world->AddEntity(ent);
-			}
-
-			// create level
-			{
-				NewEntity * ent = new NewEntity();
-
-				PositionComponent * p = new PositionComponent();
-				ColliderComponent * c = new ColliderComponent();
-				GraphicsComponent * g = new GraphicsComponent(false);
-
-				ent->addComponent(p);
-				ent->addComponent(c);
-				ent->addComponent(g);
-
-				std::string ao = "data/assets/escape-ao.tga";
-
-				//Resource::load(ao, { "!sRGB" });
-
-				MaterialList materials;
-				materials.materials.push_back(Material("data/assets/terrain/textures/concrete.tga"));
-				materials.materials.push_back(Material("data/assets/terrain/textures/asphalt.tga"));
-				materials.materials.push_back(Material("data/assets/terrain/textures/plank.tga"));
-				materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
-				materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
-				materials.materials.push_back(Material("data/assets/terrain/textures/brick2.tga"));
-				materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
-
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/escape.gmdl", materials, 0)));
-				g->decs.items.front()->local *= 10.0f;
-				g->decs.items.front()->local.mtrx[3][3] = 1.0f;
-				g->decs.items.front()->final = g->decs.items.front()->local;
-
-				world->AddEntity(ent);
-			}
-
-			// create spawner
-			{
-				NewEntity * ent = new NewEntity();
-
-				SpawnComponent * spawn = new SpawnComponent();
-
-				ent->addComponent(spawn);
-
-				spawn->aabb_min = Vec3(21.0f, 20.0f, 21.0f);
-				spawn->aabb_max = Vec3(41.0f, 40.0f, 30.0f);
-
-				world->AddEntity(ent);
-
-				for (size_t i = 0; i < 20; i++)
-				{
-					spawn->spawn();
-				}
-			}
-
-			// create spawner
-			{
-				NewEntity * ent = new NewEntity();
-
-				SpawnComponent * spawn = new SpawnComponent();
-
-				ent->addComponent(spawn);
-
-				spawn->aabb_min = Vec3(21.0f, -10.0f, 19.0f);
-				spawn->aabb_max = Vec3(41.0f, 20.0f, 25.0f);
-
-				world->AddEntity(ent);
-
-				for (size_t i = 0; i < 20; i++)
-				{
-					spawn->spawn();
-				}
-			}
-
-			SpawnComponent * start_roof_spawn;
-			// create spawner
-			{
-				NewEntity * ent = new NewEntity();
-
-				SpawnComponent * spawn = new SpawnComponent();
-
-				ent->addComponent(spawn);
-
-				spawn->aabb_min = Vec3(-20.0f, -9.0f, 32.0f);
-				spawn->aabb_max = Vec3(-10.0f, 11.0f, 34.0f);
-
-				world->AddEntity(ent);
-
-				for (size_t i = 0; i < 5; i++)
-				{
-					spawn->spawn();
-				}
-
-				start_roof_spawn = spawn;
-			}
-
-			SpawnComponent * road_chase_riverside_spawn;
-			// create spawner
-			{
-				NewEntity * ent = new NewEntity();
-
-				SpawnComponent * spawn = new SpawnComponent();
-
-				ent->addComponent(spawn);
-
-				spawn->aabb_min = Vec3(-45.0f, 60.0f, 0.0f);
-				spawn->aabb_max = Vec3(-40.0f, 69.0f, 2.0f);
-
-				world->AddEntity(ent);
-
-				road_chase_riverside_spawn = spawn;
-			}
-
-			// create trigger volume
-			{
-				NewEntity * ent = new NewEntity();
-
-				TriggerComponent * trigger = new TriggerComponent();
-
-				ent->addComponent(trigger);
-
-				trigger->aabb_min = Vec3(-10.0f, -11.0f, 22.0f);
-				trigger->aabb_max = Vec3(12.0f, 13.0f, 30.0f);
-
-				trigger->delay = 5.0f;
-
-				trigger->func = [start_roof_spawn](MobComponent * mob)
-				{
-					for (size_t i = 0; i < 5; i++)
-					{
-						start_roof_spawn->spawn(Vec3(1.0f, 0.0f, 0.0f));
-					}
-				};
-
-				world->AddEntity(ent);
-			}
-
-			// create trigger volume
-			{
-				NewEntity * ent = new NewEntity();
-
-				TriggerComponent * trigger = new TriggerComponent();
-
-				ent->addComponent(trigger);
-
-				trigger->aabb_min = Vec3(-110.0f, -80.0f, 0.0f);
-				trigger->aabb_max = Vec3(-20.0f, 0.0f, 5.0f);
-
-				trigger->delay = 1.0f;
-
-				trigger->func = [road_chase_riverside_spawn](MobComponent * mob)
-				{
-					for (size_t i = 0; i < 2; i++)
-					{
-						road_chase_riverside_spawn->spawn(Vec3(-1.0f, 0.0f, 0.0f));
-					}
-				};
-
-				world->AddEntity(ent);
-			}
-
-			// create trigger volume
-			{
-				NewEntity * ent = new NewEntity();
-
-				TriggerComponent * trigger = new TriggerComponent();
-
-				ent->addComponent(trigger);
-
-				trigger->aabb_min = Vec3(21.0f, -10.0f, 19.0f);
-				trigger->aabb_max = Vec3(41.0f, 40.0f, 30.0f);
-
-				trigger->delay = 1.0f;
-
-				trigger->func = [](MobComponent * mob)
-				{
-				};
-
-				world->AddEntity(ent);
-			}
-		}
-
-		// create player entity
-		if (false)
+		// create game state
+		auto previous_game_states = world->GetComponents<GameStateComponent>();
+		GameStateComponent * game_state;
+		if (previous_game_states.empty())
 		{
 			NewEntity * ent = new NewEntity();
 
-			CameraControlComponent * cam = new CameraControlComponent();
+			game_state = new GameStateComponent();
+
+			ent->addComponent(game_state);
+
+			world->AddEntity(ent);
+		}
+		else
+		{
+			game_state = previous_game_states.front();
+		}
+
+		// create chat
+		{
+			NewEntity * ent = new NewEntity();
+
+			ChatComponent * chat = new ChatComponent();
+
+			ent->addComponent(chat);
+
+			world->AddEntity(ent);
+		}
+
+		// create level
+		{
+			NewEntity * ent = new NewEntity();
+
 			PositionComponent * p = new PositionComponent();
+			ColliderComponent * c = new ColliderComponent();
 			GraphicsComponent * g = new GraphicsComponent(false);
-			PlayerInputComponent * input = new PlayerInputComponent();
-			MobComponent * mob = new MobComponent();
-			AnimationControlComponent * acc = new AnimationControlComponent();
-			InventoryComponent * inv = new InventoryComponent();
-			PoseComponent * pose = new PoseComponent();
-			LineComponent * line = new LineComponent();
 
-			ent->addComponent(cam);
 			ent->addComponent(p);
+			ent->addComponent(c);
 			ent->addComponent(g);
-			ent->addComponent(input);
-			ent->addComponent(mob);
-			ent->addComponent(acc);
-			ent->addComponent(inv);
-			ent->addComponent(pose);
-			ent->addComponent(line);
 
-			p->p = Vec3(-15.0f, -5.0f, 23.0f);
+			std::string ao = "data/assets/escape-ao.tga";
 
-			/*for (int i = 1; i < 23; ++i)
+			//Resource::load(ao, { "!sRGB" });
+
+			MaterialList materials;
+			materials.materials.push_back(Material("data/assets/terrain/textures/concrete.tga"));
+			materials.materials.push_back(Material("data/assets/terrain/textures/asphalt.tga"));
+			materials.materials.push_back(Material("data/assets/terrain/textures/plank.tga"));
+			materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
+			materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
+			materials.materials.push_back(Material("data/assets/terrain/textures/brick2.tga"));
+			materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
+			materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
+
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/escape.gmdl", materials, 0)));
+			g->decs.items.front()->local *= 10.0f;
+			g->decs.items.front()->local.mtrx[3][3] = 1.0f;
+			g->decs.items.front()->final = g->decs.items.front()->local;
+
+			world->AddEntity(ent);
+		}
+
+		auto createProgressZone = [game_state, this](const GlobalPosition& aabb_min, const GlobalPosition& aabb_max, float progress)
+		{
+			NewEntity * ent = new NewEntity();
+
+			TriggerComponent * trigger = new TriggerComponent();
+
+			ent->addComponent(trigger);
+
+			trigger->aabb_min = aabb_min;
+			trigger->aabb_max = aabb_max;
+
+			trigger->delay = 1.0f;
+			trigger->countdown = progress;
+
+			trigger->func = [game_state, progress](MobComponent * mob)
 			{
-				LightComponent * light = new LightComponent();
-				light->bone_id = i;
-				ent->addComponent(light);
-			}*/
-
-			/*g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cylinder32.gmdl", Material("data/assets/empty.tga"), 0)));
-			g->decs.items.front()->local *= 0.5f;
-			g->decs.items.front()->local.mtrx[1][1] = 0.25f;
-			g->decs.items.front()->local.data[15] = 1.0f;
-			g->decs.items.front()->final = g->decs.items.front()->local;*/
-
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga"), 0)));
-			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
-			//g->decs.items.back()->priority = 1;
-			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
-			//g->decs.items.back()->priority = 2;
-			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
-			//g->decs.items.back()->priority = 3;
-
-			mob->attack = [mob]()
-			{
-				auto spawn_bullet = [mob](const Vec3& muzzle_velocity)
-				{
-					NewEntity * ent = new NewEntity();
-
-					PositionComponent * pos = new PositionComponent();
-					ProjectileComponent * projectile = new ProjectileComponent();
-					GraphicsComponent * g = new GraphicsComponent(false);
-
-					ent->addComponent(pos);
-					ent->addComponent(projectile);
-					ent->addComponent(g);
-
-					pos->p = *mob->p + mob->up * 0.45f;
-
-					projectile->v = muzzle_velocity + mob->v;
-					projectile->drag = 0.01f;
-
-					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
-					g->decs.items.front()->local *= 0.0127f * 0.5f;
-					g->decs.items.front()->local.data[15] = 1.0f;
-					g->decs.items.front()->local *= mob->cam_rot;
-
-					mob->entity->world->AddEntity(ent);
-				};
-
-				spawn_bullet(mob->cam_facing * 470.0f);
-
-				mob->recoil += 0.3f;
-
-				mob->input.erase("attack");
+				game_state->setProgress(mob, progress);
 			};
 
-			input->client_id = data.client_id;
-			cam->client_id = data.client_id;
-			inv->client_id = data.client_id;
+			world->AddEntity(ent);
+		};
+
+		// create spawner
+		{
+			NewEntity * ent = new NewEntity();
+
+			SpawnComponent * spawn = new SpawnComponent();
+
+			ent->addComponent(spawn);
+
+			spawn->aabb_min = Vec3(21.0f, 20.0f, 21.0f);
+			spawn->aabb_max = Vec3(41.0f, 40.0f, 30.0f);
 
 			world->AddEntity(ent);
 
+			for (size_t i = 0; i < 20; i++)
 			{
-				NewEntity * ent = new NewEntity();
-
-				PositionComponent * p = new PositionComponent();
-				GraphicsComponent * g = new GraphicsComponent();
-				WeaponComponent * w = new WeaponComponent();
-
-				ent->addComponent(p);
-				ent->addComponent(g);
-				ent->addComponent(w);
-
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/pistol.gmdl", Material("data/assets/pistol.tga"), 0)));
-
-				mob->weapon = w;
-
-				world->AddEntity(ent);
+				spawn->spawn();
 			}
+		}
+
+		// create spawner
+		{
+			NewEntity * ent = new NewEntity();
+
+			SpawnComponent * spawn = new SpawnComponent();
+
+			ent->addComponent(spawn);
+
+			spawn->aabb_min = Vec3(21.0f, -10.0f, 19.0f);
+			spawn->aabb_max = Vec3(41.0f, 20.0f, 25.0f);
+
+			world->AddEntity(ent);
+
+			for (size_t i = 0; i < 20; i++)
+			{
+				spawn->spawn();
+			}
+		}
+
+		SpawnComponent * start_roof_spawn;
+		// create spawner
+		{
+			NewEntity * ent = new NewEntity();
+
+			SpawnComponent * spawn = new SpawnComponent();
+
+			ent->addComponent(spawn);
+
+			spawn->aabb_min = Vec3(-20.0f, -9.0f, 32.0f);
+			spawn->aabb_max = Vec3(-10.0f, 11.0f, 34.0f);
+
+			world->AddEntity(ent);
+
+			for (size_t i = 0; i < 5; i++)
+			{
+				spawn->spawn();
+			}
+
+			start_roof_spawn = spawn;
+		}
+
+		SpawnComponent * road_chase_riverside_spawn;
+		// create spawner
+		{
+			NewEntity * ent = new NewEntity();
+
+			SpawnComponent * spawn = new SpawnComponent();
+
+			ent->addComponent(spawn);
+
+			spawn->aabb_min = Vec3(-45.0f, 60.0f, 0.0f);
+			spawn->aabb_max = Vec3(-40.0f, 69.0f, 2.0f);
+
+			world->AddEntity(ent);
+
+			road_chase_riverside_spawn = spawn;
+		}
+
+		SpawnComponent * road_hill_front_spawn;
+		// create spawner
+		{
+			NewEntity * ent = new NewEntity();
+
+			SpawnComponent * spawn = new SpawnComponent();
+
+			ent->addComponent(spawn);
+
+			spawn->aabb_min = Vec3(70.0f, -100.0f, 20.0f);
+			spawn->aabb_max = Vec3(80.0f, -110.0f, 22.0f);
+
+			world->AddEntity(ent);
+
+			road_hill_front_spawn = spawn;
+		}
+
+		// create trigger volume
+		{
+			NewEntity * ent = new NewEntity();
+
+			TriggerComponent * trigger = new TriggerComponent();
+
+			ent->addComponent(trigger);
+
+			trigger->aabb_min = Vec3(-10.0f, -11.0f, 22.0f);
+			trigger->aabb_max = Vec3(12.0f, 13.0f, 30.0f);
+
+			trigger->delay = 5.0f;
+
+			trigger->func = [game_state, start_roof_spawn](MobComponent * mob)
+			{
+				for (size_t i = 0; i < 5; i++)
+				{
+					start_roof_spawn->spawn(Vec3(1.0f, 0.0f, 0.0f));
+				}
+			};
+
+			world->AddEntity(ent);
+		}
+
+		// create trigger volume
+		{
+			NewEntity * ent = new NewEntity();
+
+			TriggerComponent * trigger = new TriggerComponent();
+
+			ent->addComponent(trigger);
+
+			trigger->aabb_min = Vec3(-110.0f, -80.0f, 0.0f);
+			trigger->aabb_max = Vec3(-20.0f, 0.0f, 5.0f);
+
+			trigger->delay = 1.0f;
+
+			trigger->func = [game_state, road_chase_riverside_spawn](MobComponent * mob)
+			{
+				for (size_t i = 0; i < 2; i++)
+				{
+					road_chase_riverside_spawn->spawn(Vec3(-1.0f, 0.0f, 0.0f));
+				}
+			};
+
+			world->AddEntity(ent);
+		}
+
+		// create trigger volume
+		{
+			NewEntity * ent = new NewEntity();
+
+			TriggerComponent * trigger = new TriggerComponent();
+
+			ent->addComponent(trigger);
+
+			trigger->aabb_min = Vec3(70.0f, -20.0f, 0.0f);
+			trigger->aabb_max = Vec3(90.0f, 45.0f, 2.0f);
+
+			trigger->delay = 1.0f;
+
+			trigger->func = [game_state, road_hill_front_spawn](MobComponent * mob)
+			{
+				for (size_t i = 0; i < 5; i++)
+				{
+					road_hill_front_spawn->spawn(Vec3(0.0f, 1.0f, 0.0f));
+				}
+			};
+
+			world->AddEntity(ent);
+		}
+
+		createProgressZone(Vec3(-10.0f, -11.0f, 22.0f), Vec3(12.0f, 13.0f, 30.0f), 0.05f);
+		createProgressZone(Vec3(21.0f, -10.0f, 19.0f), Vec3(41.0f, 40.0f, 30.0f), 0.1f);
+
+		createProgressZone(Vec3(48.0f, -21.0f, 20.0f), Vec3(70.0f, 49.0f, 25.0f), 0.15f);
+		createProgressZone(Vec3(48.0f, -21.0f, 14.0f), Vec3(70.0f, 49.0f, 19.0f), 0.2f);
+		createProgressZone(Vec3(48.0f, -21.0f, 8.0f), Vec3(70.0f, 49.0f, 13.0f), 0.25f);
+		createProgressZone(Vec3(48.0f, -21.0f, 2.0f), Vec3(70.0f, 49.0f, 7.0f), 0.3f);
+
+		createProgressZone(Vec3(70.0f, -20.0f, 0.0f), Vec3(90.0f, 45.0f, 2.0f), 0.35f);
+		createProgressZone(Vec3(60.0f, -80.0f, 0.0f), Vec3(90.0f, -20.0f, 2.0f), 0.4f);
+		createProgressZone(Vec3(0.0f, -80.0f, 0.0f), Vec3(60.0f, -60.0f, 2.0f), 0.45f);
+		createProgressZone(Vec3(-20.0f, -80.0f, 0.0f), Vec3(0.0f, -20.0f, 2.0f), 0.5f);
+		createProgressZone(Vec3(0.0f, -30.0f, 0.0f), Vec3(40.0f, -10.0f, 2.0f), 0.55f);
+
+		createProgressZone(Vec3(41.0f, -10.0f, 0.0f), Vec3(48.0f, 40.0f, 2.0f), 0.6f);
+		createProgressZone(Vec3(-10.0f, 10.0f, 0.0f), Vec3(20.0f, 40.0f, 2.0f), 0.65f);
+		createProgressZone(Vec3(-50.0f, 40.0f, 0.0f), Vec3(10.0f, 60.0f, 2.0f), 0.7f);
+
+		createProgressZone(Vec3(10.0f, 47.0f, 0.0f), Vec3(40.0f, 60.0f, 2.0f), 0.75f);
+		createProgressZone(Vec3(-50.0f, 60.0f, 0.0f), Vec3(-10.0f, 70.0f, 2.0f), 0.8f);
+
+		createProgressZone(Vec3(-100.0f, 0.0f, 0.0f), Vec3(-30.0f, 40.0f, 2.0f), 0.85f);
+		createProgressZone(Vec3(-100.0f, -80.0f, 0.0f), Vec3(-30.0f, 0.0f, 2.0f), 0.9f);
+		createProgressZone(Vec3(-100.0f, -160.0f, 0.0f), Vec3(-30.0f, -80.0f, 2.0f), 0.95f);
+		createProgressZone(Vec3(-100.0f, -160.0f, 0.0f), Vec3(-70.0f, -140.0f, 2.0f), 1.0f);
+	}
+
+	void onClientConnect(ClientData& data)
+	{
+		auto chats = world->GetComponents<ChatComponent>();
+		if (chats.size())
+		{
+			ChatMessage message;
+			message.message = "Client id " + std::to_string(data.client_id) + " connected.\n";
+			message.timeout = 10.0f;
+			chats.front()->messages.push_back(message);
 		}
 	}
 };
@@ -352,6 +343,8 @@ INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	uint64_t lobby_id = 0;
 	char option = 'h';
 
+	std::cout << "starting game..." << std::endl;
+
 	std::cmatch match_connect;
 	std::regex reg_connect("\\+connect (.*):(.*)");
 	if (std::regex_match(lpCmdLine, match_connect, reg_connect))
@@ -365,7 +358,7 @@ INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	std::regex reg_connect_lobby("\\+connect_lobby (.*)");
 	std::regex_match(lpCmdLine, match_connect_lobby, reg_connect_lobby);
 
-	std::shared_ptr<ISteamWrapper> steam(ISteamWrapper::make());
+	//std::shared_ptr<ISteamWrapper> steam(ISteamWrapper::make());
 	
 	World * world = new World();
 	Server * server = new MyServer(world);
@@ -373,6 +366,7 @@ INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	if (option=='p')
 	{
+		server->onServerActivated();
 		server->onClientConnect(*client->clientData);
 	}
 	if (option=='c')
@@ -382,6 +376,7 @@ INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	if (option == 'h')
 	{
 		server->open(port);
+		server->onServerActivated();
 		server->onClientConnect(*client->clientData);
 	}
 	if (option=='s')

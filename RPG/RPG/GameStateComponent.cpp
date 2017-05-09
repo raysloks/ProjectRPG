@@ -2,6 +2,8 @@
 
 #include "World.h"
 
+#include "Server.h"
+
 #include "Client.h"
 #include "ClientData.h"
 
@@ -10,6 +12,9 @@
 #include "Writing.h"
 
 #include "TeamData.h"
+
+#include "MobComponent.h"
+#include "ChatComponent.h"
 
 const AutoSerialFactory<GameStateComponent> GameStateComponent::_factory("GameStateComponent");
 
@@ -26,7 +31,7 @@ GameStateComponent::GameStateComponent(instream& is, bool full) : Serializable(_
 {
 	setting_up = true;
 	game_over = false;
-	team_selection = 0xffffffff;
+	is >> team_selection;
 }
 
 GameStateComponent::~GameStateComponent(void)
@@ -73,9 +78,49 @@ void GameStateComponent::post_frame(float dTime)
 
 void GameStateComponent::tick(float dTime)
 {
-	if (!setting_up && !game_over)
+	if (entity->world->authority)
 	{
-		//check for end of game
+		if (game_over)
+		{
+			countdown -= dTime;
+			if (countdown <= 0.0f)
+			{
+				game_over = false;
+				setting_up = true;
+				teams[0].clearProgress();
+				swapTeams();
+				team_selection = 1 - team_selection;
+
+				set_display(false);
+
+				GameStateComponent * copy = new GameStateComponent(*this);
+				World * world = entity->world;
+				entity->world->server->reset([copy, world]()
+				{
+					NewEntity * ent = new NewEntity();
+
+					ent->addComponent(copy);
+
+					world->AddEntity(ent);
+				});
+			}
+		}
+
+		if (!setting_up && !game_over)
+		{
+			survivor_progress = getMaximumSurvivorProgress();
+
+			auto mobs = entity->world->GetComponents<MobComponent>();
+			mobs.erase(std::remove_if(mobs.begin(), mobs.end(), [](MobComponent * mob)
+			{
+				return mob->temp_team == 1;
+			}), mobs.end());
+			if (mobs.empty())
+			{
+				game_over = true;
+				countdown = 10.0f;
+			}
+		}
 	}
 }
 
@@ -87,6 +132,10 @@ void GameStateComponent::writeLog(outstream& os, ClientData& client)
 	{
 		os << game_over;
 		os << survivor_progress;
+		if (game_over)
+		{
+			os << countdown;
+		}
 	}
 }
 
@@ -97,6 +146,10 @@ void GameStateComponent::readLog(instream& is)
 	{
 		is >> game_over;
 		is >> survivor_progress;
+		if (game_over)
+		{
+			is >> countdown;
+		}
 	}
 	else
 	{
@@ -106,8 +159,13 @@ void GameStateComponent::readLog(instream& is)
 
 void GameStateComponent::writeLog(outstream& os)
 {
-	if (setting_up && team_selection != 0xffffffff)
-		os << team_selection;
+	if (setting_up)
+	{
+		if (team_selection != 0xffffffff)
+		{
+			os << team_selection;
+		}
+	}
 }
 
 void GameStateComponent::readLog(instream& is, ClientData& client)
@@ -123,10 +181,13 @@ void GameStateComponent::interpolate(Component * pComponent, float fWeight)
 
 	setting_up = other->setting_up;
 	game_over = other->game_over;
+	survivor_progress = other->survivor_progress;
+	countdown = other->countdown;
 }
 
 void GameStateComponent::write_to(outstream& os, ClientData& client) const
 {
+	os << getPlayerTeam(client.client_id);
 }
 
 void GameStateComponent::write_to(outstream& os) const
@@ -141,9 +202,10 @@ void GameStateComponent::startGame(void)
 
 		for (size_t i = 0; i < teams.size(); i++)
 		{
+			size_t index = 0;
 			for (auto member = teams[i].members.begin(); member != teams[i].members.end(); ++member)
 			{
-				member->second = createAvatar(member->first, i);
+				member->second = createAvatar(member->first, i, index++);
 			}
 		}
 	}
@@ -159,7 +221,7 @@ void GameStateComponent::startGame(void)
 #include "ProjectileComponent.h"
 #include "WeaponComponent.h"
 
-MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t team)
+MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t team, uint32_t index)
 {
 	NewEntity * ent = new NewEntity();
 
@@ -182,12 +244,18 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	ent->addComponent(pose);
 
 	if (team == 0)
+	{
 		p->p = Vec3(-15.0f, -5.0f, 23.0f);
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga"))));
+	}
 	if (team == 1)
+	{
 		p->p = Vec3(-15.0f, -5.0f, 33.0f);
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/terrain/textures/nground.tga"))));
+	}
+	p->p += Vec3(0.0f, 1.0f, 0.0f) * index;
 	mob->temp_team = team;
 
-	g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga"), 0)));
 
 	if (team == 0)
 	{
@@ -240,44 +308,47 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	{
 		mob->attack = [mob]()
 		{
-			auto spawn_bullet = [mob](const Vec3& muzzle_velocity)
+			if (mob->input.find("attack_cooldown") == mob->input.end())
 			{
-				NewEntity * ent = new NewEntity();
-
-				PositionComponent * pos = new PositionComponent();
-				ProjectileComponent * projectile = new ProjectileComponent();
-				GraphicsComponent * g = new GraphicsComponent(false);
-
-				ent->addComponent(pos);
-				ent->addComponent(projectile);
-				ent->addComponent(g);
-
-				pos->p = *mob->p + mob->up * 0.45f;
-
-				projectile->v = muzzle_velocity + mob->v;
-				projectile->drag = 0.04f;
-
-				projectile->on_collision = [ent](MobComponent * target)
+				auto spawn_bullet = [mob](const Vec3& muzzle_velocity)
 				{
-					if (!target)
+					NewEntity * ent = new NewEntity();
+
+					PositionComponent * pos = new PositionComponent();
+					ProjectileComponent * projectile = new ProjectileComponent();
+					GraphicsComponent * g = new GraphicsComponent(false);
+
+					ent->addComponent(pos);
+					ent->addComponent(projectile);
+					ent->addComponent(g);
+
+					pos->p = *mob->p + mob->up * 0.45f;
+
+					projectile->v = muzzle_velocity + mob->v;
+					projectile->drag = 0.04f;
+
+					projectile->on_collision = [ent, pos](MobComponent * target)
 					{
+						if (target)
+						{
+							target->stamina.current = 0.0f;
+						}
 						ent->world->SetEntity(ent->id, nullptr);
-					}
+					};
+
+					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/terrain/textures/ngrass.tga"), 0)));
+					g->decs.items.front()->local *= 0.1f;
+					g->decs.items.front()->local.data[15] = 1.0f;
+					g->decs.items.front()->local *= mob->cam_rot;
+
+					mob->entity->world->AddEntity(ent);
 				};
 
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/terrain/textures/ngrass.tga"), 0)));
-				g->decs.items.front()->local *= 0.1f;
-				g->decs.items.front()->local.data[15] = 1.0f;
-				g->decs.items.front()->local *= mob->cam_rot;
+				spawn_bullet(mob->cam_facing * 40.0f);
 
-				mob->entity->world->AddEntity(ent);
-			};
-
-			spawn_bullet(mob->cam_facing * 40.0f);
-
-			mob->recoil += 0.3f;
-
-			mob->input.erase("attack");
+				mob->input.erase("attack");
+				mob->input["attack_cooldown"] = 5.0f;
+			}
 		};
 	}
 
@@ -353,6 +424,39 @@ void GameStateComponent::removePlayer(uint32_t client_id)
 	}
 }
 
+void GameStateComponent::swapTeams(void)
+{
+	auto temp = teams[0];
+	teams[0] = teams[1];
+	teams[1] = temp;
+}
+
+void GameStateComponent::setProgress(MobComponent * mob, float progress)
+{
+	teams[0].setProgress(mob, progress);
+}
+
+float GameStateComponent::getAverageSurvivorProgress(void)
+{
+	float total = 0.0f;
+	for each (auto progress in teams[0].progress)
+	{
+		total += progress;
+	}
+	total /= teams[0].progress.size();
+	return total;
+}
+
+float GameStateComponent::getMaximumSurvivorProgress(void)
+{
+	float total = 0.0f;
+	for each (auto progress in teams[0].progress)
+	{
+		total = std::fmaxf(progress, total);
+	}
+	return total;
+}
+
 void GameStateComponent::set_display(bool enable)
 {
 	if (!entity->world)
@@ -404,13 +508,27 @@ void GameStateComponent::set_display(bool enable)
 							Writing::setColor(0.9f, 0.9f, 0.9f);
 							if (entity->world->authority)
 							{
-								Writing::render("Press space to start game.", rs);
+								if (teams[0].members.empty())
+									Writing::render("There needs to be at least one survivor to start the game.", rs);
+								else
+									Writing::render("Press space to start the game.", rs);
 							}
 							else
 							{
-								Writing::render("Waiting for host to start game.", rs);
+								Writing::render("Waiting for the game to start.", rs);
 							}
 						}
+						rs.popTransform();
+						rs.popTransform();
+					}
+
+					if (!setting_up && !game_over)
+					{
+						rs.pushTransform();
+						rs.addTransform(Matrix4::Translation(Vec3(400.0f, 100.0f, 0.0f)));
+						Writing::setSize(30);
+						Writing::setColor(0.9f, 0.9f, 0.9f);
+						Writing::render("Survivor progress: " + std::to_string((int)(survivor_progress * 100.0f)) + "%", rs);
 						rs.popTransform();
 						rs.popTransform();
 					}
@@ -421,7 +539,10 @@ void GameStateComponent::set_display(bool enable)
 						rs.addTransform(Matrix4::Translation(Vec3(400.0f, 600.0f, 0.0f)));
 						Writing::setSize(50);
 						Writing::setColor(0.9f, 0.9f, 0.9f);
-						Writing::render("Game Over!", rs);
+						Writing::render("Game Over!\n", rs);
+						Writing::setSize(30);
+						Writing::render("Restarting in " + std::to_string((int)countdown), rs);
+						rs.popTransform();
 						rs.popTransform();
 						rs.popTransform();
 					}

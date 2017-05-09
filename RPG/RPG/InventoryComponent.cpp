@@ -21,6 +21,7 @@ InventoryComponent::InventoryComponent(void) : Serializable(_factory.id)
 
 InventoryComponent::InventoryComponent(instream& is, bool full) : Serializable(_factory.id)
 {
+	is >> owner;
 }
 
 InventoryComponent::~InventoryComponent(void)
@@ -31,10 +32,6 @@ InventoryComponent::~InventoryComponent(void)
 
 void InventoryComponent::connect(NewEntity * pEntity, bool authority)
 {
-	items.setSyncState(&pEntity->ss);
-	std::shared_ptr<Item> item(new Item());
-	item->type = 100;
-	items.add(item);
 }
 
 void InventoryComponent::disconnect(void)
@@ -55,14 +52,16 @@ void InventoryComponent::set_display(bool enable)
 	Client * client = entity->world->client;
 	if (client != nullptr)
 	{
-		if (client->clientData->client_id == client_id || !entity->world->authority)
+		if (enable)
 		{
-			if (enable)
+			if (!func)
 			{
-				if (!func)
+				auto mob = entity->getComponent<MobComponent>();
+				if (mob != nullptr)
 				{
-					auto mob = entity->getComponent<MobComponent>();
-					if (mob != nullptr)
+					if (entity->world->authority)
+						owner = entity->world->client->clientData->client_id == client_id;
+					if (owner)
 					{
 						func.reset(new std::function<void(RenderSetup&)>([this, mob](RenderSetup& rs) {
 							rs.pushTransform();
@@ -82,7 +81,7 @@ void InventoryComponent::set_display(bool enable)
 							rs.popTransform();
 							/*for (auto i = items.items.begin(); i != items.items.end(); ++i)
 							{
-								Writing::render(std::to_string((*i)->type), rs);
+							Writing::render(std::to_string((*i)->type), rs);
 							}*/
 							rs.pushTransform();
 							rs.addTransform(Matrix4::Translation(Vec3(rs.size / 2.0f)));
@@ -92,17 +91,32 @@ void InventoryComponent::set_display(bool enable)
 							rs.popTransform();
 							rs.popTransform();
 						}));
-						client->render2D.push_back(func);
 					}
+					else
+					{
+						func.reset(new std::function<void(RenderSetup&)>([this, mob](RenderSetup& rs) {
+							/*rs.pushTransform();
+							rs.transform = Matrix4();
+							if (mob->p)
+								rs.addTransform(Matrix4::Translation(*mob->p - rs.origin));
+							rs.addTransform(rs.view);
+							Writing::setSize(25);
+							Writing::setColor(0.3f, 0.5f, 0.1f);
+							Writing::render("Ally guy test", rs);
+							rs.popTransform();
+							rs.popTransform();*/
+						}));
+					}
+					client->render2D.push_back(func);
 				}
 			}
-			else
+		}
+		else
+		{
+			if (func)
 			{
-				if (func)
-				{
-					client->render2D.erase(std::remove(client->render2D.begin(), client->render2D.end(), func), client->render2D.end());
-					func.reset();
-				}
+				client->render2D.erase(std::remove(client->render2D.begin(), client->render2D.end(), func), client->render2D.end());
+				func.reset();
 			}
 		}
 	}
@@ -130,6 +144,7 @@ void InventoryComponent::interpolate(Component * pComponent, float fWeight)
 
 void InventoryComponent::write_to(outstream& os, ClientData& client) const
 {
+	os << (client.client_id == client_id);
 }
 
 void InventoryComponent::write_to(outstream& os) const
@@ -138,5 +153,6 @@ void InventoryComponent::write_to(outstream& os) const
 
 bool InventoryComponent::visible(ClientData& client) const
 {
-	return client.client_id == client_id;
+	return true;
+	//return client.client_id == client_id;
 }

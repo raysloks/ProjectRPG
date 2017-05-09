@@ -157,6 +157,7 @@
     <ClCompile Include="AIComponent.cpp" />
     <ClCompile Include="AnimationControlComponent.cpp" />
     <ClCompile Include="CameraControlComponent.cpp" />
+    <ClCompile Include="ChatComponent.cpp" />
     <ClCompile Include="GameStateComponent.cpp" />
     <ClCompile Include="HitBox.cpp" />
     <ClCompile Include="HitComponent.cpp" />
@@ -192,6 +193,7 @@
     <ClInclude Include="AIComponent.h" />
     <ClInclude Include="AnimationControlComponent.h" />
     <ClInclude Include="CameraControlComponent.h" />
+    <ClInclude Include="ChatComponent.h" />
     <ClInclude Include="GameStateComponent.h" />
     <ClInclude Include="HitBox.h" />
     <ClInclude Include="HitComponent.h" />

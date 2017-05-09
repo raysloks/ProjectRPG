@@ -46,14 +46,14 @@ MainMenuWindow::MainMenuWindow(World * pWorld, Client * pClient, int px, int py,
 		if (client->con != nullptr)
 		{
 			client->disconnect();
-			client->world->clear(false);
+			client->world->clear();
 		}
 		else
 		{
 			if (client->clientData != nullptr)
 			{
 				client->disconnect();
-				client->world->clear(false);
+				client->world->clear();
 				for (auto i = client->server->conns.begin(); i != client->server->conns.end(); ++i)
 				{
 					std::shared_ptr<ClientConnection> conn = i->second;

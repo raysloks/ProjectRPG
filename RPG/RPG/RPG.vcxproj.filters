@@ -32,6 +32,7 @@
     <ClCompile Include="GameStateComponent.cpp" />
     <ClCompile Include="TriggerComponent.cpp" />
     <ClCompile Include="TeamData.cpp" />
+    <ClCompile Include="ChatComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -64,6 +65,7 @@
     <ClInclude Include="GameStateComponent.h" />
     <ClInclude Include="TriggerComponent.h" />
     <ClInclude Include="TeamData.h" />
+    <ClInclude Include="ChatComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

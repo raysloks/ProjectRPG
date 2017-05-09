@@ -61,11 +61,6 @@ void MobComponent::tick(float dTime)
 	{
 		if (health.current <= 0)
 		{
-			auto acc = entity->getComponent<AnimationControlComponent>();
-			if (acc)
-			{
-				acc->set_state(1);
-			}
 			auto ai = entity->getComponent<AIComponent>();
 			if (ai)
 			{
@@ -400,7 +395,7 @@ void MobComponent::tick(float dTime)
 				v += land_n * nv;
 				v += land_v;
 
-				if (input.find("jump") != input.end()) {
+				if (input.find("jump") != input.end() && health.current > 0.0f) {
 					
 					v -= land_v;
 					if (up.Dot(v)<0.0f)
@@ -419,6 +414,19 @@ void MobComponent::tick(float dTime)
 			if (prev != *p)
 				if (pc != nullptr)
 					pc->update();
+		}
+	}
+
+	auto acc = entity->getComponent<AnimationControlComponent>();
+	if (acc)
+	{
+		if (health.current <= 0.0f)
+		{
+			acc->set_state(1);
+		}
+		else
+		{
+			acc->set_state(2);
 		}
 	}
 
@@ -446,14 +454,14 @@ void MobComponent::writeLog(outstream& os, ClientData& client)
 {
 	os << facing << move_facing << cam_facing << up;
 	os << v << land_n << land_v << landed;
-	os << health;
+	os << health << stamina;
 }
 
 void MobComponent::readLog(instream& is)
 {
 	is >> facing >> move_facing >> cam_facing >> up;
 	is >> v >> land_n >> land_v >> landed;
-	is >> health;
+	is >> health >> stamina;
 }
 
 void MobComponent::writeLog(outstream& os)
@@ -478,6 +486,7 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 		land_v = mob->land_v;
 		landed = mob->landed;
 		health = mob->health;
+		stamina = mob->stamina;
 	}
 }
 

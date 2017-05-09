@@ -56,7 +56,7 @@ void AnimationControlComponent::tick(float dTime)
 					pose->frame = 440.5f;
 				break;
 			case 2:
-				pose->frame += dTime * 60.0f * mob->v.Dot(mob->cam_facing);
+				pose->frame += dTime * 60.0f * Vec2(mob->v).Len();
 				if (pose->frame > 1088.5f)
 					pose->frame -= 90.0f;
 				break;

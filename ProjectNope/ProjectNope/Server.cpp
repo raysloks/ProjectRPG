@@ -24,6 +24,21 @@ Server::~Server(void)
 {
 }
 
+void Server::reset(std::function<void(void)> func)
+{
+	world->clear();
+	func();
+	onServerActivated();
+	if (client)
+		if (client->clientData)
+			onClientConnect(*client->clientData);
+	for each (auto con in conns)
+	{
+		if (con.second->data)
+			onClientConnect(*con.second->data);
+	}
+}
+
 #include "Script.h"
 
 #include "StringResource.h"
@@ -247,6 +262,10 @@ void Server::NotifyOfRemoval(uint32_t id, uint32_t uid)
 		if (client->clientData != nullptr)
 			client->clientData->forgetUnit(id);
 	}
+}
+
+void Server::onServerActivated(void)
+{
 }
 
 void Server::onClientConnect(ClientData& data)

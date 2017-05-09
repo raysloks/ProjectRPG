@@ -20,7 +20,7 @@ World::World(void)
 
 World::~World(void)
 {
-	clear(false);
+	clear();
 }
 
 void World::pre_frame(float dTime)
@@ -63,19 +63,12 @@ void World::clean(void)
 	removed.clear();
 }
 
-void World::clear(bool notify)
+void World::clear(void)
 {
-	clean();
 	for (size_t i = 0; i < units.size(); i++)
 	{
-		if (units[i] != nullptr)
-			delete units[i];
-		if (notify)
-			server->NotifyOfRemoval(i, uid[i]);
+		SetEntity(i, nullptr);
 	}
-	units.clear();
-	alloc = std::stack<size_t>();
-	mem.reset();
 }
 
 #include "GraphicsComponent.h"

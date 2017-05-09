@@ -153,23 +153,88 @@ void GraphicsComponent::invalidate(void)
 
 std::vector<GraphicsComponent*> standard;
 
-std::shared_ptr<Mesh> instance_mesh;
-MaterialList instance_materials;
-std::shared_ptr<SkeletalAnimation> instance_animation;
-
-std::vector<Matrix4> instance_transforms;
-std::vector<float> instance_frames;
-size_t instance_count;
-
 std::shared_ptr<ShaderProgram> instance_shader;
+
+class InstancedGraphics
+{
+public:
+	InstancedGraphics(const std::string& mesh, const MaterialList& mats)
+	{
+		instance_mesh_name = mesh;
+		instance_materials = mats;
+		instance_animation_name = "data/assets/units/player/KnightGuy.anim";
+		instance_count = 0;
+	}
+
+	void clear(void)
+	{
+		instance_transforms.clear();
+		instance_frames.clear();
+		instance_count = 0;
+	}
+
+	void render(RenderSetup& rs)
+	{
+		instance_mesh = Resource::get<Mesh>(instance_mesh_name);
+		instance_animation = Resource::get<SkeletalAnimation>(instance_animation_name);
+
+		if (instance_shader->IsReady() && instance_animation && instance_mesh)
+		{
+			auto instance_animation_texture = instance_animation->getCompiledTexture();
+
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, instance_animation_texture->texid);
+
+			for (size_t i = 0; i < instance_count; i += 128)
+			{
+				size_t nInstancesToRender = min(128, instance_count - i);
+
+				ShaderMod mod(instance_shader, [&rs, instance_animation_texture, i, nInstancesToRender, this](const std::shared_ptr<ShaderProgram>& prog) {
+					prog->UniformMatrix4fv("instance_transform", nInstancesToRender, (instance_transforms.begin() + i)._Ptr);
+					prog->Uniform1fv("instance_frame", nInstancesToRender, (instance_frames.begin() + i)._Ptr);
+					prog->Uniform("animation_data", 1);
+					prog->Uniform("bone_count", (float)instance_animation_texture->w);
+					prog->Uniform("frame_count", (float)instance_animation_texture->h);
+				});
+
+				rs.pushMod(mod);
+
+				instance_mesh->render_instanced(rs, instance_materials, nInstancesToRender);
+
+				rs.popMod();
+			}
+		}
+	}
+
+	void add(const Matrix4& transform, float frame)
+	{
+		instance_transforms.push_back(transform);
+		instance_frames.push_back(frame);
+		++instance_count;
+	}
+
+	std::string instance_mesh_name;
+	std::string instance_animation_name;
+
+	std::shared_ptr<Mesh> instance_mesh;
+	MaterialList instance_materials;
+	std::shared_ptr<SkeletalAnimation> instance_animation;
+
+	std::vector<Matrix4> instance_transforms;
+	std::vector<float> instance_frames;
+	size_t instance_count;
+};
+
+std::map<std::pair<std::string, std::string>, std::shared_ptr<InstancedGraphics>> instanced;
 
 void GraphicsComponent::prep(RenderSetup& rs)
 {
 	TimeslotA(prep);
 
-	instance_transforms.clear();
-	instance_frames.clear();
-	instance_count = 0;
+	for each (auto type in instanced)
+	{
+		type.second->clear();
+	}
 
 	standard.clear();
 
@@ -182,9 +247,19 @@ void GraphicsComponent::prep(RenderSetup& rs)
 				auto pose = g->entity->getComponent<PoseComponent>();
 				if (pose)
 				{
-					instance_transforms.push_back(g->decs.items.front()->local * Matrix4::Translation(*g->p - rs.origin));
-					instance_frames.push_back(pose->frame);
-					++instance_count;
+					auto key = std::make_pair(g->decs.items.front()->mesh_fname, g->decs.items.front()->materials.materials.front().tex.front());
+					auto it = instanced.find(key);
+					std::shared_ptr<InstancedGraphics> ig;
+					if (it != instanced.end())
+					{
+						ig = it->second;
+					}
+					else
+					{
+						ig.reset(new InstancedGraphics(g->decs.items.front()->mesh_fname, g->decs.items.front()->materials));
+						instanced.insert(std::make_pair(key, ig));
+					}
+					ig->add(g->decs.items.front()->local * Matrix4::Translation(*g->p - rs.origin), pose->frame);
 				}
 			}
 			else
@@ -194,21 +269,15 @@ void GraphicsComponent::prep(RenderSetup& rs)
 		}
 	}
 
+	if (!instance_shader)
+		instance_shader = std::make_shared<ShaderProgram>("data/gfill_skinned_vert.txt", "data/gfill_skinned_frag.txt");
+
 	/*for (size_t i = 0; i < 20000; i++)
 	{
 		instance_transforms.push_back(Matrix4::Translation(Vec3(50.0f, 50.0f, 50.0f) - rs.origin));
 		instance_frames.push_back(50.0f);
 		++instance_count;
 	}*/
-
-	instance_mesh = Resource::get<Mesh>("data/assets/units/player/KnightGuy.gmdl");
-	if (instance_materials.materials.empty())
-	{
-		instance_materials.materials.push_back(Material("data/assets/terrain/textures/ngrass.tga"));
-	}
-	instance_animation = Resource::get<SkeletalAnimation>("data/assets/units/player/KnightGuy.anim");
-	if (!instance_shader)
-		instance_shader = std::make_shared<ShaderProgram>("data/gfill_skinned_vert.txt", "data/gfill_skinned_frag.txt");
 
 	//standard_dynamic.clear();
 	//custom_dynamic.clear();
@@ -347,31 +416,9 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 		g->render(rs);
 	}
 
-	if (instance_shader->IsReady() && instance_animation && instance_mesh)
+	for each (auto type in instanced)
 	{
-		auto instance_animation_texture = instance_animation->getCompiledTexture();
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, instance_animation_texture->texid);
-		
-		for (size_t i = 0; i < instance_count; i += 128)
-		{
-			size_t nInstancesToRender = min(128, instance_count - i);
-
-			ShaderMod mod(instance_shader, [&rs, instance_animation_texture, i, nInstancesToRender](const std::shared_ptr<ShaderProgram>& prog) {
-				prog->UniformMatrix4fv("instance_transform", nInstancesToRender, (instance_transforms.begin() + i)._Ptr);
-				prog->Uniform1fv("instance_frame", nInstancesToRender, (instance_frames.begin() + i)._Ptr);
-				prog->Uniform("animation_data", 1);
-				prog->Uniform("bone_count", (float)instance_animation_texture->w);
-				prog->Uniform("frame_count", (float)instance_animation_texture->h);
-			});
-
-			rs.pushMod(mod);
-
-			instance_mesh->render_instanced(rs, instance_materials, nInstancesToRender);
-
-			rs.popMod();
-		}
+		type.second->render(rs);
 	}
 
 	/*if (rs.applyMods())

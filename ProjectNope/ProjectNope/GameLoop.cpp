@@ -51,7 +51,7 @@ GameLoop::GameLoop(World * w, Server * s, Client * c)
 
 GameLoop::~GameLoop(void)
 {
-	world->clear(false);
+	world->clear();
 
 	if (server != nullptr)
 		delete server;
@@ -160,7 +160,7 @@ void GameLoop::tick(void)
 		QueryPerformanceCounter(&end);
 		durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
 		fpsCorrection += durationInSeconds - fpsCap;
-		if (fpsCorrection>fpsCap)
+		if (fpsCorrection > fpsCap)
 			fpsCorrection = fpsCap;
 	}
 	lag += durationInSeconds;

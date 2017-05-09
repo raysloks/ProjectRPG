@@ -35,6 +35,8 @@ public:
 	Server(World * pWorld);
 	virtual ~Server(void);
 
+	void reset(std::function<void(void)> func = std::function<void(void)>());
+
 	virtual void tick(float dTime);
 
 	void NotifyOfCreation(uint32_t id);
@@ -61,6 +63,7 @@ public:
 
 	std::shared_ptr<ScriptMemory> mem;
 
+	virtual void onServerActivated(void);
 	virtual void onClientConnect(ClientData& data);
 	virtual void onClientDisconnect(ClientData& data);
 };

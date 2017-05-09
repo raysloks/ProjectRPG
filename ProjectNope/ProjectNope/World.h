@@ -38,7 +38,7 @@ public:
 	void render(RenderSetup& rs);
 
 	void clean(void);
-	void clear(bool notify);
+	void clear(void);
 
 	int AddEntity(NewEntity * entity); // use this one over SetEntity most of the time
 	

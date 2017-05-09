@@ -3,7 +3,7 @@
 
 #include <string>
 
-#define TIMESLOT_LEVEL 3
+#define TIMESLOT_LEVEL 0
 
 #define TimeslotA(x)
 #define TimeslotB(x)
