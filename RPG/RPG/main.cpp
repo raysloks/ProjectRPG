@@ -26,6 +26,7 @@
 #include "GameStateComponent.h"
 #include "TriggerComponent.h"
 #include "ChatComponent.h"
+#include "ServiceComponent.h"
 
 #include "ClientData.h"
 
@@ -126,7 +127,7 @@ public:
 			world->AddEntity(ent);
 		};
 
-		// create spawner
+		auto createSpawner = [this](const GlobalPosition& aabb_min, const GlobalPosition& aabb_max)
 		{
 			NewEntity * ent = new NewEntity();
 
@@ -134,11 +135,40 @@ public:
 
 			ent->addComponent(spawn);
 
-			spawn->aabb_min = Vec3(21.0f, 20.0f, 21.0f);
-			spawn->aabb_max = Vec3(41.0f, 40.0f, 30.0f);
+			spawn->aabb_min = aabb_min;
+			spawn->aabb_max = aabb_max;
 
 			world->AddEntity(ent);
 
+			return spawn;
+		};
+
+		auto createTicker = [this](std::function<void(void)> func, float delay)
+		{
+			NewEntity * ent = new NewEntity();
+
+			ServiceComponent * service = new ServiceComponent();
+
+			ent->addComponent(service);
+
+			std::shared_ptr<float> countdown(new float(delay));
+
+			service->on_tick = [func, countdown, delay](float dTime)
+			{
+				*countdown -= dTime;
+				if (*countdown <= 0.0f)
+				{
+					func();
+					*countdown = delay;
+				}
+			};
+
+			return world->AddEntity(ent);
+		};
+
+		// create spawner
+		{
+			auto spawn = createSpawner(Vec3(21.0f, 20.0f, 21.0f), Vec3(41.0f, 40.0f, 30.0f));
 			for (size_t i = 0; i < 20; i++)
 			{
 				spawn->spawn();
@@ -147,78 +177,23 @@ public:
 
 		// create spawner
 		{
-			NewEntity * ent = new NewEntity();
-
-			SpawnComponent * spawn = new SpawnComponent();
-
-			ent->addComponent(spawn);
-
-			spawn->aabb_min = Vec3(21.0f, -10.0f, 19.0f);
-			spawn->aabb_max = Vec3(41.0f, 20.0f, 25.0f);
-
-			world->AddEntity(ent);
-
+			auto spawn = createSpawner(Vec3(21.0f, -10.0f, 19.0f), Vec3(41.0f, 20.0f, 25.0f));
 			for (size_t i = 0; i < 20; i++)
 			{
 				spawn->spawn();
 			}
 		}
 
-		SpawnComponent * start_roof_spawn;
-		// create spawner
+		auto start_roof_spawn = createSpawner(Vec3(-20.0f, -9.0f, 32.0f), Vec3(-10.0f, 11.0f, 34.0f));
+		for (size_t i = 0; i < 5; i++)
 		{
-			NewEntity * ent = new NewEntity();
-
-			SpawnComponent * spawn = new SpawnComponent();
-
-			ent->addComponent(spawn);
-
-			spawn->aabb_min = Vec3(-20.0f, -9.0f, 32.0f);
-			spawn->aabb_max = Vec3(-10.0f, 11.0f, 34.0f);
-
-			world->AddEntity(ent);
-
-			for (size_t i = 0; i < 5; i++)
-			{
-				spawn->spawn();
-			}
-
-			start_roof_spawn = spawn;
+			start_roof_spawn->spawn();
 		}
 
-		SpawnComponent * road_chase_riverside_spawn;
-		// create spawner
-		{
-			NewEntity * ent = new NewEntity();
+		auto road_chase_riverside_spawn = createSpawner(Vec3(-45.0f, 60.0f, 0.0f), Vec3(-40.0f, 69.0f, 2.0f));
+		auto road_tunnel_hill_spawn = createSpawner(Vec3(-100.0f, -110.0f, 20.0f), Vec3(-30.0f, -100.0f, 22.0f));
 
-			SpawnComponent * spawn = new SpawnComponent();
-
-			ent->addComponent(spawn);
-
-			spawn->aabb_min = Vec3(-45.0f, 60.0f, 0.0f);
-			spawn->aabb_max = Vec3(-40.0f, 69.0f, 2.0f);
-
-			world->AddEntity(ent);
-
-			road_chase_riverside_spawn = spawn;
-		}
-
-		SpawnComponent * road_hill_front_spawn;
-		// create spawner
-		{
-			NewEntity * ent = new NewEntity();
-
-			SpawnComponent * spawn = new SpawnComponent();
-
-			ent->addComponent(spawn);
-
-			spawn->aabb_min = Vec3(70.0f, -100.0f, 20.0f);
-			spawn->aabb_max = Vec3(80.0f, -110.0f, 22.0f);
-
-			world->AddEntity(ent);
-
-			road_hill_front_spawn = spawn;
-		}
+		auto road_hill_front_spawn = createSpawner(Vec3(70.0f, -100.0f, 20.0f), Vec3(80.0f, -110.0f, 22.0f));
 
 		// create trigger volume
 		{
@@ -257,17 +232,23 @@ public:
 
 			trigger->delay = 1.0f;
 
-			trigger->func = [game_state, road_chase_riverside_spawn](MobComponent * mob)
+			trigger->func_multi = [=](const std::vector<MobComponent*>& mobs)
 			{
 				for (size_t i = 0; i < 2; i++)
 				{
 					road_chase_riverside_spawn->spawn(Vec3(-1.0f, 0.0f, 0.0f));
+				}
+				for (size_t i = 0; i < 10; i++)
+				{
+					road_tunnel_hill_spawn->spawn(Vec3(0.0f, 1.0f, 0.0f));
 				}
 			};
 
 			world->AddEntity(ent);
 		}
 
+
+		std::shared_ptr<float> road_hill_swarm_countdown(new float(0.0f));
 		// create trigger volume
 		{
 			NewEntity * ent = new NewEntity();
@@ -281,11 +262,26 @@ public:
 
 			trigger->delay = 1.0f;
 
-			trigger->func = [game_state, road_hill_front_spawn](MobComponent * mob)
+			trigger->func = [=](MobComponent * mob)
 			{
-				for (size_t i = 0; i < 5; i++)
+				*road_hill_swarm_countdown -= 1.0f;
+				if (*road_hill_swarm_countdown <= 0.0f)
 				{
-					road_hill_front_spawn->spawn(Vec3(0.0f, 1.0f, 0.0f));
+					*road_hill_swarm_countdown += 100.0f;
+					std::shared_ptr<float> duration(new float(20.0f));
+					std::shared_ptr<int> ticker_id(new int(-1));
+					*ticker_id = createTicker([=]()
+					{
+						for (size_t i = 0; i < 5; i++)
+						{
+							road_hill_front_spawn->spawn(Vec3(0.0f, 1.0f, 0.0f));
+						}
+						*duration -= 1.0f;
+						if (*duration <= 0.0f)
+						{
+							world->SetEntity(*ticker_id, nullptr);
+						}
+					}, 1.0f);
 				}
 			};
 
@@ -328,6 +324,23 @@ public:
 			message.message = "Client id " + std::to_string(data.client_id) + " connected.\n";
 			message.timeout = 10.0f;
 			chats.front()->messages.push_back(message);
+		}
+	}
+
+	void onClientDisconnect(ClientData& data)
+	{
+		auto chats = world->GetComponents<ChatComponent>();
+		if (chats.size())
+		{
+			ChatMessage message;
+			message.message = "Client id " + std::to_string(data.client_id) + " disconnected.\n";
+			message.timeout = 10.0f;
+			chats.front()->messages.push_back(message);
+		}
+		auto game_states = world->GetComponents<GameStateComponent>();
+		if (game_states.size())
+		{
+			game_states.front()->removePlayer(data.client_id);
 		}
 	}
 };

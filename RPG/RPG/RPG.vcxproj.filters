@@ -33,6 +33,7 @@
     <ClCompile Include="TriggerComponent.cpp" />
     <ClCompile Include="TeamData.cpp" />
     <ClCompile Include="ChatComponent.cpp" />
+    <ClCompile Include="ServiceComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -66,6 +67,7 @@
     <ClInclude Include="TriggerComponent.h" />
     <ClInclude Include="TeamData.h" />
     <ClInclude Include="ChatComponent.h" />
+    <ClInclude Include="ServiceComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

@@ -105,6 +105,8 @@ void Server::tick(float dTime)
 
 	if (con != nullptr)
 	{
+		TimeslotA(snapshot);
+
 		--snapshotTimer;
 
 		for (auto i = conns.begin(); i != conns.end(); ++i)

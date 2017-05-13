@@ -259,6 +259,8 @@ std::vector<size_t> CollisionMesh::GetWallsInAABB(Vec3 box_min, Vec3 box_max) co
 		return ret;
 	}
 
+	Vec3 epsilon(1.0f, 1.0f, 1.0f);
+
 	Vec3 dif = aabb_max - aabb_min;
 
 	Vec3 min_scaled = box_min - aabb_min;

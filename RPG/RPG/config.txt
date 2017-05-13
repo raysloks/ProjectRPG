@@ -6,7 +6,7 @@ vsync = 1;
 force_sync = 0;
 force_cap = 0;
 framerate_cap = 0;
-tickrate = 144;
+tickrate = 30;
 
 anisotropic_filtering = 16.0;
 

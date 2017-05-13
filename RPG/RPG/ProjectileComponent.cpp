@@ -49,10 +49,17 @@ void ProjectileComponent::tick(float dTime)
 		auto mobs = entity->world->GetNearestComponents<MobComponent>(pc->p);
 		for each (auto mob in mobs)
 		{
-			auto col = Wall::SphereLine(Vec3(), dp, *mob.second->p - pc->p, 0.5f);
-			if (col != nullptr)
+			bool ok = true;
+			if (t <= 0.1f)
+				if (mob.second == shooter)
+					ok = false;
+			if (ok)
 			{
-				hits.push_back(std::make_pair(mob.second, col));
+				auto col = Wall::SphereLine(Vec3(), dp, *mob.second->p - pc->p, 0.5f);
+				if (col != nullptr)
+				{
+					hits.push_back(std::make_pair(mob.second, col));
+				}
 			}
 		}
 
@@ -65,6 +72,7 @@ void ProjectileComponent::tick(float dTime)
 
 		if (hits.empty())
 		{
+			t += dTime;
 			pc->p += v * dTime + g * dTime * dTime;
 		}
 		else
@@ -72,6 +80,7 @@ void ProjectileComponent::tick(float dTime)
 			std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& lhs, const std::shared_ptr<Collision>& rhs) {
 				return lhs->t < rhs->t;
 			});
+			t += hits.front().second->t;
 			pc->p = hits.front().second->poo;
 			if (on_collision)
 				on_collision(hits.front().first);

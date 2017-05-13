@@ -44,6 +44,7 @@ public:
 	float delay, countdown;
 
 	std::function<void(MobComponent*)> func;
+	std::function<void(const std::vector<MobComponent*>&)> func_multi;
 };
 
 #endif

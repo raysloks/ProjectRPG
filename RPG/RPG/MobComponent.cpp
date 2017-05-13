@@ -13,6 +13,7 @@
 #include "PoseComponent.h"
 #include "AnimationControlComponent.h"
 #include "AIComponent.h"
+#include "GameStateComponent.h"
 
 #include "GlobalPosition.h"
 
@@ -71,7 +72,11 @@ void MobComponent::tick(float dTime)
 			crouch = true;
 			health.current -= dTime * (temp_team == 1 ? 100.0f : 1.0f);
 			if (health.current <= -300.0f)
+			{
 				entity->world->SetEntity(entity->id, nullptr);
+				if (on_death)
+					on_death();
+			}
 		}
 
 		for (auto i = input.begin(); i != input.end();)
@@ -94,6 +99,9 @@ void MobComponent::tick(float dTime)
 
 		if (p != nullptr)
 		{
+			if (Vec3(*p).LenPwr() > 4000000.0f)
+				entity->world->SetEntity(entity->id, nullptr);
+
 			auto mobs = entity->world->GetNearestComponents<MobComponent>(*p, 2.0f);
 			for each (auto mob in mobs)
 			{
@@ -115,10 +123,8 @@ void MobComponent::tick(float dTime)
 				}
 			}
 
-			if (input.find("attack") != input.end())
-			{
-				attack();
-			}
+			if (on_tick)
+				on_tick(dTime);
 
 			/*{
 				std::vector<std::shared_ptr<Collision>> list;
@@ -426,7 +432,8 @@ void MobComponent::tick(float dTime)
 		}
 		else
 		{
-			acc->set_state(2);
+			if (acc->state == 1)
+				acc->set_state(2);
 		}
 	}
 
@@ -435,7 +442,8 @@ void MobComponent::tick(float dTime)
 		auto wpc = weapon->entity->getComponent<PositionComponent>();
 		if (wpc != nullptr)
 		{
-			wpc->p = *p + up * 0.45f + Vec3(-0.25f, -0.5f + recoil * 0.25f, 0.75f - recoil * 0.5f) * cam_rot;
+			wpc->p = *p + up * 0.45f + Vec3(-0.25f, -0.35f + recoil * 0.25f, 0.75f - recoil * 0.5f) * cam_rot;
+			//wpc->p = *p + up * 0.2f + Vec3(-0.1f, 0.05f + recoil * 0.25f, 0.75f - recoil * 0.5f) * cam_rot;
 			wpc->update();
 			auto wgc = weapon->entity->getComponent<GraphicsComponent>();
 			if (wgc != nullptr)
@@ -455,6 +463,7 @@ void MobComponent::writeLog(outstream& os, ClientData& client)
 	os << facing << move_facing << cam_facing << up;
 	os << v << land_n << land_v << landed;
 	os << health << stamina;
+	os << run << crouch;
 }
 
 void MobComponent::readLog(instream& is)
@@ -462,6 +471,7 @@ void MobComponent::readLog(instream& is)
 	is >> facing >> move_facing >> cam_facing >> up;
 	is >> v >> land_n >> land_v >> landed;
 	is >> health >> stamina;
+	is >> run >> crouch;
 }
 
 void MobComponent::writeLog(outstream& os)
@@ -487,6 +497,8 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 		landed = mob->landed;
 		health = mob->health;
 		stamina = mob->stamina;
+		run = mob->run;
+		crouch = mob->crouch;
 	}
 }
 

@@ -168,6 +168,7 @@
     <ClCompile Include="OrbitComponent.cpp" />
     <ClCompile Include="PlayerInputComponent.cpp" />
     <ClCompile Include="ProjectileComponent.cpp" />
+    <ClCompile Include="ServiceComponent.cpp" />
     <ClCompile Include="SkillNode.cpp" />
     <ClCompile Include="SpawnComponent.cpp" />
     <ClCompile Include="TeamData.cpp" />
@@ -203,6 +204,7 @@
     <ClInclude Include="OrbitComponent.h" />
     <ClInclude Include="PlayerInputComponent.h" />
     <ClInclude Include="ProjectileComponent.h" />
+    <ClInclude Include="ServiceComponent.h" />
     <ClInclude Include="SkillNode.h" />
     <ClInclude Include="SpawnComponent.h" />
     <ClInclude Include="TeamData.h" />

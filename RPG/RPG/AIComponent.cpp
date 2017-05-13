@@ -4,6 +4,7 @@
 #include "World.h"
 #include "MobComponent.h"
 #include "ColliderComponent.h"
+#include "AnimationControlComponent.h"
 
 const AutoSerialFactory<AIComponent> AIComponent::_factory("AIComponent");
 
@@ -106,7 +107,12 @@ AIComponent::AIComponent(void) : Serializable(_factory.id)
 			if (l < 1.5f)
 			{
 				mob->move = Vec3();
-				checks.insert(std::make_pair(0.25f + time_over, attack));
+				checks.insert(std::make_pair(0.5f + time_over, attack));
+				auto acc = entity->getComponent<AnimationControlComponent>();
+				if (acc)
+				{
+					acc->set_state(3);
+				}
 			}
 			else
 			{
@@ -188,7 +194,7 @@ AIComponent::AIComponent(void) : Serializable(_factory.id)
 			other->health.current -= 5.0f;
 		}
 
-		checks.insert(std::make_pair(0.25f + time_over, chase));
+		checks.insert(std::make_pair(0.5f + time_over, chase));
 	};
 }
 

@@ -38,6 +38,8 @@ public:
 
 	Vec3 v;
 	float drag;
+	float t;
+	MobComponent * shooter;
 
 	std::function<void(MobComponent*)> on_collision;
 };

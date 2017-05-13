@@ -37,6 +37,7 @@ public:
 	std::string _sound;
 	AudioSource * src;
 	float offset, gain;
+	int pos_id;
 };
 
 #endif

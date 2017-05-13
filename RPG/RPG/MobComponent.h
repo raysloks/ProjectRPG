@@ -50,12 +50,13 @@ public:
 	HealthBar health;
 	HealthBar stamina;
 
-	std::function<void(void)> attack;
-
 	size_t temp_team;
 
 	WeaponComponent * weapon;
 	float recoil;
+
+	std::function<void(void)> on_death;
+	std::function<void(float)> on_tick;
 
 	//facing
 	Vec3 facing, up, move_facing;

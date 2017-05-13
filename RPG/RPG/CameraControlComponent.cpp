@@ -72,6 +72,7 @@ void CameraControlComponent::pre_frame(float dTime)
 			{
 				entity->world->cam_rot = cam_rot;
 				entity->world->cam_pos = *p + up * 0.45f;
+				//entity->world->cam_pos = *p + up * 0.2f + top * 0.25f + front * 0.15f;
 			}
 		}
 	}

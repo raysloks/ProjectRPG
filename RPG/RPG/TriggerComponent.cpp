@@ -42,6 +42,7 @@ void TriggerComponent::tick(float dTime)
 	{
 		countdown += delay;
 		auto mobs = entity->world->GetComponents<MobComponent>();
+		std::vector<MobComponent*> passed_mobs;
 		for each (auto mob in mobs)
 		{
 			if (mob->temp_team == 0)
@@ -51,11 +52,15 @@ void TriggerComponent::tick(float dTime)
 				{
 					if (inside_area(p->p))
 					{
-						func(mob);
+						if (func)
+							func(mob);
+						passed_mobs.push_back(mob);
 					}
 				}
 			}
 		}
+		if (func_multi && passed_mobs.size())
+			func_multi(passed_mobs);
 	}
 }
 

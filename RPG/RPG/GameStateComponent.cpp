@@ -220,6 +220,8 @@ void GameStateComponent::startGame(void)
 #include "PoseComponent.h"
 #include "ProjectileComponent.h"
 #include "WeaponComponent.h"
+#include "ColliderComponent.h"
+#include "AudioComponent.h"
 
 MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t team, uint32_t index)
 {
@@ -259,54 +261,70 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 
 	if (team == 0)
 	{
-		mob->attack = [mob]()
+		mob->on_tick = [mob](float dTime)
 		{
-			auto spawn_bullet = [mob](const Vec3& muzzle_velocity)
+			if (mob->input["attack"])
 			{
-				NewEntity * ent = new NewEntity();
-
-				PositionComponent * pos = new PositionComponent();
-				ProjectileComponent * projectile = new ProjectileComponent();
-				GraphicsComponent * g = new GraphicsComponent(false);
-
-				ent->addComponent(pos);
-				ent->addComponent(projectile);
-				ent->addComponent(g);
-
-				pos->p = *mob->p + mob->up * 0.45f;
-
-				projectile->v = muzzle_velocity + mob->v;
-				projectile->drag = 0.01f;
-
-				projectile->on_collision = [ent](MobComponent * target)
+				auto spawn_bullet = [=](const Vec3& muzzle_velocity)
 				{
-					if (target)
+					NewEntity * ent = new NewEntity();
+
+					PositionComponent * pos = new PositionComponent();
+					ProjectileComponent * projectile = new ProjectileComponent();
+					GraphicsComponent * g = new GraphicsComponent(false);
+
+					ent->addComponent(pos);
+					ent->addComponent(projectile);
+					ent->addComponent(g);
+
+					projectile->v = muzzle_velocity + mob->v;
+					projectile->drag = 0.01f;
+
+					pos->p = *mob->p + mob->up * 0.45f;
+
+					projectile->on_collision = [ent](MobComponent * target)
 					{
-						target->health.current -= 20.0f;
-						target->hit = true;
-					}
-					ent->world->SetEntity(ent->id, nullptr);
+						if (target)
+						{
+							target->health.current -= 20.0f;
+							target->hit = true;
+						}
+						ent->world->SetEntity(ent->id, nullptr);
+					};
+
+					projectile->shooter = mob;
+
+					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
+					g->decs.items.front()->local *= 0.0127f * 0.5f;
+					g->decs.items.front()->local.data[15] = 1.0f;
+					g->decs.items.front()->local *= mob->cam_rot;
+
+					mob->entity->world->AddEntity(ent);
 				};
 
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
-				g->decs.items.front()->local *= 0.0127f * 0.5f;
-				g->decs.items.front()->local.data[15] = 1.0f;
-				g->decs.items.front()->local *= mob->cam_rot;
+				spawn_bullet(mob->cam_facing * 470.0f);
 
-				mob->entity->world->AddEntity(ent);
-			};
+				mob->recoil += 0.3f;
 
-			spawn_bullet(mob->cam_facing * 470.0f);
+				mob->input.erase("attack");
 
-			mob->recoil += 0.3f;
-
-			mob->input.erase("attack");
+				NewEntity * sound_ent = new NewEntity();
+				auto audio = new AudioComponent("data/assets/audio/bang.wav");
+				audio->pos_id = mob->weapon->entity->id;
+				sound_ent->addComponent(audio);
+				mob->entity->world->AddEntity(sound_ent);
+			}
 		};
 	}
 
 	if (team == 1)
 	{
-		mob->attack = [mob]()
+		mob->on_death = [=]()
+		{
+			createAvatar(client_id, team, index);
+		};
+
+		/*mob->attack = [mob]()
 		{
 			if (mob->input.find("attack_cooldown") == mob->input.end())
 			{
@@ -348,6 +366,116 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 
 				mob->input.erase("attack");
 				mob->input["attack_cooldown"] = 5.0f;
+			}
+		};*/
+
+		/*mob->attack = [=]()
+		{
+			if (mob->input.find("attack_cooldown") == mob->input.end())
+			{
+				auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(*mob->p + mob->cam_facing * 1.0f, 1.0f);
+				MobComponent * other = nullptr;
+				for each (auto nearby in nearby_mobs)
+				{
+					if (nearby.second != mob)
+					{
+						std::vector<std::shared_ptr<Collision>> list;
+						ColliderComponent::LineCheck(*mob->p, *nearby.second->p, list);
+						if (list.empty())
+						{
+							other = nearby.second;
+							break;
+						}
+					}
+				}
+
+				if (other != nullptr)
+				{
+					other->hit = true;
+					other->health.current -= 15.0f;
+					Vec3 flat_facing = mob->cam_facing;
+					flat_facing.z = 0.0f;
+					flat_facing.Normalize();
+					other->v += flat_facing * 10.0f + Vec3(0.0f, 0.0f, 4.0f);
+				}
+
+				mob->input.erase("attack");
+				mob->input["attack_cooldown"] = 0.5f;
+
+				acc->set_state(3);
+			}
+		};*/
+
+		mob->on_tick = [=](float dTime)
+		{
+			if (mob->input["attack"])
+			{
+				mob->input["spraying"] = 1.0f;
+				mob->input["windup"] = 1.4f;
+				mob->input.erase("attack");
+
+				NewEntity * sound_ent = new NewEntity();
+				auto audio = new AudioComponent("data/assets/audio/ZombieSpit.wav");
+				audio->pos_id = ent->id;
+				sound_ent->addComponent(audio);
+				mob->entity->world->AddEntity(sound_ent);
+			}
+
+			if (mob->input["spraying"])
+			{
+				mob->input["spraying"] = 1.0f;
+				if (!mob->input["windup"])
+				{
+					if (!mob->input["spray_delay"])
+					{
+						if (mob->input["heat"] < 15.0f)
+						{
+							mob->input["spray_delay"] = 0.1f;
+							mob->input["heat"] += 0.5f;
+
+							auto spawn_bullet = [mob](const Vec3& muzzle_velocity)
+							{
+								NewEntity * ent = new NewEntity();
+
+								PositionComponent * pos = new PositionComponent();
+								ProjectileComponent * projectile = new ProjectileComponent();
+								GraphicsComponent * g = new GraphicsComponent(false);
+
+								ent->addComponent(pos);
+								ent->addComponent(projectile);
+								ent->addComponent(g);
+
+								pos->p = *mob->p + mob->up * 0.45f + Vec3(0.0f, -0.2f, 0.0f) * mob->cam_rot;
+
+								projectile->v = muzzle_velocity + mob->v;
+								projectile->drag = 0.04f;
+
+								projectile->on_collision = [ent, pos](MobComponent * target)
+								{
+									if (target)
+									{
+										target->input["slime"] += 0.15f;
+										target->health.current -= target->input["slime"];
+									}
+									ent->world->SetEntity(ent->id, nullptr);
+								};
+
+								g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/terrain/textures/ngrass.tga"), 0)));
+								g->decs.items.front()->local *= 0.05f;
+								g->decs.items.front()->local.data[15] = 1.0f;
+								g->decs.items.front()->local *= mob->cam_rot;
+
+								mob->entity->world->AddEntity(ent);
+							};
+
+							spawn_bullet(mob->cam_facing * 20.0f);
+						}
+						else
+						{
+							mob->input.erase("spraying");
+						}
+					}
+				}
 			}
 		};
 	}
