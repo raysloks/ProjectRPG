@@ -58,6 +58,35 @@ const Quaternion& Quaternion::operator*=(const Quaternion& rhs)
 	return *this;
 }
 
+Quaternion Quaternion::operator+(const Quaternion& rhs) const
+{
+	return Quaternion(w + rhs.w,
+		x + rhs.x,
+		y + rhs.y,
+		z + rhs.z);
+}
+
+Quaternion Quaternion::operator-(const Quaternion& rhs) const
+{
+	return Quaternion(w - rhs.w,
+		x - rhs.x,
+		y - rhs.y,
+		z - rhs.z);
+}
+
+Quaternion Quaternion::operator*(float rhs) const
+{
+	return Quaternion(w * rhs,
+		x * rhs,
+		y * rhs,
+		z * rhs);
+}
+
+float Quaternion::Dot(const Quaternion & rhs) const
+{
+	return x*rhs.x + y*rhs.y + z*rhs.z + w*rhs.w;
+}
+
 void Quaternion::Normalize(void)
 {
 	float l = w*w+x*x+y*y+z*z;
@@ -133,6 +162,14 @@ Quaternion Quaternion::lookAt(const Vec3& forward, const Vec3& up)
 	ret.Normalize();
 
 	return ret;
+}
+
+Quaternion operator-(const Quaternion& rhs)
+{
+	return Quaternion(-rhs.w,
+		-rhs.x,
+		-rhs.y,
+		-rhs.z);
 }
 
 outstream& operator<<(outstream& os, const Quaternion& q)

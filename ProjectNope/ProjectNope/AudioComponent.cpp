@@ -9,11 +9,11 @@
 
 const AutoSerialFactory<AudioComponent> AudioComponent::_factory("AudioComponent");
 
-AudioComponent::AudioComponent(const std::string& sound, float pow) : Serializable(_factory.id), _sound(sound), gain(pow), src(nullptr), p(nullptr), offset(0.0f)
+AudioComponent::AudioComponent(const std::string& sound, float pow) : Serializable(_factory.id), _sound(sound), gain(pow), src(nullptr), offset(0.0f)
 {
 }
 
-AudioComponent::AudioComponent(instream& is, bool full) : Serializable(_factory.id), src(nullptr), p(nullptr)
+AudioComponent::AudioComponent(instream& is, bool full) : Serializable(_factory.id), src(nullptr)
 {
 	is >> _sound >> offset >> gain >> pos_id;
 }
@@ -39,12 +39,10 @@ void AudioComponent::disconnect(void)
 
 void AudioComponent::pre_frame(float dTime)
 {
-	if (p == nullptr)
-	{
-		auto pos = entity->world->units[pos_id]->getComponent<PositionComponent>();
-		if (pos != nullptr)
-			p = pos;
-	}
+	PositionComponent * p = nullptr;
+	auto ent = entity->world->GetEntity(pos_id);
+	if (ent)
+		p = ent->getComponent<PositionComponent>();
 
 	if (src == nullptr)
 	{
@@ -62,8 +60,9 @@ void AudioComponent::pre_frame(float dTime)
 		if (p != nullptr)
 			src->SetPosition(p->p - entity->world->cam_pos);
 
-		if (offset > src->sound->duration)
-			entity->world->SetEntity(entity->id, nullptr);
+		if (entity->world->authority)
+			if (offset > src->sound->duration)
+				entity->world->SetEntity(entity->id, nullptr);
 	}
 
 	offset += dTime;
@@ -95,7 +94,7 @@ void AudioComponent::interpolate(Component * pComponent, float fWeight)
 
 void AudioComponent::write_to(outstream& os, ClientData& client) const
 {
-	os << _sound << offset << gain << client.getUnit(pos_id);
+	os << _sound << offset << gain << EntityID(client.getUnit(pos_id.id), pos_id.uid);
 }
 
 void AudioComponent::write_to(outstream& os) const

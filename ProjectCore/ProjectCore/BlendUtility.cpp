@@ -4,6 +4,7 @@
 
 #include "Vec3.h"
 #include "Matrix3.h"
+#include "Quaternion.h"
 
 float bu_blend(float current, float target, float a, float b, float dTime)
 {
@@ -170,4 +171,36 @@ Vec3 bu_sphere(Vec3 current, Vec3 target, Vec3 pref, float a)
 	if (c>M_PI)
 		c=M_PI;
 	return target * Matrix3(c, axis);
+}
+
+Quaternion bu_slerp(Quaternion current, Quaternion target, float a)
+{
+	current.Normalize();
+	target.Normalize();
+
+	float dot = current.Dot(target);
+	if (fabs(dot) > 0.999f)
+	{
+		Quaternion result = current + (target - current) * a;
+		result.Normalize();
+		return result;
+	}
+
+	if (dot < 0.0f)
+	{
+		target = -target;
+		dot = -dot;
+	}
+
+	if (dot > 1.0f)
+		dot = 1.0f;
+	if (dot < -1.0f)
+		dot = -1.0f;
+
+	float angle = acos(dot) * a;
+
+	Quaternion rot = target - current * dot;
+	rot.Normalize();
+
+	return current * cos(angle) + rot * sin(angle);
 }

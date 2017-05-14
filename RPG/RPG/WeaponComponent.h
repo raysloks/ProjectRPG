@@ -3,6 +3,8 @@
 
 #include "Component.h"
 
+class MobComponent;
+
 class WeaponComponent :
 	public Component
 {
@@ -29,6 +31,12 @@ public:
 	void write_to(outstream& os) const;
 
 	static const AutoSerialFactory<WeaponComponent> _factory;
+
+	WeaponComponent * swap(size_t index);
+
+	uint32_t mob_id;
+
+	float recoil;
 };
 
 #endif

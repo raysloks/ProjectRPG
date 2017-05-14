@@ -58,7 +58,7 @@ void AnimationControlComponent::tick(float dTime)
 				{
 					NewEntity * sound_ent = new NewEntity();
 					auto audio = new AudioComponent("data/assets/audio/ouch.wav");
-					audio->pos_id = entity->id;
+					audio->pos_id = entity->get_id();
 					sound_ent->addComponent(audio);
 					entity->world->AddEntity(sound_ent);
 				}
@@ -67,7 +67,7 @@ void AnimationControlComponent::tick(float dTime)
 				{
 					NewEntity * sound_ent = new NewEntity();
 					auto audio = new AudioComponent("data/assets/audio/ZombieOuch.wav");
-					audio->pos_id = entity->id;
+					audio->pos_id = entity->get_id();
 					sound_ent->addComponent(audio);
 					entity->world->AddEntity(sound_ent);
 				}

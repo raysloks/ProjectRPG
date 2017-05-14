@@ -64,6 +64,8 @@ void InventoryComponent::set_display(bool enable)
 					if (owner)
 					{
 						func.reset(new std::function<void(RenderSetup&)>([this, mob](RenderSetup& rs) {
+
+							// health
 							rs.pushTransform();
 							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 100.0f, 0.0f)));
 							Writing::setSize(25);
@@ -72,6 +74,7 @@ void InventoryComponent::set_display(bool enable)
 							rs.popTransform();
 							rs.popTransform();
 
+							// stamina
 							rs.pushTransform();
 							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 140.0f, 0.0f)));
 							Writing::setSize(25);
@@ -79,10 +82,8 @@ void InventoryComponent::set_display(bool enable)
 							Writing::render(std::to_string((int)std::ceilf(mob->stamina.current)) + " / " + std::to_string((int)std::ceilf(mob->stamina.max)), rs);
 							rs.popTransform();
 							rs.popTransform();
-							/*for (auto i = items.items.begin(); i != items.items.end(); ++i)
-							{
-							Writing::render(std::to_string((*i)->type), rs);
-							}*/
+
+							// reticle
 							rs.pushTransform();
 							rs.addTransform(Matrix4::Translation(Vec3(rs.size / 2.0f)));
 							rs.addTransform(Matrix4::Translation(Vec3(-10.0f, 10.0f, 0.0f)));
@@ -90,6 +91,7 @@ void InventoryComponent::set_display(bool enable)
 							Writing::render("O", rs);
 							rs.popTransform();
 							rs.popTransform();
+
 						}));
 					}
 					else

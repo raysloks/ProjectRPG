@@ -186,6 +186,7 @@
     <ClCompile Include="ColliderIterator.cpp" />
     <ClCompile Include="Connection.cpp" />
     <ClCompile Include="ControllerState.cpp" />
+    <ClCompile Include="EntityID.cpp" />
     <ClCompile Include="ExampleComponent.cpp" />
     <ClCompile Include="GameLoop.cpp" />
     <ClCompile Include="GlyphAtlas.cpp" />
@@ -275,6 +276,7 @@
     <ClInclude Include="ColliderIterator.h" />
     <ClInclude Include="Connection.h" />
     <ClInclude Include="ControllerState.h" />
+    <ClInclude Include="EntityID.h" />
     <ClInclude Include="ExampleComponent.h" />
     <ClInclude Include="GlyphAtlas.h" />
     <ClInclude Include="IComponentIterator.h" />

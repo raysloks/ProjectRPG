@@ -102,6 +102,8 @@ void PlayerInputComponent::post_frame(float dTime)
 				cs.activate("jump");
 			if (input.isPressed(Platform::KeyEvent::LMB) || input.ctrl[0].right_trigger.pressed)
 				cs.activate("attack");
+			if (input.isPressed(Platform::KeyEvent::TAB) || input.ctrl[0].y.pressed)
+				cs.activate("switch");
 		}
 	}
 }
@@ -116,24 +118,30 @@ void PlayerInputComponent::tick(float dTime)
 	if (mob == nullptr)
 		mob = entity->getComponent<MobComponent>();
 
-	if (entity->world->authority)
+	if (mob != nullptr)
 	{
-		if (mob != nullptr)
+		mob->cam_facing = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
+		mob->cam_rot = cam_rot;
+
+		if (entity->world->authority)
 		{
 			float buffer_duration = 0.4f;
 
 			mob->move = move;
-			mob->cam_facing = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
-			mob->cam_rot = cam_rot;
 
 			mob->run = cs.input["run"];
 			mob->crouch = cs.input["crouch"];
+
 			if (cs.active.find("jump") != cs.active.end())
 				mob->input["jump"] = buffer_duration;
 
 			if (cs.active.find("attack") != cs.active.end())
 				mob->input["attack"] = buffer_duration;
 
+			if (cs.active.find("switch") != cs.active.end())
+				mob->input["switch"] = buffer_duration;
+
+			cs.active.erase("switch");
 			cs.active.erase("attack");
 			cs.active.erase("jump");
 		}

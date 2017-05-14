@@ -3,6 +3,8 @@
 
 #include "Component.h"
 
+#include "EntityID.h"
+
 class AudioSource;
 class PositionComponent;
 
@@ -33,11 +35,11 @@ public:
 
 	static const AutoSerialFactory<AudioComponent> _factory;
 
-	PositionComponent * p;
 	std::string _sound;
 	AudioSource * src;
 	float offset, gain;
-	int pos_id;
+
+	EntityID pos_id;
 };
 
 #endif

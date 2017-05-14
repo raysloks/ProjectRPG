@@ -7,6 +7,8 @@ TGA::TGA(instream& is, std::set<std::string> options)
 	if (options.find("!sRGB") != options.end())
 		sRGB = false;
 
+	linear = options.find("linear") != options.end();
+
 	size_t file_size;
 	is.seekg(0, std::ios::end);
 	file_size = is.tellg();
@@ -201,7 +203,10 @@ GLuint TGA::getGLTexID(void)
 		if (fAnisotropicFiltering < 0.5f ? fGeneralAnisotropicFiltering : fAnisotropicFiltering > 1.0f)
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, fAnisotropicFiltering < 0.5f ? fGeneralAnisotropicFiltering : fAnisotropicFiltering);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		if (linear)
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		else
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);

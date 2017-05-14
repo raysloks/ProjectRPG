@@ -60,6 +60,13 @@ void MobComponent::tick(float dTime)
 {
 	if (entity->world->authority)
 	{
+		if (input["switch"] && weapon)
+		{
+			weapon = weapon->swap(1 - weapon_index);
+			weapon_index = 1 - weapon_index;
+			input.erase("switch");
+		}
+
 		if (health.current <= 0)
 		{
 			auto ai = entity->getComponent<AIComponent>();
@@ -437,25 +444,6 @@ void MobComponent::tick(float dTime)
 		}
 	}
 
-	if (weapon != nullptr)
-	{
-		auto wpc = weapon->entity->getComponent<PositionComponent>();
-		if (wpc != nullptr)
-		{
-			wpc->p = *p + up * 0.45f + Vec3(-0.25f, -0.35f + recoil * 0.25f, 0.75f - recoil * 0.5f) * cam_rot;
-			//wpc->p = *p + up * 0.2f + Vec3(-0.1f, 0.05f + recoil * 0.25f, 0.75f - recoil * 0.5f) * cam_rot;
-			wpc->update();
-			auto wgc = weapon->entity->getComponent<GraphicsComponent>();
-			if (wgc != nullptr)
-			{
-				wgc->decs.items.front()->local = cam_rot * Quaternion(recoil, Vec3(-1.0f, 0.0f, 0.0f));
-				wgc->decs.update(0);
-			}
-		}
-		recoil -= run;
-		recoil *= exp(log(0.05f) * dTime);
-		recoil += run;
-	}
 }
 
 void MobComponent::writeLog(outstream& os, ClientData& client)
@@ -464,6 +452,7 @@ void MobComponent::writeLog(outstream& os, ClientData& client)
 	os << v << land_n << land_v << landed;
 	os << health << stamina;
 	os << run << crouch;
+	os << cam_rot;
 }
 
 void MobComponent::readLog(instream& is)
@@ -472,6 +461,7 @@ void MobComponent::readLog(instream& is)
 	is >> v >> land_n >> land_v >> landed;
 	is >> health >> stamina;
 	is >> run >> crouch;
+	is >> cam_rot;
 }
 
 void MobComponent::writeLog(outstream& os)
@@ -499,6 +489,7 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 		stamina = mob->stamina;
 		run = mob->run;
 		crouch = mob->crouch;
+		cam_rot = bu_slerp(cam_rot, mob->cam_rot, fWeight);
 	}
 }
 

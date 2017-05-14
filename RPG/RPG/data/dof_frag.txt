@@ -78,11 +78,12 @@ void main()
 		for (float y=-0.5+y_size/2.0;y<=0.5;y+=y_size)
 		{
 			float d = 1.0;
-			tex_col += sqrt(texture(diffuse, texCoord+vec2(x*pixel.x, y*pixel.y)))*d;
+			tex_col += (texture(diffuse, texCoord+vec2(x*pixel.x, y*pixel.y)))*d;
 			samples += d;
 		}
 	}
 	tex_col /= samples;
+	tex_col = sqrt(tex_col);
 
 	final_color = tex_col + vec4(snoise(noise_r + gl_FragCoord.xy) - snoise(-noise_r + gl_FragCoord.xy), snoise(noise_g + gl_FragCoord.xy) - snoise(-noise_g + gl_FragCoord.xy), snoise(noise_b + gl_FragCoord.xy) - snoise(-noise_b + gl_FragCoord.xy), 0.0) / 256.0;
 }

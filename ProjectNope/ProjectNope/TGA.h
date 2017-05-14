@@ -16,6 +16,8 @@ private:
 	unsigned char * pData;
 	unsigned char * pFinalData;
 
+	bool linear;
+
 	void ReadRLE(void);
 };
 

@@ -1102,8 +1102,10 @@ void Client::render_world(void)
 			glDepthFunc(GL_LESS);
 			glDepthMask(GL_TRUE);
 
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDisable(GL_BLEND);
+
+			glEnable(GL_ALPHA_TEST);
+			glAlphaFunc(GL_GREATER, 0.5f);
 
 			deferred_fb->bind();
 			glViewport(0, 0, buffer_w, buffer_h);
@@ -1164,6 +1166,11 @@ void Client::render_world(void)
 
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glAlphaFunc(GL_GREATER, 0.0f);
 
 		deferred_fb->bind();
 		glViewport(0, 0, buffer_w, buffer_h);
@@ -1509,13 +1516,13 @@ void Client::interpolate(float dTime)
 			{
 				if (interpol_targets[i] != nullptr)
 				{
-					if (interpol_elapsed[i]>=interpol_delay)
+					if (interpol_elapsed[i] >= interpol_delay)
 					{
 						ent->interpolate(interpol_targets[i], 1.0f);
 					}
 					else
 					{
-						ent->interpolate(interpol_targets[i], std::fminf(1.0f, std::max(0.0f, dTime/(interpol_delay-interpol_elapsed[i]))));
+						ent->interpolate(interpol_targets[i], std::fminf(1.0f, std::max(0.0f, dTime / (interpol_delay - interpol_elapsed[i]))));
 						interpol_elapsed[i] += dTime;
 					}
 				}

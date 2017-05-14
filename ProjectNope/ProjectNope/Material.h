@@ -30,6 +30,6 @@ public:
 };
 
 outstream& operator<<(outstream& os, const Material& mat);
-instream& operator >> (instream& is, Material& mat);
+instream& operator>>(instream& is, Material& mat);
 
 #endif

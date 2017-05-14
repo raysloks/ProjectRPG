@@ -14,6 +14,8 @@
 #include "Quaternion.h"
 #include "PositionComponent.h"
 
+#include "EntityID.h"
+
 #include "Profiler.h"
 
 class TypeIteratorBase;
@@ -40,11 +42,12 @@ public:
 	void clean(void);
 	void clear(void);
 
-	int AddEntity(NewEntity * entity); // use this one over SetEntity most of the time
+	uint32_t AddEntity(NewEntity * entity); // use this one over SetEntity most of the time
 	
-	void SetEntity(int id, NewEntity * entity);
-	NewEntity * GetEntity(int id);
-	NewEntity * GetEntity(int id, int uid);
+	void SetEntity(uint32_t id, NewEntity * entity);
+	NewEntity * GetEntity(uint32_t id);
+	NewEntity * GetEntity(uint32_t id, uint32_t uid);
+	NewEntity * GetEntity(EntityID id);
 
 	std::multimap<float, NewEntity*> GetNearestEntities(const GlobalPosition& p);
 	std::multimap<float, NewEntity*> GetNearestEntities(const GlobalPosition& p, float r);
@@ -133,13 +136,13 @@ public:
 	Client * client;
 
 	std::vector<NewEntity*> units;
-	std::vector<int> uid;
+	std::vector<uint32_t> uid;
 	std::vector<NewEntity*> removed;
 	std::stack<size_t> alloc;
 
-	std::map<std::pair<int, uint32_t>, std::shared_ptr<TypeIteratorBase>> comp_layers;
+	std::map<std::pair<uint32_t, uint32_t>, std::shared_ptr<TypeIteratorBase>> comp_layers;
 
-	GlobalPosition getMed(const std::set<int>& ents);
+	GlobalPosition getMed(const std::set<uint32_t>& ents);
 
 	void SphereCheck(const GlobalPosition& vP, float r, std::vector<std::shared_ptr<Collision>>& list);
 	void LineCheck(const GlobalPosition& sP, const GlobalPosition& eP, std::vector<std::shared_ptr<Collision>>& list);

@@ -2,6 +2,8 @@
 
 #include "Component.h"
 
+#include "World.h"
+
 #include <sstream>
 
 #include <iostream>
@@ -49,6 +51,11 @@ NewEntity::~NewEntity(void)
 	{
 		ss.deallocate(*i);
 	}
+}
+
+EntityID NewEntity::get_id(void) const
+{
+	return EntityID(id, world->uid[id]);
 }
 
 std::vector<Component*>::iterator NewEntity::addComponent(Component * pComponent, bool authority)

@@ -1,0 +1,25 @@
+#version 440
+
+uniform sampler2D diffuse;
+uniform sampler2D ao;
+
+uniform vec3 light;
+
+in vec4 position;
+in vec2 texco;
+in vec2 texco_ao;
+in vec3 norm;
+
+out vec4 final_color;
+
+void main()
+{
+	float intensity = dot(light, normalize(norm));
+	intensity = clamp(intensity, 0.0, 1.0);
+
+	intensity *= 1.0;
+
+	vec4 color = texture(diffuse, texco);
+
+	final_color = vec4(color.rgb * (vec3(intensity) + vec3(0.1, 0.1, 0.2) + texture(ao, texco_ao).rgb), color.a);
+}

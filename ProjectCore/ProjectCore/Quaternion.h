@@ -14,8 +14,14 @@ public:
 	Quaternion(float dAngle, const Vec3& vAxis);
 	~Quaternion(void);
 
-	Quaternion operator*(const Quaternion& rhs)const;
+	Quaternion operator*(const Quaternion& rhs) const;
 	const Quaternion& operator*=(const Quaternion& rhs);
+	Quaternion operator+(const Quaternion& rhs) const;
+	Quaternion operator-(const Quaternion& rhs) const;
+
+	Quaternion operator*(float rhs) const;
+
+	float Dot(const Quaternion& rhs) const;
 
 	void Normalize(void);
 
@@ -23,6 +29,8 @@ public:
 
 	static Quaternion lookAt(const Vec3& forward, const Vec3& up);
 };
+
+Quaternion operator-(const Quaternion& rhs);
 
 outstream& operator<<(outstream& os, const Quaternion& q);
 instream& operator>>(instream& is, Quaternion& q);

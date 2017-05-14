@@ -28,6 +28,8 @@
 #include "ChatComponent.h"
 #include "ServiceComponent.h"
 
+#include "ShaderProgram.h"
+
 #include "ClientData.h"
 
 #include "Matrix3.h"
@@ -85,17 +87,28 @@ public:
 
 			std::string ao = "data/assets/escape-ao.tga";
 
-			//Resource::load(ao, { "!sRGB" });
+			Resource::load(ao, { "!sRGB" , "linear"});
 
 			MaterialList materials;
-			materials.materials.push_back(Material("data/assets/terrain/textures/concrete.tga"));
-			materials.materials.push_back(Material("data/assets/terrain/textures/asphalt.tga"));
+			materials.materials.push_back(Material("data/assets/concrete_blue.tga"));
+			materials.materials.push_back(Material("data/assets/asphalt_blue.tga"));
 			materials.materials.push_back(Material("data/assets/terrain/textures/plank.tga"));
 			materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
 			materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
 			materials.materials.push_back(Material("data/assets/terrain/textures/brick2.tga"));
 			materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
-			materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
+			materials.materials.push_back(Material("data/assets/chainlink.tga"));
+
+			auto ao_shader = std::make_shared<ShaderProgram>("data/gfill_ao_vert.txt", "data/gfill_ao_frag.txt");
+
+			for (auto material = materials.materials.begin(); material != materials.materials.end(); ++material)
+			{
+				material->tex.push_back(ao);
+				material->mod = ShaderMod(ao_shader, [](const std::shared_ptr<ShaderProgram>& prog)
+				{
+					prog->Uniform("ao", 1);
+				});
+			}
 
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/escape.gmdl", materials, 0)));
 			g->decs.items.front()->local *= 10.0f;

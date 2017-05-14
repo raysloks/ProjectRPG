@@ -4,6 +4,8 @@
 #include "SyncState.h"
 #include "GlobalPosition.h"
 
+#include "EntityID.h"
+
 #include <set>
 
 class Component;
@@ -21,12 +23,14 @@ public:
 
 	std::vector<Component*> components;
 	std::vector<size_t> component_syncref;
-	std::vector<int> component_sync;
+	std::vector<uint32_t> component_sync;
 	std::set<size_t> conf;
 
-	int id;
+	uint32_t id;
 
 	World * world;
+
+	EntityID get_id(void) const;
 
 	std::vector<Component*>::iterator addComponent(Component * pComponent, bool authority = true);
 	std::vector<Component*>::iterator removeComponent(Component * pComponent);

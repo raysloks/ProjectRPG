@@ -53,7 +53,7 @@ public:
 	size_t temp_team;
 
 	WeaponComponent * weapon;
-	float recoil;
+	size_t weapon_index;
 
 	std::function<void(void)> on_death;
 	std::function<void(float)> on_tick;

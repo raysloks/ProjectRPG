@@ -89,11 +89,11 @@ void World::render(RenderSetup& rs)
 	}*/
 }
 
-int World::AddEntity(NewEntity * unit)
+uint32_t World::AddEntity(NewEntity * unit)
 {
 	if (unit != nullptr && authority) {
-		int id = -1;
-		while (id==-1)
+		uint32_t id = 0xffffffff;
+		while (id == 0xffffffff)
 		{
 			if (alloc.size()) {
 				int i = alloc.top();
@@ -105,23 +105,25 @@ int World::AddEntity(NewEntity * unit)
 				break;
 			}
 		}
-		if (id==-1)
+		if (id == 0xffffffff)
 		{
-			for (int i=0;i<units.size();++i) {
-				if (units[i]==0) {
+			for (size_t i = 0; i < units.size(); i++)
+			{
+				if (units[i] == nullptr)
+				{
 					id = i;
 					break;
 				}
 			}
 		}
-		if (id==-1)
+		if (id == 0xffffffff)
 		{
 			id = units.size();
 			unit->id = id;
 			unit->world = this;
 			units.push_back(unit);
 			uid.push_back(0);
-			if (server!=0)
+			if (server)
 				server->NotifyOfCreation(id);
 		}
 		else
@@ -129,54 +131,63 @@ int World::AddEntity(NewEntity * unit)
 			unit->id = id;
 			unit->world = this;
 			units[id] = unit;
-			if (server!=0)
+			if (server)
 				server->NotifyOfCreation(id);
 		}
 		return id;
 	}
-	return -1;
+	return 0xffffffff;
 }
 
-void World::SetEntity(int id, NewEntity * unit)
+void World::SetEntity(uint32_t id, NewEntity * unit)
 {
+	if (id == 0xffffffff)
+		return;
 	if (id >= units.size())
 	{
 		units.resize(id + 1);
 		uid.resize(id + 1);
 	}
-	if (units[id] != nullptr) {
+	if (units[id] != nullptr)
+	{
 		if (server != nullptr && authority)
 			server->NotifyOfRemoval(id, uid[id]);
 		removed.push_back(units[id]);
 		if (unit == nullptr)
 			alloc.push(id);
 	}
-	if (unit != nullptr) {
+	if (unit != nullptr)
+	{
 		unit->id = id;
 		unit->world = this;
-		if (uid[id]==INT_MAX)
-			uid[id]=INT_MIN;
+		if (uid[id] == 0xffffffff)
+			uid[id] = 0;
 		else
 			uid[id]++;
 	}
 	units[id] = unit;
 }
 
-NewEntity * World::GetEntity(int id)
+NewEntity * World::GetEntity(uint32_t id)
 {
-	if (id>=units.size() || id<0)
-		return 0;
+	if (id >= units.size())
+		return nullptr;
 	return units[id];
 }
 
-NewEntity * World::GetEntity(int id, int unid)
+NewEntity * World::GetEntity(uint32_t id, uint32_t unid)
 {
-	if (id>=units.size() || id<0)
-		return 0;
-	if (units[id]!=0)
-		if (uid[id]!=unid)
-			return 0;
+	if (id >= units.size())
+		return nullptr;
+	if (units[id] != nullptr)
+		if (uid[id] != unid)
+			return nullptr;
 	return units[id];
+}
+
+NewEntity * World::GetEntity(EntityID id)
+{
+	return GetEntity(id.id, id.uid);
 }
 
 std::multimap<float, NewEntity*> World::GetNearestEntities(const GlobalPosition& p)
@@ -226,17 +237,19 @@ std::multimap<float, NewEntity*> World::GetNearestEntities(const GlobalPosition&
 	return ret;
 }
 
-GlobalPosition World::getMed(const std::set<int>& e)
+GlobalPosition World::getMed(const std::set<uint32_t>& e)
 {
-	std::set<int> ents = e;
+	std::set<uint32_t> ents = e;
 	GlobalPosition med;
 	int n = 0;
-	for (std::set<int>::iterator it=ents.begin();it!=ents.end();++it)
+	for (auto it = ents.begin(); it != ents.end(); ++it)
 	{
-		NewEntity * ent = GetEntity(*it);
-		if (ent!=0) {
-			PositionComponent * p = ent->getComponent<PositionComponent>();
-			if (p!=0) {
+		auto ent = GetEntity(*it);
+		if (ent)
+		{
+			auto p = ent->getComponent<PositionComponent>();
+			if (p)
+			{
 				med += p->p;
 				++n;
 			}
