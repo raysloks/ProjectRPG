@@ -79,7 +79,7 @@ public:
 
 			PositionComponent * p = new PositionComponent();
 			ColliderComponent * c = new ColliderComponent();
-			GraphicsComponent * g = new GraphicsComponent(false);
+			GraphicsComponent * g = new GraphicsComponent(false, 1);
 
 			ent->addComponent(p);
 			ent->addComponent(c);
@@ -87,7 +87,7 @@ public:
 
 			std::string ao = "data/assets/escape-ao.tga";
 
-			Resource::load(ao, { "!sRGB" , "linear"});
+			//Resource::load(ao, { "!sRGB" , "linear"});
 
 			MaterialList materials;
 			materials.materials.push_back(Material("data/assets/concrete_blue.tga"));
@@ -99,15 +99,9 @@ public:
 			materials.materials.push_back(Material("data/assets/terrain/textures/RockPlate.tga"));
 			materials.materials.push_back(Material("data/assets/chainlink.tga"));
 
-			auto ao_shader = std::make_shared<ShaderProgram>("data/gfill_ao_vert.txt", "data/gfill_ao_frag.txt");
-
 			for (auto material = materials.materials.begin(); material != materials.materials.end(); ++material)
 			{
 				material->tex.push_back(ao);
-				material->mod = ShaderMod(ao_shader, [](const std::shared_ptr<ShaderProgram>& prog)
-				{
-					prog->Uniform("ao", 1);
-				});
 			}
 
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/escape.gmdl", materials, 0)));

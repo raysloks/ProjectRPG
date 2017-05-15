@@ -25,7 +25,7 @@ class GraphicsComponent :
 	public Component
 {
 public:
-	GraphicsComponent(bool dynamic = true);
+	GraphicsComponent(bool dynamic = true, uint32_t tag = 0);
 	GraphicsComponent(instream& is, bool full);
 	~GraphicsComponent(void);
 
@@ -49,6 +49,7 @@ public:
 	DecoratorContainer decs;
 
 	bool dynamic;
+	uint32_t tag;
 
 	GlobalPosition * p;
 

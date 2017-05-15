@@ -13,16 +13,17 @@ const AutoSerialFactory<GraphicsComponent> GraphicsComponent::_factory("Graphics
 
 std::vector<GraphicsComponent*> GraphicsComponent::all;
 
-GraphicsComponent::GraphicsComponent(bool dynamic) : Serializable(_factory.id), p(nullptr), pose(nullptr)
+GraphicsComponent::GraphicsComponent(bool dynamic, uint32_t tag) : Serializable(_factory.id), p(nullptr), pose(nullptr)
 {
 	all.push_back(this);
 	this->dynamic = dynamic;
+	this->tag = tag;
 }
 
 GraphicsComponent::GraphicsComponent(instream& is, bool full) : Serializable(_factory.id), p(nullptr), pose(nullptr)
 {
 	all.push_back(this);
-	is >> dynamic;
+	is >> dynamic >> tag;
 }
 
 GraphicsComponent::~GraphicsComponent(void)
@@ -81,7 +82,7 @@ void GraphicsComponent::interpolate(Component * pComponent, float fWeight)
 
 void GraphicsComponent::write_to(outstream& os, ClientData& client) const
 {
-	os << dynamic;
+	os << dynamic << tag;
 }
 
 void GraphicsComponent::write_to(outstream& os) const
@@ -409,11 +410,29 @@ void GraphicsComponent::prep(RenderSetup& rs)
 	//}
 }
 
+std::shared_ptr<ShaderProgram> ao_shader;
+
 void GraphicsComponent::render_all(RenderSetup& rs)
 {
+	if (!ao_shader)
+		ao_shader = std::make_shared<ShaderProgram>("data/gfill_ao_vert.txt", "data/gfill_ao_frag.txt");
+
 	for each (auto g in standard)
 	{
+		if (g->tag == 1)
+		{
+			rs.pushMod(ShaderMod(ao_shader, [](const std::shared_ptr<ShaderProgram>& prog)
+			{
+				prog->Uniform("ao", 1);
+			}));
+		}
+
 		g->render(rs);
+
+		if (g->tag == 1)
+		{
+			rs.popMod();
+		}
 	}
 
 	for each (auto type in instanced)

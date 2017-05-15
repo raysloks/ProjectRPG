@@ -46,6 +46,10 @@ void AnimationControlComponent::tick(float dTime)
 			Vec3 flat_facing = mob->cam_facing - mob->up * mob->up.Dot(mob->cam_facing);
 			flat_facing.Normalize();
 			g->decs.items[0]->local *= Matrix3(flat_facing.Cross(mob->up), flat_facing, mob->up);
+
+			if (mob->crouch && mob->health.current > 0.0f) // temp
+				g->decs.items[0]->local.mtrx[2][2] *= 0.75f;
+
 			g->decs.items[0]->local *= Matrix4::Translation(-mob->up * (mob->crouch ? 0.75f : 1.25f));
 
 			if (mob->hit)

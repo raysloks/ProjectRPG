@@ -215,7 +215,8 @@ void MobComponent::tick(float dTime)
 					float offset = 0.0f;
 					float height = crouch ? 1.0f : 1.5f;
 					float standing_height = crouch ? 0.75f : 1.25f;
-					ColliderComponent::DiskCast(*p - up * offset, *p - up * (offset + height), disk_radius, list);
+					Vec3 dp_side = dp - up * up.Dot(dp);
+					ColliderComponent::DiskCast(*p - up * offset + dp, *p - up * (offset + standing_height) + dp, disk_radius, list);
 					if (!list.empty())
 					{
 						list.erase(std::remove_if(list.begin(), list.end(), [](const std::shared_ptr<Collision>& col)
@@ -261,7 +262,7 @@ void MobComponent::tick(float dTime)
 							if (pivot == center)
 							{
 								std::shared_ptr<Collision> col(new Collision());
-								col->t = 0.0f;
+								col->t = 1.0f;
 								col->n = n;
 								col->poo = center + up * standing_height;
 								list.push_back(col);
@@ -269,7 +270,7 @@ void MobComponent::tick(float dTime)
 							else
 							{
 								std::shared_ptr<Collision> col(new Collision());
-								col->t = 0.0f;
+								col->t = 1.0f;
 								col->n = n;
 								col->poo = center + up * standing_height;
 								list.push_back(col);
@@ -279,17 +280,8 @@ void MobComponent::tick(float dTime)
 
 					if (!list.empty())
 					{
-						if (list.front()->n.Dot(up) > 0.5f)
-						{
-							landed = true;
-						}
 						land_n = list.front()->n;
 						land_v = list.front()->v;
-
-						if (up.Dot(list.front()->poo - *p) < 0.0f)
-						{
-							list.clear();
-						}
 					}
 				}
 
@@ -324,7 +316,7 @@ void MobComponent::tick(float dTime)
 				{
 					t -= col->t;
 
-					v += g*dTime*list.front()->t;
+					v += g * dTime * col->t;
 
 					*p = col->poo;
 
@@ -350,7 +342,62 @@ void MobComponent::tick(float dTime)
 					v -= col->n*col->n.Dot(v);
 					v += col->v;
 
-					dp -= col->n*col->n.Dot(dp);
+					if (ignored.empty())
+					{
+						if (crouch)
+							run = false;
+
+						if (landed)
+						{
+							float speed = crouch ? 0.0f : run ? 7.0f : 3.5f;
+							if (!run)
+								speed *= stamina.current / 100.0f;
+							speed += 2.0f;
+
+							Vec3 target = move;
+							Vec3 target_right = target.Cross(up);
+							target = land_n.Cross(target_right);
+							target.Normalize();
+							target *= move.Len() * speed;
+
+							if (target != Vec3() && run)
+								stamina.current -= dTime * 10.0f;
+							else
+								stamina.current += dTime * 10.0f * health.current / 100.0f;
+
+							if (stamina.current < 0.0f)
+							{
+								health.current += stamina.current;
+								stamina.current = 0.0f;
+							}
+
+							v -= land_v;
+							float nv = v.Dot(land_n);
+							v -= land_n * nv;
+
+							v = bu_blend(v, target, -0.5f, -40.0f, dTime);
+
+							v += land_n * nv;
+							v += land_v;
+
+							if (input.find("jump") != input.end() && health.current > 0.0f) {
+
+								v -= land_v;
+								if (up.Dot(v)<0.0f)
+									v -= up * up.Dot(v);
+								v += land_v;
+								v += up * 4.0f;
+
+								stamina.current -= 10.0f;
+
+								input.erase("jump");
+							}
+
+							stamina.current = std::fmaxf(0.0f, std::fminf(stamina.current, stamina.max));
+						}
+					}
+
+					dp = v * dTime * t;
 
 					bool should_break = false;
 					for (auto i=previous.begin();i!=previous.end();++i)
@@ -371,58 +418,6 @@ void MobComponent::tick(float dTime)
 			}
 			
 			dp = Vec3();
-
-			if (crouch)
-				run = false;
-
-			if (landed)
-			{
-				float speed = crouch ? 0.0f : run ? 7.0f : 3.5f;
-				if (!run)
-					speed *= stamina.current / 100.0f;
-				speed += 2.0f;
-
-				Vec3 target = move;
-				Vec3 target_right = target.Cross(up);
-				target = land_n.Cross(target_right);
-				target.Normalize();
-				target *= move.Len() * speed;
-
-				if (target != Vec3() && run)
-					stamina.current -= dTime * 10.0f;
-				else
-					stamina.current += dTime * 10.0f * health.current / 100.0f;
-
-				if (stamina.current < 0.0f)
-				{
-					health.current += stamina.current;
-					stamina.current = 0.0f;
-				}
-
-				v -= land_v;
-				float nv = v.Dot(land_n);
-				v -= land_n * nv;
-
-				v = bu_blend(v, target, -0.5f, -40.0f, dTime);
-
-				v += land_n * nv;
-				v += land_v;
-
-				if (input.find("jump") != input.end() && health.current > 0.0f) {
-					
-					v -= land_v;
-					if (up.Dot(v)<0.0f)
-						v -= up * up.Dot(v);
-					v += land_v;
-					v += up * 4.0f;
-
-					stamina.current -= 10.0f;
-
-					input.erase("jump");
-				}
-
-				stamina.current = std::fmaxf(0.0f, std::fminf(stamina.current, stamina.max));
-			}
 
 			if (prev != *p)
 				if (pc != nullptr)
