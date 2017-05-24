@@ -273,11 +273,11 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 
 						PositionComponent * pos = new PositionComponent();
 						ProjectileComponent * projectile = new ProjectileComponent();
-						GraphicsComponent * g = new GraphicsComponent(false);
+						//GraphicsComponent * g = new GraphicsComponent(false);
 
 						ent->addComponent(pos);
 						ent->addComponent(projectile);
-						ent->addComponent(g);
+						//ent->addComponent(g);
 
 						projectile->v = muzzle_velocity + mob->v;
 						projectile->drag = 0.01f;
@@ -296,10 +296,10 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 
 						projectile->shooter = mob;
 
-						g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
+						/*g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
 						g->decs.items.front()->local *= 0.0127f * 0.5f;
 						g->decs.items.front()->local.data[15] = 1.0f;
-						g->decs.items.front()->local *= mob->cam_rot;
+						g->decs.items.front()->local *= mob->cam_rot;*/
 
 						mob->entity->world->AddEntity(ent);
 					};
