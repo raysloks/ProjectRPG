@@ -11,7 +11,7 @@
 
 Vertex::Vertex(const Vec3& pos) : p(pos) {}
 
-Face::Face(unsigned short va, unsigned short vb, unsigned short vc) : a(va), b(vb), c(vc) {}
+Face::Face(uint32_t va, uint32_t vb, uint32_t vc) : a(va), b(vb), c(vc) {}
 
 VertexStruct::VertexStruct(const std::string& a, size_t s, bool n, size_t st, size_t o) : attribute_name(a), size(s), normalize(n), stride(st), offset(o)
 {
@@ -169,6 +169,12 @@ Mesh::Mesh(instream& is) : vbo_latest(false)
 			sets.back().vertices.push_back(Face(a, b, c));
 			nts = 0;
 		}
+		if (prefix == 'F') {
+			uint32_t a, b, c;
+			is >> a >> b >> c;
+			sets.back().vertices.push_back(Face(a, b, c));
+			nts = 0;
+		}
 		if (prefix == 'c') {
 			std::string name;
 			is >> name;
@@ -184,6 +190,10 @@ Mesh::Mesh(instream& is) : vbo_latest(false)
 			unsigned short a, b, c;
 			is >> a >> b >> c;
 		}
+		if (prefix == 'I') {
+			uint32_t a, b, c;
+			is >> a >> b >> c;
+		}
 		if (prefix == 'u') {
 			float x,y;
 			is >> x >> y;
@@ -191,6 +201,27 @@ Mesh::Mesh(instream& is) : vbo_latest(false)
 		}
 		if (prefix == 't') {
 			unsigned short i;
+			is >> i;
+			switch (nt)
+			{
+			case 0:
+				sets.back().uv_points.push_back(Face(i, 0, 0));
+				sets.back().nTextures = nts + 1;
+				nt = 1;
+				break;
+			case 1:
+				sets.back().uv_points.back().b = i;
+				nt = 2;
+				break;
+			case 2:
+				sets.back().uv_points.back().c = i;
+				nt = 0;
+				++nts;
+				break;
+			}
+		}
+		if (prefix == 'T') {
+			uint32_t i;
 			is >> i;
 			switch (nt)
 			{

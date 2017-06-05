@@ -24,9 +24,9 @@ public:
 class Face
 {
 public:
-	Face(unsigned short a, unsigned short b, unsigned short c);
+	Face(uint32_t a, uint32_t b, uint32_t c);
 
-	unsigned short a, b, c;
+	uint32_t a, b, c;
 };
 
 class VertexStruct
