@@ -53,9 +53,9 @@ VBO::~VBO()
 	TimeslotC(vbo_destructor);
 	for (auto i = buffers.begin(); i != buffers.end(); ++i)
 		if (i->first != 0)
-			glDeleteBuffers(1, &i->first);
+			gRenderContext->ReturnBuffer(i->first);
 	for each (auto vao in vaos)
-		glDeleteVertexArrays(1, &vao.second);
+		gRenderContext->ReturnVertexArray(vao.second);
 }
 
 void VBO::addBuffer()

@@ -303,6 +303,8 @@ namespace Platform
 	{
 		glDeleteBuffers(buffers.size(), buffers.begin()._Ptr);
 		buffers.clear();
+		glDeleteVertexArrays(vertexArrays.size(), vertexArrays.begin()._Ptr);
+		vertexArrays.clear();
 
 		wglMakeCurrent(hDC, NULL);
 		wglDeleteContext(hRC);
@@ -332,6 +334,11 @@ namespace Platform
 	{
 		buffers.resize(buffers.size() + n);
 		glGenBuffers(n, (buffers.end() - n)._Ptr);
+	}
+
+	void RenderContext::ReturnBuffer(GLuint buffer)
+	{
+		buffers.push_back(buffer);
 	}
 
 	GLuint RenderContext::GetBuffer(void)
@@ -364,6 +371,11 @@ namespace Platform
 		{
 			glBindVertexArray(vertexArrays[i]);
 		}
+	}
+
+	void RenderContext::ReturnVertexArray(GLuint vertexArray)
+	{
+		vertexArrays.push_back(vertexArray);
 	}
 
 	GLuint RenderContext::GetVertexArray(void)

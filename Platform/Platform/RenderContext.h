@@ -106,10 +106,12 @@ namespace Platform
 
 		void ReserveBuffers(size_t n);
 		void AddBuffers(size_t n);
+		void ReturnBuffer(GLuint buffer);
 		GLuint GetBuffer(void);
 
 		void ReserveVertexArrays(size_t n);
 		void AddVertexArrays(size_t n);
+		void ReturnVertexArray(GLuint vertexArray);
 		GLuint GetVertexArray(void);
 
 	private:
