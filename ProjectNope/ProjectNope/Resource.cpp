@@ -16,7 +16,7 @@
 #include <sstream>
 
 std::unordered_map<std::string, std::shared_ptr<Resource>> resources;
-std::unordered_set<std::string> loading;
+std::unordered_map<std::string, std::pair<std::thread, bool>> loading;
 std::mutex mutex;
 
 Resource::Resource(void)
@@ -29,6 +29,8 @@ Resource::~Resource(void)
 
 void _load(std::string name, std::set<std::string> options)
 {
+	bool blocking = options.find("block") != options.end();
+
 	try
 	{
 		//LARGE_INTEGER freq, start, end;
@@ -39,8 +41,9 @@ void _load(std::string name, std::set<std::string> options)
 		std::fstream f(name, std::ios_base::binary | std::ios_base::in);
 		if (!f.is_open() || f.bad() || !f.good()) {
 			mutex.lock();
-			loading.erase(name);
-			resources.insert(std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>()));
+			if (!blocking)
+				loading[name].second = false;
+			resources.insert(std::pair<std::string, std::shared_ptr<Resource>>(name, nullptr));
 			mutex.unlock();
 			//f.close();
 			//std::cout << std::string("failed to load resource: ") + name + "\r\n";
@@ -80,8 +83,9 @@ void _load(std::string name, std::set<std::string> options)
 		}
 
 		mutex.lock();
+		if (!blocking)
+			loading[name].second = false;
 		resources.insert(res);
-		loading.erase(name);
 		mutex.unlock();
 
 		//QueryPerformanceCounter(&end);
@@ -92,18 +96,26 @@ void _load(std::string name, std::set<std::string> options)
 	catch (std::exception& e)
 	{
 		std::cout << "Failed to load resource \"" << name << "\". Reason: \"" << e.what() << '"' << std::endl;
+
+		mutex.lock();
+		if (!blocking)
+			loading[name].second = false;
+		resources.insert(std::pair<std::string, std::shared_ptr<Resource>>(name, nullptr));
+		mutex.unlock();
 	}
 }
 
 void Resource::add(const std::string& name, const std::shared_ptr<Resource>& res)
 {
 	mutex.lock();
-	resources.insert(std::make_pair(name, res));
+	resources[name] = res;
 	mutex.unlock();
 }
 
 std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set<std::string>& options)
 {
+	bool blocking = options.find("block") != options.end();
+
 	mutex.lock();
 	if (loading.find(name)==loading.cend()) {
 
@@ -120,25 +132,44 @@ std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set
 					return nullptr;
 			}
 		}
-
-		loading.insert(name);
+;
 		mutex.unlock();
-		//_load(name, options);
-		std::thread t(std::bind(&_load, name, options));
-		t.detach();
+		if (blocking)
+		{
+			_load(name, options);
+			mutex.lock();
+			auto resource = resources[name];
+			mutex.unlock();
+			return resource;
+		}
+		else
+		{
+			loading[name] = std::make_pair(std::thread(std::bind(&_load, name, options)), true);
+			return nullptr;
+		}
+
+	}
+
+	if (options.find("block") != options.end())
+	{
+		mutex.unlock();
+		loading[name].first.join();
+		loading.erase(name);
+		return resources[name];
+	}
+	else
+	{
+		if (!loading[name].second)
+		{
+			mutex.unlock();
+			loading[name].first.join();
+			loading.erase(name);
+			return resources[name];
+		}
+		mutex.unlock();
 		return nullptr;
 	}
-	mutex.unlock();
-	return nullptr;
 }
-
-//void add(const std::string& name, void* resource)
-//{
-//	std::pair<std::string, void*> res(name, resource);
-//	mutex.lock();
-//	resources.insert(res);
-//	mutex.unlock();
-//}
 
 void Resource::unload(const std::string& name)
 {
@@ -149,12 +180,13 @@ void Resource::unload(const std::string& name)
 
 void Resource::unload(void)
 {
-	/*for (std::unordered_map<std::string, Serializable*>::iterator it = resources.begin();it!=resources.end();++it)
-	{
-		delete it->second;
-	}*/
 	mutex.lock();
 	resources.clear();
+	for (auto i = loading.begin(); i != loading.end(); ++i)
+	{
+		i->second.first.join();
+	}
+	loading.clear();
 	mutex.unlock();
 }
 

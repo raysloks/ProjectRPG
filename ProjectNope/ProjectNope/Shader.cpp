@@ -20,6 +20,11 @@ Shader::~Shader(void)
 {
 }
 
+void Shader::complete()
+{
+	Resource::load(fname, { "block" });
+}
+
 void Shader::refresh()
 {
 	if (gl_shader == 0)

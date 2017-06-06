@@ -17,6 +17,7 @@ public:
 	Shader(const std::string& fname, ShaderType type);
 	~Shader(void);
 
+	void complete();
 	void refresh();
 
 	std::string fname;

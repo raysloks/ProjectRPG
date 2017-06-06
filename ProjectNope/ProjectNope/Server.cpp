@@ -27,7 +27,8 @@ Server::~Server(void)
 void Server::reset(std::function<void(void)> func)
 {
 	world->clear();
-	func();
+	if (func)
+		func();
 	onServerActivated();
 	if (client)
 		if (client->clientData)

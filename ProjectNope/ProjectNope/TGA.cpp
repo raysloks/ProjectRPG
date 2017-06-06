@@ -89,6 +89,8 @@ TGA::~TGA(void)
 	if (FinalData != nullptr) {
 		free((void*)FinalData);
 	}
+	if (texid)
+		glDeleteBuffers(1, &texid);
 }
 
 void TGA::ReadRLE(void)

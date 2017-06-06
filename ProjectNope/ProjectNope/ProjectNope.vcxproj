@@ -181,6 +181,7 @@
     <ClCompile Include="APLSet.cpp" />
     <ClCompile Include="AudioComponent.cpp" />
     <ClCompile Include="AudioSource.cpp" />
+    <ClCompile Include="BufferTexture.cpp" />
     <ClCompile Include="CascadedShadowMap.cpp" />
     <ClCompile Include="ColliderComponent.cpp" />
     <ClCompile Include="ColliderIterator.cpp" />
@@ -271,6 +272,7 @@
     <ClInclude Include="APLSet.h" />
     <ClInclude Include="AudioComponent.h" />
     <ClInclude Include="AudioSource.h" />
+    <ClInclude Include="BufferTexture.h" />
     <ClInclude Include="CascadedShadowMap.h" />
     <ClInclude Include="ColliderComponent.h" />
     <ClInclude Include="ColliderIterator.h" />

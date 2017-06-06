@@ -22,6 +22,8 @@ public:
 	ShaderProgram(const std::string& fvert, const std::string& fgeom, const std::string& ffrag);
 	~ShaderProgram(void);
 
+	bool WaitFor();
+	bool WaitForUse();
 	bool IsReady();
 	bool Use();
 

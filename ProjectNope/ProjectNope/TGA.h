@@ -1,10 +1,10 @@
-#include "Texture.h"
-
 #ifndef TGA_H
 #define TGA_H
 
-class TGA
-	: public Texture
+#include "Texture.h"
+
+class TGA :
+	public Texture
 {
 public:
 	TGA(instream& is, std::set<std::string> options);

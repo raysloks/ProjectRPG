@@ -52,6 +52,25 @@ ShaderProgram::~ShaderProgram(void)
 		glDeleteProgram(gl_program);
 }
 
+bool ShaderProgram::WaitFor()
+{
+	if (vert)
+		vert->complete();
+	if (geom)
+		geom->complete();
+	if (frag)
+		frag->complete();
+	return IsReady();
+}
+
+bool ShaderProgram::WaitForUse()
+{
+	bool ready = WaitFor();
+	if (ready)
+		glUseProgram(gl_program);
+	return ready;
+}
+
 bool ShaderProgram::IsReady()
 {
 	if (gl_program == 0)
@@ -112,7 +131,8 @@ bool ShaderProgram::IsReady()
 bool ShaderProgram::Use()
 {
 	bool ready = IsReady();
-	glUseProgram(gl_program);
+	if (ready)
+		glUseProgram(gl_program);
 	return ready;
 }
 

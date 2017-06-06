@@ -96,9 +96,6 @@
     <ClCompile Include="Mesh.cpp">
       <Filter>Source Files\Resources</Filter>
     </ClCompile>
-    <ClCompile Include="SkeletalAnimation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Writing.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -315,6 +312,12 @@
     <ClCompile Include="EntityID.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BufferTexture.cpp">
+      <Filter>Source Files\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="SkeletalAnimation.cpp">
+      <Filter>Source Files\Resources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IPlatform.h">
@@ -370,9 +373,6 @@
     </ClInclude>
     <ClInclude Include="Mesh.h">
       <Filter>Header Files\Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="SkeletalAnimation.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Writing.h">
       <Filter>Header Files</Filter>
@@ -598,6 +598,12 @@
     </ClInclude>
     <ClInclude Include="EntityID.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferTexture.h">
+      <Filter>Header Files\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="SkeletalAnimation.h">
+      <Filter>Header Files\Resources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
