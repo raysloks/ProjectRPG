@@ -114,6 +114,9 @@ namespace Platform
 		void ReturnVertexArray(GLuint vertexArray);
 		GLuint GetVertexArray(void);
 
+		static void ReleaseBuffer(GLuint buffer);
+		static void ReleaseVertexArray(GLuint vertexArray);
+
 	private:
 		HDC hDC;
 		HWND hWnd;

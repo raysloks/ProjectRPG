@@ -53,9 +53,9 @@ VBO::~VBO()
 	TimeslotC(vbo_destructor);
 	for (auto i = buffers.begin(); i != buffers.end(); ++i)
 		if (i->first != 0)
-			gRenderContext->ReturnBuffer(i->first);
+			Platform::RenderContext::ReleaseBuffer(i->first);
 	for each (auto vao in vaos)
-		gRenderContext->ReturnVertexArray(vao.second);
+		Platform::RenderContext::ReleaseVertexArray(vao.second);
 }
 
 void VBO::addBuffer()

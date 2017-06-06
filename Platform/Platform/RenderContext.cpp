@@ -392,4 +392,20 @@ namespace Platform
 		return vertexArray;
 	}
 
+	void RenderContext::ReleaseBuffer(GLuint buffer)
+	{
+		if (gRenderContext)
+			gRenderContext->ReturnBuffer(buffer);
+		else
+			glDeleteBuffers(1, &buffer);
+	}
+
+	void RenderContext::ReleaseVertexArray(GLuint vertexArray)
+	{
+		if (gRenderContext)
+			gRenderContext->ReturnVertexArray(vertexArray);
+		else
+			glDeleteVertexArrays(1, &vertexArray);
+	}
+
 }
