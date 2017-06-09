@@ -6,6 +6,8 @@ Buffer::Buffer()
 {
 	glGenTextures(1, &gl_texture_id);
 	type = BUFFER_2D;
+	min_filter = BUFFER_NEAREST;
+	mag_filter = BUFFER_NEAREST;
 }
 
 Buffer::~Buffer()
@@ -342,8 +344,24 @@ void Buffer::refresh()
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, gl_internal_format, w, h, 0, gl_format, gl_type, nullptr);
 			break;
 		}
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		switch (min_filter)
+		{
+		case BUFFER_NEAREST:
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			break;
+		case BUFFER_LINEAR:
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			break;
+		}
+		switch (mag_filter)
+		{
+		case BUFFER_NEAREST:
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			break;
+		case BUFFER_LINEAR:
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			break;
+		}
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
