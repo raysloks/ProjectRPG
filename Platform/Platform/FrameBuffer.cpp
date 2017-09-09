@@ -11,7 +11,7 @@ FrameBuffer::FrameBuffer()
 
 FrameBuffer::~FrameBuffer(void)
 {
-	if (gl_frame_buffer!=0)
+	if (gl_frame_buffer)
 		glDeleteFramebuffers(1, &gl_frame_buffer);
 }
 
@@ -29,24 +29,28 @@ void FrameBuffer::bind(FrameBufferBindType type)
 		glBindFramebuffer(GL_FRAMEBUFFER, gl_frame_buffer);
 	}
 
+	std::vector<GLenum> draw_buffers;
 	for (size_t i = 0; i < color.size(); ++i)
 	{
 		color[i]->refresh();
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, color[i]->gl_texture_id, 0);
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, color[i]->gl_texture_id, 0);
+		draw_buffers.push_back(GL_COLOR_ATTACHMENT0 + i);
 	}
 	if (depth != nullptr)
 	{
 		depth->refresh();
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth->gl_texture_id, 0);
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth->gl_texture_id, 0);
 	}
 	if (stencil != nullptr)
 	{
 		stencil->refresh();
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, stencil->gl_texture_id, 0);
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, stencil->gl_texture_id, 0);
 	}
+
+	glDrawBuffers(draw_buffers.size(), draw_buffers.data());
 }
 
 void FrameBuffer::unbind()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }

@@ -18,7 +18,7 @@ public:
 	FrameBuffer();
 	~FrameBuffer();
 
-	void bind(FrameBufferBindType type = FRAME_BUFFER_BOTH);
+	void bind(FrameBufferBindType type = FRAME_BUFFER_DRAW);
 	void unbind();
 
 	std::vector<std::shared_ptr<Buffer>> color;

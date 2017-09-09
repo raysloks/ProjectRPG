@@ -86,6 +86,9 @@ public:
 	Mesh(const Mesh& mesh);
 	~Mesh(void);
 
+	void subdivide();
+	void toSphere(float radius);
+
 	void render(RenderSetup& rs, MaterialList& mats);//const;?
 	void render_instanced(RenderSetup& rs, MaterialList& mats, unsigned int nInstances);
 
@@ -94,6 +97,8 @@ public:
 
 	void addVBO(size_t set, Vec3 * v_data, Vec3 * n_data, Vec2 * t_data, Matrix4 mtrx);
 	void buildVBO(void);
+
+	void bind(const Pose& pose);
 
 	std::vector<Vertex> vert;
 	std::vector<FaceSet> sets;

@@ -281,6 +281,63 @@ Mesh::~Mesh(void)
 {
 }
 
+void Mesh::subdivide()
+{
+	int** edge = new int*[vert.size()];
+	for (int i = 0; i<vert.size(); i++) {
+		edge[i] = new int[i];
+		for (int j = 0; j<i; j++)
+			edge[i][j] = -1;
+	}
+
+	int	*e1, *e2, *e3;
+	for (auto setr = sets.begin(); setr != sets.end(); ++setr)
+	{
+		auto& set = setr->vertices;
+		int startsize = set.size();
+		for (int i = 0; i<startsize; ++i) {
+			if (set[i].a>set[i].b)
+				e1 = &edge[set[i].a][set[i].b];
+			else
+				e1 = &edge[set[i].b][set[i].a];
+			if (*e1 == -1) {
+				*e1 = vert.size();
+				vert.push_back(Vertex((vert[set[i].a].p + vert[set[i].b].p) / 2/*, (vert[set[i].a].c + vert[set[i].b].c) / 2*/));
+			}
+			if (set[i].b>set[i].c)
+				e2 = &edge[set[i].b][set[i].c];
+			else
+				e2 = &edge[set[i].c][set[i].b];
+			if (*e2 == -1) {
+				*e2 = vert.size();
+				vert.push_back(Vertex((vert[set[i].b].p + vert[set[i].c].p) / 2/*, (vert[set[i].b].c + vert[set[i].c].c) / 2*/));
+			}
+			if (set[i].c>set[i].a)
+				e3 = &edge[set[i].c][set[i].a];
+			else
+				e3 = &edge[set[i].a][set[i].c];
+			if (*e3 == -1) {
+				*e3 = vert.size();
+				vert.push_back(Vertex((vert[set[i].c].p + vert[set[i].a].p) / 2/*, (vert[set[i].c].c + vert[set[i].a].c) / 2*/));
+			}
+
+			set.push_back(Face(*e1, set[i].b, *e2));
+			set.push_back(Face(*e2, set[i].c, *e3));
+			set.push_back(Face(*e3, set[i].a, *e1));
+			set[i] = Face(*e1, *e2, *e3);
+		}
+	}
+}
+
+void Mesh::toSphere(float radius)
+{
+	for (int i = 0; i<vert.size(); i++) {
+		vert[i].p /= vert[i].p.Len();
+		vert[i].n = vert[i].p;
+		vert[i].p *= radius;
+	}
+}
+
 void Mesh::render(RenderSetup& rs, MaterialList& mats) // maybe should get mats to be const
 {
 	TimeslotC(mesh_render);
@@ -564,5 +621,26 @@ void Mesh::buildVBO(void)
 		delete[] n_data;
 
 		vbo_latest = true;
+	}
+}
+
+void Mesh::bind(const Pose& pose)
+{
+	//for each (auto& v in vert)
+	for (auto& v : vert)
+	{
+		size_t closest = 0;
+		float closest_distance = 1000.0f;
+		for (size_t i = 0; i < pose.bones.size(); i++)
+		{
+			Vec3 bone_pos = Vec3() * pose.bones[i].total_transform;
+			float distance = (bone_pos - v.p).LenPwr();
+			if (distance < closest_distance)
+			{
+				closest = i;
+				closest_distance = distance;
+			}
+		}
+		v.w[closest] = 1.0f;
 	}
 }
