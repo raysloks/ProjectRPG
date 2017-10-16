@@ -2,12 +2,20 @@
 
 ScriptTypeData::ScriptTypeData()
 {
-	size = 0;
 	type = ST_VOID;
+	size = 0;
+	indirection = 0;
 }
 
 ScriptTypeData::~ScriptTypeData()
 {
+}
+
+size_t ScriptTypeData::GetSize() const
+{
+	if (indirection != 0)
+		return 4;
+	return size;
 }
 
 bool ScriptTypeData::operator==(const ScriptTypeData & rhs) const

@@ -319,7 +319,7 @@ public:
 		createProgressZone(Vec3(-100.0f, 0.0f, 0.0f), Vec3(-30.0f, 40.0f, 2.0f), 0.85f);
 		createProgressZone(Vec3(-100.0f, -80.0f, 0.0f), Vec3(-30.0f, 0.0f, 2.0f), 0.9f);
 		createProgressZone(Vec3(-100.0f, -160.0f, 0.0f), Vec3(-30.0f, -80.0f, 2.0f), 0.95f);
-		createProgressZone(Vec3(-100.0f, -160.0f, 0.0f), Vec3(-70.0f, -140.0f, 2.0f), 1.0f);
+		createProgressZone(Vec3(-100.0f, -160.0f, 0.0f), Vec3(-80.0f, -140.0f, 2.0f), 1.0f);
 	}
 
 	void onClientConnect(ClientData& data)
@@ -354,74 +354,154 @@ public:
 
 #include "SteamWrapper.h"
 
-//int main(int argc, char* argv[])
-INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-    PSTR lpCmdLine, INT nCmdShow)
+#include "ScriptCode.h"
+
+#include "StringResource.h"
+
+class TestClass
 {
-	std::string address;
-	uint16_t port = 7777;
-	uint64_t lobby_id = 0;
-	char option = 'h';
+public:
+	virtual ~TestClass() {}
 
-	std::cout << "starting game..." << std::endl;
+	virtual unsigned int func(unsigned int a) = 0;
+};
 
-	std::cmatch match_connect;
-	std::regex reg_connect("\\+connect (.*):(.*)");
-	if (std::regex_match(lpCmdLine, match_connect, reg_connect))
-	{
-		option = 'c';
-		address = match_connect[1];
-		port = std::atoi(match_connect[2].str().c_str());
-	}
+class TestClassTwo :
+	public TestClass
+{
+public:
+	TestClassTwo() {}
+	~TestClassTwo() {}
 
-	std::cmatch match_connect_lobby;
-	std::regex reg_connect_lobby("\\+connect_lobby (.*)");
-	std::regex_match(lpCmdLine, match_connect_lobby, reg_connect_lobby);
+	unsigned int func(unsigned int a) { return a; }
+};
 
-	//std::shared_ptr<ISteamWrapper> steam(ISteamWrapper::make());
-	
-	World * world = new World();
-	Server * server = new MyServer(world);
-	Client * client = new Client(world);
+int main(int argc, char* argv[])
+//INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+//    PSTR lpCmdLine, INT nCmdShow)
+{
+	if (true)
+	{
+		size_t max_mem_size = 65536;
+		void * mem = VirtualAlloc(nullptr, max_mem_size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
-	if (option=='p')
-	{
-		server->onServerActivated();
-		server->onClientConnect(*client->clientData);
-	}
-	if (option=='c')
-	{
-		client->connect(address, port);
-	}
-	if (option == 'h')
-	{
-		server->open(port);
-		server->onServerActivated();
-		server->onClientConnect(*client->clientData);
-	}
-	if (option=='s')
-	{
-		server->open(port);
-	}
-
-	world->client = client;
-	world->server = server;
-	if (server != nullptr)
-	{
-		server->client = client;
-		if (client != nullptr)
-			client->server = server;
-		GameLoop gl(world, server, client);
-		gl.init();
-		if (client != nullptr)
+		while (true)
 		{
-			while (client->IsAlive())
-				gl.tick();
+			try
+			{
+				char buffer[4096];
+
+				std::cin.getline(buffer, sizeof(buffer));
+
+				//ScriptCode code = ScriptCode(std::istringstream(buffer));
+
+				auto file = Resource::get<StringResource>("text.txt", { "block", "reload" });
+
+				ScriptCode code = ScriptCode(std::istringstream(file->string));
+
+				ScriptCompile comp(mem);
+
+				for (auto i = code.statements.begin(); i != code.statements.end(); ++i)
+				{
+					std::cout << i->output() << std::endl;
+					i->compile(comp);
+				}
+
+				size_t mem_size = comp.ss.tellp();
+
+				std::cout << "code bytes: " << mem_size << std::endl;
+
+				comp.ss.read((char*)mem, mem_size);
+
+				auto found_class = comp.classes.find("Main");
+				if (found_class != comp.classes.end())
+				{
+					auto found_func = found_class->second->functions.find("main");
+					if (found_func != found_class->second->functions.end())
+					{
+						typedef unsigned int func(unsigned int);
+
+						func * f = static_cast<func*>(found_func->second.second);
+
+						for (int i = 0; i < 10; ++i)
+							std::cout << f(i) << std::endl;
+					}
+				}
+
+			}
+			catch (std::runtime_error& e)
+			{
+				std::cout << e.what() << std::endl;
+			}
 		}
-		else
-		{
-			while (true)
-				gl.tick();
-		}
+
+		VirtualFree(mem, max_mem_size, MEM_RELEASE);
 	}
+
+	//std::string address;
+	//uint16_t port = 7777;
+	//uint64_t lobby_id = 0;
+	//char option = 'h';
+
+	//std::cout << "starting game..." << std::endl;
+
+	//std::cmatch match_connect;
+	//std::regex reg_connect("\\+connect (.*):(.*)");
+	//if (std::regex_match(lpCmdLine, match_connect, reg_connect))
+	//{
+	//	option = 'c';
+	//	address = match_connect[1];
+	//	port = std::atoi(match_connect[2].str().c_str());
+	//}
+
+	//std::cmatch match_connect_lobby;
+	//std::regex reg_connect_lobby("\\+connect_lobby (.*)");
+	//std::regex_match(lpCmdLine, match_connect_lobby, reg_connect_lobby);
+
+	////std::shared_ptr<ISteamWrapper> steam(ISteamWrapper::make());
+	//
+	//World * world = new World();
+	//Server * server = new MyServer(world);
+	//Client * client = new Client(world);
+
+	//if (option=='p')
+	//{
+	//	server->onServerActivated();
+	//	server->onClientConnect(*client->clientData);
+	//}
+	//if (option=='c')
+	//{
+	//	client->connect(address, port);
+	//}
+	//if (option == 'h')
+	//{
+	//	server->open(port);
+	//	server->onServerActivated();
+	//	server->onClientConnect(*client->clientData);
+	//}
+	//if (option=='s')
+	//{
+	//	server->open(port);
+	//}
+
+	//world->client = client;
+	//world->server = server;
+	//if (server != nullptr)
+	//{
+	//	server->client = client;
+	//	if (client != nullptr)
+	//		client->server = server;
+	//	GameLoop gl(world, server, client);
+	//	gl.init();
+	//	if (client != nullptr)
+	//	{
+	//		while (client->IsAlive())
+	//			gl.tick();
+	//	}
+	//	else
+	//	{
+	//		while (true)
+	//			gl.tick();
+	//	}
+	//}
 }

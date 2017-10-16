@@ -16,6 +16,9 @@ public:
 	uint8_t mod, rm;
 
 	uint32_t offset;
+
+	bool operator==(const ScriptCompileMemoryTarget& rhs) const;
+	bool operator!=(const ScriptCompileMemoryTarget& rhs) const;
 };
 
 #endif

@@ -253,6 +253,7 @@
     <ClCompile Include="HashedString.cpp" />
     <ClCompile Include="GameEventManager.cpp" />
     <ClCompile Include="Server.cpp" />
+    <ClCompile Include="System.cpp" />
     <ClCompile Include="TempPlatform.cpp" />
     <ClCompile Include="TextBoxWindow.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -350,6 +351,7 @@
     <ClInclude Include="IEventManager.h" />
     <ClInclude Include="IPlatform.h" />
     <ClInclude Include="Server.h" />
+    <ClInclude Include="System.h" />
     <ClInclude Include="TempPlatform.h" />
     <ClInclude Include="TextBoxWindow.h" />
     <ClInclude Include="Texture.h" />

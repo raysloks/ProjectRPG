@@ -58,7 +58,7 @@ public:
 	void setProgress(MobComponent * mob, float progress);
 	float getAverageSurvivorProgress(void);
 	float getMaximumSurvivorProgress(void);
-
+	float getMinimumAliveSurvivorProgress(void);
 
 	void set_display(bool enable);
 

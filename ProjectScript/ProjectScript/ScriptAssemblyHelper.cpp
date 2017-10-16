@@ -51,13 +51,13 @@ ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister(const std::vector<S
 
 void ScriptAssemblyHelper::Move(uint8_t opcode, ScriptCompileMemoryTarget& destination, ScriptCompileMemoryTarget& source)
 {
-	StreamAssignee<uint8_t> p(ss);
-	StreamAssignee<uint8_t> po(ss);
-	StreamAssignee<uint8_t> o(ss);
-	StreamAssignee<uint8_t> dat8(ss);
-	StreamAssignee<uint16_t> dat16(ss);
-	StreamAssignee<uint32_t> dat32(ss);
-	StreamAssignee<uint64_t> dat64(ss);
+	StreamAssignee<uint8_t> p(comp);
+	StreamAssignee<uint8_t> po(comp);
+	StreamAssignee<uint8_t> o(comp);
+	StreamAssignee<uint8_t> dat8(comp);
+	StreamAssignee<uint16_t> dat16(comp);
+	StreamAssignee<uint32_t> dat32(comp);
+	StreamAssignee<uint64_t> dat64(comp);
 
 	bool d_bit = opcode & 0b00000010;
 
@@ -92,13 +92,13 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, ScriptCompileMemoryTarget& desti
 
 void ScriptAssemblyHelper::Move(uint8_t opcode, uint8_t opcode_extension, ScriptCompileMemoryTarget& operand)
 {
-	StreamAssignee<uint8_t> p(ss);
-	StreamAssignee<uint8_t> po(ss);
-	StreamAssignee<uint8_t> o(ss);
-	StreamAssignee<uint8_t> dat8(ss);
-	StreamAssignee<uint16_t> dat16(ss);
-	StreamAssignee<uint32_t> dat32(ss);
-	StreamAssignee<uint64_t> dat64(ss);
+	StreamAssignee<uint8_t> p(comp);
+	StreamAssignee<uint8_t> po(comp);
+	StreamAssignee<uint8_t> o(comp);
+	StreamAssignee<uint8_t> dat8(comp);
+	StreamAssignee<uint16_t> dat16(comp);
+	StreamAssignee<uint32_t> dat32(comp);
+	StreamAssignee<uint64_t> dat64(comp);
 
 	po = opcode;
 	o = operand.GetModRegRM(opcode_extension);
@@ -110,13 +110,13 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, uint8_t opcode_extension, Script
 
 void ScriptAssemblyHelper::Push(ScriptCompileMemoryTarget& source)
 {
-	StreamAssignee<uint8_t> p(ss);
-	StreamAssignee<uint8_t> po(ss);
-	StreamAssignee<uint8_t> o(ss);
-	StreamAssignee<uint8_t> dat8(ss);
-	StreamAssignee<uint16_t> dat16(ss);
-	StreamAssignee<uint32_t> dat32(ss);
-	StreamAssignee<uint64_t> dat64(ss);
+	StreamAssignee<uint8_t> p(comp);
+	StreamAssignee<uint8_t> po(comp);
+	StreamAssignee<uint8_t> o(comp);
+	StreamAssignee<uint8_t> dat8(comp);
+	StreamAssignee<uint16_t> dat16(comp);
+	StreamAssignee<uint32_t> dat32(comp);
+	StreamAssignee<uint64_t> dat64(comp);
 
 	/*if (source.immediate)
 	{
@@ -132,13 +132,13 @@ void ScriptAssemblyHelper::Push(ScriptCompileMemoryTarget& source)
 
 void ScriptAssemblyHelper::Pop(ScriptCompileMemoryTarget& destination)
 {
-	StreamAssignee<uint8_t> p(ss);
-	StreamAssignee<uint8_t> po(ss);
-	StreamAssignee<uint8_t> o(ss);
-	StreamAssignee<uint8_t> dat8(ss);
-	StreamAssignee<uint16_t> dat16(ss);
-	StreamAssignee<uint32_t> dat32(ss);
-	StreamAssignee<uint64_t> dat64(ss);
+	StreamAssignee<uint8_t> p(comp);
+	StreamAssignee<uint8_t> po(comp);
+	StreamAssignee<uint8_t> o(comp);
+	StreamAssignee<uint8_t> dat8(comp);
+	StreamAssignee<uint16_t> dat16(comp);
+	StreamAssignee<uint32_t> dat32(comp);
+	StreamAssignee<uint64_t> dat64(comp);
 
 	if (destination.mod == 0b11)
 	{

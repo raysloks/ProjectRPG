@@ -13,13 +13,13 @@ ScriptCompile::~ScriptCompile()
 
 void ScriptCompile::BeginFunction()
 {
-	StreamAssignee<uint8_t> p(ss);
-	StreamAssignee<uint8_t> po(ss);
-	StreamAssignee<uint8_t> o(ss);
-	StreamAssignee<uint8_t> dat8(ss);
-	StreamAssignee<uint16_t> dat16(ss);
-	StreamAssignee<uint32_t> dat32(ss);
-	StreamAssignee<uint64_t> dat64(ss);
+	StreamAssignee<uint8_t> p(*this);
+	StreamAssignee<uint8_t> po(*this);
+	StreamAssignee<uint8_t> o(*this);
+	StreamAssignee<uint8_t> dat8(*this);
+	StreamAssignee<uint16_t> dat16(*this);
+	StreamAssignee<uint32_t> dat32(*this);
+	StreamAssignee<uint64_t> dat64(*this);
 	StreamAssigneeRelative<int8_t> rel8(*this);
 	StreamAssigneeRelative<int32_t> rel32(*this);
 
@@ -44,7 +44,9 @@ void ScriptCompile::EndScope()
 {
 	size_t block_size = ss.str().size() - scope.back().offset;
 
-	size_t minoff = scope[scope.size() - 2].offset;
+	size_t minoff = 0;
+	if (scope.size() >= 2)
+		minoff = scope[scope.size() - 2].offset;
 	size_t maxoff = scope.back().offset;
 
 	for (auto i = rel8.begin(); i != rel8.end(); ++i)
@@ -76,10 +78,10 @@ void ScriptCompile::EndScope()
 	{
 		stack -= stack_dec;
 
-		StreamAssignee<uint8_t> po(ss);
-		StreamAssignee<uint8_t> o(ss);
-		StreamAssignee<uint8_t> dat8(ss);
-		StreamAssignee<uint32_t> dat32(ss);
+		StreamAssignee<uint8_t> po(*this);
+		StreamAssignee<uint8_t> o(*this);
+		StreamAssignee<uint8_t> dat8(*this);
+		StreamAssignee<uint32_t> dat32(*this);
 
 		if (stack_dec < 128)
 		{
@@ -130,10 +132,10 @@ void ScriptCompile::PushVariable(const std::string& name)
 	if (scope.back().vars.find(name) != scope.back().vars.end())
 		throw std::runtime_error("Redefinition of variable '" + name + "'.");
 
-	StreamAssignee<uint8_t> po(ss);
-	StreamAssignee<uint8_t> o(ss);
-	StreamAssignee<uint8_t> dat8(ss);
-	StreamAssignee<uint32_t> dat32(ss);
+	StreamAssignee<uint8_t> po(*this);
+	StreamAssignee<uint8_t> o(*this);
+	StreamAssignee<uint8_t> dat8(*this);
+	StreamAssignee<uint32_t> dat32(*this);
 
 	if (oldVarData.target.mod == 0b11)
 	{
@@ -160,10 +162,10 @@ void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type)
 	if (scope.back().vars.find(name) != scope.back().vars.end())
 		throw std::runtime_error("Redefinition of variable '" + name + "'.");
 
-	StreamAssignee<uint8_t> po(ss);
-	StreamAssignee<uint8_t> o(ss);
-	StreamAssignee<uint8_t> dat8(ss);
-	StreamAssignee<uint32_t> dat32(ss);
+	StreamAssignee<uint8_t> po(*this);
+	StreamAssignee<uint8_t> o(*this);
+	StreamAssignee<uint8_t> dat8(*this);
+	StreamAssignee<uint32_t> dat32(*this);
 
 	if (type.size < 128)
 	{
@@ -197,10 +199,10 @@ void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type, S
 	if (scope.back().vars.find(name) != scope.back().vars.end())
 		throw std::runtime_error("Redefinition of variable '" + name + "'.");
 
-	StreamAssignee<uint8_t> po(ss);
-	StreamAssignee<uint8_t> o(ss);
-	StreamAssignee<uint8_t> dat8(ss);
-	StreamAssignee<uint32_t> dat32(ss);
+	StreamAssignee<uint8_t> po(*this);
+	StreamAssignee<uint8_t> o(*this);
+	StreamAssignee<uint8_t> dat8(*this);
+	StreamAssignee<uint32_t> dat32(*this);
 
 	if (target.mod == 0b11)
 	{
@@ -235,8 +237,8 @@ void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type, u
 	if (scope.back().vars.find(name) != scope.back().vars.end())
 		throw std::runtime_error("Redefinition of variable '" + name + "'.");
 
-	StreamAssignee<uint8_t> po(ss);
-	StreamAssignee<uint32_t> dat32(ss);
+	StreamAssignee<uint8_t> po(*this);
+	StreamAssignee<uint32_t> dat32(*this);
 
 	// push value
 	po = 0x68;
@@ -267,6 +269,12 @@ ScriptVariableData ScriptCompile::GetVariable(const std::string& name)
 	{
 		auto var = i->vars.find(name);
 		if (var != i->vars.end())
+			return var->second;
+	}
+	if (current_class)
+	{
+		auto var = current_class->members.find(name);
+		if (var != current_class->members.end())
 			return var->second;
 	}
 	throw std::runtime_error("Couldn't find variable '" + name + "'.");

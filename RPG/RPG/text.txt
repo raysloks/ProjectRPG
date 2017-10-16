@@ -1,0 +1,19 @@
+class Test
+{
+	uint a;
+	uint b;
+	uint c;
+};
+
+class Main
+{
+	uint main(uint a)
+	{
+		Test test;
+		test.c = a + 3;
+		test.a = test.c / 3;
+		test.b = test.a * test.c;
+		test.b = test.b - 1;
+		return test.b;
+	};
+};

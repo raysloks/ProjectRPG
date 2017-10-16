@@ -7,15 +7,18 @@ template <typename T>
 class StreamAssignee
 {
 public:
-	StreamAssignee(std::ostream& stream) : s(stream) {}
+	StreamAssignee(ScriptCompile& comp) : c(comp), stream(comp.ss) {}
 
 	StreamAssignee<T>& operator=(const T& rhs)
 	{
-		s.write((char*)&rhs, sizeof(T));
+		if (!c.proto)
+			throw std::runtime_error("Attempting to generate code outside a function.");
+		stream.write((char*)&rhs, sizeof(T));
 		return *this;
 	}
 
-	std::ostream& s;
+	ScriptCompile& c;
+	std::ostream& stream;
 };
 
 template <typename T>
@@ -29,6 +32,8 @@ public:
 
 	StreamAssigneeRelative<int8_t>& operator=(const int8_t& rhs)
 	{
+		if (!c.proto)
+			throw std::runtime_error("Attempting to generate code outside a function.");
 		c.rel8.push_back(stream.tellp());
 		stream.write((char*)&rhs, sizeof(int8_t));
 		return *this;
@@ -46,6 +51,8 @@ public:
 
 	StreamAssigneeRelative<int32_t>& operator=(const int32_t& rhs)
 	{
+		if (!c.proto)
+			throw std::runtime_error("Attempting to generate code outside a function.");
 		c.rel32.push_back(stream.tellp());
 		stream.write((char*)&rhs, sizeof(int32_t));
 		return *this;

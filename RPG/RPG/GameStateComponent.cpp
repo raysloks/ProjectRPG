@@ -110,6 +110,13 @@ void GameStateComponent::tick(float dTime)
 		{
 			survivor_progress = getMaximumSurvivorProgress();
 
+			if (getMinimumAliveSurvivorProgress() == 1.0f)
+			{
+				game_over = true;
+				countdown = 10.0f;
+				teams[0].score += 100 * getAverageSurvivorProgress();
+			}
+
 			auto mobs = entity->world->GetComponents<MobComponent>();
 			mobs.erase(std::remove_if(mobs.begin(), mobs.end(), [](MobComponent * mob)
 			{
@@ -135,6 +142,7 @@ void GameStateComponent::writeLog(outstream& os, ClientData& client)
 		if (game_over)
 		{
 			os << countdown;
+			os << teams[0].score;
 		}
 	}
 }
@@ -149,6 +157,7 @@ void GameStateComponent::readLog(instream& is)
 		if (game_over)
 		{
 			is >> countdown;
+			is >> teams[0].score;
 		}
 	}
 	else
@@ -172,7 +181,10 @@ void GameStateComponent::readLog(instream& is, ClientData& client)
 {
 	int32_t client_team;
 	is >> client_team;
-	addPlayer(client.client_id, client_team);
+	if (setting_up)
+	{
+		addPlayer(client.client_id, client_team);
+	}
 }
 
 void GameStateComponent::interpolate(Component * pComponent, float fWeight)
@@ -203,8 +215,10 @@ void GameStateComponent::startGame(void)
 		for (size_t i = 0; i < teams.size(); i++)
 		{
 			size_t index = 0;
+			teams[i].progress.resize(teams[i].members.size());
 			for (auto member = teams[i].members.begin(); member != teams[i].members.end(); ++member)
 			{
+				teams[i].progress[index] = 0.0f;
 				member->second = createAvatar(member->first, i, index++);
 			}
 		}
@@ -261,6 +275,11 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 
 	if (team == 0)
 	{
+		mob->on_death = [=]()
+		{
+			teams[0].members[index].second = nullptr;
+		};
+
 		mob->on_tick = [mob](float dTime)
 		{
 			if (mob->input["attack"])
@@ -604,6 +623,17 @@ float GameStateComponent::getMaximumSurvivorProgress(void)
 	for each (auto progress in teams[0].progress)
 	{
 		total = std::fmaxf(progress, total);
+	}
+	return total;
+}
+
+float GameStateComponent::getMinimumAliveSurvivorProgress(void)
+{
+	float total = 1.0f;
+	for (size_t i = 0; i < teams[0].progress.size(); i++)
+	{
+		if (teams[0].members[i].second)
+			total = std::fminf(teams[0].progress[i], total);
 	}
 	return total;
 }

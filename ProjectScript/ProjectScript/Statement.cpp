@@ -118,11 +118,11 @@ Statement::Statement(std::vector<std::shared_ptr<Statement>>& tokens, bool expre
 	
 	keyword = 0;
 
-	if (tokens.size()==0) {
+	if (tokens.size() == 0)
 		return;
-	}
 
-	if (tokens.size()==1) {
+	if (tokens.size() == 1)
+	{
 		*this = *tokens.front();
 		if (token.lexeme.compare("return") == 0)
 			keyword = 1;
@@ -130,7 +130,7 @@ Statement::Statement(std::vector<std::shared_ptr<Statement>>& tokens, bool expre
 		return;
 	}
 
-	if (!expression)
+	/*if (!expression) // was only necessary for the old script engine i believe
 	{
 		for (auto i=tokens.begin();i!=tokens.end();++i)
 		{
@@ -149,7 +149,7 @@ Statement::Statement(std::vector<std::shared_ptr<Statement>>& tokens, bool expre
 				}
 			}
 		}
-	}
+	}*/
 
 	auto fp = tokens.end();
 	bool found = true;
@@ -158,30 +158,32 @@ Statement::Statement(std::vector<std::shared_ptr<Statement>>& tokens, bool expre
 		int depth = 0;
 		int max_depth = 0;
 		found = false;
-		for (auto i=tokens.begin();i!=tokens.end();++i)
+		for (auto i = tokens.begin(); i != tokens.end(); ++i)
 		{
 			if ((*i)->token.lexeme.size())
 			{
-				if ((*i)->token.lexeme.front()=='(' && (*i)->token.lexeme.back()!=')')
+				if ((*i)->token.lexeme.front() == '(' && (*i)->token.lexeme.back() != ')')
 				{
-					if (depth==0)
+					if (depth == 0)
 						fp = i;
 					++depth;
-					if (depth>max_depth)
-						max_depth=depth;
+					if (depth > max_depth)
+						max_depth = depth;
 				}
 				if ((*i)->token.lexeme.front()==')')
 				{
+					if (depth == 0)
+						throw std::runtime_error("Unexpected ')'.");
 					--depth;
-					if (depth==0) {
-						if (fp!=tokens.end()) {
-							std::shared_ptr<Statement> p(new Statement(std::vector<std::shared_ptr<Statement>>(fp+1, i), true));
-							if (max_depth==1)
+					if (depth == 0) {
+						if (fp != tokens.end()) {
+							std::shared_ptr<Statement> p(new Statement(std::vector<std::shared_ptr<Statement>>(fp + 1, i), true));
+							if (max_depth == 1)
 								p->keyword = 5;
 							if (fp!=tokens.begin())
-								if ((*(fp-1))->token.lexeme.compare("if")==0 || (*(fp-1))->token.lexeme.compare("while")==0)
+								if ((*(fp - 1))->token.lexeme.compare("if")==0 || (*(fp - 1))->token.lexeme.compare("while")==0)
 									p->keyword = 0;
-							tokens.insert(tokens.erase(fp, i+1), p);
+							tokens.insert(tokens.erase(fp, i + 1), p);
 							fp = tokens.end();
 							found = true;
 							break;
@@ -247,8 +249,10 @@ Statement::Statement(std::vector<std::shared_ptr<Statement>>& tokens, bool expre
 				}
 				if ((*i)->token.lexeme.front()=='}')
 				{
+					if (depth == 0)
+						throw std::runtime_error("Unexpected '}'.");
 					--depth;
-					if (depth==0) {
+					if (depth == 0) {
 						if (fp!=tokens.end()) {
 							std::shared_ptr<Statement> p(new Statement(0, Token(), 0));
 							p->code.reset(new ScriptCode(std::vector<std::shared_ptr<Statement>>(fp+1, i)));
@@ -269,28 +273,28 @@ Statement::Statement(std::vector<std::shared_ptr<Statement>>& tokens, bool expre
 				}
 			}
 		}
-		if (depth>0)
+		if (depth > 0)
 			throw std::runtime_error("Missing '}'.");
 	}
 
-	found=true;
+	found = true;
 	while (found)
 	{
 		found=false;
-		for (auto i=tokens.rbegin();i!=tokens.rend();++i)
+		for (auto i = tokens.rbegin(); i != tokens.rend(); ++i)
 		{
 			if ((*i)->token.lexeme.size())
 			{
-				if ((*i)->token.lexeme.compare("while")==0)
+				if ((*i)->token.lexeme.compare("while") == 0)
 				{
 					auto b = i.base();
 					auto bs = i.base();
 					std::shared_ptr<Statement> p(new Statement(0, Token(), 0));
-					if (b!=tokens.end())
+					if (b != tokens.end())
 					{
 						p->lhs = *b;
 						++b;
-						if (b!=tokens.end())
+						if (b != tokens.end())
 						{
 							p->rhs = *b;
 							p->keyword = 6;
@@ -302,46 +306,46 @@ Statement::Statement(std::vector<std::shared_ptr<Statement>>& tokens, bool expre
 						}
 					}
 				}
-				if ((*i)->token.lexeme.compare("if")==0)
+				if ((*i)->token.lexeme.compare("if") == 0)
 				{
 					auto b = i.base();
 					auto bs = i.base();
 					std::shared_ptr<Statement> p(new Statement(0, Token(), 0));
-					if (b!=tokens.end())
+					if (b != tokens.end())
 					{
 						p->lhs = *b;
 						++b;
-						if (b!=tokens.end())
+						if (b != tokens.end())
 						{
 							++b;
-							if (b!=tokens.end())
+							if (b != tokens.end())
 							{
 								++b;
-								if (b!=tokens.end())
+								if (b != tokens.end())
 								{
-									if ((*(bs+2))->token.lexeme.compare("else")==0)
+									if ((*(bs + 2))->token.lexeme.compare("else") == 0)
 									{
 										p->keyword = 3;
-										p->rhs = std::shared_ptr<Statement>(new Statement(*(bs+1), Token(), *(bs+3)));
+										p->rhs = std::shared_ptr<Statement>(new Statement(*(bs + 1), Token(), *(bs + 3)));
 										//p->token.lexeme = "else"; <- this was silly
 										std::shared_ptr<Statement> semi_colon(new Statement(0, Token(), 0));
 										semi_colon->token.lexeme = ';';
-										tokens.insert(tokens.insert(tokens.erase(bs-1, bs+4), semi_colon), p);
+										tokens.insert(tokens.insert(tokens.erase(bs - 1, bs + 4), semi_colon), p);
 										found=true;
 										break;
 									}
 								}
 							}
 							p->keyword = 2;
-							p->rhs = *(bs+1);
+							p->rhs = *(bs + 1);
 							std::shared_ptr<Statement> semi_colon(new Statement(0, Token(), 0));
 							semi_colon->token.lexeme = ';';
-							tokens.insert(tokens.insert(tokens.erase(bs-1, bs+2), semi_colon), p);
+							tokens.insert(tokens.insert(tokens.erase(bs - 1, bs + 2), semi_colon), p);
 							found=true;
 							break;
 						}
 					}
-					tokens.erase(bs-1, tokens.end());
+					tokens.erase(bs - 1, tokens.end());
 					found=true;
 					break;
 				}
@@ -349,15 +353,15 @@ Statement::Statement(std::vector<std::shared_ptr<Statement>>& tokens, bool expre
 		}
 	}
 	
-	for (auto i=tokens.begin();i!=tokens.end();++i)
+	for (auto i = tokens.begin(); i != tokens.end(); ++i)
 	{
 		if ((*i)->token.lexeme.size())
 		{
-			if ((*i)->token.lexeme.front()==';')
+			if ((*i)->token.lexeme.front() == ';')
 			{
 				std::shared_ptr<Statement> p(new Statement(std::vector<std::shared_ptr<Statement>>(tokens.begin(), i), true));
 				*this = *p;
-				tokens.erase(tokens.begin(), i+1);
+				tokens.erase(tokens.begin(), i + 1);
 				return;
 			}
 		}
@@ -480,13 +484,13 @@ void Statement::compile(ScriptCompile& comp)
 	auto& ss = comp.ss;
 	auto& sasm = comp.sasm;
 
-	StreamAssignee<uint8_t> p(ss);
-	StreamAssignee<uint8_t> po(ss);
-	StreamAssignee<uint8_t> o(ss);
-	StreamAssignee<uint8_t> dat8(ss);
-	StreamAssignee<uint16_t> dat16(ss);
-	StreamAssignee<uint32_t> dat32(ss);
-	StreamAssignee<uint64_t> dat64(ss);
+	StreamAssignee<uint8_t> p(comp);
+	StreamAssignee<uint8_t> po(comp);
+	StreamAssignee<uint8_t> o(comp);
+	StreamAssignee<uint8_t> dat8(comp);
+	StreamAssignee<uint16_t> dat16(comp);
+	StreamAssignee<uint32_t> dat32(comp);
+	StreamAssignee<uint64_t> dat64(comp);
 	StreamAssigneeRelative<int8_t> rel8(comp);
 	StreamAssigneeRelative<int32_t> rel32(comp);
 
@@ -540,7 +544,12 @@ void Statement::compile(ScriptCompile& comp)
 	return;
 	case 2://if
 	{
+		comp.target = ScriptCompileMemoryTarget();
 		lhs->compile(comp);
+
+		// cmp
+		po = 0x3d;
+		dat32 = 0;
 
 		// jz
 		p = 0x0f;
@@ -554,7 +563,12 @@ void Statement::compile(ScriptCompile& comp)
 	return;
 	case 3://if else
 	{
+		comp.target = ScriptCompileMemoryTarget();
 		lhs->compile(comp);
+
+		// cmp
+		po = 0x3d;
+		dat32 = 0;
 
 		// jz
 		p = 0x0f;
@@ -578,7 +592,7 @@ void Statement::compile(ScriptCompile& comp)
 	return;
 	case 4:
 	{
-		if (code != 0)
+		if (code)
 		{
 			comp.BeginScope();
 			bool has_return = false;
@@ -597,9 +611,14 @@ void Statement::compile(ScriptCompile& comp)
 	//aka I used it to make parsing a bit easier for me
 	case 6://while
 	{
+		comp.target = ScriptCompileMemoryTarget();
 		lhs->compile(comp);
 
-		// jnz
+		// cmp
+		po = 0x3d;
+		dat32 = 0;
+
+		// jz
 		p = 0x0f;
 		po = 0x84;
 		rel32 = 0;
@@ -609,38 +628,35 @@ void Statement::compile(ScriptCompile& comp)
 		comp.BeginScope();
 		rhs->compile(comp);
 
-		comp.BeginScope();
+		comp.target = ScriptCompileMemoryTarget();
 		lhs->compile(comp);
 
-		// jz
+		// cmp
+		po = 0x3d;
+		dat32 = 0;
+
+		// jnz
 		p = 0x0f;
-		po = 0x84;
+		po = 0x85;
 
 		std::streamoff diff = start - comp.ss.tellp();
 		diff -= sizeof(int32_t);
 
 		rel32 = diff;
-
-		comp.EndScope();
 		comp.EndScope();
 	}
 	return;
 	case 7://no real operator or keyword or something
 	{
-		if (lhs->keyword == 7)
+		if (rhs->keyword == 4)
 		{
-			if (lhs->lhs->token.lexeme.compare("class") == 0)
+			if (rhs->code)
 			{
-				if (comp.proto == nullptr)
-				{
-					comp.SetClass(lhs->rhs->token.lexeme);
-					rhs->compile(comp);
-					comp.current_class.reset();
-					return;
-				}
-			}
-			if (rhs->code != nullptr && comp.current_class != nullptr)
-			{
+				if (comp.proto)
+					throw std::runtime_error("Function found inside function.");
+				if (!comp.current_class)
+					throw std::runtime_error("Function found outside class.");
+
 				comp.BeginScope();
 
 				ScriptFunctionPrototype prototype;
@@ -653,14 +669,21 @@ void Statement::compile(ScriptCompile& comp)
 				{
 					if (v->token.lexeme.size() == 0 && v->keyword == 0)
 						return;
-					if (v->token.lexeme.front() == ',')
+
+					if (v->token.lexeme.size() > 0)
 					{
-						add_arg(v->lhs);
-						add_arg(v->rhs);
+						if (v->token.lexeme.front() == ',')
+						{
+							add_arg(v->lhs);
+							add_arg(v->rhs);
+							return;
+						}
 					}
-					else
+
+					auto type = v->getType(comp);
+					if (type.GetSize() != 0)
 					{
-						prototype.params.push_back(v->getType(comp));
+						prototype.params.push_back(type);
 						parameter_names.push_back(v->rhs->token.lexeme);
 					}
 				};
@@ -673,28 +696,56 @@ void Statement::compile(ScriptCompile& comp)
 					offset += prototype.params[i].size;
 				}
 
-				comp.current_class->AddFunction(lhs->rhs->token.lexeme, prototype, (char*)comp.base_pointer + ss.tellp());
-
-				comp.BeginFunction();
+				std::string func_name = lhs->token.lexeme;
+				if (lhs->rhs)
+					func_name = lhs->rhs->token.lexeme;
+				comp.current_class->AddFunction(func_name, prototype, (char*)comp.base_pointer + ss.tellp());
+				// TODO: delay code generation until after member evaluations
 
 				comp.proto.reset(new ScriptFunctionPrototype(prototype));
-				rhs->compile(comp);
-				comp.proto.reset();
 
+				comp.BeginFunction();
+				rhs->compile(comp);
 				comp.EndScope();
+
+				comp.proto.reset();
 
 				return;
 			}
 		}
-		if (comp.proto != nullptr)
+		if (lhs->keyword == 7)
+		{
+			if (lhs->lhs->token.lexeme.compare("class") == 0)
+			{
+				if (comp.proto)
+					throw std::runtime_error("'class' found inside function.");
+				if (comp.current_class)
+					throw std::runtime_error("'class' found inside class.");
+
+				comp.SetClass(lhs->rhs->token.lexeme);
+				rhs->compile(comp);
+				comp.current_class.reset();
+				return;
+			}
+		}
+		if (comp.proto)
 		{
 			comp.PushVariable(rhs->token.lexeme, getType(comp));
 			return;
 		}
-		if (comp.current_class != nullptr)
+		if (comp.current_class)
 		{
 			comp.current_class->AddMember(rhs->token.lexeme, getType(comp));
 			return;
+		}
+		if (lhs->token.lexeme.compare("include") == 0)
+		{
+			if (comp.proto)
+				throw std::runtime_error("'include' found inside function.");
+			if (comp.current_class)
+				throw std::runtime_error("'include' found inside class.");
+
+			throw std::runtime_error("Cannot find '" + rhs->token.lexeme + "'.");
 		}
 	}
 	return;
@@ -702,7 +753,7 @@ void Statement::compile(ScriptCompile& comp)
 		break;
 	}
 
-	if (code != 0)
+	if (code)
 	{
 		comp.BeginScope();
 		for (auto i = code->statements.begin(); i != code->statements.end(); ++i)
@@ -712,14 +763,179 @@ void Statement::compile(ScriptCompile& comp)
 		comp.EndScope();
 	}
 
-	if (lhs != 0) {
+	if (token.lexeme.size() > 0)
+	{
+		switch (token.lexeme.front())
+		{
+		case '(':
+		{
+			ScriptTypeData lhs_type = lhs->getType(comp);
+
+			ScriptFunctionPrototype callee_proto;
+			void * function_pointer = nullptr;
+
+			if (lhs->keyword == 0)
+			{
+				if (comp.current_class)
+				{
+					for (auto func : comp.current_class->functions)
+					{
+						if (func.first.compare(lhs->token.lexeme) == 0)
+						{
+							callee_proto = func.second.first;
+							function_pointer = func.second.second;
+						}
+					}
+				}
+			}
+
+			std::vector<std::shared_ptr<Statement>> params;
+
+			std::function<void(const std::shared_ptr<Statement>&)> add_arg;
+			add_arg = [&params, &add_arg](const std::shared_ptr<Statement>& v)
+			{
+				if (v->token.lexeme.size() == 0 && v->keyword == 0)
+					return;
+				if (v->token.lexeme.front() == ',')
+				{
+					add_arg(v->lhs);
+					add_arg(v->rhs);
+				}
+				else
+				{
+					params.push_back(v);
+				}
+			};
+			add_arg(rhs);
+
+			if (params.size() != callee_proto.params.size())
+				throw std::runtime_error("Incorrect number of parameters.");
+
+			std::vector<ScriptTypeData> params_type;
+			params_type.resize(params.size());
+			for (int i = 0; i < params.size(); ++i)
+			{
+				params_type[i] = params[i]->getType(comp);
+				if (params_type[i] != callee_proto.params[i])
+					throw std::runtime_error("Parameter type mismatch.");
+			}
+
+			if (callee_proto.params.size() > 0)
+			{
+				/*if (callee_proto.params.size() == 1)
+				{
+				if (callee_proto.params.front().size == 4)
+				{
+				ScriptCompileMemoryTarget eax_target;
+				comp.target = eax_target;
+				rhs->compile(comp);
+				}
+				else
+				{
+
+				}
+				}
+				else*/
+				{
+					for (auto i = params.rbegin(); i != params.rend(); ++i)
+					{
+						ScriptCompileMemoryTarget eax_target;
+						comp.target = eax_target;
+						(*i)->compile(comp);
+						sasm.Push(eax_target);
+					}
+				}
+			}
+
+			if (function_pointer)
+			{
+				// call lhs (rel32)
+				po = 0xe8;
+				dat32 = (char*)function_pointer - ((char*)comp.base_pointer + ss.tellp() + 4);
+
+				// add esp, params.size() * 4
+				po = 0x81;
+				o = 0b11000100;
+				dat32 = params.size() * 4;
+
+				ScriptCompileMemoryTarget eax_target;
+				if (target != eax_target)
+					sasm.Move(0x89, target, eax_target);
+
+				return;
+			}
+
+			//ScriptCompileMemoryTarget esi_target;
+			//esi_target.rm = 0b110;
+
+			//comp.target = esi_target;
+			//comp.target.lvalue = true;
+			//lhs->compile(comp);
+
+			//// call comp.target
+			//sasm.Move(0xff, 2, comp.target);
+		}
+		break;
+		default:
+			break;
+		}
+	}
+
+	if (lhs) {
 		auto lhs_type = lhs->getType(comp);
-		if (rhs != 0) {
+		if (rhs) {
 			auto rhs_type = lhs->getType(comp);
 			if (lhs_type != rhs_type)
 				throw std::runtime_error("Type mismatch.");
 			switch (token.lexeme.front())
 			{
+			case '.':
+			{
+				auto lhs_type = lhs->getType(comp);
+				if (lhs_type.type != ST_CLASS)
+					throw std::runtime_error("'.' must be preceded by a class.");
+				if (lhs_type.class_data)
+				{
+					for (auto func : lhs_type.class_data->functions)
+					{
+						if (rhs->token.lexeme.compare(func.first) == 0)
+						{
+							// TODO: implement thiscall
+							return;
+						}
+					}
+					for (auto member : lhs_type.class_data->members)
+					{
+						if (rhs->token.lexeme.compare(member.first) == 0)
+						{
+							comp.target = ScriptCompileMemoryTarget();
+							comp.target.lvalue = true;
+							
+							lhs->compile(comp);
+
+							comp.target.offset += member.second.target.offset;
+
+							if (!target.lvalue)
+							{
+								if (target.mod != 0b11)
+								{
+									auto tmp_target = sasm.FindRegister({ target, comp.target });
+									sasm.Move(0x8b, tmp_target, comp.target);
+									sasm.Move(0x89, target, tmp_target);
+								}
+								else
+								{
+									sasm.Move(0x8b, target, comp.target);
+								}
+							}
+
+							return;
+						}
+					}
+					throw std::runtime_error("No member '" + rhs->token.lexeme + "' could be found in class '" + lhs->token.lexeme + "'."); // todo: change to class name probs
+				}
+				throw std::runtime_error("Class of '" + lhs->token.lexeme + "' could not be determined.");
+			}
 			case '=':
 			{
 				if (lhs->keyword == 7)
@@ -841,77 +1057,6 @@ void Statement::compile(ScriptCompile& comp)
 
 				if (target.mod != 0b11 || target.rm != 0b000)
 					sasm.Move(0x89, target, eax_target);
-			}
-			break;
-			case '(':
-			{
-				ScriptFunctionPrototype callee_proto;
-
-				std::vector<std::shared_ptr<Statement>> params;
-
-				std::function<void(const std::shared_ptr<Statement>&)> add_arg;
-				add_arg = [&params, &add_arg](const std::shared_ptr<Statement>& v)
-				{
-					if (v->token.lexeme.size() == 0 && v->keyword == 0)
-						return;
-					if (v->token.lexeme.front() == ',')
-					{
-						add_arg(v->lhs);
-						add_arg(v->rhs);
-					}
-					else
-					{
-						params.push_back(v);
-					}
-				};
-				add_arg(rhs);
-
-				if (params.size() != callee_proto.params.size())
-					throw std::runtime_error("Incorrect number of parameters.");
-
-				std::vector<ScriptTypeData> params_type;
-				params_type.resize(params.size());
-				for (int i = 0; i < params.size(); ++i)
-				{
-					params_type[i] = params[i]->getType(comp);
-					if (params_type[i] != callee_proto.params[i])
-						throw std::runtime_error("Parameter type mismatch.");
-				}
-				
-				if (callee_proto.params.size() > 0)
-				{
-					if (callee_proto.params.size() == 1)
-					{
-						if (callee_proto.params.front().size == 4)
-						{
-							ScriptCompileMemoryTarget eax_target;
-
-							comp.target = eax_target;
-							rhs->compile(comp);
-						}
-						else
-						{
-
-						}
-					}
-					else
-					{
-						for (int i = 0; i < params.size(); ++i)
-						{
-							params[i]->compile(comp);
-						}
-					}
-				}
-
-				ScriptCompileMemoryTarget esi_target;
-				esi_target.rm = 0b110;
-
-				comp.target = esi_target;
-				comp.target.lvalue = true;
-				lhs->compile(comp);
-
-				// call comp.target
-				sasm.Move(0xff, 2, comp.target);
 			}
 			break;
 			default:
@@ -1198,7 +1343,7 @@ bool Statement::hasReturn()
 		return false;
 	}
 
-	if (code != 0)
+	if (code)
 	{
 		for (auto i = code->statements.begin(); i != code->statements.end(); ++i)
 		{
@@ -1272,6 +1417,8 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 	case 0:
 		break;
 	case 5:
+		if (!lhs)
+			break;
 	case 7:
 	{
 		switch (lhs->keyword)
@@ -1291,6 +1438,17 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 				typeData.type = ST_UINT;
 				return typeData;
 			}
+			for (auto c : comp.classes)
+			{
+				if (lhs->token.lexeme.compare(c.first) == 0)
+				{
+					ScriptTypeData typeData;
+					typeData.size = c.second->size;
+					typeData.type = ST_CLASS;
+					typeData.class_data = c.second;
+					return typeData;
+				}
+			}
 		}
 	}
 	break;
@@ -1298,30 +1456,70 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 		throw std::runtime_error("Was expecting an expression.");
 	}
 
-	if (lhs != 0) {
-		auto lhs_type = lhs->getType(comp);
-		if (rhs != 0) {
+	if (lhs) {
+		if (rhs) {
 			switch (token.lexeme.front())
 			{
+			case '.':
+			{
+				auto lhs_type = lhs->getType(comp);
+				if (lhs_type.type != ST_CLASS)
+					throw std::runtime_error("'.' must be preceded by a class.");
+				if (lhs_type.class_data)
+				{
+					for (auto func : lhs_type.class_data->functions)
+					{
+						if (rhs->token.lexeme.compare(func.first) == 0)
+						{
+							ScriptTypeData typeData;
+							typeData.size = 4;
+							typeData.type = ST_FUNCTION;
+							typeData.function_prototype.reset(new ScriptFunctionPrototype(func.second.first));
+							return typeData;
+						}
+					}
+					for (auto member : lhs_type.class_data->members)
+					{
+						if (rhs->token.lexeme.compare(member.first) == 0)
+						{
+							return member.second.type;
+						}
+					}
+					throw std::runtime_error("No member '" + rhs->token.lexeme + "' could be found in class '" + lhs->token.lexeme + "'."); // todo: change to class name probs
+				}
+				throw std::runtime_error("Class of '" + lhs->token.lexeme + "' could not be determined.");
+			}
 			case '(':
 			{
-				
+				if (lhs->keyword == 0)
+				{
+					if (comp.current_class)
+					{
+						for (auto func : comp.current_class->functions)
+						{
+							if (func.first.compare(lhs->token.lexeme) == 0)
+							{
+								return func.second.first.ret;
+							}
+						}
+					}
+				}
 			}
-			break;
 			default:
 			{
+				auto lhs_type = lhs->getType(comp);
 				if (rhs->getType(comp) != lhs_type)
 					throw std::runtime_error("Type mismatch.");
+				return lhs_type;
 			}
 			break;
 			}
-			return lhs_type;
-		} else {
-			return lhs_type;
 		}
+		auto lhs_type = lhs->getType(comp);
+		return lhs_type;
 	}
 	else {
-		if (rhs != 0) {
+		if (rhs) {
 		} else {
 			if (token.lexeme.size() != 0)
 			{
@@ -1354,6 +1552,20 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 					ScriptTypeData typeData;
 					typeData.size = 4;
 					return typeData;
+				}
+				if (comp.current_class)
+				{
+					for (auto func : comp.current_class->functions)
+					{
+						if (token.lexeme.compare(func.first) == 0)
+						{
+							ScriptTypeData typeData;
+							typeData.size = 4;
+							typeData.type = ST_FUNCTION;
+							typeData.function_prototype.reset(new ScriptFunctionPrototype(func.second.first));
+							return typeData;
+						}
+					}
 				}
 				auto varData = comp.GetVariable(token.lexeme);
 				return varData.type;
@@ -1405,18 +1617,15 @@ std::string Statement::output(const std::string& indent)
 		break;
 	default:
 		{
-			if (code!=0)
-			{
-				str.clear();
-				for (auto i=code->statements.begin();i!=code->statements.end();++i)
-					str.append(i->output(indent+"    ")).append("\n");
-			}
-			else
-			{
-				str = indent + str;
-			}
+			str = indent + str;
 		}
 		break;
+	}
+	if (code)
+	{
+		str = "\n";
+		for (auto i = code->statements.begin(); i != code->statements.end(); ++i)
+			str.append(i->output(indent + "    ")).append("\n");
 	}
 	str.append(std::to_string((long long)keyword));
 	return str;
