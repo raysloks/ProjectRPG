@@ -1,0 +1,16 @@
+class Main
+{
+	uint dummy;
+	uint mina;
+
+	uint main(uint a)
+	{
+		mina = mina + a;
+		return mult(mina, a);
+	};
+
+	uint mult(uint a, uint b)
+	{
+		return a * b;
+	};
+};

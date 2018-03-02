@@ -1,19 +1,12 @@
-class Test
+class Main TestClass
 {
-	uint a;
 	uint b;
-	uint c;
-};
 
-class Main
-{
-	uint main(uint a)
+	uint func(uint x)
 	{
-		Test test;
-		test.c = a + 3;
-		test.a = test.c / 3;
-		test.b = test.a * test.c;
-		test.b = test.b - 1;
-		return test.b;
+		uint c = a + b;
+		a = b;
+		b = c;
+		return b;
 	};
 };

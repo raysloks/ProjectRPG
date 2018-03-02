@@ -7,6 +7,7 @@
 #include "Vec3.h"
 #include "Vec2.h"
 #include "Quaternion.h"
+#include "EntityID.h"
 
 #include "HealthBar.h"
 
@@ -43,6 +44,9 @@ public:
 	void write_to(outstream& os) const;
 
 	static const AutoSerialFactory<MobComponent> _factory;
+
+	void do_damage(size_t damage, EntityID source);
+	void do_heal(size_t heal, EntityID source);
 
 	GlobalPosition * p;
 

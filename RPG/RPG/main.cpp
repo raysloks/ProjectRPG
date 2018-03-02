@@ -363,22 +363,26 @@ class TestClass
 public:
 	virtual ~TestClass() {}
 
-	virtual unsigned int func(unsigned int a) = 0;
+	virtual unsigned int func(unsigned int x) = 0;
+
+	unsigned int a;
 };
 
 class TestClassTwo :
 	public TestClass
 {
 public:
-	TestClassTwo() {}
+	TestClassTwo() { a = 1; b = 1; }
 	~TestClassTwo() {}
 
-	unsigned int func(unsigned int a) { return a; }
+	unsigned int func(unsigned int x) { return a * 2; }
+
+	unsigned int b;
 };
 
 int main(int argc, char* argv[])
 //INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-//    PSTR lpCmdLine, INT nCmdShow)
+  //  PSTR lpCmdLine, INT nCmdShow)
 {
 	if (true)
 	{
@@ -401,11 +405,31 @@ int main(int argc, char* argv[])
 
 				ScriptCompile comp(mem);
 
+				std::shared_ptr<ScriptClassData> test_class_data(new ScriptClassData());
+				test_class_data->class_name = "TestClass";
+				ScriptTypeData a_data;
+				a_data.type = ST_UINT;
+				a_data.size = 4;
+				test_class_data->AddMember("a", a_data);
+				ScriptFunctionPrototype destructor_data;
+				destructor_data.cc = CC_THISCALL;
+				test_class_data->AddVirtualFunction("~TestClass", destructor_data);
+				ScriptFunctionPrototype func_data;
+				func_data.cc = CC_THISCALL;
+				func_data.ret = a_data;
+				func_data.params.push_back(a_data);
+				test_class_data->AddVirtualFunction("func", func_data);
+
+				comp.classes.insert(std::make_pair("TestClass", test_class_data));
+
 				for (auto i = code.statements.begin(); i != code.statements.end(); ++i)
 				{
 					std::cout << i->output() << std::endl;
 					i->compile(comp);
 				}
+
+				comp.GenerateCode();
+				comp.Link();
 
 				size_t mem_size = comp.ss.tellp();
 
@@ -419,12 +443,17 @@ int main(int argc, char* argv[])
 					auto found_func = found_class->second->functions.find("main");
 					if (found_func != found_class->second->functions.end())
 					{
-						typedef unsigned int func(unsigned int);
+						TestClass * t = new TestClassTwo();
+						void ** vftable = new void*[2];
+						vftable[0] = (*(void***)t)[0];
+						vftable[1] = found_func->second.second;
+						void *** vftable_ptr = (void***)t;
+						*vftable_ptr = vftable;
 
-						func * f = static_cast<func*>(found_func->second.second);
+						for (int i = 0; i < 1000; ++i)
+							std::cout << t->func(i) << std::endl;
 
-						for (int i = 0; i < 10; ++i)
-							std::cout << f(i) << std::endl;
+						delete t;
 					}
 				}
 
@@ -444,6 +473,14 @@ int main(int argc, char* argv[])
 	//char option = 'h';
 
 	//std::cout << "starting game..." << std::endl;
+
+	//std::cmatch match_server;
+	//std::regex reg_server("\\+server (.*)");
+	//if (std::regex_match(lpCmdLine, match_server, reg_server))
+	//{
+	//	option = 's';
+	//	port = std::atoi(match_server[1].str().c_str());
+	//}
 
 	//std::cmatch match_connect;
 	//std::regex reg_connect("\\+connect (.*):(.*)");

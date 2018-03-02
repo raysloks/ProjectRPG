@@ -54,7 +54,7 @@ void ScriptCompile::EndScope()
 		if (*i >= minoff && *i < maxoff)
 		{
 			int8_t off = GetAt<int8_t>(*i);
-			if (off + *i + sizeof(int8_t) >= scope.back().offset)
+			if (off + *i + sizeof(off) >= scope.back().offset)
 				SetAt<int8_t>(*i, off + block_size);
 		}
 	}
@@ -63,7 +63,7 @@ void ScriptCompile::EndScope()
 		if (*i >= minoff && *i < maxoff)
 		{
 			int32_t off = GetAt<int32_t>(*i);
-			if (off + *i + sizeof(int32_t) >= scope.back().offset)
+			if (off + *i + sizeof(off) >= scope.back().offset)
 				SetAt<int32_t>(*i, off + block_size);
 		}
 	}
@@ -71,7 +71,9 @@ void ScriptCompile::EndScope()
 	size_t stack_dec = 0;
 	for (auto i = scope.back().vars.begin(); i != scope.back().vars.end(); ++i)
 	{
-		stack_dec += i->second.type.size;
+		if (i->second.target.rm == 0b101)
+			if (i->second.target.offset < 0)
+				stack_dec += i->second.type.size;
 	}
 
 	if (stack_dec > 0)
@@ -83,7 +85,7 @@ void ScriptCompile::EndScope()
 		StreamAssignee<uint8_t> dat8(*this);
 		StreamAssignee<uint32_t> dat32(*this);
 
-		if (stack_dec < 128)
+		if (stack_dec < 256)
 		{
 			// add esp, stack_dec
 			po = 0x83;
@@ -102,17 +104,84 @@ void ScriptCompile::EndScope()
 	scope.pop_back();
 }
 
-void ScriptCompile::Insert(size_t start, off_t size)
+void ScriptCompile::GenerateCode()
 {
-	for (auto i = rel8.begin(); i != rel8.end(); ++i)
+	for (auto& func : function_code)
 	{
+		func.compile(*this);
+	}
+}
+
+void ScriptCompile::Link()
+{
+	for (auto& link : links)
+	{
+		if (link.relative)
+		{
+			SetAt<int32_t>(link.location, (char*)link.class_ptr->GetFunctionFinalAddress(link.function_name, link.prototype) - ((char*)base_pointer + link.location + sizeof(int32_t)));
+		}
+		else
+		{
+			SetAt<int32_t>(link.location, (int32_t)link.class_ptr->GetFunctionFinalAddress(link.function_name, link.prototype));
+		}
+	}
+}
+
+void ScriptCompile::Cut(size_t start, size_t size)
+{
+	size_t end = ss.tellp();
+
+	Adjust(start, -size);
+
+	ss.seekg(start + size);
+	ss.seekp(start);
+	while (!ss.eof())
+	{
+		ss.put(ss.get());
+	}
+	ss.clear();
+	ss.seekg(0);
+	ss.seekp(end - size);
+}
+
+void ScriptCompile::Adjust(size_t start, off_t size)
+{
+	for (auto i = rel8.begin(); i != rel8.end(); ++i) // TODO check for overflow/underflow
+	{
+		int8_t off = GetAt<int8_t>(*i);
 		if (*i >= start)
+		{
+			if (*i + sizeof(off) + off < start)
+				SetAt<int8_t>(*i, off - size);
 			*i += size;
+		}
+		else
+		{
+			if (*i + sizeof(off) + off >= start)
+				SetAt<int8_t>(*i, off + size);
+		}
 	}
 	for (auto i = rel32.begin(); i != rel32.end(); ++i)
 	{
+		int32_t off = GetAt<int32_t>(*i);
 		if (*i >= start)
+		{
+			if (*i + sizeof(off) + off < start)
+				SetAt<int32_t>(*i, off - size);
 			*i += size;
+		}
+		else
+		{
+			if (*i + sizeof(off) + off >= start)
+				SetAt<int32_t>(*i, off + size);
+		}
+	}
+	for (auto i = links.begin(); i != links.end(); ++i)
+	{
+		if (i->location >= start)
+		{
+			i->location += size;
+		}
 	}
 }
 
@@ -143,6 +212,7 @@ void ScriptCompile::PushVariable(const std::string& name)
 	}
 	else
 	{
+		throw std::runtime_error("Cannot perform this move currently.");
 	}
 
 	scope.back().vars[name] = varData;
@@ -152,7 +222,8 @@ void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type)
 {
 	ScriptVariableData varData;
 	varData.type = type;
-	stack += type.size;
+	size_t var_size = type.GetSize();
+	stack += var_size;
 
 	varData.target.lvalue = false;
 	varData.target.offset = -stack;
@@ -167,19 +238,19 @@ void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type)
 	StreamAssignee<uint8_t> dat8(*this);
 	StreamAssignee<uint32_t> dat32(*this);
 
-	if (type.size < 128)
+	if (var_size < 128)
 	{
 		// sub esp, type.size
 		po = 0x83;
 		o = 0b11101100;
-		dat8 = type.size;
+		dat8 = var_size;
 	}
 	else
 	{
 		// sub esp, type.size
 		po = 0x81;
 		o = 0b11101100;
-		dat32 = type.size;
+		dat32 = var_size;
 	}
 
 	scope.back().vars[name] = varData;
@@ -189,7 +260,10 @@ void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type, S
 {
 	ScriptVariableData varData;
 	varData.type = type;
-	stack += type.size;
+	size_t var_size = type.GetSize();
+	if (var_size > 4)
+		throw std::runtime_error("Can't initialize non-primitive types.");
+	stack += var_size;
 	
 	varData.target.lvalue = false;
 	varData.target.offset = -stack;
@@ -273,11 +347,11 @@ ScriptVariableData ScriptCompile::GetVariable(const std::string& name)
 	}
 	if (current_class)
 	{
-		auto var = current_class->members.find(name);
-		if (var != current_class->members.end())
-			return var->second;
+		auto var = current_class->GetMember(name);
+		if (var != ScriptVariableData())
+			return var;
 	}
-	throw std::runtime_error("Couldn't find variable '" + name + "'.");
+	throw std::runtime_error("Couldn't find identifier '" + name + "'.");
 }
 
 void ScriptCompile::SetClass(const std::string& name)
@@ -289,6 +363,7 @@ void ScriptCompile::SetClass(const std::string& name)
 	else
 	{
 		current_class.reset(new ScriptClassData());
+		current_class->class_name = name;
 		classes.insert(std::make_pair(name, current_class));
 	}
 }
@@ -305,10 +380,14 @@ bool ScriptCompile::IsFree(uint8_t reg)
 
 void ScriptCompile::SetBusy(uint8_t reg)
 {
+	if (busy_registers.find(reg) != busy_registers.end())
+		throw std::runtime_error("Register is already busy.");
 	busy_registers.insert(reg);
 }
 
 void ScriptCompile::SetFree(uint8_t reg)
 {
+	if (busy_registers.find(reg) == busy_registers.end())
+		throw std::runtime_error("Register is already free.");
 	busy_registers.erase(reg);
 }

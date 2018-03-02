@@ -87,18 +87,38 @@ Matrix4::~Matrix4(void)
 
 float Matrix4::Determinant(void)const
 {
-	return data[12] * data[9] * data[6] * data[3] - data[8] * data[13] * data[6] * data[3] -
-		data[12] * data[5] * data[10] * data[3] + data[4] * data[13] * data[10] * data[3] +
-		data[8] * data[5] * data[14] * data[3] - data[4] * data[9] * data[14] * data[3] -
-		data[12] * data[9] * data[2] * data[7] + data[8] * data[13] * data[2] * data[7] +
-		data[12] * data[1] * data[10] * data[7] - data[0] * data[13] * data[10] * data[7] -
-		data[8] * data[1] * data[14] * data[7] + data[0] * data[9] * data[14] * data[7] +
-		data[12] * data[5] * data[2] * data[11] - data[4] * data[13] * data[2] * data[11] -
-		data[12] * data[1] * data[6] * data[11] + data[0] * data[13] * data[6] * data[11] +
-		data[4] * data[1] * data[14] * data[11] - data[0] * data[5] * data[14] * data[11] -
-		data[8] * data[5] * data[2] * data[15] + data[4] * data[9] * data[2] * data[15] +
-		data[8] * data[1] * data[6] * data[15] - data[0] * data[9] * data[6] * data[15] -
-		data[4] * data[1] * data[10] * data[15] + data[0] * data[5] * data[10] * data[15];
+	float m_4_1 = data[4] * data[1];
+	float m_5_0 = data[5] * data[0];
+	float m_8_1 = data[8] * data[1];
+	float m_9_0 = data[9] * data[0];
+	float m_9_4 = data[9] * data[4];
+	float m_12_3 = data[12] * data[3];
+	float m_12_7 = data[12] * data[7];
+	float m_12_11 = data[12] * data[11];
+	float m_13_3 = data[13] * data[3];
+	float m_13_7 = data[13] * data[7];
+	float m_13_11 = data[13] * data[11];
+	float m_14_3 = data[14] * data[3];
+	float m_14_7 = data[14] * data[7];
+	float m_14_11 = data[14] * data[11];
+	float m_15_2 = data[15] * data[2];
+	float m_15_6 = data[15] * data[6];
+	float m_15_8 = data[15] * data[8];
+	float m_15_9 = data[15] * data[9];
+	float m_15_10 = data[15] * data[10];
+
+	return m_12_3 * data[9] * data[6] - m_13_3 * data[8] * data[6] -
+		m_12_3 * data[5] * data[10] + m_13_3 * data[4] * data[10] +
+		m_14_3 * data[8] * data[5] - m_14_3 * m_9_4 -
+		m_12_7 * data[9] * data[2] + m_13_7 * data[8] * data[2] +
+		m_12_7 * data[1] * data[10] - m_13_7 * data[0] * data[10] -
+		m_14_7 * m_8_1 + m_14_7 * m_9_0 +
+		m_12_11 * data[5] * data[2] - m_13_11 * data[4] * data[2] -
+		m_12_11 * data[1] * data[6] + m_13_11 * data[0] * data[6] +
+		m_14_11 * m_4_1 - m_14_11 * m_5_0 -
+		m_15_2 * data[8] * data[5] + m_15_2 * m_9_4 +
+		m_15_6 * m_8_1 - m_15_6 * m_9_0 -
+		m_15_10 * m_4_1 + m_15_10 * m_5_0;
 }
 
 Matrix4 Matrix4::operator+(const Matrix4& rhs)const

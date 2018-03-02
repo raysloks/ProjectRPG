@@ -529,17 +529,33 @@ void Statement::compile(ScriptCompile& comp)
 
 		if (comp.stack > 0)
 		{
-			// add esp, comp.stack
-			po = 0x81;
-			o = 0b11000100;
-			dat32 = comp.stack;
+			//// add esp, comp.stack
+			//po = 0x81;
+			//o = 0b11000100;
+			//dat32 = comp.stack;
+
+			// leave
+			po = 0xc9;
+		}
+		else
+		{
+			// pop ebp
+			ScriptCompileMemoryTarget ebp;
+			ebp.rm = 0b101;
+			sasm.Pop(ebp);
 		}
 
-		// leave
-		po = 0xc9;
-		
-		// rets
-		po = 0xc3;
+		if (comp.proto->cc == CC_THISCALL)
+		{
+			// rets comp.proto->getParamsSize()
+			po = 0xc2;
+			dat16 = comp.proto->getParamsSize();
+		}
+		else
+		{
+			// rets
+			po = 0xc3;
+		}
 	}
 	return;
 	case 2://if
@@ -657,9 +673,8 @@ void Statement::compile(ScriptCompile& comp)
 				if (!comp.current_class)
 					throw std::runtime_error("Function found outside class.");
 
-				comp.BeginScope();
-
 				ScriptFunctionPrototype prototype;
+				prototype.cc = CC_THISCALL;
 				prototype.ret = lhs->getType(comp);
 
 				std::vector<std::string> parameter_names;
@@ -688,27 +703,21 @@ void Statement::compile(ScriptCompile& comp)
 					}
 				};
 				add_arg(rhs->lhs);
-				
-				size_t offset = 8;
-				for (size_t i = 0; i < prototype.params.size(); ++i)
-				{
-					comp.AddParameter(parameter_names[i], prototype.params[i], offset);
-					offset += prototype.params[i].size;
-				}
 
 				std::string func_name = lhs->token.lexeme;
 				if (lhs->rhs)
 					func_name = lhs->rhs->token.lexeme;
-				comp.current_class->AddFunction(func_name, prototype, (char*)comp.base_pointer + ss.tellp());
-				// TODO: delay code generation until after member evaluations
 
-				comp.proto.reset(new ScriptFunctionPrototype(prototype));
+				ScriptFunctionCompileData function_comp;
+				function_comp.class_ptr = comp.current_class;
+				function_comp.name = func_name;
+				function_comp.prototype = prototype;
+				function_comp.parameter_names = parameter_names;
+				function_comp.code = rhs;
 
-				comp.BeginFunction();
-				rhs->compile(comp);
-				comp.EndScope();
+				comp.function_code.push_back(function_comp);
 
-				comp.proto.reset();
+				comp.current_class->AddFunction(func_name, prototype, nullptr);
 
 				return;
 			}
@@ -726,6 +735,27 @@ void Statement::compile(ScriptCompile& comp)
 				rhs->compile(comp);
 				comp.current_class.reset();
 				return;
+			}
+
+			if (lhs->lhs->keyword == 7)
+			{
+				if (lhs->lhs->lhs->token.lexeme.compare("class") == 0)
+				{
+					if (comp.proto)
+						throw std::runtime_error("'class' found inside function.");
+					if (comp.current_class)
+						throw std::runtime_error("'class' found inside class.");
+
+					comp.SetClass(lhs->lhs->rhs->token.lexeme);
+					std::string parent_name = lhs->rhs->token.lexeme;
+					auto parent = comp.classes.find(parent_name);
+					if (parent == comp.classes.end())
+						throw std::runtime_error("Cannot find class '" + parent_name + "'.");
+					comp.current_class->SetParent(parent->second);
+					rhs->compile(comp);
+					comp.current_class.reset();
+					return;
+				}
 			}
 		}
 		if (comp.proto)
@@ -745,7 +775,8 @@ void Statement::compile(ScriptCompile& comp)
 			if (comp.current_class)
 				throw std::runtime_error("'include' found inside class.");
 
-			throw std::runtime_error("Cannot find '" + rhs->token.lexeme + "'.");
+			//throw std::runtime_error("Cannot find '" + rhs->token.lexeme + "'.");
+			throw std::runtime_error("'include' is not yet implemented.");
 		}
 	}
 	return;
@@ -778,7 +809,7 @@ void Statement::compile(ScriptCompile& comp)
 			{
 				if (comp.current_class)
 				{
-					for (auto func : comp.current_class->functions)
+					for (auto& func : comp.current_class->functions)
 					{
 						if (func.first.compare(lhs->token.lexeme) == 0)
 						{
@@ -786,6 +817,11 @@ void Statement::compile(ScriptCompile& comp)
 							function_pointer = func.second.second;
 						}
 					}
+				}
+				auto lhs_type = lhs->getType(comp);
+				if (lhs_type.function_prototype)
+				{
+					callee_proto = *lhs_type.function_prototype;
 				}
 			}
 
@@ -820,6 +856,8 @@ void Statement::compile(ScriptCompile& comp)
 					throw std::runtime_error("Parameter type mismatch.");
 			}
 
+			size_t previous_stack = comp.stack;
+
 			if (callee_proto.params.size() > 0)
 			{
 				/*if (callee_proto.params.size() == 1)
@@ -847,23 +885,32 @@ void Statement::compile(ScriptCompile& comp)
 				}
 			}
 
-			if (function_pointer)
-			{
-				// call lhs (rel32)
-				po = 0xe8;
-				dat32 = (char*)function_pointer - ((char*)comp.base_pointer + ss.tellp() + 4);
+			// call lhs (rel32)
+			po = 0xe8;
 
+			ScriptLinkData link;
+			link.relative = true;
+			link.location = ss.tellp();
+			link.class_ptr = comp.current_class;
+			link.function_name = lhs->token.lexeme;
+			link.prototype = callee_proto;
+			comp.links.push_back(link);
+
+			dat32 = (char*)function_pointer - ((char*)comp.base_pointer + ss.tellp() + 4);
+
+			if (callee_proto.cc != CC_THISCALL)
+			{
 				// add esp, params.size() * 4
 				po = 0x81;
 				o = 0b11000100;
 				dat32 = params.size() * 4;
-
-				ScriptCompileMemoryTarget eax_target;
-				if (target != eax_target)
-					sasm.Move(0x89, target, eax_target);
-
-				return;
 			}
+
+			ScriptCompileMemoryTarget eax_target;
+			if (target != eax_target)
+				sasm.Move(0x89, target, eax_target);
+
+			return;
 
 			//ScriptCompileMemoryTarget esi_target;
 			//esi_target.rm = 0b110;
@@ -900,6 +947,7 @@ void Statement::compile(ScriptCompile& comp)
 					{
 						if (rhs->token.lexeme.compare(func.first) == 0)
 						{
+							auto prototype = func.second.first;
 							// TODO: implement thiscall
 							return;
 						}
@@ -1190,21 +1238,28 @@ void Statement::compile(ScriptCompile& comp)
 				}
 				else
 				{
-					if (target.mod == 0b11)
+					if (target == var_target)
 					{
-						sasm.Move(0x8b, target, var_target);
+						// do anything here?
 					}
 					else
 					{
-						if (var_target.mod == 0b11)
+						if (target.mod == 0b11)
 						{
-							sasm.Move(0x89, target, var_target);
+							sasm.Move(0x8b, target, var_target);
 						}
 						else
 						{
-							auto tmp_target = sasm.FindRegister({ target, var_target });
-							sasm.Move(0x8b, tmp_target, var_target);
-							sasm.Move(0x89, target, tmp_target);
+							if (var_target.mod == 0b11)
+							{
+								sasm.Move(0x89, target, var_target);
+							}
+							else
+							{
+								auto tmp_target = sasm.FindRegister({ target, var_target });
+								sasm.Move(0x8b, tmp_target, var_target);
+								sasm.Move(0x89, target, tmp_target);
+							}
 						}
 					}
 				}
@@ -1415,41 +1470,40 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 	switch (keyword)
 	{
 	case 0:
+		if (token.lexeme.compare("int") == 0)
+		{
+			ScriptTypeData typeData;
+			typeData.size = 4;
+			typeData.type = ST_INT;
+			return typeData;
+		}
+		if (token.lexeme.compare("uint") == 0)
+		{
+			ScriptTypeData typeData;
+			typeData.size = 4;
+			typeData.type = ST_UINT;
+			return typeData;
+		}
+		for (auto c : comp.classes)
+		{
+			if (token.lexeme.compare(c.first) == 0)
+			{
+				ScriptTypeData typeData;
+				typeData.size = c.second->size;
+				typeData.type = ST_CLASS;
+				typeData.class_data = c.second;
+				return typeData;
+			}
+		}
 		break;
 	case 5:
 		if (!lhs)
 			break;
 	case 7:
 	{
-		switch (lhs->keyword)
-		{
-		case 0:
-			if (lhs->token.lexeme.compare("int") == 0)
-			{
-				ScriptTypeData typeData;
-				typeData.size = 4;
-				typeData.type = ST_INT;
-				return typeData;
-			}
-			if (lhs->token.lexeme.compare("uint") == 0)
-			{
-				ScriptTypeData typeData;
-				typeData.size = 4;
-				typeData.type = ST_UINT;
-				return typeData;
-			}
-			for (auto c : comp.classes)
-			{
-				if (lhs->token.lexeme.compare(c.first) == 0)
-				{
-					ScriptTypeData typeData;
-					typeData.size = c.second->size;
-					typeData.type = ST_CLASS;
-					typeData.class_data = c.second;
-					return typeData;
-				}
-			}
-		}
+		if (lhs->token.lexeme.compare("static") == 0)
+			return rhs->getType(comp);
+		return lhs->getType(comp);
 	}
 	break;
 	default:
@@ -1493,6 +1547,12 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 			{
 				if (lhs->keyword == 0)
 				{
+					if (lhs->rhs)
+					{
+						auto lhs_type = lhs->getType(comp);
+						if (lhs_type.function_prototype)
+							return lhs_type.function_prototype->ret;
+					}
 					if (comp.current_class)
 					{
 						for (auto func : comp.current_class->functions)
@@ -1507,6 +1567,8 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 			}
 			default:
 			{
+				if (lhs->token.lexeme.compare("static") == 0)
+					return rhs->getType(comp);
 				auto lhs_type = lhs->getType(comp);
 				if (rhs->getType(comp) != lhs_type)
 					throw std::runtime_error("Type mismatch.");

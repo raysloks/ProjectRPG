@@ -12,6 +12,9 @@ public:
 
 	ScriptTypeData type;
 	ScriptCompileMemoryTarget target;
+
+	bool operator==(const ScriptVariableData& rhs) const;
+	bool operator!=(const ScriptVariableData& rhs) const;
 };
 
 #endif

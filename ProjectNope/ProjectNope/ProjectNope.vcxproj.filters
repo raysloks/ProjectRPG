@@ -177,20 +177,8 @@
     <ClCompile Include="JoinGameWindow.cpp">
       <Filter>Source Files\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Item.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Inventory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="InventoryWindow.cpp">
-      <Filter>Source Files\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="TextWindow.cpp">
       <Filter>Source Files\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="InventoryDisplay.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Glyph.cpp">
       <Filter>Source Files</Filter>
@@ -464,23 +452,11 @@
     <ClInclude Include="JoinGameWindow.h">
       <Filter>Header Files\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Item.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Inventory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="InventoryWindow.h">
-      <Filter>Header Files\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="SyncContainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TextWindow.h">
       <Filter>Header Files\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="InventoryDisplay.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Glyph.h">
       <Filter>Header Files</Filter>

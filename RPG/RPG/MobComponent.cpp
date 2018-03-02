@@ -496,3 +496,27 @@ void MobComponent::write_to(outstream& os, ClientData& client) const
 void MobComponent::write_to(outstream& os) const
 {
 }
+
+void MobComponent::do_damage(size_t damage, EntityID source)
+{
+	health.current -= damage;
+	if (health.current <= 0.0f)
+	{
+		auto source_entity = entity->world->GetEntity(source);
+		if (source_entity)
+		{
+			auto source_mob = source_entity->getComponent<MobComponent>();
+			if (source_mob)
+			{
+				source_mob->health.max += 1.0f;
+			}
+		}
+	}
+}
+
+void MobComponent::do_heal(size_t heal, EntityID source)
+{
+	health.current += heal;
+	if (health.current > health.max)
+		health.current = health.max;
+}

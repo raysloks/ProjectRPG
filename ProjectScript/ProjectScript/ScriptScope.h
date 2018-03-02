@@ -13,7 +13,6 @@ public:
 
 	std::unordered_map<std::string, ScriptVariableData> vars;
 	std::vector<std::pair<ScriptCompileMemoryTarget, ScriptCompileMemoryTarget>> swaps;
-	//std::map<std::string, std::pair<ScriptFunctionPrototype, void*>> funcs;
 };
 
 #endif

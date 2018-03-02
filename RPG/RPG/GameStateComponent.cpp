@@ -303,11 +303,11 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 
 						pos->p = *mob->p + mob->up * 0.45f;
 
-						projectile->on_collision = [ent](MobComponent * target)
+						projectile->on_collision = [ent, mob](MobComponent * target)
 						{
 							if (target)
 							{
-								target->health.current -= 20.0f;
+								target->do_damage(20, mob->entity->get_id());
 								target->hit = true;
 							}
 							ent->world->SetEntity(ent->id, nullptr);
@@ -336,7 +336,7 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 
 				if (mob->weapon_index == 1)
 				{
-					mob->health.current = 100.0f;
+					mob->do_heal(100, mob->entity->get_id());
 				}
 
 				mob->input.erase("attack");
@@ -482,7 +482,7 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 								{
 									target->input["slime"] += 0.5f;
 									if (target != mob)
-										target->health.current -= target->input["slime"];
+										target->do_damage(target->input["slime"], mob->entity->get_id());
 								}
 								ent->world->SetEntity(ent->id, nullptr);
 							};

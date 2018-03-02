@@ -163,6 +163,7 @@
     <ClCompile Include="HitComponent.cpp" />
     <ClCompile Include="InventoryComponent.cpp" />
     <ClCompile Include="Item.cpp" />
+    <ClCompile Include="LearningComponent.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MobComponent.cpp" />
     <ClCompile Include="OrbitComponent.cpp" />
@@ -200,6 +201,7 @@
     <ClInclude Include="HitComponent.h" />
     <ClInclude Include="InventoryComponent.h" />
     <ClInclude Include="Item.h" />
+    <ClInclude Include="LearningComponent.h" />
     <ClInclude Include="MobComponent.h" />
     <ClInclude Include="OrbitComponent.h" />
     <ClInclude Include="PlayerInputComponent.h" />

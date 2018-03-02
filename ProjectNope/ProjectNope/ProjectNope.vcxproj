@@ -217,10 +217,6 @@
     <ClCompile Include="GraphicsComponent.cpp" />
     <ClCompile Include="HealthBar.cpp" />
     <ClCompile Include="IEvent.cpp" />
-    <ClCompile Include="Inventory.cpp" />
-    <ClCompile Include="InventoryDisplay.cpp" />
-    <ClCompile Include="InventoryWindow.cpp" />
-    <ClCompile Include="Item.cpp" />
     <ClCompile Include="JoinGameWindow.cpp" />
     <ClCompile Include="Link.cpp" />
     <ClCompile Include="LinkContainer.cpp" />
@@ -315,10 +311,6 @@
     <ClInclude Include="GlyphString.h" />
     <ClInclude Include="GraphicsComponent.h" />
     <ClInclude Include="HealthBar.h" />
-    <ClInclude Include="Inventory.h" />
-    <ClInclude Include="InventoryDisplay.h" />
-    <ClInclude Include="InventoryWindow.h" />
-    <ClInclude Include="Item.h" />
     <ClInclude Include="JoinGameWindow.h" />
     <ClInclude Include="Link.h" />
     <ClInclude Include="LinkContainer.h" />

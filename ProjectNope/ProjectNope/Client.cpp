@@ -9,7 +9,6 @@
 
 #include "StandardHUD.h"
 #include "MainMenuWindow.h"
-#include "InventoryWindow.h"
 
 #include "Resource.h"
 #include "Sound.h"

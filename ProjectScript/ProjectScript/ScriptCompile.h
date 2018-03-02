@@ -6,6 +6,8 @@
 #include "ScriptFunctionPrototype.h"
 #include "ScriptClassData.h"
 #include "ScriptAssemblyHelper.h"
+#include "ScriptFunctionCompileData.h"
+#include "ScriptLinkData.h"
 
 #include <vector>
 #include <memory>
@@ -22,6 +24,9 @@ public:
 
 	void BeginScope();
 	void EndScope();
+
+	void GenerateCode();
+	void Link();
 
 	template <typename T>
 	T GetAt(size_t position)
@@ -43,7 +48,8 @@ public:
 		ss.seekp(prev);
 	}
 
-	void Insert(size_t start, off_t size);
+	void Cut(size_t start, size_t size);
+	void Adjust(size_t start, off_t size);
 
 	void PushVariable(const std::string& name);
 	void PushVariable(const std::string& name, ScriptTypeData type);
@@ -65,6 +71,7 @@ public:
 	std::shared_ptr<ScriptClassData> current_class;
 
 	std::unordered_map<std::string, std::shared_ptr<ScriptClassData>> classes;
+	std::vector<ScriptFunctionCompileData> function_code;
 
 	std::stringstream ss;
 	void * base_pointer;
@@ -80,6 +87,7 @@ public:
 
 	std::vector<size_t> rel8;
 	std::vector<size_t> rel32;
+	std::vector<ScriptLinkData> links;
 };
 
 #endif

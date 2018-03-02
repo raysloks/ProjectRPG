@@ -18,10 +18,13 @@ ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister()
 	bool eax = comp.IsBusy(0b000);
 	bool ecx = comp.IsBusy(0b001);
 	bool edx = comp.IsBusy(0b010);
-	if (eax && ecx && edx)
+	bool ebx = comp.IsBusy(0b011);
+	if (eax && ecx && edx && ebx)
 	{
 		throw std::runtime_error("Unable to find free register.");
 	}
+	if (!ebx)
+		ret.rm = 0b011;
 	if (!edx)
 		ret.rm = 0b010;
 	if (!ecx)
@@ -33,19 +36,30 @@ ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister()
 
 ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister(ScriptCompileMemoryTarget& target)
 {
-	comp.SetBusy(target.rm);
-	auto ret = FindRegister();
-	comp.SetFree(target.rm);
-	return ret;
+	if (comp.IsFree(target.rm))
+	{
+		comp.SetBusy(target.rm);
+		auto ret = FindRegister();
+		comp.SetFree(target.rm);
+		return ret;
+	}
+	else
+	{
+		return FindRegister();
+	}
 }
 
 ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister(const std::vector<ScriptCompileMemoryTarget>& targets)
 {
+	std::vector<uint8_t> free_targets;
 	for each (auto target in targets)
-		comp.SetBusy(target.rm);
+		if (comp.IsFree(target.rm))
+			free_targets.push_back(target.rm);
+	for each (auto target in free_targets)
+		comp.SetBusy(target);
 	auto ret = FindRegister();
-	for each (auto target in targets)
-		comp.SetFree(target.rm);
+	for each (auto target in free_targets)
+		comp.SetFree(target);
 	return ret;
 }
 
