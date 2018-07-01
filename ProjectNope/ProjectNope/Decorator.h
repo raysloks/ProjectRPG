@@ -16,6 +16,7 @@ class Decorator
 {
 public:
 	Decorator(void);
+	Decorator(const std::string& mesh, int bone_id = -1);
 	Decorator(const std::string& mesh, const Material& material, int bone_id = -1);
 	Decorator(const std::string& mesh, const MaterialList& materials, int bone_id = -1);
 	~Decorator(void);

@@ -1,6 +1,8 @@
 #ifndef GAME_LOOP_H
 #define GAME_LOOP_H
 
+#include <cstdint>
+
 class World;
 class Server;
 class Client;
@@ -19,9 +21,9 @@ public:
 	Client * client;
 
 private:
-	double durationInSeconds;
-	double fpsCorrection;
-	double lag;
+	double fullInSeconds, busyInSeconds;
+
+	int64_t freq, start, end, start_busy, end_busy;
 };
 
 #endif

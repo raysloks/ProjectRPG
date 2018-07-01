@@ -32,6 +32,8 @@ public:
 	void set_state(uint32_t new_state);
 
 	uint32_t state;
+	size_t sync;
+	bool send;
 };
 
 #endif

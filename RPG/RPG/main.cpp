@@ -112,6 +112,35 @@ public:
 			world->AddEntity(ent);
 		}
 
+		// create swing
+		{
+			NewEntity * ent = new NewEntity();
+
+			PositionComponent * p = new PositionComponent(Vec3(-13.0f, -5.0f, 22.0f));
+			GraphicsComponent * g = new GraphicsComponent();
+
+			ent->addComponent(p);
+			ent->addComponent(g);
+
+			auto swing_prog = std::make_shared<ShaderProgram>("data/gfill_vert.txt", "data/swing_frag.txt");
+
+			MaterialList materials;
+			materials.materials.push_back(Material("data/assets/concrete_blue.tga"));
+			//materials.materials.push_back(Material("data/assets/terrain/textures/plank.tga"));
+			std::shared_ptr<float> swing_time(new float);
+			materials.materials.back().mod = ShaderMod(swing_prog, [swing_time](const std::shared_ptr<ShaderProgram>& prog)
+			{
+				prog->Uniform("swing_time", *swing_time);
+				glEnable(GL_BLEND);
+				glDisable(GL_ALPHA_TEST);
+
+				*swing_time += 0.06f;
+			});
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", materials, 0)));
+
+			world->AddEntity(ent);
+		}
+
 		auto createProgressZone = [game_state, this](const GlobalPosition& aabb_min, const GlobalPosition& aabb_max, float progress)
 		{
 			NewEntity * ent = new NewEntity();
@@ -380,11 +409,67 @@ public:
 	unsigned int b;
 };
 
+void start_engine_instance(std::string address, uint16_t port, uint64_t lobby_id, char option)
+{
+	World * world = new World();
+	Server * server = nullptr;// = new MyServer(world);
+	Client * client = nullptr;// = new Client(world);
+
+	if (option == 'p')
+	{
+		server = new MyServer(world);
+		client = new Client(world);
+		server->onServerActivated();
+		server->onClientConnect(*client->clientData);
+	}
+	if (option == 'c')
+	{
+		server = new MyServer(world);
+		client = new Client(world);
+		client->connect(address, port);
+	}
+	if (option == 'h')
+	{
+		server = new MyServer(world);
+		client = new Client(world);
+		server->open(port);
+		server->onServerActivated();
+		server->onClientConnect(*client->clientData);
+	}
+	if (option == 's')
+	{
+		server = new MyServer(world);
+		server->open(port);
+		server->onServerActivated();
+	}
+
+	world->client = client;
+	world->server = server;
+	if (server != nullptr)
+	{
+		server->client = client;
+		if (client != nullptr)
+			client->server = server;
+		GameLoop gl(world, server, client);
+		gl.init();
+		if (client != nullptr)
+		{
+			while (client->IsAlive())
+				gl.tick();
+		}
+		else
+		{
+			while (true)
+				gl.tick();
+		}
+	}
+}
+
 int main(int argc, char* argv[])
 //INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-  //  PSTR lpCmdLine, INT nCmdShow)
+	//PSTR lpCmdLine, INT nCmdShow)
 {
-	if (true)
+	if (false)
 	{
 		size_t max_mem_size = 65536;
 		void * mem = VirtualAlloc(nullptr, max_mem_size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
@@ -399,7 +484,7 @@ int main(int argc, char* argv[])
 
 				//ScriptCode code = ScriptCode(std::istringstream(buffer));
 
-				auto file = Resource::get<StringResource>("text.txt", { "block", "reload" });
+				auto file = Resource::get<StringResource>("text2.txt", { "block", "reload" });
 
 				ScriptCode code = ScriptCode(std::istringstream(file->string));
 
@@ -467,78 +552,44 @@ int main(int argc, char* argv[])
 		VirtualFree(mem, max_mem_size, MEM_RELEASE);
 	}
 
-	//std::string address;
-	//uint16_t port = 7777;
-	//uint64_t lobby_id = 0;
-	//char option = 'h';
+	std::string address;
+	uint16_t port = 7777;
+	uint64_t lobby_id = 0;
+	char option = 'h';
 
-	//std::cout << "starting game..." << std::endl;
+	std::cout << "starting game..." << std::endl;
 
-	//std::cmatch match_server;
-	//std::regex reg_server("\\+server (.*)");
-	//if (std::regex_match(lpCmdLine, match_server, reg_server))
-	//{
-	//	option = 's';
-	//	port = std::atoi(match_server[1].str().c_str());
-	//}
+	/*std::cmatch match_server;
+	std::regex reg_server("\\+server (.*)");
+	if (std::regex_match(lpCmdLine, match_server, reg_server))
+	{
+		option = 's';
+		port = std::atoi(match_server[1].str().c_str());
+	}
 
-	//std::cmatch match_connect;
-	//std::regex reg_connect("\\+connect (.*):(.*)");
-	//if (std::regex_match(lpCmdLine, match_connect, reg_connect))
-	//{
-	//	option = 'c';
-	//	address = match_connect[1];
-	//	port = std::atoi(match_connect[2].str().c_str());
-	//}
+	std::cmatch match_connect;
+	std::regex reg_connect("\\+connect (.*):(.*)");
+	if (std::regex_match(lpCmdLine, match_connect, reg_connect))
+	{
+		option = 'c';
+		address = match_connect[1];
+		port = std::atoi(match_connect[2].str().c_str());
+	}
 
-	//std::cmatch match_connect_lobby;
-	//std::regex reg_connect_lobby("\\+connect_lobby (.*)");
-	//std::regex_match(lpCmdLine, match_connect_lobby, reg_connect_lobby);
+	std::cmatch match_connect_lobby;
+	std::regex reg_connect_lobby("\\+connect_lobby (.*)");
+	std::regex_match(lpCmdLine, match_connect_lobby, reg_connect_lobby);*/
 
-	////std::shared_ptr<ISteamWrapper> steam(ISteamWrapper::make());
-	//
-	//World * world = new World();
-	//Server * server = new MyServer(world);
-	//Client * client = new Client(world);
-
-	//if (option=='p')
-	//{
-	//	server->onServerActivated();
-	//	server->onClientConnect(*client->clientData);
-	//}
-	//if (option=='c')
-	//{
-	//	client->connect(address, port);
-	//}
-	//if (option == 'h')
-	//{
-	//	server->open(port);
-	//	server->onServerActivated();
-	//	server->onClientConnect(*client->clientData);
-	//}
-	//if (option=='s')
-	//{
-	//	server->open(port);
-	//}
-
-	//world->client = client;
-	//world->server = server;
-	//if (server != nullptr)
-	//{
-	//	server->client = client;
-	//	if (client != nullptr)
-	//		client->server = server;
-	//	GameLoop gl(world, server, client);
-	//	gl.init();
-	//	if (client != nullptr)
-	//	{
-	//		while (client->IsAlive())
-	//			gl.tick();
-	//	}
-	//	else
-	//	{
-	//		while (true)
-	//			gl.tick();
-	//	}
-	//}
+	//std::shared_ptr<ISteamWrapper> steam(ISteamWrapper::make());
+	
+	if (option == 'h')
+	{
+		std::thread t(std::bind(start_engine_instance, address, port, lobby_id, 's'));
+		start_engine_instance("127.0.0.1", port, lobby_id, 'c');
+		t.join();
+	}
+	else
+	{
+		start_engine_instance(address, port, lobby_id, option);
+	}
 }

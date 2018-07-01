@@ -70,6 +70,7 @@ void AudioComponent::pre_frame(float dTime)
 
 void AudioComponent::tick(float dTime)
 {
+	pre_frame(dTime);
 }
 
 void AudioComponent::writeLog(outstream& os, ClientData& client)

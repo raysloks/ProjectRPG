@@ -144,15 +144,18 @@ std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set
 		}
 		else
 		{
+			mutex.lock();
 			loading[name] = std::make_pair(std::thread(std::bind(&_load, name, options)), true);
+			mutex.unlock();
 			return nullptr;
 		}
 
 	}
 
+	mutex.unlock();
+	std::lock_guard<std::mutex> lock(mutex);
 	if (options.find("block") != options.end())
 	{
-		mutex.unlock();
 		loading[name].first.join();
 		loading.erase(name);
 		return resources[name];
@@ -161,12 +164,10 @@ std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set
 	{
 		if (!loading[name].second)
 		{
-			mutex.unlock();
 			loading[name].first.join();
 			loading.erase(name);
 			return resources[name];
 		}
-		mutex.unlock();
 		return nullptr;
 	}
 }

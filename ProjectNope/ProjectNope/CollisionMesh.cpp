@@ -171,6 +171,9 @@ void CollisionMesh::CalcBounds(void)
 		aabb_min.z = std::fminf(aabb_min.z, wall.p3.z);
 	}
 
+	aabb_max += Vec3(1.0f, 1.0f, 1.0f);
+	aabb_min -= Vec3(1.0f, 1.0f, 1.0f);
+
 	/*float f;
 	bounds = 0.0f;
 	for (auto i=walls.begin();i!=walls.end();++i)
@@ -258,8 +261,6 @@ std::vector<size_t> CollisionMesh::GetWallsInAABB(Vec3 box_min, Vec3 box_max) co
 
 		return ret;
 	}
-
-	Vec3 epsilon(1.0f, 1.0f, 1.0f);
 
 	Vec3 dif = aabb_max - aabb_min;
 

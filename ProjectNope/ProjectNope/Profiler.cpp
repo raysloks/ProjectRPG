@@ -11,7 +11,7 @@ class TimeslotData
 public:
 	void reset(void)
 	{
-		time = 0.0;
+		//time = 0.0;
 		for each (auto slot in map)
 		{
 			slot.second->reset();

@@ -153,7 +153,7 @@ void Server::tick(float dTime)
 			}
 		}
 	
-		if (--snapshotTimer <= 0)
+		if (snapshotTimer <= 0)
 		{
 			snapshotTimer += snapshotRate;
 			for (auto i = conns.begin(); i != conns.end(); ++i)

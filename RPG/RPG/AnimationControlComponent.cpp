@@ -25,6 +25,10 @@ AnimationControlComponent::~AnimationControlComponent(void)
 
 void AnimationControlComponent::connect(NewEntity * pEntity, bool authority)
 {
+	sync = pEntity->ss.allocate([](ClientData& client)
+	{
+		
+	}, std::function<bool(ClientData&)>());
 }
 
 void AnimationControlComponent::disconnect(void)
@@ -102,6 +106,8 @@ void AnimationControlComponent::tick(float dTime)
 				if (pose->frame > 472.5f)
 					set_state(2);
 				break;
+			default:
+				break;
 			}
 		}
 	}
@@ -161,6 +167,8 @@ void AnimationControlComponent::set_state(uint32_t new_state)
 				break;
 			case 4:
 				pose->frame = 462.5f;
+				break;
+			default:
 				break;
 			}
 		}

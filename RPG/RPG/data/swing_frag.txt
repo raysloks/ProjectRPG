@@ -1,0 +1,24 @@
+#version 440
+
+in vec4 position;
+in vec2 texco;
+
+uniform float swing_time;
+uniform sampler2D diffuse;
+
+out vec4 final_color;
+
+const float PI = 3.1415926535897932384626433832795;
+
+void main()
+{
+	vec2 co = texco * 2.0 - 1.0;
+
+	float angle = atan(co.y, co.x);
+
+	float dist = length(co);
+
+	float alpha = min(1.0, max(0.0, (dist - texture(diffuse, vec2(angle * 2.0 / PI + dist * dist, dist + swing_time * 0.23)).r + step(0.945, dist)) * step(dist, 0.955)));
+
+	final_color = vec4(vec3(1.0, 0.5, 0.1), alpha * alpha * alpha);
+}

@@ -6,6 +6,11 @@ Decorator::Decorator(void)
 {
 }
 
+Decorator::Decorator(const std::string& m, int bid) : mesh_fname(m), bone_id(bid), skin(0)
+{
+	Resource::load(mesh_fname);
+}
+
 Decorator::Decorator(const std::string& m, const Material& mat, int bid) : mesh_fname(m), bone_id(bid), skin(0)
 {
 	materials.materials.push_back(mat);

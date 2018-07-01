@@ -17,7 +17,6 @@
 #include "FontResource.h"
 
 IEventManager * gpEventManager;
-IPlatform * gpPlatform;
 
 FT_Library ftLibrary;
 
@@ -28,8 +27,6 @@ int forceFrameSync = -1;
 bool useFrameSync = true;
 bool useDynamicVSyncDisable = false;
 bool useVSync = false;
-
-LARGE_INTEGER freq, start, end;
 
 #include "Script.h"
 #include "BooleanVar.h"
@@ -67,17 +64,11 @@ GameLoop::~GameLoop(void)
 		FT_Error ftError = FT_Done_FreeType(ftLibrary);
 	}
 
-	gpPlatform->release();
-
-	delete gpPlatform;
 	delete gpEventManager;
 }
 
 void GameLoop::init(void)
 {
-	gpPlatform = new TempPlatform();
-	gpPlatform->set_position(4, 24);
-	gpPlatform->set_z_depth(8);
 	gpEventManager = new GameEventManager();
 
 	FT_Error ftError = FT_Init_FreeType(&ftLibrary);
@@ -100,85 +91,58 @@ void GameLoop::init(void)
 
 	//SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
 
-	QueryPerformanceFrequency(&freq);
-	QueryPerformanceCounter(&start);
+	QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+	QueryPerformanceCounter((LARGE_INTEGER*)&start);
+	QueryPerformanceCounter((LARGE_INTEGER*)&start_busy);
 
-	durationInSeconds = fpsCap;
-	fpsCorrection = 0.0;
-	lag = 0.0;
+	fullInSeconds = 0.0;
+	busyInSeconds = 0.0;
 }
 
 void GameLoop::tick(void)
 {
-	if (client != nullptr) {
-		client->pre_frame(durationInSeconds);
+	if (client)
+	{
+		client->pre_frame(fullInSeconds);
 		client->render();
 		client->input.clear();
-		gpPlatform->input(gpEventManager, client->lockCursor, client->hideCursor);
+		client->platform->input(gpEventManager, client->lockCursor, client->hideCursor);
 		gpEventManager->Tick();
 		client->input.update();
-		client->post_frame(durationInSeconds);
-	}
+		client->post_frame(fullInSeconds);
 
-	useFrameSync = fpsCap==secondsPerStep && secondsPerStep!=0.0;// && !gpPlatform->get_vsync(); //vsync can still desync with tickrate
-	if (forceFrameSync<0)
-		useFrameSync = false;
-	if (forceFrameSync>0)
-		useFrameSync = true;
+		client->platform->set_vsync(useVSync);
+		client->platform->swap();
 
-	if (useFrameSync) {
-		QueryPerformanceCounter(&end);
-		durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
-		/*if (lag+durationInSeconds<0.0)
-			Sleep(-(lag+durationInSeconds)*1000);*/
-		/*while (lag+durationInSeconds<0.0) {
-			QueryPerformanceCounter(&end);
-			durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
-		}*/
-		server->tick(secondsPerStep);
-		lag -= secondsPerStep;
-	} else {
-		if (lag>secondsPerStep*0.5) { // TODO fix
-			if (world->authority)
-				server->tick(secondsPerStep);
-			/*if (client != 0)
-				client->tick(lag);*/
-			lag -= lag;
+		if (gRenderContext)
+		{
+			gRenderContext->ReserveBuffers(16);
+			gRenderContext->ReserveVertexArrays(64);
 		}
 	}
+
+	server->tick(secondsPerStep);
 	world->clean();
 
-	//TODO averaged inputs when fps > tick rate
+	QueryPerformanceCounter((LARGE_INTEGER*)&end);
+	fullInSeconds = static_cast<double>(end - start) / freq;
+	start = end;
 
-	gpPlatform->set_vsync(useVSync);
-
-	QueryPerformanceCounter(&end);
-	durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
-	if ((!useVSync || forceCap) && fpsCap>0.0) // capping fps cap to minimum 20/30/60 something might be a good idea
+	if (!client)
 	{
-		Sleep(std::max(fpsCap - durationInSeconds - fpsCorrection, 0.0)*1000.0);
-		QueryPerformanceCounter(&end);
-		durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
-		fpsCorrection += durationInSeconds - fpsCap;
-		if (fpsCorrection > fpsCap)
-			fpsCorrection = fpsCap;
+		QueryPerformanceCounter((LARGE_INTEGER*)&end_busy);
+		busyInSeconds = static_cast<double>(end_busy - start_busy) / freq;
+		Sleep(std::fmaxf(secondsPerStep - busyInSeconds, 0.0) * 1000);
+		QueryPerformanceCounter((LARGE_INTEGER*)&start_busy);
 	}
-	lag += durationInSeconds;
-	QueryPerformanceCounter(&start);
 
-	Profiler::set("fps", 1.0 / durationInSeconds);
-
-	Profiler::start("swap");
-
-	gpPlatform->swap();
-
-	Profiler::start("synced_operations");
-	if (gRenderContext)
+	if (client)
 	{
-		gRenderContext->ReserveBuffers(16);
-		gRenderContext->ReserveVertexArrays(64);
+		Profiler::set("fps", 1.0 / fullInSeconds);
 	}
-	Profiler::stop();
-
-	Profiler::stop();
+	else
+	{
+		Profiler::set("server_full", 1.0 / fullInSeconds);
+		Profiler::set("server_busy", 1.0 / busyInSeconds);
+	}
 }

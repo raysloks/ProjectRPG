@@ -260,7 +260,8 @@ void GraphicsComponent::prep(RenderSetup& rs)
 						ig.reset(new InstancedGraphics(g->decs.items.front()->mesh_fname, g->decs.items.front()->materials));
 						instanced.insert(std::make_pair(key, ig));
 					}
-					ig->add(g->decs.items.front()->local * Matrix4::Translation(*g->p - rs.origin), pose->frame);
+					if (g->p)
+						ig->add(g->decs.items.front()->local * Matrix4::Translation(*g->p - rs.origin), pose->frame);
 				}
 			}
 			else

@@ -4,6 +4,7 @@
 #include "Connection.h"
 #include <memory>
 #include "IEventListener.h"
+#include "IPlatform.h"
 #include "NewEntity.h"
 #include <set>
 #include "Window.h"
@@ -60,6 +61,8 @@ public:
 
 	World * world;
 	Server * server;
+
+	IPlatform * platform;
 
 	std::vector<NewEntity*> interpol_targets;
 	std::vector<float> interpol_elapsed;

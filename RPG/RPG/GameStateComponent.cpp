@@ -80,6 +80,11 @@ void GameStateComponent::tick(float dTime)
 {
 	if (entity->world->authority)
 	{
+		if (setting_up)
+		{
+			startGame();
+		}
+
 		if (game_over)
 		{
 			countdown -= dTime;
@@ -396,44 +401,54 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 			}
 		};*/
 
-		/*mob->attack = [=]()
+		mob->on_tick = [=](float dTime)
 		{
-			if (mob->input.find("attack_cooldown") == mob->input.end())
+			if (mob->input.find("attack") != mob->input.end())
 			{
-				auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(*mob->p + mob->cam_facing * 1.0f, 1.0f);
-				MobComponent * other = nullptr;
-				for each (auto nearby in nearby_mobs)
+				if (mob->input.find("attack_cooldown") == mob->input.end())
 				{
-					if (nearby.second != mob)
+					auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(*mob->p + mob->cam_facing * 1.0f, 1.0f);
+					MobComponent * other = nullptr;
+					for each (auto nearby in nearby_mobs)
 					{
-						std::vector<std::shared_ptr<Collision>> list;
-						ColliderComponent::LineCheck(*mob->p, *nearby.second->p, list);
-						if (list.empty())
+						if (nearby.second != mob)
 						{
-							other = nearby.second;
-							break;
+							std::vector<std::shared_ptr<Collision>> list;
+							ColliderComponent::LineCheck(*mob->p, *nearby.second->p, list);
+							if (list.empty())
+							{
+								other = nearby.second;
+								break;
+							}
 						}
 					}
+
+					if (other != nullptr)
+					{
+						other->hit = true;
+						other->health.current -= 15.0f;
+						Vec3 flat_facing = mob->cam_facing;
+						flat_facing.z = 0.0f;
+						flat_facing.Normalize();
+						other->v += flat_facing * 10.0f + Vec3(0.0f, 0.0f, 4.0f);
+					}
+
+					mob->input.erase("attack");
+					mob->input["attack_cooldown"] = 0.5f;
+
+					NewEntity * sound_ent = new NewEntity();
+					auto audio = new AudioComponent("data/assets/audio/bang.wav");
+					audio->pos_id = mob->entity->get_id();
+					sound_ent->addComponent(audio);
+					mob->entity->world->AddEntity(sound_ent);
+
+					acc->set_state(0);
+					acc->set_state(3);
 				}
-
-				if (other != nullptr)
-				{
-					other->hit = true;
-					other->health.current -= 15.0f;
-					Vec3 flat_facing = mob->cam_facing;
-					flat_facing.z = 0.0f;
-					flat_facing.Normalize();
-					other->v += flat_facing * 10.0f + Vec3(0.0f, 0.0f, 4.0f);
-				}
-
-				mob->input.erase("attack");
-				mob->input["attack_cooldown"] = 0.5f;
-
-				acc->set_state(3);
 			}
-		};*/
+		};
 
-		mob->input["slime"] = 10.0f;
+		/*mob->input["slime"] = 10.0f;
 		mob->on_tick = [=](float dTime)
 		{
 			if (mob->input["attack"] && !mob->input["spraying"])
@@ -518,7 +533,7 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 				mob->input["slime"] += dTime * 2.5f;
 			if (mob->input["slime"] > 10.0f)
 				mob->input["slime"] = 10.0f;
-		};
+		};*/
 	}
 
 	input->client_id = client_id;

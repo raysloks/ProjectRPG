@@ -160,10 +160,7 @@ void World::SetEntity(uint32_t id, NewEntity * unit)
 	{
 		unit->id = id;
 		unit->world = this;
-		if (uid[id] == 0xffffffff)
-			uid[id] = 0;
-		else
-			uid[id]++;
+		uid[id]++;
 	}
 	units[id] = unit;
 }

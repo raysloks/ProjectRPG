@@ -5,6 +5,7 @@
 #include "PlatformEvents.h"
 #include "ClientEvents.h"
 #include "GUIObject.h"
+#include "TempPlatform.h"
 #include "ClientData.h"
 
 #include "StandardHUD.h"
@@ -47,6 +48,10 @@ const unsigned int protocol = 0;
 Client::Client(World * pWorld)
 {
 	Sound::init();
+
+	platform = new TempPlatform();
+	platform->set_position(4, 24);
+	platform->set_z_depth(8);
 
 	world = pWorld;
 	isAlive = true;
@@ -117,6 +122,11 @@ Client::~Client(void)
 	if (clientData)
 		delete clientData;
 	Sound::release();
+	if (platform)
+	{
+		platform->release();
+		delete platform;
+	}
 }
 
 #include "StringResource.h"
@@ -124,11 +134,9 @@ Client::~Client(void)
 #include "FloatVar.h"
 #include "BooleanVar.h"
 
-#include "IPlatform.h"
-
 #include "Script.h"
 
-extern IPlatform * gpPlatform;
+extern IPlatform * platform;
 
 void Client::setup(void)
 {
@@ -214,12 +222,12 @@ void Client::setup(void)
 			supersample_x = supersampling_x;
 			supersample_y = supersampling_y;
 
-			gpPlatform->resize(screen_width, screen_height);
-			gpPlatform->set_z_depth(z_depth);
-			gpPlatform->set_fullscreen(fullscreen);
-			gpPlatform->set_vsync(vsync);
+			platform->resize(screen_width, screen_height);
+			platform->set_z_depth(z_depth);
+			platform->set_fullscreen(fullscreen);
+			platform->set_vsync(vsync);
 
-			gpPlatform->apply();
+			platform->apply();
 
 			float fMaxAnisotropicFiltering = 1.0f;
 			if (anisotropic_filtering>1.0f)
@@ -291,7 +299,7 @@ void Client::post_frame(float dTime)
 #include "Writing.h"
 
 #include "IPlatform.h"
-extern IPlatform * gpPlatform;
+extern IPlatform * platform;
 
 void Client::render(void)
 {
@@ -334,8 +342,8 @@ void Client::render(void)
 
 		view[0] = 0;
 		view[1] = 0;
-		view[2] = gpPlatform->get_width();
-		view[3] = gpPlatform->get_height();
+		view[2] = platform->get_width();
+		view[3] = platform->get_height();
 
 		/*if (pre_frame==0) {
 			std::vector<GLenum> gbuf;
@@ -485,8 +493,8 @@ void Client::render(void)
 
 void Client::render_world(void)
 {
-	int view_w = gpPlatform->get_width();
-	int view_h = gpPlatform->get_height();
+	int view_w = platform->get_width();
+	int view_h = platform->get_height();
 
 	int buffer_w = view_w * supersample_x;
 	int buffer_h = view_h * supersample_y;
@@ -1218,7 +1226,7 @@ void Client::render_world(void)
 		}
 		lockCursor = hideCursor; // allow cursor to escape window when visible
 
-#if TIMESLOT_LEVEL >= 1
+#if TIMESLOT_LEVEL >= 0
 		//if (input.isDown(Platform::KeyEvent::P))
 		{
 			rs.pushTransform();
