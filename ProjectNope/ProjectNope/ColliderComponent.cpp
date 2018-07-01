@@ -10,7 +10,7 @@
 
 const AutoSerialFactory<ColliderComponent> ColliderComponent::_factory("ColliderComponent");
 
-std::vector<ColliderComponent*> ColliderComponent::all;
+thread_local std::vector<ColliderComponent*> ColliderComponent::all;
 
 ColliderComponent::ColliderComponent(bool d) : Serializable(_factory.id), deform(d)
 {
@@ -103,7 +103,7 @@ void ColliderComponent::LineCheck(const GlobalPosition& sP, const GlobalPosition
 	TimeslotB(collision);
 
 	for (auto i = all.begin(); i != all.end(); ++i) {
-		if (*i != 0) {
+		if (*i) {
 			int j = list.size();
 			(*i)->mesh.LineCheck(sP - (*i)->p, eP - (*i)->p, list);
 			for (; j<list.size(); ++j) {
@@ -121,7 +121,7 @@ void ColliderComponent::SphereCast(const GlobalPosition& sP, const GlobalPositio
 	TimeslotB(collision);
 
 	for (auto i=all.begin();i!=all.end();++i) {
-		if (*i!=0) {
+		if (*i) {
 			int j = list.size();
 			(*i)->mesh.SphereCast(sP-(*i)->p, eP-(*i)->p/*-v*dTime*/, r, list);
 			for (;j<list.size();++j) {
@@ -139,7 +139,7 @@ void ColliderComponent::DiskCast(const GlobalPosition& sP, const GlobalPosition&
 	TimeslotB(collision);
 
 	for (auto i = all.begin(); i != all.end(); ++i) {
-		if (*i != 0) {
+		if (*i) {
 			int j = list.size();
 			(*i)->mesh.DiskCast(sP - (*i)->p, eP - (*i)->p, r, list);
 			for (; j<list.size(); ++j) {
@@ -155,7 +155,7 @@ void ColliderComponent::DiskCast(const GlobalPosition& sP, const GlobalPosition&
 void ColliderComponent::LowerDisk(const Vec3& lock, const Vec3& center, const Vec3& axis, const Vec3& dir, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
 	for (auto i = all.begin(); i != all.end(); ++i) {
-		if (*i != 0) {
+		if (*i) {
 			int j = list.size();
 			(*i)->mesh.LowerDisk(lock - (*i)->p, center - (*i)->p, axis, dir, r, list);
 			for (; j<list.size(); ++j) {
