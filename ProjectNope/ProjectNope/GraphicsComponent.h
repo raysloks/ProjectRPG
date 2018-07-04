@@ -57,7 +57,7 @@ public:
 
 	void render(RenderSetup& rs);
 
-	static std::vector<GraphicsComponent*> all;
+	static thread_local std::vector<GraphicsComponent*> all;
 
 	static void prep(RenderSetup& rs);
 	static void render_all(RenderSetup& rs);

@@ -94,7 +94,9 @@ void GameStateComponent::tick(float dTime)
 				setting_up = true;
 				teams[0].clearProgress();
 				swapTeams();
-				team_selection = 1 - team_selection;
+
+				if (team_selection != 0xffffffff)
+					team_selection = 1 - team_selection;
 
 				set_display(false);
 
@@ -147,7 +149,7 @@ void GameStateComponent::writeLog(outstream& os, ClientData& client)
 		if (game_over)
 		{
 			os << countdown;
-			os << teams[0].score;
+			//os << teams[0].score;
 		}
 	}
 }
@@ -162,7 +164,7 @@ void GameStateComponent::readLog(instream& is)
 		if (game_over)
 		{
 			is >> countdown;
-			is >> teams[0].score;
+			//is >> teams[0].score;
 		}
 	}
 	else

@@ -215,7 +215,7 @@ GLuint TGA::getGLTexID(void)
 		if (sRGB && useGammaCorrection)
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, FinalData);
 		else
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, FinalData);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, FinalData);
 	}
 	return texid;
 }

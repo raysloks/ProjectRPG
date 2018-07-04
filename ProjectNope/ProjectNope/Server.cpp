@@ -124,7 +124,7 @@ void Server::tick(float dTime)
 						{
 							uint32_t client_side_id = conn->data->addKnownUnit(j);
 							MAKE_PACKET;
-							out << (unsigned char)1 << client_side_id << world->uid[j];
+							out << (unsigned char)1 << client_side_id << conn->data->unit_uid[client_side_id];
 							ent->write_to(out, *conn->data);
 
 							for (size_t i = 0; i < ent->ss.sync.size(); i++)
@@ -137,11 +137,21 @@ void Server::tick(float dTime)
 
 				for (size_t j = 0; j < conn->data->known_units.size(); j++)
 				{
-					if (conn->data->getRealID(j) != 0xffffffff)
+					uint32_t client_side_id = j;
+					uint32_t real_id = conn->data->getRealID(client_side_id);
+					if (real_id != 0xffffffff)
 					{
-						NewEntity * ent = world->units[conn->data->known_units[j]];
+						NewEntity * ent = world->units[real_id];
 						if (ent != nullptr)
 						{
+							if (!conn->data->up_to_date[client_side_id])
+							{
+								MAKE_PACKET;
+								out << (unsigned char)1 << client_side_id << conn->data->unit_uid[client_side_id];
+								ent->write_to(out, *conn->data);
+								SEND_PACKET(conn->endpoint);
+							}
+
 							//update the relevant sync
 							for (auto i = ent->ss.conf.begin(); i != ent->ss.conf.end(); ++i)
 							{
@@ -152,7 +162,7 @@ void Server::tick(float dTime)
 				}
 			}
 		}
-	
+
 		if (snapshotTimer <= 0)
 		{
 			snapshotTimer += snapshotRate;
@@ -161,12 +171,14 @@ void Server::tick(float dTime)
 				std::shared_ptr<ClientConnection> conn = i->second;
 				for (size_t j = 0; j < conn->data->known_units.size(); j++)
 				{
-					if (conn->data->getRealID(j) != 0xffffffff)
+					uint32_t client_side_id = j;
+					uint32_t real_id = conn->data->getRealID(client_side_id);
+					if (real_id != 0xffffffff)
 					{
-						NewEntity * ent = world->GetEntity(conn->data->getRealID(j));
+						NewEntity * ent = world->GetEntity(real_id);
 						if (ent != nullptr)
 						{
-							auto sync_map = conn->data->sync[j];
+							auto sync_map = conn->data->sync[client_side_id];
 							ent->ss.prep(sync_map, *conn->data);
 
 							std::stringbuf buf;
@@ -177,11 +189,11 @@ void Server::tick(float dTime)
 							if (buf.str().size())
 							{
 
-								SyncState::increment(conn->data->per_entity_sync[j]);
+								++conn->data->per_entity_sync[client_side_id];
 
 								MAKE_PACKET;
 
-								out << (unsigned char)2 << (uint32_t)j << world->uid[j] << conn->data->per_entity_sync[j];
+								out << (unsigned char)2 << client_side_id << conn->data->unit_uid[client_side_id] << conn->data->per_entity_sync[j];
 
 								//send unconfirmed
 								out << (uint32_t)ent->ss.npass;
@@ -232,8 +244,8 @@ void Server::NotifyOfCreation(uint32_t id) //TODO merge duplicate code
 					uint32_t client_side_id = conn->data->addKnownUnit(id);
 
 					MAKE_PACKET;
-					
-					out << (unsigned char)1 << client_side_id << world->uid[id];
+
+					out << (unsigned char)1 << client_side_id << conn->data->unit_uid[client_side_id];
 					ent->write_to(out, *conn->data);
 
 					for (size_t i = 0; i < ent->ss.sync.size(); i++)
@@ -246,7 +258,7 @@ void Server::NotifyOfCreation(uint32_t id) //TODO merge duplicate code
 	}
 }
 
-void Server::NotifyOfRemoval(uint32_t id, uint32_t uid)
+void Server::NotifyOfRemoval(uint32_t id)
 {
 	for (auto i = conns.begin(); i != conns.end(); ++i)
 	{
@@ -255,7 +267,7 @@ void Server::NotifyOfRemoval(uint32_t id, uint32_t uid)
 		if (client_side_id != 0xffffffff)
 		{
 			MAKE_PACKET;
-			out << (unsigned char)3 << client_side_id << uid;
+			out << (unsigned char)3 << client_side_id << conn->data->unit_uid[client_side_id];
 			SEND_PACKET(conn->endpoint);
 		}
 	}
@@ -318,54 +330,63 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 		switch (type)
 		{
 		case 1:
+		{
+			uint32_t id, sync;
+			uint32_t size, index;
+			in >> id >> size;
+			for (size_t i = 0; i < size; i++)
 			{
-				uint32_t id, sync;
-				uint32_t size, index;
-				in >> id >> size;
-				for (size_t i = 0; i < size; i++)
+				in >> index >> sync;
+				if (id < conn->data->sync.size())
 				{
-					in >> index >> sync;
-					if (id < conn->data->sync.size())
-					{
-						if (conn->data->sync[id].find(index) != conn->data->sync[id].end())
-							if (conn->data->sync[id][index] == sync)
-								conn->data->sync[id].erase(index);
-					}
+					if (conn->data->sync[id].find(index) != conn->data->sync[id].end())
+						if (conn->data->sync[id][index] == sync)
+							conn->data->sync[id].erase(index);
 				}
-				break;
 			}
+			break;
+		}
 		case 2:
+		{
+			uint32_t id;
+			uint32_t size;
+			in >> size;
+			for (size_t i = 0; i < size; i++)
 			{
-				uint32_t id;
-				uint32_t size;
-				in >> size;
-				for (size_t i = 0; i < size; i++)
-				{
-					in >> id;
-					if (id>=0 && id<conn->data->known_units.size())
-						conn->data->known_units[id] = 0xffffffff;
-				}
-				break;
-			}
-		case 7:
-			{
-				uint32_t id;
 				in >> id;
-				NewEntity * ent = world->GetEntity(conn->data->getRealID(id));
-				if (ent != nullptr)
-					ent->readLog(in, *conn->data);
-				break;
+				conn->data->forgetUnit(conn->data->getRealID(id));
 			}
-		default:
+			break;
+		}
+		case 3:
+		{
+			uint32_t id, uid;
+			in >> id >> uid;
+			if (uid == conn->data->unit_uid[id])
 			{
-				if (type<packet_handler.size())
-				{
-					auto func = packet_handler[type];
-					if (func != nullptr)
-						func(in, *conn->data);
-				}
-				break;
+				conn->data->up_to_date[id] = true;
 			}
+			break;
+		}
+		case 7:
+		{
+			uint32_t id;
+			in >> id;
+			NewEntity * ent = world->GetEntity(conn->data->getRealID(id));
+			if (ent != nullptr)
+				ent->readLog(in, *conn->data);
+			break;
+		}
+		default:
+		{
+			if (type < packet_handler.size())
+			{
+				auto func = packet_handler[type];
+				if (func != nullptr)
+					func(in, *conn->data);
+			}
+			break;
+		}
 		}
 	}
 	catch (std::exception& e)

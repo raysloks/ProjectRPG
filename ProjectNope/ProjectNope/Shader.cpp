@@ -2,10 +2,13 @@
 
 #include <fstream>
 #include <iostream>
+#include <map>
 
 #include "Resource.h"
 #include "StringResource.h"
 #include "GUIObject.h"
+
+std::map<std::string, std::shared_ptr<Shader>> shaders;
 
 Shader::Shader(ShaderType type) : type(type), gl_shader(0)
 {
@@ -18,6 +21,16 @@ Shader::Shader(const std::string& fname, ShaderType type) : fname(fname), type(t
 
 Shader::~Shader(void)
 {
+}
+
+std::shared_ptr<Shader> Shader::get(const std::string& fname, ShaderType type)
+{
+	auto i = shaders.find(fname);
+	if (i != shaders.end())
+		return i->second;
+	auto shader = std::make_shared<Shader>(fname, type);
+	shaders.insert(std::make_pair(fname, shader));
+	return shader;
 }
 
 void Shader::complete()

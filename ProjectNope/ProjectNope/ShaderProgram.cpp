@@ -7,6 +7,8 @@
 
 #include "GUIObject.h"
 
+std::map<std::tuple<Shader*, Shader*, Shader*>, std::shared_ptr<ShaderProgram>> programs;
+
 GLint ShaderProgram::GetUniformLocation(const std::string& name)
 {
 	if (gl_uloc.find(name)==gl_uloc.end())
@@ -35,21 +37,53 @@ ShaderProgram::ShaderProgram(std::shared_ptr<Shader>& v, std::shared_ptr<Shader>
 
 ShaderProgram::ShaderProgram(const std::string& fvert, const std::string& ffrag) : gl_program(0)
 {
-	vert = std::make_shared<Shader>(fvert, SHADER_VERTEX);
-	frag = std::make_shared<Shader>(ffrag, SHADER_FRAGMENT);
+	vert = Shader::get(fvert, SHADER_VERTEX);
+	frag = Shader::get(ffrag, SHADER_FRAGMENT);
 }
 
-ShaderProgram::ShaderProgram(const std::string & fvert, const std::string & fgeom, const std::string & ffrag) : gl_program(0)
+ShaderProgram::ShaderProgram(const std::string& fvert, const std::string& fgeom, const std::string& ffrag) : gl_program(0)
 {
-	vert = std::make_shared<Shader>(fvert, SHADER_VERTEX);
-	geom = std::make_shared<Shader>(fgeom, SHADER_GEOMETRY);
-	frag = std::make_shared<Shader>(ffrag, SHADER_FRAGMENT);
+	vert = Shader::get(fvert, SHADER_VERTEX);
+	geom = Shader::get(fgeom, SHADER_GEOMETRY);
+	frag = Shader::get(ffrag, SHADER_FRAGMENT);
 }
 
 ShaderProgram::~ShaderProgram(void)
 {
 	if (gl_program != 0)
 		glDeleteProgram(gl_program);
+}
+
+std::shared_ptr<ShaderProgram> ShaderProgram::Get(std::shared_ptr<Shader>& vert, std::shared_ptr<Shader>& frag)
+{
+	auto key = std::make_tuple(vert.get(), nullptr, frag.get());
+	auto i = programs.find(key);
+	if (i != programs.end())
+		return i->second;
+	auto program = std::make_shared<ShaderProgram>(vert, frag);
+	programs.insert(std::make_pair(key, program));
+	return program;
+}
+
+std::shared_ptr<ShaderProgram> ShaderProgram::Get(std::shared_ptr<Shader>& vert, std::shared_ptr<Shader>& geom, std::shared_ptr<Shader>& frag)
+{
+	auto key = std::make_tuple(vert.get(), geom.get(), frag.get());
+	auto i = programs.find(key);
+	if (i != programs.end())
+		return i->second;
+	auto program = std::make_shared<ShaderProgram>(vert, geom, frag);
+	programs.insert(std::make_pair(key, program));
+	return program;
+}
+
+std::shared_ptr<ShaderProgram> ShaderProgram::Get(const std::string& vert, const std::string& frag)
+{
+	return Get(Shader::get(vert, SHADER_VERTEX), Shader::get(frag, SHADER_FRAGMENT));
+}
+
+std::shared_ptr<ShaderProgram> ShaderProgram::Get(const std::string& vert, const std::string& geom, const std::string& frag)
+{
+	return Get(Shader::get(vert, SHADER_VERTEX), Shader::get(geom, SHADER_GEOMETRY), Shader::get(frag, SHADER_FRAGMENT));
 }
 
 bool ShaderProgram::WaitFor()

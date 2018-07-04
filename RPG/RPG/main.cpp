@@ -79,7 +79,7 @@ public:
 
 			PositionComponent * p = new PositionComponent();
 			ColliderComponent * c = new ColliderComponent();
-			GraphicsComponent * g = new GraphicsComponent(false, 1);
+			GraphicsComponent * g = new GraphicsComponent(false, 0);
 
 			ent->addComponent(p);
 			ent->addComponent(c);
@@ -87,7 +87,7 @@ public:
 
 			std::string ao = "data/assets/escape-ao.tga";
 
-			//Resource::load(ao, { "!sRGB" , "linear"});
+			Resource::load(ao, { "!sRGB" , "linear"});
 
 			MaterialList materials;
 			materials.materials.push_back(Material("data/assets/concrete_blue.tga"));
@@ -101,7 +101,7 @@ public:
 
 			for (auto material = materials.materials.begin(); material != materials.materials.end(); ++material)
 			{
-				material->tex.push_back(ao);
+				//material->tex.push_back(ao);
 			}
 
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/escape.gmdl", materials, 0)));
@@ -113,6 +113,7 @@ public:
 		}
 
 		// create swing
+		if (false)
 		{
 			NewEntity * ent = new NewEntity();
 

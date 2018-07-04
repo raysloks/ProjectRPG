@@ -40,7 +40,7 @@ public:
 	virtual void tick(float dTime);
 
 	void NotifyOfCreation(uint32_t id);
-	void NotifyOfRemoval(uint32_t id, uint32_t uid);
+	void NotifyOfRemoval(uint32_t id);
 
 	void open(unsigned short port);
 	void close(void);

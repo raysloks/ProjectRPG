@@ -82,15 +82,15 @@ Client::Client(World * pWorld)
 	clientData = new ClientData();
 	clientData->client_id = 0;
 
-	depth_fill_prog = std::make_shared<ShaderProgram>("data/dfill_vert.txt", "data/dfill_frag.txt");
-	shader_program = std::make_shared<ShaderProgram>("data/gfill_vert.txt", "data/gfill_frag.txt");
-	normal_prog = std::make_shared<ShaderProgram>("data/nfill_vert.txt", "data/nfill_frag.txt");
-	light_prog = std::make_shared<ShaderProgram>("data/fullscreen_vert.txt", "data/light_frag.txt");
-	sky_prog = std::make_shared<ShaderProgram>("data/fullscreen_vert.txt", "data/sky_frag.txt");
-	dof_prog = std::make_shared<ShaderProgram>("data/fullscreen_vert.txt", "data/dof_frag.txt");
-	stencil_prog = std::make_shared<ShaderProgram>("data/stencil_vert.txt", "data/stencil_geom.txt", "data/stencil_frag.txt");
-	flat_stencil_prog = std::make_shared<ShaderProgram>("data/flat_stencil_vert.txt", "data/flat_stencil_geom.txt", "data/flat_stencil_frag.txt");
-	gui_prog = std::make_shared<ShaderProgram>("data/gui_vert.txt", "data/gui_frag.txt");
+	depth_fill_prog = ShaderProgram::Get("data/dfill_vert.txt", "data/dfill_frag.txt");
+	shader_program = ShaderProgram::Get("data/gfill_vert.txt", "data/gfill_frag.txt");
+	normal_prog = ShaderProgram::Get("data/nfill_vert.txt", "data/nfill_frag.txt");
+	light_prog = ShaderProgram::Get("data/fullscreen_vert.txt", "data/light_frag.txt");
+	sky_prog = ShaderProgram::Get("data/fullscreen_vert.txt", "data/sky_frag.txt");
+	dof_prog = ShaderProgram::Get("data/fullscreen_vert.txt", "data/dof_frag.txt");
+	stencil_prog = ShaderProgram::Get("data/stencil_vert.txt", "data/stencil_geom.txt", "data/stencil_frag.txt");
+	flat_stencil_prog = ShaderProgram::Get("data/flat_stencil_vert.txt", "data/flat_stencil_geom.txt", "data/flat_stencil_frag.txt");
+	gui_prog = ShaderProgram::Get("data/gui_vert.txt", "data/gui_frag.txt");
 }
 
 void Client::connect(const std::string& address, uint16_t port)
@@ -252,11 +252,6 @@ void Client::pre_frame(float dTime)
 
 	if (input.isPressed(Platform::KeyEvent::P))
 		show_entity_list = !show_entity_list;
-
-	if (input.isPressed(Platform::KeyEvent::N))
-	{
-		server->reset();
-	}
 
 	if (con != nullptr)
 	{
@@ -673,13 +668,16 @@ void Client::render_world(void)
 
 
 		// render depth pre-pass
-		if (depth_fill_prog->IsReady() && false)
+		if (depth_fill_prog->IsReady())
 		{
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LESS);
 			glDepthMask(GL_TRUE);
+
+			glEnable(GL_ALPHA_TEST);
+			glAlphaFunc(GL_GREATER, 0.5f);
 
 			depth_prepass_fb->bind();
 			glViewport(0, 0, buffer_w, buffer_h);
@@ -689,6 +687,7 @@ void Client::render_world(void)
 			rs.view = proj;
 
 			ShaderMod mod(depth_fill_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+				prog->Uniform("diffuse", 0); // texture unit 0
 				prog->UniformMatrix4f("transform", (rs.transform*proj).data);
 			});
 
@@ -712,6 +711,9 @@ void Client::render_world(void)
 
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			glEnable(GL_ALPHA_TEST);
+			glAlphaFunc(GL_GREATER, 0.5f);
 
 			normal_fb->bind();
 			glViewport(0, 0, buffer_w, buffer_h);
@@ -979,6 +981,7 @@ void Client::render_world(void)
 					stencil_fb->bind();
 					glViewport(0, 0, buffer_w, buffer_h);
 					uint32_t clear_value[4] = { UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX };
+					glClear(GL_COLOR_BUFFER_BIT);
 					glClearBufferuiv(GL_COLOR, 0, clear_value);
 
 					stencil_prog->Use();
@@ -1026,6 +1029,7 @@ void Client::render_world(void)
 					glEnable(GL_COLOR_LOGIC_OP);
 					glLogicOp(GL_AND);
 					glEnable(GL_CULL_FACE);
+
 					glEnable(GL_STENCIL_TEST);
 					glStencilFunc(GL_EQUAL, 64, 0xff);
 					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
@@ -1106,8 +1110,8 @@ void Client::render_world(void)
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);
 			glEnable(GL_DEPTH_TEST);
-			glDepthFunc(GL_LESS);
-			glDepthMask(GL_TRUE);
+			glDepthFunc(GL_EQUAL);
+			glDepthMask(GL_FALSE);
 
 			glDisable(GL_BLEND);
 
@@ -1116,23 +1120,57 @@ void Client::render_world(void)
 
 			deferred_fb->bind();
 			glViewport(0, 0, buffer_w, buffer_h);
-			glClear(GL_DEPTH_BUFFER_BIT);
 
 			RenderSetup rs;
 			rs.view = proj;
+			rs.pass = 5;
 
-			ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality](const std::shared_ptr<ShaderProgram>& prog) {
-				prog->Uniform("light", light);
-				prog->Uniform("diffuse", 0); // texture unit 0
-				prog->UniformMatrix4f("transform", (rs.transform*proj).data);
-				prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
-			});
+			{
+				glEnable(GL_STENCIL_TEST);
+				glStencilFunc(GL_EQUAL, 64, 0xff);
+				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-			rs.pushMod(mod);
+				ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality](const std::shared_ptr<ShaderProgram>& prog) {
+					prog->Uniform("light", light);
+					prog->Uniform("diffuse", 0); // texture unit 0
+					prog->Uniform("shadow", 2); // texture unit 2
+					prog->UniformMatrix4f("transform", (rs.transform*proj).data);
+					prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
+					prog->Uniform3fv("light_samples", light_samples);
+				});
 
-			world->render(rs);
+				glActiveTexture(GL_TEXTURE2);
+				glBindTexture(GL_TEXTURE_2D, stencil_buf->gl_texture_id);
 
-			rs.popMod();
+				rs.pushMod(mod);
+
+				world->render(rs);
+
+				rs.popMod();
+
+				glDisable(GL_STENCIL_TEST);
+			}
+
+			{
+				glEnable(GL_STENCIL_TEST);
+				glStencilFunc(GL_NOTEQUAL, 64, 0xff);
+				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+				ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality](const std::shared_ptr<ShaderProgram>& prog) {
+					prog->Uniform("light", Vec3());
+					prog->Uniform("diffuse", 0); // texture unit 0
+					prog->UniformMatrix4f("transform", (rs.transform*proj).data);
+					prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
+				});
+
+				rs.pushMod(mod);
+
+				world->render(rs);
+
+				rs.popMod();
+
+				glDisable(GL_STENCIL_TEST);
+			}
 		}
 	}
 
@@ -1389,10 +1427,29 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 			{
 				int32_t id, uid;
 				in >> id >> uid;
+
+				{
+					MAKE_PACKET;
+
+					out << (unsigned char)3 << id << uid;
+
+					SEND_PACKET;
+				}
+
 				NewEntity * current_entity = world->GetEntity(id);
 				if (current_entity != nullptr)
-					if (!SyncState::is_ordered(world->uid[id], uid))
-						break;
+				{
+					if (!SyncState::is_ordered_strict(world->uid[id], uid))
+					{
+						world->SetEntity(id, nullptr);
+						if (id < interpol_targets.size())
+						{
+							if (interpol_targets[id] != nullptr)
+								delete interpol_targets[id];
+							interpol_targets[id] = nullptr;
+						}
+					}
+				}
 				NewEntity * unit = new NewEntity(in, false);
 				world->SetEntity(id, unit);
 				world->uid[id] = uid;
@@ -1435,14 +1492,10 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 				if (id < interpol_targets.size())
 				{
 					auto ent = world->GetEntity(id);
-					if (ent != nullptr) {
-						if (SyncState::is_ordered_strict(world->uid[id], uid)) {
-							world->SetEntity(id, nullptr);
-							if (id < interpol_targets.size()) {
-								if (interpol_targets[id] != nullptr)
-									delete interpol_targets[id];
-								interpol_targets[id] = nullptr;
-							}
+					if (ent != nullptr)
+					{
+						if (SyncState::is_ordered_strict(world->uid[id], uid))
+						{
 							break; //TODO cache log until notification of entity creation is received
 						}
 						if (SyncState::is_ordered(clientData->per_entity_sync[id], sync))
@@ -1460,13 +1513,13 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 							}
 							if (!to_confirm.empty())
 							{
-								MAKE_PACKET
+								MAKE_PACKET;
 
 								out << (unsigned char)1 << id << (uint32_t)to_confirm.size();
 								for (auto i=to_confirm.begin();i!=to_confirm.end();++i)
 									out << (uint32_t)i->first << i->second;
 
-								SEND_PACKET
+								SEND_PACKET;
 							}
 
 							if (interpol_targets[id] != nullptr)

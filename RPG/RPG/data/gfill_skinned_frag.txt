@@ -8,16 +8,13 @@ in vec4 position;
 in vec2 texco;
 in vec3 norm;
 
-in vec3 trac;
-
 out vec4 final_color;
 
 void main()
 {
-	float intensity = dot(light, normalize(norm));
+	vec3 n = normalize(norm);
+	float intensity = dot(light, n);
 	intensity = clamp(intensity, 0.0, 1.0);
-
-	intensity *= 1.0;
 
 	vec4 color = texture(diffuse, texco);
 

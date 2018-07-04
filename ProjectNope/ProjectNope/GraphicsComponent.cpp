@@ -11,7 +11,7 @@
 
 const AutoSerialFactory<GraphicsComponent> GraphicsComponent::_factory("GraphicsComponent");
 
-std::vector<GraphicsComponent*> GraphicsComponent::all;
+thread_local std::vector<GraphicsComponent*> GraphicsComponent::all;
 
 GraphicsComponent::GraphicsComponent(bool dynamic, uint32_t tag) : Serializable(_factory.id), p(nullptr), pose(nullptr)
 {
@@ -154,8 +154,6 @@ void GraphicsComponent::invalidate(void)
 
 std::vector<GraphicsComponent*> standard;
 
-std::shared_ptr<ShaderProgram> instance_shader;
-
 class InstancedGraphics
 {
 public:
@@ -178,6 +176,9 @@ public:
 	{
 		instance_mesh = Resource::get<Mesh>(instance_mesh_name);
 		instance_animation = Resource::get<SkeletalAnimation>(instance_animation_name);
+
+		rs.applyMods();
+		auto instance_shader = ShaderProgram::Get(Shader::get("data/gfill_skinned_vert.txt", SHADER_VERTEX), rs.current_program->geom, rs.current_program->frag);
 
 		if (instance_shader->IsReady() && instance_animation && instance_mesh)
 		{
@@ -270,9 +271,6 @@ void GraphicsComponent::prep(RenderSetup& rs)
 			}
 		}
 	}
-
-	if (!instance_shader)
-		instance_shader = std::make_shared<ShaderProgram>("data/gfill_skinned_vert.txt", "data/gfill_skinned_frag.txt");
 
 	/*for (size_t i = 0; i < 20000; i++)
 	{
@@ -420,26 +418,29 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 
 	for each (auto g in standard)
 	{
-		if (g->tag == 1)
+		bool shader = false;
+		if (g->tag == 1 && rs.pass != 3)
 		{
 			rs.pushMod(ShaderMod(ao_shader, [](const std::shared_ptr<ShaderProgram>& prog)
 			{
 				prog->Uniform("ao", 1);
 			}));
+			shader = true;
 		}
 
 		g->render(rs);
 
-		if (g->tag == 1)
+		if (shader)
 		{
 			rs.popMod();
 		}
 	}
 
-	for each (auto type in instanced)
-	{
-		type.second->render(rs);
-	}
+	if (rs.pass != 3)
+		for each (auto type in instanced)
+		{
+			type.second->render(rs);
+		}
 
 	/*if (rs.applyMods())
 	{

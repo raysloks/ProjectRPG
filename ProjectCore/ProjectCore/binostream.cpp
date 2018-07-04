@@ -66,6 +66,12 @@ namespace std
 		return os;
 	}
 
+	binostream& operator<<(binostream& os, const double& d)
+	{
+		os.write((char*)&d, sizeof(d));
+		return os;
+	}
+
 	binostream& operator<<(binostream& os, const std::string& str)
 	{
 		uint32_t size = (uint32_t)str.size();

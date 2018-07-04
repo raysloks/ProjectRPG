@@ -22,6 +22,11 @@ public:
 	ShaderProgram(const std::string& fvert, const std::string& fgeom, const std::string& ffrag);
 	~ShaderProgram(void);
 
+	static std::shared_ptr<ShaderProgram> Get(std::shared_ptr<Shader>& vert, std::shared_ptr<Shader>& frag);
+	static std::shared_ptr<ShaderProgram> Get(std::shared_ptr<Shader>& vert, std::shared_ptr<Shader>& geom, std::shared_ptr<Shader>& frag);
+	static std::shared_ptr<ShaderProgram> Get(const std::string& vert, const std::string& frag);
+	static std::shared_ptr<ShaderProgram> Get(const std::string& vert, const std::string& geom, const std::string& frag);
+
 	bool WaitFor();
 	bool WaitForUse();
 	bool IsReady();

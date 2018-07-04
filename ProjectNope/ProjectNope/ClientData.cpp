@@ -29,13 +29,17 @@ uint32_t ClientData::addKnownUnit(uint32_t id)
 	{
 		if (known_units[i] == 0xffffffff || known_units[i] == id) {
 			known_units[i] = id;
+			++unit_uid[i];
+			up_to_date[i] = false;
 			return i;
 		}
 	}
 	known_units.push_back(id);
+	unit_uid.resize(known_units.size());
+	up_to_date.resize(known_units.size());
 	per_entity_sync.resize(known_units.size());
 	sync.resize(known_units.size());
-	return known_units.size()-1;
+	return known_units.size() - 1;
 }
 
 uint32_t ClientData::forgetUnit(uint32_t id)

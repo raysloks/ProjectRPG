@@ -81,12 +81,6 @@ void World::render(RenderSetup& rs)
 
 	GraphicsComponent::prep(rs);
 	GraphicsComponent::render_all(rs);
-
-	// TODO component rendering
-	/*for (int i=0;i<units.size();++i) {
-		if (units[i]!=0)
-			units[i]->render(cam_pos);
-	}*/
 }
 
 uint32_t World::AddEntity(NewEntity * unit)
@@ -131,6 +125,7 @@ uint32_t World::AddEntity(NewEntity * unit)
 			unit->id = id;
 			unit->world = this;
 			units[id] = unit;
+			++uid[id];
 			if (server)
 				server->NotifyOfCreation(id);
 		}
@@ -151,7 +146,7 @@ void World::SetEntity(uint32_t id, NewEntity * unit)
 	if (units[id] != nullptr)
 	{
 		if (server != nullptr && authority)
-			server->NotifyOfRemoval(id, uid[id]);
+			server->NotifyOfRemoval(id);
 		removed.push_back(units[id]);
 		if (unit == nullptr)
 			alloc.push(id);
@@ -160,7 +155,9 @@ void World::SetEntity(uint32_t id, NewEntity * unit)
 	{
 		unit->id = id;
 		unit->world = this;
-		uid[id]++;
+		++uid[id];
+		if (server)
+			server->NotifyOfCreation(id);
 	}
 	units[id] = unit;
 }

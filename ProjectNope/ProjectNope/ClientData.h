@@ -27,6 +27,8 @@ public:
 
 	uint32_t client_id;
 	std::vector<uint32_t> known_units;
+	std::vector<uint32_t> unit_uid;
+	std::vector<bool> up_to_date;
 	std::vector<uint32_t> per_entity_sync;
 	std::vector<std::map<size_t, uint32_t>> sync;
 
