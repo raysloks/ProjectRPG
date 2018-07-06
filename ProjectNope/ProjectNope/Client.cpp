@@ -933,13 +933,6 @@ void Client::render_world(void)
 
 				RenderSetup rs;
 				rs.view = proj;
-
-				ShaderMod mod(flat_stencil_prog, [proj, light_alignment, &rs](const std::shared_ptr<ShaderProgram>& prog) {
-					prog->UniformMatrix4f("transform", (rs.transform*proj).data);
-					prog->UniformMatrix4f("normal_transform", rs.transform.data);
-				});
-
-				rs.pushMod(mod);
 				rs.pass = 3;
 
 				glEnable(GL_STENCIL_TEST);
@@ -954,23 +947,43 @@ void Client::render_world(void)
 				glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
 				glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
 
-				flat_stencil_prog->Uniform("full", 0);
-
 				for (int i = 0; i < 3; ++i)
 				{
-					flat_stencil_prog->Uniform("first", i);
-					flat_stencil_prog->Uniform("second", (i + 1) % 3);
-					flat_stencil_prog->Uniform("third", (i + 2) % 3);
+					ShaderMod mod(flat_stencil_prog, [proj, i, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+						prog->UniformMatrix4f("transform", (rs.transform*proj).data);
+						prog->UniformMatrix4f("normal_transform", rs.transform.data);
+						prog->Uniform("first", i);
+						prog->Uniform("second", (i + 1) % 3);
+						prog->Uniform("third", (i + 2) % 3);
+						prog->Uniform("full", 0);
+					});
+
+					rs.pushMod(mod);
+
 					world->render(rs);
+
+					rs.popMod();
 				}
 
-				flat_stencil_prog->Uniform("full", 1);
-				world->render(rs);
+				{
+					ShaderMod mod(flat_stencil_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+						prog->UniformMatrix4f("transform", (rs.transform*proj).data);
+						prog->UniformMatrix4f("normal_transform", rs.transform.data);
+						prog->Uniform("first", 0);
+						prog->Uniform("second", 1);
+						prog->Uniform("third", 2);
+						prog->Uniform("full", 1);
+					});
+
+					rs.pushMod(mod);
+
+					world->render(rs);
+
+					rs.popMod();
+				}
 
 				glDisable(GL_DEPTH_CLAMP);
 				glDisable(GL_STENCIL_TEST);
-
-				rs.popMod();
 			}
 
 			if (shadow_quality == 3)
@@ -1016,13 +1029,6 @@ void Client::render_world(void)
 
 					RenderSetup rs;
 					rs.view = proj;
-
-					ShaderMod mod(stencil_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
-						prog->UniformMatrix4f("transform", (rs.transform*proj).data);
-						prog->UniformMatrix4f("normal_transform", rs.transform.data);
-					});
-
-					rs.pushMod(mod);
 					rs.pass = 4;
 
 					glDisable(GL_BLEND);
@@ -1055,16 +1061,23 @@ void Client::render_world(void)
 					}
 					for (int i = min_i; i < max_i; ++i)
 					{
-						stencil_prog->Uniform("first", i);
-						stencil_prog->Uniform("second", (i + 1) % 3);
-						stencil_prog->Uniform("third", (i + 2) % 3);
+						ShaderMod mod(stencil_prog, [proj, i, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+							prog->UniformMatrix4f("transform", (rs.transform*proj).data);
+							prog->UniformMatrix4f("normal_transform", rs.transform.data);
+							prog->Uniform("first", i);
+							prog->Uniform("second", (i + 1) % 3);
+							prog->Uniform("third", (i + 2) % 3);
+						});
+
+						rs.pushMod(mod);
+
 						world->render(rs);
+
+						rs.popMod();
 					}
 
 					glDisable(GL_STENCIL_TEST);
 					glDisable(GL_COLOR_LOGIC_OP);
-
-					rs.popMod();
 				}
 			}
 		}
