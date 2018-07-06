@@ -13,7 +13,7 @@ uniform int third;
 uniform int full;
 
 layout(triangles) in;
-layout(triangle_strip, max_vertices=4) out;
+layout(triangle_strip, max_vertices=3) out;
 
 void main()
 {
@@ -33,6 +33,11 @@ void main()
 	sides[0] = normalize(real[1] - real[0]);
 	sides[1] = normalize(real[2] - real[1]);
 	sides[2] = normalize(real[0] - real[2]);
+
+	vec3 sides_flat[3];
+	sides_flat[0] = sides[0] - cd * dot(cd, sides[0]);
+	sides_flat[1] = sides[1] - cd * dot(cd, sides[1]);
+	sides_flat[2] = sides[2] - cd * dot(cd, sides[2]);
 
 	vec3 side_n_flat[3];
 	for (int i=0;i<3;i++)
@@ -63,36 +68,64 @@ void main()
 
 		if (facing > 0.0)
 		{
-			if (full > 0)
+			if (lsize > 0.0)
 			{
-				if (dot(side_n_flat[0], real[0]) > 0.0 && dot(side_n_flat[1], real[1]) > 0.0 && dot(side_n_flat[2], real[2]) > 0.0 && dot(n, real[0]) > 0.0)
+				if (full > 0)
 				{
-					gl_Position = vec4(1.0, 1.0, -1.0, 1.0);
-					EmitVertex();
+					if (dot(n_in[0], real[0]) < 0.0 && dot(n_in[1], real[1]) < 0.0 && dot(n_in[2], real[2]) < 0.0 && dot(n, real[0]) > 0.0)
+					{
+						gl_Position = vec4(-1.0, 3.0, -1.0, 1.0);
+						EmitVertex();
 				
-					gl_Position = vec4(1.0, -1.0, -1.0, 1.0);
-					EmitVertex();
+						gl_Position = vec4(3.0, -1.0, -1.0, 1.0);
+						EmitVertex();
 				
-					gl_Position = vec4(-1.0, 1.0, -1.0, 1.0);
+						gl_Position = vec4(-1.0, -1.0, -1.0, 1.0);
+						EmitVertex();
+					}
+				}
+				else
+				{
+					//vec3 p = (-d1*cross(n2, n3)-d2*cross(n3, n1)-d3*cross(n1, n2))/dot(n1, cross(n2, n3));
+					vec3 p = (dot(n_in[0], real[0])*cross(n_in[1], n_in[2])+dot(n_in[1], real[1])*cross(n_in[2], n_in[0])+dot(n_in[2], real[2])*cross(n_in[0], n_in[1]))/dot(n_in[0], cross(n_in[1], n_in[2]));
+
+					gl_Position = proj * vec4(p, 1.0);
 					EmitVertex();
-				
-					gl_Position = vec4(-1.0, -1.0, -1.0, 1.0);
+
+					gl_Position = proj * gl_in[second].gl_Position;
+					EmitVertex();
+
+					gl_Position = proj * gl_in[first].gl_Position;
 					EmitVertex();
 				}
 			}
 			else
 			{
-				gl_Position = proj * vec4(cd, 0.0);
-				EmitVertex();
+				if (full > 0)
+				{
+					if (dot(side_n_flat[0], real[0]) > 0.0 && dot(side_n_flat[1], real[1]) > 0.0 && dot(side_n_flat[2], real[2]) > 0.0 && dot(n, real[0]) > 0.0)
+					{
+						gl_Position = vec4(-1.0, 3.0, -1.0, 1.0);
+						EmitVertex();
+				
+						gl_Position = vec4(-1.0, -1.0, -1.0, 1.0);
+						EmitVertex();
+				
+						gl_Position = vec4(3.0, -1.0, -1.0, 1.0);
+						EmitVertex();
+					}
+				}
+				else
+				{
+					gl_Position = proj * vec4(cd, 0.0);
+					EmitVertex();
 
-				gl_Position = proj * vec4(cd, 0.0);
-				EmitVertex();
+					gl_Position = proj * gl_in[second].gl_Position;
+					EmitVertex();
 
-				gl_Position = proj * gl_in[second].gl_Position;
-				EmitVertex();
-
-				gl_Position = proj * gl_in[first].gl_Position;
-				EmitVertex();
+					gl_Position = proj * gl_in[first].gl_Position;
+					EmitVertex();
+				}
 			}
 		}
 

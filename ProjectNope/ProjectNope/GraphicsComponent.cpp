@@ -419,7 +419,7 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 	for each (auto g in standard)
 	{
 		bool shader = false;
-		if (g->tag == 1 && rs.pass != 3)
+		if (g->tag == 1 && rs.pass != 3 && rs.pass != 4)
 		{
 			rs.pushMod(ShaderMod(ao_shader, [](const std::shared_ptr<ShaderProgram>& prog)
 			{
@@ -436,7 +436,7 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 		}
 	}
 
-	if (rs.pass != 3)
+	if (rs.pass != 3 && rs.pass != 4)
 		for each (auto type in instanced)
 		{
 			type.second->render(rs);

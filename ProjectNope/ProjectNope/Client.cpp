@@ -1030,7 +1030,7 @@ void Client::render_world(void)
 					glLogicOp(GL_AND);
 					glEnable(GL_CULL_FACE);
 
-					glEnable(GL_STENCIL_TEST);
+					//glEnable(GL_STENCIL_TEST);
 					glStencilFunc(GL_EQUAL, 64, 0xff);
 					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
@@ -1040,7 +1040,9 @@ void Client::render_world(void)
 					int min_i = 0;
 					int max_i = 3;
 					if (input.isDown(Platform::KeyEvent::T))
+					{
 						max_i = 1;
+					}
 					if (input.isDown(Platform::KeyEvent::Y))
 					{
 						min_i = 1;
