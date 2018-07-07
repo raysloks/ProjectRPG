@@ -67,11 +67,14 @@ void main()
 	{
 		flat_sides[i] = normalize(cross(side_n_flat[i], cd));
 	}
+
+	//vec3 p = (dot(n_in[0], real[0])*cross(n_in[1], n_in[2])+dot(n_in[1], real[1])*cross(n_in[2], n_in[0])+dot(n_in[2], real[2])*cross(n_in[0], n_in[1]))/dot(n_in[0], cross(n_in[1], n_in[2]));
 	
-	vec3 p = (dot(n_in[0], real[0])*cross(n_in[1], n_in[2])+dot(n_in[1], real[1])*cross(n_in[2], n_in[0])+dot(n_in[2], real[2])*cross(n_in[0], n_in[1]))/dot(n_in[0], cross(n_in[1], n_in[2]));
+	//vec3 cap_first = normalize(cross(real[first] - p, cd));
+	//vec3 cap_second = normalize(cross(p - real[second], cd));
 	
-	vec3 cap_first = normalize(cross(real[first] - p, cd));
-	vec3 cap_second = normalize(cross(p - real[second], cd));
+	vec3 cap_first = normalize(flat_sides[first] - cd * lsize);
+	vec3 cap_second = normalize(-flat_sides[first] - cd * lsize);
 
 	vec3 end_out_first = normalize(cross(cap_first, n_out[first]));
 	vec3 end_out_second = normalize(cross(n_out[first], cap_second));

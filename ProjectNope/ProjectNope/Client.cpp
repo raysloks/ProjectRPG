@@ -1011,35 +1011,11 @@ void Client::render_world(void)
 					glClear(GL_COLOR_BUFFER_BIT);
 					glClearBufferuiv(GL_COLOR, 0, clear_value);
 
-					stencil_prog->Use();
-
-					stencil_prog->UniformMatrix4f("proj", proj.data);
-					stencil_prog->UniformMatrix4f("proj_inv", proj.Inverse().data);
-
-					stencil_prog->Uniform("zNear", near_z);
-					stencil_prog->Uniform("zFar", far_z);
-
-					stencil_prog->Uniform("pixel", 1.0f / buffer_w, 1.0f / buffer_h);
-
-					stencil_prog->Uniform("light", light, 0.0f);
+					std::uniform_real_distribution<float> noise_dist(-1000.0f, 1000.0f);
+					Vec2 noise_a(noise_dist(random), noise_dist(random));
 
 					Vec3 light_x = light.Cross(Vec3(0.0f, 0.0f, 1.0f)).Normalize();
 					Vec3 light_y = light.Cross(light_x).Normalize();
-
-					stencil_prog->Uniform("light_x", light_x, 0.0f);
-					stencil_prog->Uniform("light_y", light_y, 0.0f);
-
-					stencil_prog->Uniform("lsize", light_size);
-
-					stencil_prog->Uniform3fv("light_samples", light_samples);
-
-					glActiveTexture(GL_TEXTURE1);
-					stencil_prog->Uniform("depth", 1);
-					glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
-					glActiveTexture(GL_TEXTURE2);
-					stencil_prog->Uniform("lookup", 2);
-					if (light_lookup_tex != nullptr)
-						glBindTexture(GL_TEXTURE_2D, light_lookup_tex->getGLTexID());
 
 					RenderSetup rs;
 					rs.view = proj;
@@ -1056,12 +1032,18 @@ void Client::render_world(void)
 					glStencilFunc(GL_EQUAL, 64, 0xff);
 					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
+					glActiveTexture(GL_TEXTURE1);
+					glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
+					glActiveTexture(GL_TEXTURE2);
+					if (light_lookup_tex != nullptr)
+						glBindTexture(GL_TEXTURE_2D, light_lookup_tex->getGLTexID());
+
 					//glStencilFunc(GL_LESS, 128, 0xff);
 					//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 					int min_i = 0;
 					int max_i = 3;
-					if (input.isDown(Platform::KeyEvent::T))
+					/*if (input.isDown(Platform::KeyEvent::T))
 					{
 						max_i = 1;
 					}
@@ -1074,15 +1056,36 @@ void Client::render_world(void)
 					{
 						min_i = 2;
 						max_i = 3;
-					}
+					}*/
 					for (int i = min_i; i < max_i; ++i)
 					{
-						ShaderMod mod(stencil_prog, [proj, i, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+						ShaderMod mod(stencil_prog, [=, &rs](const std::shared_ptr<ShaderProgram>& prog) {
 							prog->UniformMatrix4f("transform", (rs.transform*proj).data);
 							prog->UniformMatrix4f("normal_transform", rs.transform.data);
 							prog->Uniform("first", i);
 							prog->Uniform("second", (i + 1) % 3);
 							prog->Uniform("third", (i + 2) % 3);
+
+							prog->UniformMatrix4f("proj", proj.data);
+							prog->UniformMatrix4f("proj_inv", proj.Inverse().data);
+
+							prog->Uniform("zNear", near_z);
+							prog->Uniform("zFar", far_z);
+
+							prog->Uniform("pixel", 1.0f / buffer_w, 1.0f / buffer_h);
+
+							prog->Uniform("light", light, 0.0f);
+
+							prog->Uniform("light_x", light_x, 0.0f);
+							prog->Uniform("light_y", light_y, 0.0f);
+
+							prog->Uniform("lsize", light_size);
+
+							prog->Uniform3fv("light_samples", light_samples);
+							prog->Uniform("noise_a", noise_a);
+
+							prog->Uniform("depth", 1);
+							prog->Uniform("lookup", 2);
 						});
 
 						rs.pushMod(mod);
