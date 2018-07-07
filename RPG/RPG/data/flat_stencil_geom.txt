@@ -66,13 +66,13 @@ void main()
 		
 		float extend = 1000.0;
 
-		if (facing > 0.0)
+		if (facing < 0.0)
 		{
 			if (lsize > 0.0)
 			{
 				if (full > 0)
 				{
-					if (dot(n_in[0], real[0]) < 0.0 && dot(n_in[1], real[1]) < 0.0 && dot(n_in[2], real[2]) < 0.0 && dot(n, real[0]) > 0.0)
+					if (dot(n_in[0], real[0]) > 0.0 && dot(n_in[1], real[1]) > 0.0 && dot(n_in[2], real[2]) > 0.0 && dot(n, real[0]) < 0.0)
 					{
 						gl_Position = vec4(-1.0, 3.0, -1.0, 1.0);
 						EmitVertex();
@@ -86,13 +86,12 @@ void main()
 				}
 				else
 				{
-					//vec3 p = (-d1*cross(n2, n3)-d2*cross(n3, n1)-d3*cross(n1, n2))/dot(n1, cross(n2, n3));
 					vec3 p = (dot(n_in[0], real[0])*cross(n_in[1], n_in[2])+dot(n_in[1], real[1])*cross(n_in[2], n_in[0])+dot(n_in[2], real[2])*cross(n_in[0], n_in[1]))/dot(n_in[0], cross(n_in[1], n_in[2]));
 
-					gl_Position = proj * vec4(p, 1.0);
+					gl_Position = proj * gl_in[second].gl_Position;
 					EmitVertex();
 
-					gl_Position = proj * gl_in[second].gl_Position;
+					gl_Position = proj * vec4(p, 1.0);
 					EmitVertex();
 
 					gl_Position = proj * gl_in[first].gl_Position;

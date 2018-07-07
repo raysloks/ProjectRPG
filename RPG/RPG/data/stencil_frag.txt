@@ -77,8 +77,8 @@ void main()
 	world = proj_inv * world;
 	world /= world.w;
 
-	//if (dot(n_inner, world.xyz - first_pos) < length(world.xyz) / -4096.0 || dot(n_outer, world.xyz - first_pos) > 0.0 || dot(first_cap, world.xyz - first_pos) > 0.0 || dot(second_cap, world.xyz - second_pos) > 0.0)
-		//discard;
+	if (dot(n_inner, world.xyz - first_pos) < 0 || dot(n_outer, world.xyz - first_pos) > 0 || dot(first_cap, world.xyz - first_pos) > 0 || dot(second_cap, world.xyz - second_pos) > 0)
+		discard;
 
 	float first_dot_f = dot(first_pos, side_flat_first);
 	float second_dot_f = dot(second_pos, side_flat_first);
@@ -115,6 +115,12 @@ void main()
 	uvec4 shadow = texture(lookup, vec2(angle_f / 2.0 / pi, dist_f));
 	shadow |= texture(lookup, vec2(angle_s / 2.0 / pi, dist_s));
 	shadow |= texture(lookup, vec2(angle_t / 2.0 / pi, dist_t));
+
+	uvec4 oshadow = texture(lookup, vec2(angle_f / 2.0 / pi + 0.5, dist_f));
+	oshadow |= texture(lookup, vec2(angle_s / 2.0 / pi + 0.5, dist_s));
+	oshadow |= texture(lookup, vec2(angle_t / 2.0 / pi + 0.5, dist_t));
+
+	//shadow &= oshadow;
 	/*uvec4 shadow = uvec4(0u, 0u, 0u, 0u);
 	for (int j = 0; j < 4; j++)
 	{

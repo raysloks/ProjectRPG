@@ -268,15 +268,29 @@ void Client::pre_frame(float dTime)
 		world->tick(dTime);
 
 		sync();
-
+		
 		if (input.isDown(Platform::KeyEvent::I))
+			light *= Matrix3(0.1f * dTime, Vec3(1.0f, 0.0f, 0.0f));
+		if (input.isDown(Platform::KeyEvent::K))
+			light *= Matrix3(-0.1f * dTime, Vec3(1.0f, 0.0f, 0.0f));
+		if (input.isDown(Platform::KeyEvent::U))
+			light *= Matrix3(0.1f * dTime, Vec3(0.0f, 1.0f, 0.0f));
+		if (input.isDown(Platform::KeyEvent::O))
+			light *= Matrix3(-0.1f * dTime, Vec3(0.0f, 1.0f, 0.0f));
+		if (input.isDown(Platform::KeyEvent::J))
+			light *= Matrix3(0.1f * dTime, Vec3(0.0f, 0.0f, 1.0f));
+		if (input.isDown(Platform::KeyEvent::L))
+			light *= Matrix3(-0.1f * dTime, Vec3(0.0f, 0.0f, 1.0f));
+		light.Normalize();
+
+		/*if (input.isDown(Platform::KeyEvent::I))
 			packet_loss_sim += dTime;
 		if (input.isDown(Platform::KeyEvent::K))
 			packet_loss_sim -= dTime;
 		if (packet_loss_sim < 0.0f)
 			packet_loss_sim = 0.0f;
 		if (packet_loss_sim > 1.0f)
-			packet_loss_sim = 1.0f;
+			packet_loss_sim = 1.0f;*/
 	}
 
 	world->pre_frame(dTime);
@@ -1035,8 +1049,10 @@ void Client::render_world(void)
 					glEnable(GL_COLOR_LOGIC_OP);
 					glLogicOp(GL_AND);
 					glEnable(GL_CULL_FACE);
+					glEnable(GL_DEPTH_CLAMP);
+					glDepthFunc(GL_LEQUAL);
 
-					//glEnable(GL_STENCIL_TEST);
+					glEnable(GL_STENCIL_TEST);
 					glStencilFunc(GL_EQUAL, 64, 0xff);
 					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
@@ -1076,6 +1092,7 @@ void Client::render_world(void)
 						rs.popMod();
 					}
 
+					glDisable(GL_DEPTH_CLAMP);
 					glDisable(GL_STENCIL_TEST);
 					glDisable(GL_COLOR_LOGIC_OP);
 				}

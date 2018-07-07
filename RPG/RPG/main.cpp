@@ -112,6 +112,58 @@ public:
 			world->AddEntity(ent);
 		}
 
+		// create triangle
+		{
+			NewEntity * ent = new NewEntity();
+
+			PositionComponent * p = new PositionComponent();
+			ColliderComponent * c = new ColliderComponent();
+			GraphicsComponent * g = new GraphicsComponent(false, 0);
+
+			ent->addComponent(p);
+			ent->addComponent(c);
+			ent->addComponent(g);
+
+			MaterialList materials;
+			materials.materials.push_back(Material("data/assets/concrete_blue.tga"));
+
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/triangle_ds_test.gmdl", materials, 0)));
+			g->decs.items.front()->local *= 1.0f;
+			g->decs.items.front()->local.mtrx[3][3] = 1.0f;
+			g->decs.items.front()->final = g->decs.items.front()->local;
+
+			p->p = Vec3(0.0f, 0.0f, 32.0f);
+
+			world->AddEntity(ent);
+		}
+
+		// create octagon
+		{
+			NewEntity * ent = new NewEntity();
+
+			PositionComponent * p = new PositionComponent();
+			ColliderComponent * c = new ColliderComponent();
+			GraphicsComponent * g = new GraphicsComponent(false, 0);
+
+			ent->addComponent(p);
+			ent->addComponent(c);
+			ent->addComponent(g);
+
+			MaterialList materials;
+			materials.materials.push_back(Material("data/assets/concrete_blue.tga"));
+
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/octagon_ds_test.gmdl", materials, 0)));
+			g->decs.items.front()->local *= 1.0f;
+			g->decs.items.front()->local.mtrx[3][3] = 1.0f;
+			g->decs.items.front()->final = g->decs.items.front()->local;
+
+			p->p = Vec3(3.0f, 0.0f, 32.0f);
+
+			world->AddEntity(ent);
+		}
+
+		return;
+
 		// create swing
 		if (false)
 		{

@@ -34,18 +34,19 @@ void main()
 {
 	vec3 cd = -light.xyz;
 
-	vec4 real[3];
+	vec3 real[3];
 	for (int i=0;i<3;i++)
 	{
-		real[i] = proj_inv * gl_in[i].gl_Position;
+		vec4 p = proj_inv * gl_in[i].gl_Position;
+		real[i] = p.xyz / p.w;
 	}
 
-	vec3 n = normalize(cross((real[1] - real[0]).xyz, (real[2] - real[0]).xyz));
+	vec3 n = normalize(cross(real[1] - real[0], real[2] - real[0]));
 
 	vec3 sides[3];
-	sides[0] = normalize((real[1] - real[0]).xyz);
-	sides[1] = normalize((real[2] - real[1]).xyz);
-	sides[2] = normalize((real[0] - real[2]).xyz);
+	sides[0] = normalize(real[1] - real[0]);
+	sides[1] = normalize(real[2] - real[1]);
+	sides[2] = normalize(real[0] - real[2]);
 
 	vec3 side_n_flat[3];
 	for (int i=0;i<3;i++)
@@ -67,8 +68,10 @@ void main()
 		flat_sides[i] = normalize(cross(side_n_flat[i], cd));
 	}
 	
-	vec3 cap_first = normalize(flat_sides[first] - cd * lsize);
-	vec3 cap_second = normalize(-flat_sides[first] - cd * lsize);
+	vec3 p = (dot(n_in[0], real[0])*cross(n_in[1], n_in[2])+dot(n_in[1], real[1])*cross(n_in[2], n_in[0])+dot(n_in[2], real[2])*cross(n_in[0], n_in[1]))/dot(n_in[0], cross(n_in[1], n_in[2]));
+	
+	vec3 cap_first = normalize(cross(real[first] - p, cd));
+	vec3 cap_second = normalize(cross(p - real[second], cd));
 
 	vec3 end_out_first = normalize(cross(cap_first, n_out[first]));
 	vec3 end_out_second = normalize(cross(n_out[first], cap_second));
@@ -86,133 +89,186 @@ void main()
 	//if (abs(dot(cd, n)) > sin(atan(lsize)) && abs(dot(sides[first], normalize(cd))) < cos(atan(lsize)))
 	if (dot(cd, n) > 0.0)
 	{
-		gl_Position = fin_out_first;
-		first_pos = real[first].xyz;
-		second_pos = real[second].xyz;
-		third_pos = real[third].xyz;
-		side_flat_first = flat_sides[first];
-		side_flat_second = flat_sides[second];
-		side_flat_third = flat_sides[third];
-		n_mid_first = side_n_flat[first];
-		n_mid_second = side_n_flat[second];
-		n_mid_third = side_n_flat[third];
-		n_outer = n_out[first];
-		n_inner = n_in[first];
-		first_cap = cap_first;
-		second_cap = cap_second;
-		EmitVertex();
+		if (dot(n_in[first], real[first]) < 0.0 && dot(n_out[first], real[first]) > 0.0 && dot(cap_first, real[first]) > 0.0 && dot(cap_second, real[second]) > 0.0)
+		{
+			gl_Position = vec4(-1.0, 3.0, -1.0, 1.0);
+			first_pos = real[first];
+			second_pos = real[second];
+			third_pos = real[third];
+			side_flat_first = flat_sides[first];
+			side_flat_second = flat_sides[second];
+			side_flat_third = flat_sides[third];
+			n_mid_first = side_n_flat[first];
+			n_mid_second = side_n_flat[second];
+			n_mid_third = side_n_flat[third];
+			n_outer = n_out[first];
+			n_inner = n_in[first];
+			first_cap = cap_first;
+			second_cap = cap_second;
+			EmitVertex();
+			
+			gl_Position = vec4(-1.0, -1.0, -1.0, 1.0);
+			first_pos = real[first];
+			second_pos = real[second];
+			third_pos = real[third];
+			side_flat_first = flat_sides[first];
+			side_flat_second = flat_sides[second];
+			side_flat_third = flat_sides[third];
+			n_mid_first = side_n_flat[first];
+			n_mid_second = side_n_flat[second];
+			n_mid_third = side_n_flat[third];
+			n_outer = n_out[first];
+			n_inner = n_in[first];
+			first_cap = cap_first;
+			second_cap = cap_second;
+			EmitVertex();
+		
+			gl_Position = vec4(3.0, -1.0, -1.0, 1.0);
+			first_pos = real[first];
+			second_pos = real[second];
+			third_pos = real[third];
+			side_flat_first = flat_sides[first];
+			side_flat_second = flat_sides[second];
+			side_flat_third = flat_sides[third];
+			n_mid_first = side_n_flat[first];
+			n_mid_second = side_n_flat[second];
+			n_mid_third = side_n_flat[third];
+			n_outer = n_out[first];
+			n_inner = n_in[first];
+			first_cap = cap_first;
+			second_cap = cap_second;
+			EmitVertex();
+		}
+		else
+		{
+			gl_Position = fin_out_first;
+			first_pos = real[first];
+			second_pos = real[second];
+			third_pos = real[third];
+			side_flat_first = flat_sides[first];
+			side_flat_second = flat_sides[second];
+			side_flat_third = flat_sides[third];
+			n_mid_first = side_n_flat[first];
+			n_mid_second = side_n_flat[second];
+			n_mid_third = side_n_flat[third];
+			n_outer = n_out[first];
+			n_inner = n_in[first];
+			first_cap = cap_first;
+			second_cap = cap_second;
+			EmitVertex();
 
-		gl_Position = gl_in[first].gl_Position;
-		first_pos = real[first].xyz;
-		second_pos = real[second].xyz;
-		third_pos = real[third].xyz;
-		side_flat_first = flat_sides[first];
-		side_flat_second = flat_sides[second];
-		side_flat_third = flat_sides[third];
-		n_mid_first = side_n_flat[first];
-		n_mid_second = side_n_flat[second];
-		n_mid_third = side_n_flat[third];
-		n_outer = n_out[first];
-		n_inner = n_in[first];
-		first_cap = cap_first;
-		second_cap = cap_second;
-		EmitVertex();
+			gl_Position = gl_in[first].gl_Position;
+			first_pos = real[first];
+			second_pos = real[second];
+			third_pos = real[third];
+			side_flat_first = flat_sides[first];
+			side_flat_second = flat_sides[second];
+			side_flat_third = flat_sides[third];
+			n_mid_first = side_n_flat[first];
+			n_mid_second = side_n_flat[second];
+			n_mid_third = side_n_flat[third];
+			n_outer = n_out[first];
+			n_inner = n_in[first];
+			first_cap = cap_first;
+			second_cap = cap_second;
+			EmitVertex();
 		
-		gl_Position = fin_out_second;
-		first_pos = real[first].xyz;
-		second_pos = real[second].xyz;
-		third_pos = real[third].xyz;
-		side_flat_first = flat_sides[first];
-		side_flat_second = flat_sides[second];
-		side_flat_third = flat_sides[third];
-		n_mid_first = side_n_flat[first];
-		n_mid_second = side_n_flat[second];
-		n_mid_third = side_n_flat[third];
-		n_outer = n_out[first];
-		n_inner = n_in[first];
-		first_cap = cap_first;
-		second_cap = cap_second;
-		EmitVertex();
+			gl_Position = fin_out_second;
+			first_pos = real[first];
+			second_pos = real[second];
+			third_pos = real[third];
+			side_flat_first = flat_sides[first];
+			side_flat_second = flat_sides[second];
+			side_flat_third = flat_sides[third];
+			n_mid_first = side_n_flat[first];
+			n_mid_second = side_n_flat[second];
+			n_mid_third = side_n_flat[third];
+			n_outer = n_out[first];
+			n_inner = n_in[first];
+			first_cap = cap_first;
+			second_cap = cap_second;
+			EmitVertex();
 
-		gl_Position = gl_in[second].gl_Position;
-		first_pos = real[first].xyz;
-		second_pos = real[second].xyz;
-		third_pos = real[third].xyz;
-		side_flat_first = flat_sides[first];
-		side_flat_second = flat_sides[second];
-		side_flat_third = flat_sides[third];
-		n_mid_first = side_n_flat[first];
-		n_mid_second = side_n_flat[second];
-		n_mid_third = side_n_flat[third];
-		n_outer = n_out[first];
-		n_inner = n_in[first];
-		first_cap = cap_first;
-		second_cap = cap_second;
-		EmitVertex();
+			gl_Position = gl_in[second].gl_Position;
+			first_pos = real[first];
+			second_pos = real[second];
+			third_pos = real[third];
+			side_flat_first = flat_sides[first];
+			side_flat_second = flat_sides[second];
+			side_flat_third = flat_sides[third];
+			n_mid_first = side_n_flat[first];
+			n_mid_second = side_n_flat[second];
+			n_mid_third = side_n_flat[third];
+			n_outer = n_out[first];
+			n_inner = n_in[first];
+			first_cap = cap_first;
+			second_cap = cap_second;
+			EmitVertex();
 		
-		gl_Position = fin_in_second;
-		first_pos = real[first].xyz;
-		second_pos = real[second].xyz;
-		third_pos = real[third].xyz;
-		side_flat_first = flat_sides[first];
-		side_flat_second = flat_sides[second];
-		side_flat_third = flat_sides[third];
-		n_mid_first = side_n_flat[first];
-		n_mid_second = side_n_flat[second];
-		n_mid_third = side_n_flat[third];
-		n_outer = n_out[first];
-		n_inner = n_in[first];
-		first_cap = cap_first;
-		second_cap = cap_second;
-		EmitVertex();
+			gl_Position = fin_in_second;
+			first_pos = real[first];
+			second_pos = real[second];
+			third_pos = real[third];
+			side_flat_first = flat_sides[first];
+			side_flat_second = flat_sides[second];
+			side_flat_third = flat_sides[third];
+			n_mid_first = side_n_flat[first];
+			n_mid_second = side_n_flat[second];
+			n_mid_third = side_n_flat[third];
+			n_outer = n_out[first];
+			n_inner = n_in[first];
+			first_cap = cap_first;
+			second_cap = cap_second;
+			EmitVertex();
 
-		gl_Position = gl_in[first].gl_Position;
-		first_pos = real[first].xyz;
-		second_pos = real[second].xyz;
-		third_pos = real[third].xyz;
-		side_flat_first = flat_sides[first];
-		side_flat_second = flat_sides[second];
-		side_flat_third = flat_sides[third];
-		n_mid_first = side_n_flat[first];
-		n_mid_second = side_n_flat[second];
-		n_mid_third = side_n_flat[third];
-		n_outer = n_out[first];
-		n_inner = n_in[first];
-		first_cap = cap_first;
-		second_cap = cap_second;
-		EmitVertex();
+			gl_Position = gl_in[first].gl_Position;
+			first_pos = real[first];
+			second_pos = real[second];
+			third_pos = real[third];
+			side_flat_first = flat_sides[first];
+			side_flat_second = flat_sides[second];
+			side_flat_third = flat_sides[third];
+			n_mid_first = side_n_flat[first];
+			n_mid_second = side_n_flat[second];
+			n_mid_third = side_n_flat[third];
+			n_outer = n_out[first];
+			n_inner = n_in[first];
+			first_cap = cap_first;
+			second_cap = cap_second;
+			EmitVertex();
 		
-		gl_Position = fin_in_first;
-		first_pos = real[first].xyz;
-		second_pos = real[second].xyz;
-		third_pos = real[third].xyz;
-		side_flat_first = flat_sides[first];
-		side_flat_second = flat_sides[second];
-		side_flat_third = flat_sides[third];
-		n_mid_first = side_n_flat[first];
-		n_mid_second = side_n_flat[second];
-		n_mid_third = side_n_flat[third];
-		n_outer = n_out[first];
-		n_inner = n_in[first];
-		first_cap = cap_first;
-		second_cap = cap_second;
-		EmitVertex();
+			gl_Position = fin_in_first;
+			first_pos = real[first];
+			second_pos = real[second];
+			third_pos = real[third];
+			side_flat_first = flat_sides[first];
+			side_flat_second = flat_sides[second];
+			side_flat_third = flat_sides[third];
+			n_mid_first = side_n_flat[first];
+			n_mid_second = side_n_flat[second];
+			n_mid_third = side_n_flat[third];
+			n_outer = n_out[first];
+			n_inner = n_in[first];
+			first_cap = cap_first;
+			second_cap = cap_second;
+			EmitVertex();
 		
-		gl_Position = fin_out_first;
-		first_pos = real[first].xyz;
-		second_pos = real[second].xyz;
-		third_pos = real[third].xyz;
-		side_flat_first = flat_sides[first];
-		side_flat_second = flat_sides[second];
-		side_flat_third = flat_sides[third];
-		n_mid_first = side_n_flat[first];
-		n_mid_second = side_n_flat[second];
-		n_mid_third = side_n_flat[third];
-		n_outer = n_out[first];
-		n_inner = n_in[first];
-		first_cap = cap_first;
-		second_cap = cap_second;
-		EmitVertex();
+			gl_Position = fin_out_first;
+			first_pos = real[first];
+			second_pos = real[second];
+			third_pos = real[third];
+			side_flat_first = flat_sides[first];
+			side_flat_second = flat_sides[second];
+			side_flat_third = flat_sides[third];
+			n_mid_first = side_n_flat[first];
+			n_mid_second = side_n_flat[second];
+			n_mid_third = side_n_flat[third];
+			n_outer = n_out[first];
+			n_inner = n_in[first];
+			first_cap = cap_first;
+			second_cap = cap_second;
+			EmitVertex();
+		}
 	}
 
 	EndPrimitive();
