@@ -162,8 +162,6 @@ public:
 			world->AddEntity(ent);
 		}
 
-		return;
-
 		// create swing
 		if (false)
 		{

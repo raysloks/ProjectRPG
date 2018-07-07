@@ -71,8 +71,8 @@ void CameraControlComponent::pre_frame(float dTime)
 			if (p != nullptr)
 			{
 				entity->world->cam_rot = cam_rot;
-				entity->world->cam_pos = *p + up * 0.45f;
-				//entity->world->cam_pos = *p + up * 0.2f + right * 1.5f + top * 0.5f - front * 3.5f;
+				//entity->world->cam_pos = *p + up * 0.45f;
+				entity->world->cam_pos = *p + up * 0.2f + right * 1.5f + top * 0.5f - front * 3.5f;
 			}
 		}
 	}

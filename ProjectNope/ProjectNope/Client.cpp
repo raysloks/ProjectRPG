@@ -938,13 +938,6 @@ void Client::render_world(void)
 				glClearStencil(64);
 				glClear(GL_STENCIL_BUFFER_BIT);
 
-				flat_stencil_prog->UniformMatrix4f("proj", proj.data);
-				flat_stencil_prog->UniformMatrix4f("proj_inv", proj.Inverse().data);
-
-				flat_stencil_prog->Uniform("light", light, 0.0f);
-
-				flat_stencil_prog->Uniform("lsize", light_size);
-
 				RenderSetup rs;
 				rs.view = proj;
 				rs.pass = 3;
@@ -963,13 +956,20 @@ void Client::render_world(void)
 
 				for (int i = 0; i < 3; ++i)
 				{
-					ShaderMod mod(flat_stencil_prog, [proj, i, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+					ShaderMod mod(flat_stencil_prog, [=, &rs](const std::shared_ptr<ShaderProgram>& prog) {
 						prog->UniformMatrix4f("transform", (rs.transform*proj).data);
 						prog->UniformMatrix4f("normal_transform", rs.transform.data);
 						prog->Uniform("first", i);
 						prog->Uniform("second", (i + 1) % 3);
 						prog->Uniform("third", (i + 2) % 3);
 						prog->Uniform("full", 0);
+
+						prog->UniformMatrix4f("proj", proj.data);
+						prog->UniformMatrix4f("proj_inv", proj.Inverse().data);
+
+						prog->Uniform("light", light, 0.0f);
+
+						prog->Uniform("lsize", light_size);
 					});
 
 					rs.pushMod(mod);
@@ -980,13 +980,20 @@ void Client::render_world(void)
 				}
 
 				{
-					ShaderMod mod(flat_stencil_prog, [proj, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+					ShaderMod mod(flat_stencil_prog, [=, &rs](const std::shared_ptr<ShaderProgram>& prog) {
 						prog->UniformMatrix4f("transform", (rs.transform*proj).data);
 						prog->UniformMatrix4f("normal_transform", rs.transform.data);
 						prog->Uniform("first", 0);
 						prog->Uniform("second", 1);
 						prog->Uniform("third", 2);
 						prog->Uniform("full", 1);
+
+						prog->UniformMatrix4f("proj", proj.data);
+						prog->UniformMatrix4f("proj_inv", proj.Inverse().data);
+
+						prog->Uniform("light", light, 0.0f);
+
+						prog->Uniform("lsize", light_size);
 					});
 
 					rs.pushMod(mod);
@@ -1032,9 +1039,9 @@ void Client::render_world(void)
 					glStencilFunc(GL_EQUAL, 64, 0xff);
 					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-					glActiveTexture(GL_TEXTURE1);
-					glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
 					glActiveTexture(GL_TEXTURE2);
+					glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
+					glActiveTexture(GL_TEXTURE3);
 					if (light_lookup_tex != nullptr)
 						glBindTexture(GL_TEXTURE_2D, light_lookup_tex->getGLTexID());
 
@@ -1084,8 +1091,8 @@ void Client::render_world(void)
 							prog->Uniform3fv("light_samples", light_samples);
 							prog->Uniform("noise_a", noise_a);
 
-							prog->Uniform("depth", 1);
-							prog->Uniform("lookup", 2);
+							prog->Uniform("depth", 2);
+							prog->Uniform("lookup", 3);
 						});
 
 						rs.pushMod(mod);

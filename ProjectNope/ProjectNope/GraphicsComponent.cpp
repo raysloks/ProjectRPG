@@ -436,7 +436,7 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 		}
 	}
 
-	if (rs.pass != 3 && rs.pass != 4)
+	//if (rs.pass != 3 && rs.pass != 4)
 		for each (auto type in instanced)
 		{
 			type.second->render(rs);
