@@ -79,7 +79,7 @@ public:
 
 			PositionComponent * p = new PositionComponent();
 			ColliderComponent * c = new ColliderComponent();
-			GraphicsComponent * g = new GraphicsComponent(false, 0);
+			GraphicsComponent * g = new GraphicsComponent(false, 1);
 
 			ent->addComponent(p);
 			ent->addComponent(c);
@@ -101,7 +101,7 @@ public:
 
 			for (auto material = materials.materials.begin(); material != materials.materials.end(); ++material)
 			{
-				//material->tex.push_back(ao);
+				material->tex.push_back(ao);
 			}
 
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/escape.gmdl", materials, 0)));

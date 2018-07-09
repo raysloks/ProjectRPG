@@ -40,5 +40,5 @@ void main()
 
 	vec4 color = texture(diffuse, texco);
 
-	final_color = vec4(color.rgb * (vec3(intensity) + vec3(0.1, 0.1, 0.2) + texture(ao, texco_ao).rgb), color.a);
+	final_color = vec4(color.rgb * (vec3(intensity) + vec3(0.1, 0.1, 0.2) + texture(ao, texco_ao).rgb * vec3(0.2, 0.2, 0.4)), color.a);
 }

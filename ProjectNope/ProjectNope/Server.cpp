@@ -155,7 +155,7 @@ void Server::tick(float dTime)
 							//update the relevant sync
 							for (auto i = ent->ss.conf.begin(); i != ent->ss.conf.end(); ++i)
 							{
-								conn->data->sync[j].insert(*i);
+								conn->data->sync[client_side_id].insert(*i);
 							}
 						}
 					}
@@ -193,7 +193,7 @@ void Server::tick(float dTime)
 
 								MAKE_PACKET;
 
-								out << (unsigned char)2 << client_side_id << conn->data->unit_uid[client_side_id] << conn->data->per_entity_sync[j];
+								out << (unsigned char)2 << client_side_id << conn->data->unit_uid[client_side_id] << conn->data->per_entity_sync[client_side_id];
 
 								//send unconfirmed
 								out << (uint32_t)ent->ss.npass;
@@ -248,7 +248,7 @@ void Server::NotifyOfCreation(uint32_t id) //TODO merge duplicate code
 					out << (unsigned char)1 << client_side_id << conn->data->unit_uid[client_side_id];
 					ent->write_to(out, *conn->data);
 
-					for (size_t i = 0; i < ent->ss.sync.size(); i++)
+					for (size_t i = 0; i < ent->ss.sync.size(); ++i)
 						conn->data->sync[client_side_id].insert(std::make_pair(i, ent->ss.sync[i]));
 
 					SEND_PACKET(conn->endpoint);
@@ -334,7 +334,7 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 			uint32_t id, sync;
 			uint32_t size, index;
 			in >> id >> size;
-			for (size_t i = 0; i < size; i++)
+			for (size_t i = 0; i < size; ++i)
 			{
 				in >> index >> sync;
 				if (id < conn->data->sync.size())
@@ -351,7 +351,7 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 			uint32_t id;
 			uint32_t size;
 			in >> size;
-			for (size_t i = 0; i < size; i++)
+			for (size_t i = 0; i < size; ++i)
 			{
 				in >> id;
 				conn->data->forgetUnit(conn->data->getRealID(id));

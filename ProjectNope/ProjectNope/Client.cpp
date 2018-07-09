@@ -90,6 +90,8 @@ Client::Client(World * pWorld)
 	dof_prog = ShaderProgram::Get("data/fullscreen_vert.txt", "data/dof_frag.txt");
 	stencil_prog = ShaderProgram::Get("data/stencil_vert.txt", "data/stencil_geom.txt", "data/stencil_frag.txt");
 	flat_stencil_prog = ShaderProgram::Get("data/flat_stencil_vert.txt", "data/flat_stencil_geom.txt", "data/flat_stencil_frag.txt");
+	fullscreen_stencil_prog = ShaderProgram::Get("data/fullscreen_vert.txt", "data/flat_stencil_frag.txt");
+	flat_stencil_outer_prog = ShaderProgram::Get("data/stencil_vert.txt", "data/stencil_geom.txt", "data/flat_stencil_frag.txt");
 	gui_prog = ShaderProgram::Get("data/gui_vert.txt", "data/gui_frag.txt");
 }
 
@@ -931,11 +933,10 @@ void Client::render_world(void)
 		if (stencil_prog->IsReady() && flat_stencil_prog->IsReady() && shadow_quality != 0)
 		{
 			// render flat stencil
-			if (flat_stencil_prog->Use())
 			{
 				flat_stencil_fb->bind();
 				glViewport(0, 0, buffer_w, buffer_h);
-				glClearStencil(64);
+				glClearStencil(128);
 				glClear(GL_STENCIL_BUFFER_BIT);
 
 				RenderSetup rs;
@@ -951,8 +952,8 @@ void Client::render_world(void)
 				glDisable(GL_CULL_FACE);
 
 				glStencilFunc(GL_ALWAYS, 0xff, 0xff);
-				glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
-				glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
+				glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
+				glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
 
 				for (int i = 0; i < 3; ++i)
 				{
@@ -1003,6 +1004,54 @@ void Client::render_world(void)
 					rs.popMod();
 				}
 
+				if (fullscreen_stencil_prog->Use())
+				{
+					glDisable(GL_DEPTH_TEST);
+
+					glStencilFunc(GL_NOTEQUAL, 128, 0xff);
+					glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
+
+					glDrawArrays(GL_TRIANGLES, 0, 3);
+
+					glEnable(GL_DEPTH_TEST);
+				}
+
+				{
+					glStencilFunc(GL_NOTEQUAL, 0, 0xff);
+					glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
+					glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
+
+					// render outer stencil with reverse ops
+					for (int i = 0; i < 3; ++i)
+					{
+						ShaderMod mod(flat_stencil_outer_prog, [=, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+							prog->UniformMatrix4f("transform", (rs.transform*proj).data);
+							prog->UniformMatrix4f("normal_transform", rs.transform.data);
+							prog->Uniform("first", i);
+							prog->Uniform("second", (i + 1) % 3);
+							prog->Uniform("third", (i + 2) % 3);
+
+							prog->UniformMatrix4f("proj", proj.data);
+							prog->UniformMatrix4f("proj_inv", proj.Inverse().data);
+
+							prog->Uniform("zNear", near_z);
+							prog->Uniform("zFar", far_z);
+
+							prog->Uniform("pixel", 1.0f / buffer_w, 1.0f / buffer_h);
+
+							prog->Uniform("light", light, 0.0f);
+
+							prog->Uniform("lsize", light_size);
+						});
+
+						rs.pushMod(mod);
+
+						world->render(rs);
+
+						rs.popMod();
+					}
+				}
+
 				glDisable(GL_DEPTH_CLAMP);
 				glDisable(GL_STENCIL_TEST);
 			}
@@ -1010,7 +1059,6 @@ void Client::render_world(void)
 			if (shadow_quality == 3)
 			{
 				// render raytracing stencil
-				if (stencil_prog->Use())
 				{
 					stencil_fb->bind();
 					glViewport(0, 0, buffer_w, buffer_h);
@@ -1033,10 +1081,10 @@ void Client::render_world(void)
 					glLogicOp(GL_AND);
 					glEnable(GL_CULL_FACE);
 					glEnable(GL_DEPTH_CLAMP);
-					glDepthFunc(GL_LEQUAL);
+					glDepthFunc(GL_LESS);
 
 					glEnable(GL_STENCIL_TEST);
-					glStencilFunc(GL_EQUAL, 64, 0xff);
+					glStencilFunc(GL_LESS, 128, 0xff);
 					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 					glActiveTexture(GL_TEXTURE2);
@@ -1169,7 +1217,7 @@ void Client::render_world(void)
 
 			{
 				glEnable(GL_STENCIL_TEST);
-				glStencilFunc(GL_EQUAL, 64, 0xff);
+				glStencilFunc(GL_NOTEQUAL, 0, 0xff);
 				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 				ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality](const std::shared_ptr<ShaderProgram>& prog) {
@@ -1195,7 +1243,7 @@ void Client::render_world(void)
 
 			{
 				glEnable(GL_STENCIL_TEST);
-				glStencilFunc(GL_NOTEQUAL, 64, 0xff);
+				glStencilFunc(GL_EQUAL, 0, 0xff);
 				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 				ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality](const std::shared_ptr<ShaderProgram>& prog) {
@@ -1315,7 +1363,7 @@ void Client::render_world(void)
 			rs.popTransform();
 			rs.popTransform();
 
-			Writing::setColor(0.0f, 0.0f, 0.0f);
+			Writing::setColor(0.8f, 0.1f, 0.7f);
 			Writing::setSize(12);
 
 			rs.pushTransform();
@@ -1547,7 +1595,7 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 							uint32_t sync_len, sync_index;
 							in >> sync_len;
 							std::map<size_t, uint32_t> to_confirm;
-							for (size_t i=0;i<sync_len;++i)
+							for (size_t i = 0; i < sync_len; ++i)
 							{
 								in >> sync_index >> sync_val;
 								ent->ss.set(sync_index, sync_val);
@@ -1558,7 +1606,7 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 								MAKE_PACKET;
 
 								out << (unsigned char)1 << id << (uint32_t)to_confirm.size();
-								for (auto i=to_confirm.begin();i!=to_confirm.end();++i)
+								for (auto i = to_confirm.begin(); i != to_confirm.end(); ++i)
 									out << (uint32_t)i->first << i->second;
 
 								SEND_PACKET;
@@ -1585,7 +1633,8 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 						if (uid == world->uid[id])
 						{
 							world->SetEntity(id, nullptr);
-							if (id < interpol_targets.size()) {
+							if (id < interpol_targets.size())
+							{
 								if (interpol_targets[id] != nullptr)
 									delete interpol_targets[id];
 								interpol_targets[id] = nullptr;

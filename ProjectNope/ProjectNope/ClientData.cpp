@@ -35,9 +35,9 @@ uint32_t ClientData::addKnownUnit(uint32_t id)
 		}
 	}
 	known_units.push_back(id);
-	unit_uid.resize(known_units.size());
-	up_to_date.resize(known_units.size());
-	per_entity_sync.resize(known_units.size());
+	unit_uid.resize(known_units.size(), 0);
+	up_to_date.resize(known_units.size(), false);
+	per_entity_sync.resize(known_units.size(), 0);
 	sync.resize(known_units.size());
 	return known_units.size() - 1;
 }

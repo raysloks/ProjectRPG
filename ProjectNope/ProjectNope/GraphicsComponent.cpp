@@ -15,7 +15,6 @@ thread_local std::vector<GraphicsComponent*> GraphicsComponent::all;
 
 GraphicsComponent::GraphicsComponent(bool dynamic, uint32_t tag) : Serializable(_factory.id), p(nullptr), pose(nullptr)
 {
-	all.push_back(this);
 	this->dynamic = dynamic;
 	this->tag = tag;
 }
@@ -24,6 +23,19 @@ GraphicsComponent::GraphicsComponent(instream& is, bool full) : Serializable(_fa
 {
 	all.push_back(this);
 	is >> dynamic >> tag;
+	uint32_t size;
+	is >> size;
+	decs.items.resize(size);
+	for (size_t i = 0; i < size; ++i)
+	{
+		bool exists;
+		is >> exists;
+		if (exists)
+		{
+			decs.items[i] = std::make_shared<Decorator>();
+			decs.items[i]->readLog(is);
+		}
+	}
 }
 
 GraphicsComponent::~GraphicsComponent(void)
@@ -83,6 +95,19 @@ void GraphicsComponent::interpolate(Component * pComponent, float fWeight)
 void GraphicsComponent::write_to(outstream& os, ClientData& client) const
 {
 	os << dynamic << tag;
+	os << (uint32_t)decs.items.size();
+	for (auto item : decs.items)
+	{
+		if (item)
+		{
+			os << true;
+			item->writeLog(os);
+		}
+		else
+		{
+			os << false;
+		}
+	}
 }
 
 void GraphicsComponent::write_to(outstream& os) const
@@ -436,11 +461,10 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 		}
 	}
 
-	//if (rs.pass != 3 && rs.pass != 4)
-		for each (auto type in instanced)
-		{
-			type.second->render(rs);
-		}
+	for each (auto type in instanced)
+	{
+		type.second->render(rs);
+	}
 
 	/*if (rs.applyMods())
 	{
