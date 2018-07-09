@@ -936,7 +936,7 @@ void Client::render_world(void)
 			{
 				flat_stencil_fb->bind();
 				glViewport(0, 0, buffer_w, buffer_h);
-				glClearStencil(128);
+				glClearStencil(0);
 				glClear(GL_STENCIL_BUFFER_BIT);
 
 				RenderSetup rs;
@@ -1004,54 +1004,6 @@ void Client::render_world(void)
 					rs.popMod();
 				}
 
-				if (fullscreen_stencil_prog->Use())
-				{
-					glDisable(GL_DEPTH_TEST);
-
-					glStencilFunc(GL_NOTEQUAL, 128, 0xff);
-					glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
-
-					glDrawArrays(GL_TRIANGLES, 0, 3);
-
-					glEnable(GL_DEPTH_TEST);
-				}
-
-				{
-					glStencilFunc(GL_NOTEQUAL, 0, 0xff);
-					glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
-					glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
-
-					// render outer stencil with reverse ops
-					for (int i = 0; i < 3; ++i)
-					{
-						ShaderMod mod(flat_stencil_outer_prog, [=, &rs](const std::shared_ptr<ShaderProgram>& prog) {
-							prog->UniformMatrix4f("transform", (rs.transform*proj).data);
-							prog->UniformMatrix4f("normal_transform", rs.transform.data);
-							prog->Uniform("first", i);
-							prog->Uniform("second", (i + 1) % 3);
-							prog->Uniform("third", (i + 2) % 3);
-
-							prog->UniformMatrix4f("proj", proj.data);
-							prog->UniformMatrix4f("proj_inv", proj.Inverse().data);
-
-							prog->Uniform("zNear", near_z);
-							prog->Uniform("zFar", far_z);
-
-							prog->Uniform("pixel", 1.0f / buffer_w, 1.0f / buffer_h);
-
-							prog->Uniform("light", light, 0.0f);
-
-							prog->Uniform("lsize", light_size);
-						});
-
-						rs.pushMod(mod);
-
-						world->render(rs);
-
-						rs.popMod();
-					}
-				}
-
 				glDisable(GL_DEPTH_CLAMP);
 				glDisable(GL_STENCIL_TEST);
 			}
@@ -1084,7 +1036,7 @@ void Client::render_world(void)
 					glDepthFunc(GL_LESS);
 
 					glEnable(GL_STENCIL_TEST);
-					glStencilFunc(GL_LESS, 128, 0xff);
+					glStencilFunc(GL_EQUAL, 0, 0xff);
 					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 					glActiveTexture(GL_TEXTURE2);
@@ -1217,7 +1169,7 @@ void Client::render_world(void)
 
 			{
 				glEnable(GL_STENCIL_TEST);
-				glStencilFunc(GL_NOTEQUAL, 0, 0xff);
+				glStencilFunc(GL_EQUAL, 0, 0xff);
 				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 				ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality](const std::shared_ptr<ShaderProgram>& prog) {
@@ -1243,7 +1195,7 @@ void Client::render_world(void)
 
 			{
 				glEnable(GL_STENCIL_TEST);
-				glStencilFunc(GL_EQUAL, 0, 0xff);
+				glStencilFunc(GL_NOTEQUAL, 0, 0xff);
 				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 				ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality](const std::shared_ptr<ShaderProgram>& prog) {
