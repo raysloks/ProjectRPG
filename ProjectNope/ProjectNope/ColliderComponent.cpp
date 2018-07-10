@@ -51,7 +51,7 @@ void ColliderComponent::tick(float dTime)
 			{
 				if (gc->decs.items.front()->skin != 0)
 				{
-					mesh.Recalculate(*gc->decs.items.front()->skin, *gc->decs.items.front()->skin, gc->decs.items.front()->final, gc->decs.items.front()->local, dTime);
+					mesh.Recalculate(*gc->decs.items.front()->skin, *gc->decs.items.front()->skin, gc->decs.items.front()->local, gc->decs.items.front()->local, dTime);
 				}
 			}
 		}

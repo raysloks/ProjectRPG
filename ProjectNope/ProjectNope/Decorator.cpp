@@ -63,9 +63,7 @@ void Decorator::attach(const Pose& pose)
 	if (bone_id>=0)
 	{
 		if (pose.bones.size()>bone_id)
-			final = local * pose.bones[bone_id].getTransform();
-		else
-			final = local;
+			final = pose.bones[bone_id].getTransform();
 	}
 }
 
@@ -86,8 +84,6 @@ void Decorator::attach()
 				skin.reset(new Mesh(*mesh));
 		}
 	}
-	if (bone_id>=0)
-		final = local;
 }
 
 #include "RenderSetup.h"
@@ -97,7 +93,7 @@ void Decorator::render(RenderSetup& rs)
 	if (bone_id>=0) {
 		rs.pushTransform();
 
-		rs.addTransform(final);
+		rs.addTransform(local * final);
 
 		if (mesh==0)
 			mesh = Resource::get<Mesh>(mesh_fname);

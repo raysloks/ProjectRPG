@@ -86,6 +86,13 @@ void MobComponent::tick(float dTime)
 			}
 		}
 
+		if (move != Vec3() && input.find("rolling") == input.end())
+		{
+			move_facing = move.Normalized();
+		}
+
+		facing = move_facing;
+
 		for (auto i = input.begin(); i != input.end();)
 		{
 			i->second -= dTime;
@@ -116,7 +123,8 @@ void MobComponent::tick(float dTime)
 				{
 					Vec3 dif = *p - *mob.second->p;
 					float l = dif.Len();
-					dif /= l;
+					if (l != 0.0f)
+						dif /= l;
 
 					Vec3 vdif = v - mob.second->v;
 					vdif = dif * dif.Dot(vdif);
@@ -349,39 +357,58 @@ void MobComponent::tick(float dTime)
 
 						if (landed)
 						{
-							float speed = crouch ? 0.0f : run ? 7.0f : 3.5f;
-							if (!run)
-								speed *= stamina.current / 100.0f;
-							speed += 2.0f;
-
 							Vec3 target = move;
 							Vec3 target_right = target.Cross(up);
 							target = land_n.Cross(target_right);
 							target.Normalize();
-							target *= move.Len() * speed;
 
-							if (target != Vec3() && run)
-								stamina.current -= dTime * 10.0f;
-							else
-								stamina.current += dTime * 10.0f * health.current / 100.0f;
+							if (stamina.current <= 0.0f)
+								input["recover"] = 1.0f;
 
-							if (stamina.current < 0.0f)
+							bool recovering = input.find("recover") != input.end();
+							bool rolling = input.find("rolling") != input.end();
+
+							if (recovering)
+								run = false;
+							
+							if (!rolling)
 							{
-								health.current += stamina.current;
-								stamina.current = 0.0f;
+								if (target != Vec3() && run)
+									stamina.current -= dTime * 10.0f;
+								else
+									stamina.current += dTime * 10.0f;
 							}
 
-							v -= land_v;
-							float nv = v.Dot(land_n);
-							v -= land_n * nv;
+							float speed = crouch ? 0.0f : run ? 7.0f : 3.5f;
+							speed += 2.0f;
 
-							v = bu_blend(v, target, -0.5f, -40.0f, dTime);
+							target *= move.Len() * speed;
 
-							v += land_n * nv;
-							v += land_v;
+							if (input.find("rolling") == input.end())
+							{
+								v -= land_v;
+								float nv = v.Dot(land_n);
+								v -= land_n * nv;
 
-							if (input.find("jump") != input.end() && health.current > 0.0f) {
+								v = bu_blend(v, target, -0.5f, -40.0f, dTime);
 
+								v += land_n * nv;
+								v += land_v;
+							}
+
+							if (input.find("roll") != input.end() && move != Vec3() && health.current > 0.0f && !recovering && !rolling)
+							{
+								input["rolling"] += 0.5f;
+
+								v = move.Normalized() * 12.5f + land_v;
+
+								stamina.current -= 10.0f;
+
+								input.erase("roll");
+							}
+
+							if (input.find("jump") != input.end() && health.current > 0.0f && !recovering && !rolling)
+							{
 								v -= land_v;
 								if (up.Dot(v)<0.0f)
 									v -= up * up.Dot(v);
@@ -393,7 +420,7 @@ void MobComponent::tick(float dTime)
 								input.erase("jump");
 							}
 
-							stamina.current = std::fmaxf(0.0f, std::fminf(stamina.current, stamina.max));
+							stamina.current = std::fminf(stamina.current, stamina.max);
 						}
 					}
 
@@ -499,18 +526,25 @@ void MobComponent::write_to(outstream& os) const
 
 void MobComponent::do_damage(size_t damage, EntityID source)
 {
-	health.current -= damage;
-	if (health.current <= 0.0f)
+	if (health.current <= damage)
 	{
-		auto source_entity = entity->world->GetEntity(source);
-		if (source_entity)
+		health.current -= damage;
+		if (health.current <= 0.0f)
 		{
-			auto source_mob = source_entity->getComponent<MobComponent>();
-			if (source_mob)
+			auto source_entity = entity->world->GetEntity(source);
+			if (source_entity)
 			{
-				source_mob->health.max += 1.0f;
+				auto source_mob = source_entity->getComponent<MobComponent>();
+				if (source_mob)
+				{
+					source_mob->health.max += 1.0f;
+				}
 			}
 		}
+	}
+	else
+	{
+		health.current -= damage;
 	}
 }
 

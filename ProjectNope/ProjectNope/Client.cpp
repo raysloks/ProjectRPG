@@ -50,8 +50,8 @@ Client::Client(World * pWorld)
 	Sound::init();
 
 	platform = new TempPlatform();
-	platform->set_position(4, 24);
-	platform->set_z_depth(8);
+	platform->set_position(0, 32);
+	platform->set_z_depth(0);
 
 	world = pWorld;
 	isAlive = true;
@@ -271,6 +271,12 @@ void Client::pre_frame(float dTime)
 
 		sync();
 		
+		/*if (input.isPressed(Platform::KeyEvent::F11))
+		{
+			platform->set_fullscreen(true);
+			platform->apply();
+		}*/
+
 		if (input.isDown(Platform::KeyEvent::I))
 			light *= Matrix3(0.1f * dTime, Vec3(1.0f, 0.0f, 0.0f));
 		if (input.isDown(Platform::KeyEvent::K))
@@ -970,7 +976,7 @@ void Client::render_world(void)
 
 						prog->Uniform("light", light, 0.0f);
 
-						prog->Uniform("lsize", light_size);
+						prog->Uniform("lsize", shadow_quality == 1 ? 0.0f : light_size);
 					});
 
 					rs.pushMod(mod);
@@ -994,7 +1000,7 @@ void Client::render_world(void)
 
 						prog->Uniform("light", light, 0.0f);
 
-						prog->Uniform("lsize", light_size);
+						prog->Uniform("lsize", shadow_quality == 1 ? 0.0f : light_size);
 					});
 
 					rs.pushMod(mod);
@@ -1155,7 +1161,7 @@ void Client::render_world(void)
 			glDepthFunc(GL_EQUAL);
 			glDepthMask(GL_FALSE);
 
-			glDisable(GL_BLEND);
+			//glDisable(GL_BLEND);
 
 			glEnable(GL_ALPHA_TEST);
 			glAlphaFunc(GL_GREATER, 0.5f);

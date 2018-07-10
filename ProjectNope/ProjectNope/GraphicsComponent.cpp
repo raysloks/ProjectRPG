@@ -252,7 +252,7 @@ public:
 	size_t instance_count;
 };
 
-std::map<std::pair<std::string, std::string>, std::shared_ptr<InstancedGraphics>> instanced;
+std::map<std::pair<int, std::pair<std::string, std::string>>, std::shared_ptr<InstancedGraphics>> instanced;
 
 void GraphicsComponent::prep(RenderSetup& rs)
 {
@@ -274,20 +274,23 @@ void GraphicsComponent::prep(RenderSetup& rs)
 				auto pose = g->entity->getComponent<PoseComponent>();
 				if (pose)
 				{
-					auto key = std::make_pair(g->decs.items.front()->mesh_fname, g->decs.items.front()->materials.materials.front().tex.front());
-					auto it = instanced.find(key);
-					std::shared_ptr<InstancedGraphics> ig;
-					if (it != instanced.end())
+					for (auto dec : g->decs.items)
 					{
-						ig = it->second;
+						auto key = std::make_pair(dec->priority, std::make_pair(dec->mesh_fname, dec->materials.materials.front().tex.front()));
+						auto it = instanced.find(key);
+						std::shared_ptr<InstancedGraphics> ig;
+						if (it != instanced.end())
+						{
+							ig = it->second;
+						}
+						else
+						{
+							ig.reset(new InstancedGraphics(dec->mesh_fname, dec->materials));
+							instanced.insert(std::make_pair(key, ig));
+						}
+						if (g->p)
+							ig->add(dec->local * Matrix4::Translation(*g->p - rs.origin), pose->frame);
 					}
-					else
-					{
-						ig.reset(new InstancedGraphics(g->decs.items.front()->mesh_fname, g->decs.items.front()->materials));
-						instanced.insert(std::make_pair(key, ig));
-					}
-					if (g->p)
-						ig->add(g->decs.items.front()->local * Matrix4::Translation(*g->p - rs.origin), pose->frame);
 				}
 			}
 			else

@@ -1,6 +1,6 @@
 screen_width = 1280;
 screen_height = 720;
-fullscreen = 1;
+fullscreen = 0;
 if (fullscreen == 1)
 {
 	screen_width = 1920;
@@ -18,15 +18,15 @@ anisotropic_filtering = 16.0;
 shadow_res = 1024;
 shadow_splits = 1;
 
-shadow_quality = 3;
+shadow_quality = 1;
 
 ao_quality = 1;
 
-supersampling_x = 4;
-supersampling_y = 4;
+supersampling_x = 1;
+supersampling_y = 1;
 supersampling_r = 1;
 
-fov = 80.0;
+fov = 90.0;
 
 near_z = 0.05;
 far_z = 500.0;

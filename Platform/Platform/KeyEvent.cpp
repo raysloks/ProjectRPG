@@ -36,6 +36,7 @@ namespace Platform
 		if (key == VK_DELETE) { code = DEL; return; }
 		if (key == VK_RETURN) { code = ENTER; return; }
 		if (key == VK_TAB) { code = TAB; return; }
+		if (key >= VK_F1 && key <= VK_F24) { code = key - 0x3f; return; }
 		code = 0xffffffff;
 	}
 

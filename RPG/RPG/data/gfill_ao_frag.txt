@@ -17,26 +17,22 @@ out vec4 final_color;
 
 void main()
 {
-	float intensity = dot(light, normalize(norm));
+	vec3 n = normalize(norm);
+	float intensity = dot(light, n);
 	intensity = clamp(intensity, 0.0, 1.0);
-
-	intensity *= 1.0;
 	
-	if (length(light)>0.0)
+	/*uvec4 stencil_sample = texture(shadow, position.xy/position.w * 0.5 + 0.5);
+	float total_stencil = 0.0;
+	for (int j = 0; j < 4; j++)
 	{
-		uvec4 stencil_sample = texture(shadow, position.xy/position.w * 0.5 + 0.5);
-		float total_stencil = 0.0;
-		for (int j = 0; j < 4; j++)
+		for (int i = 0; i < 32; i++)
 		{
-			for (int i = 0; i < 32; i++)
-			{
-				total_stencil += float((stencil_sample[j] >> i) & 1u);
-			}
+			total_stencil += float((stencil_sample[j] >> i) & 1u);
 		}
-		float illumination = total_stencil / 128.0;
-
-		intensity *= illumination;
 	}
+	float illumination = total_stencil / 128.0;
+
+	intensity *= illumination;*/
 
 	vec4 color = texture(diffuse, texco);
 

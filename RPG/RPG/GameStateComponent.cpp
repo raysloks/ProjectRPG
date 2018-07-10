@@ -270,6 +270,12 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	{
 		p->p = Vec3(-15.0f, -5.0f, 23.0f);
 		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga"))));
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
+		g->decs.items.back()->priority = 1;
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
+		g->decs.items.back()->priority = 1;
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
+		g->decs.items.back()->priority = 1;
 	}
 	if (team == 1)
 	{
@@ -299,33 +305,34 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 
 						PositionComponent * pos = new PositionComponent();
 						ProjectileComponent * projectile = new ProjectileComponent();
-						//GraphicsComponent * g = new GraphicsComponent(false);
+						GraphicsComponent * g = new GraphicsComponent(false);
 
 						ent->addComponent(pos);
 						ent->addComponent(projectile);
-						//ent->addComponent(g);
+						ent->addComponent(g);
 
 						projectile->v = muzzle_velocity + mob->v;
 						projectile->drag = 0.01f;
 
 						pos->p = *mob->p + mob->up * 0.45f;
 
-						projectile->on_collision = [ent, mob](MobComponent * target)
+						projectile->on_collision = [=](MobComponent * target)
 						{
 							if (target)
 							{
 								target->do_damage(20, mob->entity->get_id());
 								target->hit = true;
 							}
-							ent->world->SetEntity(ent->id, nullptr);
+							//ent->world->SetEntity(ent->id, nullptr);
+							projectile->v = Vec3();
 						};
 
 						projectile->shooter = mob;
 
-						/*g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
+						g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
 						g->decs.items.front()->local *= 0.0127f * 0.5f;
 						g->decs.items.front()->local.data[15] = 1.0f;
-						g->decs.items.front()->local *= mob->cam_rot;*/
+						g->decs.items.front()->local *= mob->cam_rot;
 
 						mob->entity->world->AddEntity(ent);
 					};

@@ -53,6 +53,8 @@ void CameraControlComponent::disconnect(void)
 {
 }
 
+#include "ColliderComponent.h"
+
 void CameraControlComponent::pre_frame(float dTime)
 {
 	Client * client = entity->world->client;
@@ -72,7 +74,14 @@ void CameraControlComponent::pre_frame(float dTime)
 			{
 				entity->world->cam_rot = cam_rot;
 				//entity->world->cam_pos = *p + up * 0.45f;
-				entity->world->cam_pos = *p + up * 0.2f + right * 1.5f + top * 0.5f - front * 3.5f;
+				entity->world->cam_pos = *p + up * 0.2f + right * 0.5f + top * 0.5f - front * 3.0f;
+				std::vector<std::shared_ptr<Collision>> list;
+				ColliderComponent::DiskCast(*p, entity->world->cam_pos, 0.25f, list);
+				std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
+				if (!list.empty())
+				{
+					entity->world->cam_pos = list.front()->poo;
+				}
 			}
 		}
 	}

@@ -59,6 +59,31 @@ namespace Platform
 		static const unsigned int RIGHT = 0x0027;
 		static const unsigned int DOWN = 0x0028;
 		static const unsigned int ENTER = 0x0029;
+
+		static const unsigned int F1 = 0x0031;
+		static const unsigned int F2 = 0x0032;
+		static const unsigned int F3 = 0x0033;
+		static const unsigned int F4 = 0x0034;
+		static const unsigned int F5 = 0x0035;
+		static const unsigned int F6 = 0x0036;
+		static const unsigned int F7 = 0x0037;
+		static const unsigned int F8 = 0x0038;
+		static const unsigned int F9 = 0x0039;
+		static const unsigned int F10 = 0x003a;
+		static const unsigned int F11 = 0x003b;
+		static const unsigned int F12 = 0x003c;
+		static const unsigned int F13 = 0x003d;
+		static const unsigned int F14 = 0x003e;
+		static const unsigned int F15 = 0x003f;
+		static const unsigned int F16 = 0x0040;
+		static const unsigned int F17 = 0x0041;
+		static const unsigned int F18 = 0x0042;
+		static const unsigned int F19 = 0x0043;
+		static const unsigned int F20 = 0x0044;
+		static const unsigned int F21 = 0x0045;
+		static const unsigned int F22 = 0x0046;
+		static const unsigned int F23 = 0x0047;
+		static const unsigned int F24 = 0x0048;
 	};
 
 }

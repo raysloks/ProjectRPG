@@ -103,7 +103,7 @@ void main()
 			{
 				if (full > 0)
 				{
-					if (dot(side_n_flat[0], real[0]) > 0.0 && dot(side_n_flat[1], real[1]) > 0.0 && dot(side_n_flat[2], real[2]) > 0.0 && dot(n, real[0]) > 0.0)
+					if (dot(side_n_flat[0], real[0]) < 0.0 && dot(side_n_flat[1], real[1]) < 0.0 && dot(side_n_flat[2], real[2]) < 0.0 && dot(n, real[0]) < 0.0)
 					{
 						gl_Position = vec4(-1.0, 3.0, -1.0, 1.0);
 						EmitVertex();

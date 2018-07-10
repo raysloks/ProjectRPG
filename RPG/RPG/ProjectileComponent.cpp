@@ -58,6 +58,7 @@ void ProjectileComponent::tick(float dTime)
 				auto col = Wall::SphereLine(Vec3(), dp, *mob.second->p - pc->p, 0.5f);
 				if (col != nullptr)
 				{
+					col->poo += pc->p;
 					hits.push_back(std::make_pair(mob.second, col));
 				}
 			}

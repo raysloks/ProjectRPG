@@ -100,8 +100,10 @@ void PlayerInputComponent::post_frame(float dTime)
 			cs.input["crouch"] = input.isDown(Platform::KeyEvent::LCTRL) || input.ctrl[0].b.down;
 			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].a.pressed)
 				cs.activate("jump");
-			if (input.isPressed(Platform::KeyEvent::LMB) || input.ctrl[0].right_trigger.pressed)
+			if (input.isPressed(Platform::KeyEvent::LMB) || input.ctrl[0].x.pressed)
 				cs.activate("attack");
+			if (input.isPressed(Platform::KeyEvent::RMB) || input.ctrl[0].right_trigger.pressed)
+				cs.activate("roll");
 			if (input.isPressed(Platform::KeyEvent::TAB) || input.ctrl[0].y.pressed)
 				cs.activate("switch");
 		}
@@ -138,11 +140,15 @@ void PlayerInputComponent::tick(float dTime)
 			if (cs.active.find("attack") != cs.active.end())
 				mob->input["attack"] = buffer_duration;
 
+			if (cs.active.find("roll") != cs.active.end())
+				mob->input["roll"] = buffer_duration;
+
 			if (cs.active.find("switch") != cs.active.end())
 				mob->input["switch"] = buffer_duration;
 
 			cs.active.erase("switch");
 			cs.active.erase("attack");
+			cs.active.erase("roll");
 			cs.active.erase("jump");
 		}
 	}

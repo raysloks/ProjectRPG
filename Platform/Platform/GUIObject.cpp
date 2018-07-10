@@ -154,7 +154,9 @@ namespace Platform
 			dwExStyle = WS_EX_APPWINDOW;
 			dwStyle = WS_POPUP;
 		} else {
-			dwExStyle = 0;//WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+			//dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+			dwExStyle = 0;
+			//dwStyle = WS_POPUP;
 			dwStyle = WS_OVERLAPPEDWINDOW;
 		}
 
