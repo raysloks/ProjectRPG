@@ -65,7 +65,7 @@ void AnimationControlComponent::tick(float dTime)
 			{
 				mob->hit = false;
 				if (state == 2)
-					set_state(4);
+					set_state(5);
 
 				if (mob->temp_team == 0)
 				{
@@ -86,33 +86,48 @@ void AnimationControlComponent::tick(float dTime)
 				}
 			}
 
-			switch (state)
+			auto anim = Resource::get<SkeletalAnimation>(pose->anim);
+			if (anim)
 			{
-			case 0:
-				set_state(2);
-				break;
-			case 1:
-				pose->frame += dTime * 60.0f;
-				if (pose->frame > 440.5f)
-					pose->frame = 440.5f;
-				break;
-			case 2:
-				pose->frame += dTime * 60.0f * Vec2(mob->v).Len();
-				if (pose->frame > 1088.5f)
-					pose->frame -= 90.0f;
-				break;
-			case 3:
-				pose->frame += dTime * 60.0f;
-				if (pose->frame > 34.5f)
-					set_state(2);
-				break;
-			case 4:
-				pose->frame += dTime * 60.0f;
-				if (pose->frame > 472.5f)
-					set_state(2);
-				break;
-			default:
-				break;
+				switch (state)
+				{
+				case 0:
+					set_state(1);
+					break;
+				case 1:
+					pose->frame += dTime * 30.0f;
+					if (pose->frame >= anim->getEnd("idle"))
+						pose->frame -= anim->getLength("idle");
+					if (mob->v != Vec3())
+						set_state(2);
+					break;
+				case 2:
+					pose->frame += dTime * 30.0f * Vec2(mob->v).Len();
+					if (pose->frame >= anim->getEnd("run"))
+						pose->frame -= anim->getLength("run");
+					if (mob->v == Vec3())
+						set_state(1);
+					if (mob->input.find("rolling") != mob->input.end())
+						set_state(3);
+					break;
+				case 3:
+					pose->frame += dTime * 120.0f;
+					if (pose->frame > anim->getEnd("roll"))
+						set_state(2);
+					break;
+				case 4:
+					pose->frame += dTime * 240.0f;
+					if (pose->frame > anim->getEnd("attack"))
+						set_state(2);
+					break;
+				case 5:
+					pose->frame += dTime * 60.0f;
+					if (pose->frame > anim->getEnd("hit"))
+						set_state(2);
+					break;
+				default:
+					break;
+				}
 			}
 		}
 	}
@@ -157,24 +172,31 @@ void AnimationControlComponent::set_state(uint32_t new_state)
 		auto pose = entity->getComponent<PoseComponent>();
 		if (pose)
 		{
-			switch (new_state)
+			auto anim = Resource::get<SkeletalAnimation>(pose->anim);
+			if (anim)
 			{
-			case 0:
-				break;
-			case 1:
-				pose->frame = 384.5f;
-				break;
-			case 2:
-				pose->frame = 998.5f;
-				break;
-			case 3:
-				pose->frame = 0.5f;
-				break;
-			case 4:
-				pose->frame = 462.5f;
-				break;
-			default:
-				break;
+				switch (new_state)
+				{
+				case 0:
+					break;
+				case 1:
+					pose->frame = anim->getStart("idle");
+					break;
+				case 2:
+					pose->frame = anim->getStart("run");
+					break;
+				case 3:
+					pose->frame = anim->getStart("roll");
+					break;
+				case 4:
+					pose->frame = anim->getStart("attack");
+					break;
+				case 5:
+					pose->frame = anim->getStart("hit");
+					break;
+				default:
+					break;
+				}
 			}
 		}
 		state = new_state;

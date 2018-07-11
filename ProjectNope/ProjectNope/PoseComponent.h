@@ -33,6 +33,7 @@ public:
 	static const AutoSerialFactory<PoseComponent> _factory;
 
 	float frame;
+	std::string anim;
 };
 
 #endif

@@ -74,8 +74,12 @@ public:
 	SkeletalAnimation(instream& is);
 	~SkeletalAnimation(void);
 
-	std::shared_ptr<Pose> getPose(float time, const Action& action)const;
-	std::shared_ptr<Pose> getPose(float time, const std::string& action)const;
+	std::shared_ptr<Pose> getPose(float time, const Action& action) const;
+	std::shared_ptr<Pose> getPose(float time, const std::string& action) const;
+
+	float getStart(const std::string& action) const;
+	float getEnd(const std::string& action) const;
+	float getLength(const std::string& action) const;
 
 	void compileActions(float resolution);
 	std::shared_ptr<Texture> getCompiledTexture(void);

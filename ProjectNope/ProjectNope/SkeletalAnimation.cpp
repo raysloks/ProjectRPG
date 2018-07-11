@@ -282,7 +282,7 @@ SkeletalAnimation::SkeletalAnimation(instream& is)
 
 	int total_actions;
 	is >> total_actions;
-	for (int o=0;o<total_actions-2;++o)
+	for (int o=0;o<total_actions;++o)
 	{
 		std::string action_name;
 		is >> action_name;
@@ -408,12 +408,43 @@ std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const Action& act) 
 
 std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const std::string& action) const
 {
-	if (actions.find(action)!=actions.cend())
+	auto i = actions.find(action);
+	if (i != actions.cend())
 	{
-		std::shared_ptr<Pose> pose = getPose(time, actions.at(action));
+		std::shared_ptr<Pose> pose = getPose(time, i->second);
 		return pose;
 	}
 	return nullptr;
+}
+
+float SkeletalAnimation::getStart(const std::string& action) const
+{
+	auto i = actions.find(action);
+	if (i != actions.cend())
+	{
+		return i->second.compiled_start;
+	}
+	return 0.0f;
+}
+
+float SkeletalAnimation::getEnd(const std::string& action) const
+{
+	auto i = actions.find(action);
+	if (i != actions.cend())
+	{
+		return i->second.compiled_end;
+	}
+	return 0.0f;
+}
+
+float SkeletalAnimation::getLength(const std::string & action) const
+{
+	auto i = actions.find(action);
+	if (i != actions.cend())
+	{
+		return i->second.length;
+	}
+	return 0.0f;
 }
 
 void SkeletalAnimation::compileActions(float resolution)
@@ -439,7 +470,7 @@ void SkeletalAnimation::compileActions(float resolution)
 
 std::shared_ptr<Texture> SkeletalAnimation::getCompiledTexture(void)
 {
-	if (!compiled_texture && compiled_actions.size())
+	if (!compiled_texture && !compiled_actions.empty())
 	{
 		compiled_texture = std::make_shared<Texture>();
 

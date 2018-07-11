@@ -269,17 +269,13 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	if (team == 0)
 	{
 		p->p = Vec3(-15.0f, -5.0f, 23.0f);
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/units/player/KnightGuy.tga"))));
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
-		g->decs.items.back()->priority = 1;
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
-		g->decs.items.back()->priority = 1;
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
-		g->decs.items.back()->priority = 1;
+		pose->anim = "data/assets/units/player/hoodlum.anim";
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/hoodlum.gmdl", Material("data/assets/units/player/KnightGuy.tga"))));
 	}
 	if (team == 1)
 	{
 		p->p = Vec3(-15.0f, -5.0f, 33.0f);
+		pose->anim = "data/assets/units/player/KnightGuy.anim";
 		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/terrain/textures/nground.tga"))));
 	}
 	p->p += Vec3(0.0f, 1.0f, 0.0f) * index;
@@ -293,59 +289,61 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 			teams[0].members[index].second = nullptr;
 		};
 
-		mob->on_tick = [mob](float dTime)
+		mob->on_tick = [=](float dTime)
 		{
 			if (mob->input["attack"])
 			{
 				if (mob->weapon_index == 0)
 				{
-					auto spawn_bullet = [=](const Vec3& muzzle_velocity)
-					{
-						NewEntity * ent = new NewEntity();
+					//auto spawn_bullet = [=](const Vec3& muzzle_velocity)
+					//{
+					//	NewEntity * ent = new NewEntity();
 
-						PositionComponent * pos = new PositionComponent();
-						ProjectileComponent * projectile = new ProjectileComponent();
-						GraphicsComponent * g = new GraphicsComponent(false);
+					//	PositionComponent * pos = new PositionComponent();
+					//	ProjectileComponent * projectile = new ProjectileComponent();
+					//	GraphicsComponent * g = new GraphicsComponent(false);
 
-						ent->addComponent(pos);
-						ent->addComponent(projectile);
-						ent->addComponent(g);
+					//	ent->addComponent(pos);
+					//	ent->addComponent(projectile);
+					//	ent->addComponent(g);
 
-						projectile->v = muzzle_velocity + mob->v;
-						projectile->drag = 0.01f;
+					//	projectile->v = muzzle_velocity + mob->v;
+					//	projectile->drag = 0.01f;
 
-						pos->p = *mob->p + mob->up * 0.45f;
+					//	pos->p = *mob->p + mob->up * 0.45f;
 
-						projectile->on_collision = [=](MobComponent * target)
-						{
-							if (target)
-							{
-								target->do_damage(20, mob->entity->get_id());
-								target->hit = true;
-							}
-							//ent->world->SetEntity(ent->id, nullptr);
-							projectile->v = Vec3();
-						};
+					//	projectile->on_collision = [=](MobComponent * target)
+					//	{
+					//		if (target)
+					//		{
+					//			target->do_damage(20, mob->entity->get_id());
+					//			target->hit = true;
+					//		}
+					//		//ent->world->SetEntity(ent->id, nullptr);
+					//		projectile->v = Vec3();
+					//	};
 
-						projectile->shooter = mob;
+					//	projectile->shooter = mob;
 
-						g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
-						g->decs.items.front()->local *= 0.0127f * 0.5f;
-						g->decs.items.front()->local.data[15] = 1.0f;
-						g->decs.items.front()->local *= mob->cam_rot;
+					//	g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
+					//	g->decs.items.front()->local *= 0.0127f * 0.5f;
+					//	g->decs.items.front()->local.data[15] = 1.0f;
+					//	g->decs.items.front()->local *= mob->cam_rot;
 
-						mob->entity->world->AddEntity(ent);
-					};
+					//	mob->entity->world->AddEntity(ent);
+					//};
 
-					spawn_bullet(mob->cam_facing * 470.0f);
+					//spawn_bullet(mob->cam_facing * 470.0f);
 
-					mob->weapon->recoil += 0.3f;
+					//mob->weapon->recoil += 0.3f;
 
-					NewEntity * sound_ent = new NewEntity();
-					auto audio = new AudioComponent("data/assets/audio/bang.wav");
-					audio->pos_id = mob->weapon->entity->get_id();
-					sound_ent->addComponent(audio);
-					mob->entity->world->AddEntity(sound_ent);
+					//NewEntity * sound_ent = new NewEntity();
+					//auto audio = new AudioComponent("data/assets/audio/bang.wav");
+					//audio->pos_id = mob->weapon->entity->get_id();
+					//sound_ent->addComponent(audio);
+					//mob->entity->world->AddEntity(sound_ent);
+
+					acc->set_state(4);
 				}
 
 				if (mob->weapon_index == 1)

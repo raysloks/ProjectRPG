@@ -182,11 +182,11 @@ std::vector<GraphicsComponent*> standard;
 class InstancedGraphics
 {
 public:
-	InstancedGraphics(const std::string& mesh, const MaterialList& mats)
+	InstancedGraphics(const std::string& mesh, const MaterialList& mats, const std::string& anim)
 	{
 		instance_mesh_name = mesh;
 		instance_materials = mats;
-		instance_animation_name = "data/assets/units/player/KnightGuy.anim";
+		instance_animation_name = anim;
 		instance_count = 0;
 	}
 
@@ -209,26 +209,29 @@ public:
 		{
 			auto instance_animation_texture = instance_animation->getCompiledTexture();
 
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, instance_animation_texture->texid);
-
-			for (size_t i = 0; i < instance_count; i += 128)
+			if (instance_animation_texture)
 			{
-				size_t nInstancesToRender = min(128, instance_count - i);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, instance_animation_texture->texid);
 
-				ShaderMod mod(instance_shader, [&rs, instance_animation_texture, i, nInstancesToRender, this](const std::shared_ptr<ShaderProgram>& prog) {
-					prog->UniformMatrix4fv("instance_transform", nInstancesToRender, (instance_transforms.begin() + i)._Ptr);
-					prog->Uniform1fv("instance_frame", nInstancesToRender, (instance_frames.begin() + i)._Ptr);
-					prog->Uniform("animation_data", 1);
-					prog->Uniform("bone_count", (float)instance_animation_texture->w);
-					prog->Uniform("frame_count", (float)instance_animation_texture->h);
-				});
+				for (size_t i = 0; i < instance_count; i += 128)
+				{
+					size_t nInstancesToRender = min(128, instance_count - i);
 
-				rs.pushMod(mod);
+					ShaderMod mod(instance_shader, [&rs, instance_animation_texture, i, nInstancesToRender, this](const std::shared_ptr<ShaderProgram>& prog) {
+						prog->UniformMatrix4fv("instance_transform", nInstancesToRender, (instance_transforms.begin() + i)._Ptr);
+						prog->Uniform1fv("instance_frame", nInstancesToRender, (instance_frames.begin() + i)._Ptr);
+						prog->Uniform("animation_data", 1);
+						prog->Uniform("bone_count", (float)instance_animation_texture->w);
+						prog->Uniform("frame_count", (float)instance_animation_texture->h);
+					});
 
-				instance_mesh->render_instanced(rs, instance_materials, nInstancesToRender);
+					rs.pushMod(mod);
 
-				rs.popMod();
+					instance_mesh->render_instanced(rs, instance_materials, nInstancesToRender);
+
+					rs.popMod();
+				}
 			}
 		}
 	}
@@ -252,7 +255,7 @@ public:
 	size_t instance_count;
 };
 
-std::map<std::pair<int, std::pair<std::string, std::string>>, std::shared_ptr<InstancedGraphics>> instanced;
+std::map<std::pair<int, std::tuple<std::string, std::string, std::string>>, std::shared_ptr<InstancedGraphics>> instanced;
 
 void GraphicsComponent::prep(RenderSetup& rs)
 {
@@ -276,7 +279,7 @@ void GraphicsComponent::prep(RenderSetup& rs)
 				{
 					for (auto dec : g->decs.items)
 					{
-						auto key = std::make_pair(dec->priority, std::make_pair(dec->mesh_fname, dec->materials.materials.front().tex.front()));
+						auto key = std::make_pair(dec->priority, std::make_tuple(dec->mesh_fname, dec->materials.materials.front().tex.front(), pose->anim));
 						auto it = instanced.find(key);
 						std::shared_ptr<InstancedGraphics> ig;
 						if (it != instanced.end())
@@ -285,7 +288,7 @@ void GraphicsComponent::prep(RenderSetup& rs)
 						}
 						else
 						{
-							ig.reset(new InstancedGraphics(dec->mesh_fname, dec->materials));
+							ig.reset(new InstancedGraphics(dec->mesh_fname, dec->materials, pose->anim));
 							instanced.insert(std::make_pair(key, ig));
 						}
 						if (g->p)

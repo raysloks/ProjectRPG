@@ -379,8 +379,7 @@ void MobComponent::tick(float dTime)
 									stamina.current += dTime * 10.0f;
 							}
 
-							float speed = crouch ? 0.0f : run ? 7.0f : 3.5f;
-							speed += 2.0f;
+							float speed = crouch ? 2.0f : run ? 9.0f : recovering ? 2.0f : 5.5f;
 
 							target *= move.Len() * speed;
 
@@ -400,7 +399,8 @@ void MobComponent::tick(float dTime)
 							{
 								input["rolling"] += 0.5f;
 
-								v = move.Normalized() * 12.5f + land_v;
+								move_facing = move.Normalized();
+								v = move_facing * 12.5f + land_v;
 
 								stamina.current -= 10.0f;
 
@@ -526,7 +526,7 @@ void MobComponent::write_to(outstream& os) const
 
 void MobComponent::do_damage(size_t damage, EntityID source)
 {
-	if (health.current <= damage)
+	if (health.current > 0.0f)
 	{
 		health.current -= damage;
 		if (health.current <= 0.0f)

@@ -8,6 +8,7 @@ PoseComponent::PoseComponent(void) : Serializable(_factory.id)
 
 PoseComponent::PoseComponent(instream& is, bool full) : Serializable(_factory.id)
 {
+	is >> anim;
 }
 
 PoseComponent::~PoseComponent(void)
@@ -52,8 +53,10 @@ void PoseComponent::interpolate(Component * pComponent, float fWeight)
 
 void PoseComponent::write_to(outstream& os, ClientData& client) const
 {
+	os << anim;
 }
 
 void PoseComponent::write_to(outstream& os) const
 {
+	os << anim;
 }

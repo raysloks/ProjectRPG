@@ -1184,6 +1184,7 @@ void Client::render_world(void)
 					prog->Uniform("shadow", 2); // texture unit 2
 					prog->UniformMatrix4f("transform", (rs.transform*proj).data);
 					prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
+					prog->Uniform("eye", Vec3(0.0f, 0.0f, -1.0f) * world->cam_rot);
 					prog->Uniform3fv("light_samples", light_samples);
 				});
 
@@ -1209,6 +1210,7 @@ void Client::render_world(void)
 					prog->Uniform("diffuse", 0); // texture unit 0
 					prog->UniformMatrix4f("transform", (rs.transform*proj).data);
 					prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
+					prog->Uniform("eye", Vec3(0.0f, 0.0f, -1.0f) * world->cam_rot);
 				});
 
 				rs.pushMod(mod);

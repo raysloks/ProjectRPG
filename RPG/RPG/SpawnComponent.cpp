@@ -103,6 +103,7 @@ MobComponent * SpawnComponent::spawn(void)
 			ent->addComponent(pose);
 
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/terrain/textures/ngrass.tga"))));
+			pose->anim = "data/assets/units/player/KnightGuy.anim";
 			/*g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
 			g->decs.items.back()->priority = 1;
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
