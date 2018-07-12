@@ -67,25 +67,29 @@ void AnimationControlComponent::tick(float dTime)
 				if (state == 2)
 					set_state(5);
 
-				if (mob->temp_team == 0)
+				if (entity->world->authority)
 				{
-					NewEntity * sound_ent = new NewEntity();
-					auto audio = new AudioComponent("data/assets/audio/ouch.wav");
-					audio->pos_id = entity->get_id();
-					sound_ent->addComponent(audio);
-					entity->world->AddEntity(sound_ent);
-				}
+					if (mob->temp_team == 0)
+					{
+						NewEntity * sound_ent = new NewEntity();
+						auto audio = new AudioComponent("data/assets/audio/ouch.wav");
+						audio->pos_id = entity->get_id();
+						sound_ent->addComponent(audio);
+						entity->world->AddEntity(sound_ent);
+					}
 
-				if (mob->temp_team == 1)
-				{
-					NewEntity * sound_ent = new NewEntity();
-					auto audio = new AudioComponent("data/assets/audio/ZombieOuch.wav");
-					audio->pos_id = entity->get_id();
-					sound_ent->addComponent(audio);
-					entity->world->AddEntity(sound_ent);
+					if (mob->temp_team == 1)
+					{
+						NewEntity * sound_ent = new NewEntity();
+						auto audio = new AudioComponent("data/assets/audio/ZombieOuch.wav");
+						audio->pos_id = entity->get_id();
+						sound_ent->addComponent(audio);
+						entity->world->AddEntity(sound_ent);
+					}
 				}
 			}
 
+			float prev_frame = pose->frame;
 			auto anim = Resource::get<SkeletalAnimation>(pose->anim);
 			if (anim)
 			{
@@ -95,21 +99,33 @@ void AnimationControlComponent::tick(float dTime)
 					set_state(1);
 					break;
 				case 1:
+				{
 					pose->frame += dTime * 30.0f;
 					if (pose->frame >= anim->getEnd("idle"))
 						pose->frame -= anim->getLength("idle");
-					if (mob->v != Vec3())
+					if (mob->move != Vec3())
 						set_state(2);
 					break;
+				}
 				case 2:
+				{
 					pose->frame += dTime * 30.0f * Vec2(mob->v).Len();
+					float halfway = anim->getEnd("run") - anim->getLength("run") / 2.0f;
+					if (pose->frame > halfway && prev_frame <= halfway && !mob->landed)
+						pose->frame = halfway;
 					if (pose->frame >= anim->getEnd("run"))
-						pose->frame -= anim->getLength("run");
-					if (mob->v == Vec3())
+					{
+						if (mob->landed)
+							pose->frame -= anim->getLength("run");
+						else
+							pose->frame = anim->getEnd("run");
+					}
+					if (mob->move == Vec3() && mob->landed)
 						set_state(1);
 					if (mob->input.find("rolling") != mob->input.end())
 						set_state(3);
 					break;
+				}
 				case 3:
 					pose->frame += dTime * 120.0f;
 					if (pose->frame > anim->getEnd("roll"))
@@ -131,6 +147,10 @@ void AnimationControlComponent::tick(float dTime)
 			}
 		}
 	}
+}
+
+void AnimationControlComponent::pre_frame(float dTime)
+{
 }
 
 void AnimationControlComponent::writeLog(outstream& os, ClientData& client)

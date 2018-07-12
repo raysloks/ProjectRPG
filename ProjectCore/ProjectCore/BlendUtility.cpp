@@ -114,6 +114,9 @@ float bu_angle(float current, float target, float a)
 
 Vec3 bu_sphere(Vec3 current, Vec3 target, Vec3 pref, float a, float b, float dTime)
 {
+	current.Normalize();
+	if (current == Vec3() || current != current)
+		return target;
 	float c = current.Dot(target);
 	if (c>1.0f)
 		return target;
@@ -147,11 +150,14 @@ Vec3 bu_sphere(Vec3 current, Vec3 target, Vec3 pref, float a, float b, float dTi
 	if (c>M_PI)
 		c=M_PI;
 
-	return target * Matrix3(c, axis);
+	return (target * Matrix3(c, axis)).Normalize();
 }
 
 Vec3 bu_sphere(Vec3 current, Vec3 target, Vec3 pref, float a)
 {
+	current.Normalize();
+	if (current == Vec3() || current != current)
+		return target;
 	float c = current.Dot(target);
 	if (c>1.0f)
 		return target;
@@ -170,7 +176,7 @@ Vec3 bu_sphere(Vec3 current, Vec3 target, Vec3 pref, float a)
 		c=0.0;
 	if (c>M_PI)
 		c=M_PI;
-	return target * Matrix3(c, axis);
+	return (target * Matrix3(c, axis)).Normalize();
 }
 
 Quaternion bu_slerp(Quaternion current, Quaternion target, float a)

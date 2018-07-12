@@ -6,6 +6,7 @@
 
 #include "MobComponent.h"
 #include "GraphicsComponent.h"
+#include "PoseComponent.h"
 
 #include "ClientData.h"
 
@@ -43,12 +44,19 @@ void WeaponComponent::pre_frame(float dTime)
 	{
 		auto p = entity->getComponent<PositionComponent>();
 		auto mob_p = mob->entity->getComponent<PositionComponent>();
-		p->p = mob_p->p + mob->up * 0.45f + Vec3(-0.25f, -0.35f + recoil * 0.25f, 0.75f - recoil * 0.5f) * mob->cam_rot;
-		auto g = entity->getComponent<GraphicsComponent>();
-		if (g)
+		auto mob_pose = mob->entity->getComponent<PoseComponent>();
+
+		auto anim = Resource::get<SkeletalAnimation>(mob_pose->anim);
+		if (anim)
 		{
-			if (g->decs.items.size())
-				g->decs.items.front()->final = g->decs.items.front()->local * (mob->cam_rot * Quaternion(recoil, Vec3(-1.0f, 0.0f, 0.0f)));
+			p->p = mob_p->p;
+			auto g = entity->getComponent<GraphicsComponent>();
+			auto mob_g = mob->entity->getComponent<GraphicsComponent>();
+			if (g && mob_g)
+			{
+				if (g->decs.items.size() && mob_g->decs.items.size())
+					g->decs.items.front()->final = anim->getMatrix(30, mob_pose->frame) * mob_g->decs.items.front()->local;
+			}
 		}
 
 		if (entity->world->authority)
@@ -125,7 +133,10 @@ WeaponComponent * WeaponComponent::swap(size_t index)
 	switch (index)
 	{
 	case 0:
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/pistol.gmdl", Material("data/assets/pistol.tga"), 0)));
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", Material("data/assets/items/weapons/swords/claymore.tga"), 0)));
+		g->decs.items.front()->local *= Quaternion(M_PI / 2.0f, Vec3(0.0f, 1.0f, 0.0f));
+		g->decs.items.front()->local *= 0.5f;
+		g->decs.items.front()->local.mtrx[3][3] *= 2.0f;
 		break;
 	case 1:
 		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/medkit.gmdl", Material("data/assets/medkit.tga"), 0)));

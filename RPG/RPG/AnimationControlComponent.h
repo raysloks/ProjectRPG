@@ -15,6 +15,7 @@ public:
 	void disconnect(void);
 
 	void tick(float dTime);
+	void pre_frame(float dTime);
 
 	void writeLog(outstream& os, ClientData& client);
 	void readLog(instream& is);

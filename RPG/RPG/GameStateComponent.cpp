@@ -270,7 +270,7 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	{
 		p->p = Vec3(-15.0f, -5.0f, 23.0f);
 		pose->anim = "data/assets/units/player/hoodlum.anim";
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/hoodlum.gmdl", Material("data/assets/units/player/KnightGuy.tga"))));
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/hoodlum.gmdl", Material("data/assets/units/player/hoodlum.tga"))));
 	}
 	if (team == 1)
 	{

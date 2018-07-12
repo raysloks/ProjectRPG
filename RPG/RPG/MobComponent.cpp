@@ -340,7 +340,6 @@ void MobComponent::tick(float dTime)
 					if (temp_team == 0)
 					{
 						float fall_damage = std::fmaxf(0.0f, -10.0f - col->n.Dot(v));
-						fall_damage *= 40.0f;
 						fall_damage = std::fminf(200.0f, fall_damage);
 						health.current -= fall_damage;
 						if (fall_damage > 0.0f)
@@ -474,7 +473,7 @@ void MobComponent::writeLog(outstream& os, ClientData& client)
 	os << v << land_n << land_v << landed;
 	os << health << stamina;
 	os << run << crouch;
-	os << cam_rot;
+	os << cam_rot << move;
 }
 
 void MobComponent::readLog(instream& is)
@@ -483,7 +482,7 @@ void MobComponent::readLog(instream& is)
 	is >> v >> land_n >> land_v >> landed;
 	is >> health >> stamina;
 	is >> run >> crouch;
-	is >> cam_rot;
+	is >> cam_rot >> move;
 }
 
 void MobComponent::writeLog(outstream& os)
@@ -512,6 +511,7 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 		run = mob->run;
 		crouch = mob->crouch;
 		cam_rot = bu_slerp(cam_rot, mob->cam_rot, fWeight);
+		move = mob->move;
 	}
 }
 

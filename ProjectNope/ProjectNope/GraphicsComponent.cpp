@@ -272,12 +272,12 @@ void GraphicsComponent::prep(RenderSetup& rs)
 	{
 		if (g->decs.items.size())
 		{
-			if (g->decs.items.front()->bone_id == -1)
+			auto pose = g->entity->getComponent<PoseComponent>();
+			if (pose)
 			{
-				auto pose = g->entity->getComponent<PoseComponent>();
-				if (pose)
+				for (auto dec : g->decs.items)
 				{
-					for (auto dec : g->decs.items)
+					if (dec->bone_id == -1)
 					{
 						auto key = std::make_pair(dec->priority, std::make_tuple(dec->mesh_fname, dec->materials.materials.front().tex.front(), pose->anim));
 						auto it = instanced.find(key);
@@ -293,6 +293,9 @@ void GraphicsComponent::prep(RenderSetup& rs)
 						}
 						if (g->p)
 							ig->add(dec->local * Matrix4::Translation(*g->p - rs.origin), pose->frame);
+					}
+					else
+					{
 					}
 				}
 			}

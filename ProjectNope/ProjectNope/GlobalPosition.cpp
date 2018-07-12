@@ -211,14 +211,24 @@ GlobalPosition::operator Vec3(void) const
 	return v;
 }
 
-bool GlobalPosition::operator !=(const GlobalPosition& rhs)
+bool GlobalPosition::operator!=(const GlobalPosition& rhs)
 {
 	return local_pos != rhs.local_pos || x != rhs.x || y != rhs.y || z != rhs.z;
 }
 
-bool GlobalPosition::operator ==(const GlobalPosition& rhs)
+bool GlobalPosition::operator==(const GlobalPosition& rhs)
 {
 	return local_pos == rhs.local_pos && x == rhs.x && y == rhs.y && z == rhs.z;
+}
+
+GlobalPosition operator-(const GlobalPosition& rhs)
+{
+	GlobalPosition ret;
+	ret.local_pos = -rhs.local_pos;
+	ret.x = -rhs.x;
+	ret.y = -rhs.y;
+	ret.z = -rhs.z;
+	return ret;
 }
 
 outstream& operator<<(outstream& os, const GlobalPosition& pos)

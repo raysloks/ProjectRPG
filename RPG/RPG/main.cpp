@@ -87,7 +87,7 @@ public:
 
 			std::string ao = "data/assets/escape-ao.tga";
 
-			Resource::load(ao, { "!sRGB" , "linear"});
+			Resource::load(ao, {"!sRGB" , "linear"});
 
 			MaterialList materials;
 			materials.materials.push_back(Material("data/assets/concrete_blue.tga"));

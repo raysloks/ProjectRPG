@@ -81,6 +81,8 @@ public:
 	float getEnd(const std::string& action) const;
 	float getLength(const std::string& action) const;
 
+	Matrix4 getMatrix(int bone_id, float frame) const;
+
 	void compileActions(float resolution);
 	std::shared_ptr<Texture> getCompiledTexture(void);
 

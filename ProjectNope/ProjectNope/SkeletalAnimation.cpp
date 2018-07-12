@@ -447,6 +447,18 @@ float SkeletalAnimation::getLength(const std::string & action) const
 	return 0.0f;
 }
 
+Matrix4 SkeletalAnimation::getMatrix(int bone_id, float frame) const
+{
+	frame -= 0.5f;
+	int frame_integer = frame;
+	int next_frame = frame_integer + 1;
+
+	Matrix4 matrix = compiled_actions[frame_integer * armature.bones.size() + bone_id];
+	Matrix4 next_matrix = compiled_actions[next_frame * armature.bones.size() + bone_id];
+
+	return armature.bones[bone_id].total_transform * (matrix * (next_frame - frame) + next_matrix * (frame - frame_integer));
+}
+
 void SkeletalAnimation::compileActions(float resolution)
 {
 	float total_t = 0.0f;
