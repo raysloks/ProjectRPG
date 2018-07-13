@@ -4,7 +4,7 @@ HealthBar::HealthBar(void)
 {
 }
 
-HealthBar::HealthBar(float maxHealth)
+HealthBar::HealthBar(int32_t maxHealth)
 {
 	current = maxHealth;
 	max = maxHealth;

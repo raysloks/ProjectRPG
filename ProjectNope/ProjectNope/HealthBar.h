@@ -7,10 +7,10 @@ class HealthBar
 {
 public:
 	HealthBar(void);
-	HealthBar(float maxHealth);
+	HealthBar(int32_t maxHealth);
 	~HealthBar(void);
 
-	float current, max;
+	int32_t current, max;
 };
 
 outstream& operator<<(outstream& os, const HealthBar& hpbar);

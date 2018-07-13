@@ -64,8 +64,7 @@ void AnimationControlComponent::tick(float dTime)
 			if (mob->hit)
 			{
 				mob->hit = false;
-				if (state == 2)
-					set_state(5);
+				set_state(5);
 
 				if (entity->world->authority)
 				{
@@ -103,7 +102,7 @@ void AnimationControlComponent::tick(float dTime)
 					pose->frame += dTime * 30.0f;
 					if (pose->frame >= anim->getEnd("idle"))
 						pose->frame -= anim->getLength("idle");
-					if (mob->move != Vec3())
+					if (mob->move != Vec3() || !mob->landed)
 						set_state(2);
 					break;
 				}
@@ -132,7 +131,7 @@ void AnimationControlComponent::tick(float dTime)
 						set_state(2);
 					break;
 				case 4:
-					pose->frame += dTime * 240.0f;
+					pose->frame += dTime * 300.0f;
 					if (pose->frame > anim->getEnd("attack"))
 						set_state(2);
 					break;

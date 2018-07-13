@@ -343,15 +343,52 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 					//sound_ent->addComponent(audio);
 					//mob->entity->world->AddEntity(sound_ent);
 
-					acc->set_state(4);
+					if (acc->state != 4 && mob->landed && mob->input.find("recover") == mob->input.end())
+					{
+						acc->set_state(4);
+
+						NewEntity * sound_ent = new NewEntity();
+						auto audio = new AudioComponent("data/assets/audio/hya.wav");
+						audio->pos_id = ent->get_id();
+						sound_ent->addComponent(audio);
+						ent->world->AddEntity(sound_ent);
+
+						auto nearby_mobs = ent->world->GetNearestComponents<MobComponent>(p->p + mob->facing * 1.75f, 1.75f);
+						for each (auto nearby in nearby_mobs)
+						{
+							if (nearby.second->temp_team != mob->temp_team)
+							{
+								std::vector<std::shared_ptr<Collision>> list;
+								ColliderComponent::LineCheck(p->p, *nearby.second->p, list);
+								if (list.empty())
+								{
+									nearby.second->do_damage(5, ent->get_id());
+									nearby.second->hit = true;
+									Vec3 dif = *nearby.second->p - p->p;
+									dif.Normalize();
+									nearby.second->v = dif * 8.0f + Vec3(0.0f, 0.0f, 1.0f);
+									nearby.second->input["rolling"] += 0.2f;
+								}
+							}
+						}
+
+						mob->stamina.current -= 1;
+						mob->v = Vec3();
+						mob->input["rolling"] = 0.4f;
+						mob->input.erase("attack");
+					}
 				}
 
 				if (mob->weapon_index == 1)
 				{
-					mob->do_heal(100, mob->entity->get_id());
-				}
+					if (mob->mana.current > 0.0f)
+					{
+						mob->do_heal(std::fminf(4.0f, mob->mana.current), mob->entity->get_id());
+						mob->mana.current -= 4.0f;
+					}
 
-				mob->input.erase("attack");
+					mob->input.erase("attack");
+				}
 			}
 		};
 	}

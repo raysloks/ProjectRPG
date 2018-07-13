@@ -53,6 +53,9 @@ public:
 	//stats
 	HealthBar health;
 	HealthBar stamina;
+	HealthBar mana;
+
+	float stamina_regen;
 
 	size_t temp_team;
 

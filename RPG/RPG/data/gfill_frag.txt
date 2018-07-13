@@ -17,7 +17,8 @@ void main()
 {
 	vec3 n = normalize(norm);
 	float intensity = dot(light, n);
-	intensity = clamp(intensity, 0.0, 1.0);
+	intensity = max(0.0, intensity);
+	intensity = sqrt(intensity);
 	
 	/*uvec4 stencil_sample = texture(shadow, position.xy/position.w * 0.5 + 0.5);
 	float total_stencil = 0.0;

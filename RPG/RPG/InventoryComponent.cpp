@@ -63,14 +63,19 @@ void InventoryComponent::set_display(bool enable)
 						owner = entity->world->client->clientData->client_id == client_id;
 					if (owner)
 					{
-						func.reset(new std::function<void(RenderSetup&)>([this, mob](RenderSetup& rs) {
+						func.reset(new std::function<void(RenderSetup&)>([this, mob](RenderSetup& rs)
+						{
+
+							auto y = Resource::get<Texture>("data/assets/y.tga");
+							if (y)
+								y->render(rs);
 
 							// health
 							rs.pushTransform();
 							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 100.0f, 0.0f)));
 							Writing::setSize(25);
 							Writing::setColor(1.0f, 0.0f, 0.0f);
-							Writing::render(std::to_string((int)std::ceilf(mob->health.current)) + " / " + std::to_string((int)std::ceilf(mob->health.max)), rs);
+							Writing::render(std::to_string((int)std::floorf(mob->health.current)) + " / " + std::to_string((int)std::floorf(mob->health.max)), rs);
 							rs.popTransform();
 							rs.popTransform();
 
@@ -79,7 +84,21 @@ void InventoryComponent::set_display(bool enable)
 							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 140.0f, 0.0f)));
 							Writing::setSize(25);
 							Writing::setColor(0.0f, 1.0f, 0.0f);
-							Writing::render(std::to_string((int)std::ceilf(mob->stamina.current)) + " / " + std::to_string((int)std::ceilf(mob->stamina.max)), rs);
+							Writing::render(std::to_string((int)std::floorf(mob->stamina.current)) + " / " + std::to_string((int)std::floorf(mob->stamina.max)), rs);
+							if (mob->input.find("recover") != mob->input.end())
+							{
+								Writing::render(" X", rs);
+								rs.popTransform();
+							}
+							rs.popTransform();
+							rs.popTransform();
+
+							// mana
+							rs.pushTransform();
+							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 180.0f, 0.0f)));
+							Writing::setSize(25);
+							Writing::setColor(0.0f, 0.0f, 1.0f);
+							Writing::render(std::to_string((int)std::floorf(mob->mana.current)) + " / " + std::to_string((int)std::floorf(mob->mana.max)), rs);
 							rs.popTransform();
 							rs.popTransform();
 

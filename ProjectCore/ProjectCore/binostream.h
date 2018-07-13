@@ -3,6 +3,9 @@
 
 #include <ostream>
 
+#include <vector>
+#include <map>
+
 namespace std
 {
 	class binostream :
@@ -25,6 +28,27 @@ namespace std
 	binostream& operator<<(binostream& os, const double& d);
 
 	binostream& operator<<(binostream& os, const std::string &str);
+
+	template <class T>
+	binostream& operator<<(binostream& os, const std::vector<T>& vec)
+	{
+		os << (uint32_t)vec.size();
+		for (auto i : vec)
+		{
+			os << i;
+		}
+		return os;
+	}
+	template <class Key, class Value>
+	binostream& operator<<(binostream& os, const std::map<Key, Value>& m)
+	{
+		os << (uint32_t)m.size();
+		for (auto i : m)
+		{
+			os << i.first << i.second;
+		}
+		return os;
+	}
 }
 
 #endif

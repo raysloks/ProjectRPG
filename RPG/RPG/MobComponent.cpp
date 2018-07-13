@@ -27,7 +27,7 @@
 
 const AutoSerialFactory<MobComponent> MobComponent::_factory("MobComponent");
 
-MobComponent::MobComponent(void) : Serializable(_factory.id), health(100), stamina(100)
+MobComponent::MobComponent(void) : Serializable(_factory.id), health(10), stamina(10), mana(10)
 {
 	facing = Vec3(0.0f, 1.0f, 0.0f);
 	move_facing = facing;
@@ -55,6 +55,7 @@ void MobComponent::disconnect(void)
 #include "Profiler.h"
 
 #include "LineComponent.h"
+#include "AudioComponent.h"
 
 void MobComponent::tick(float dTime)
 {
@@ -67,6 +68,20 @@ void MobComponent::tick(float dTime)
 			input.erase("switch");
 		}
 
+		if (stamina.current <= 0)
+		{
+			if (input.find("recover") == input.end())
+			{
+				NewEntity * sound_ent = new NewEntity();
+				auto audio = new AudioComponent("data/assets/audio/strained_breathing_short.wav");
+				audio->pos_id = entity->get_id();
+				sound_ent->addComponent(audio);
+				entity->world->AddEntity(sound_ent);
+
+				input["recover"] = 3.0f;
+			}
+		}
+
 		if (health.current <= 0)
 		{
 			auto ai = entity->getComponent<AIComponent>();
@@ -77,8 +92,8 @@ void MobComponent::tick(float dTime)
 
 			move = Vec3();
 			crouch = true;
-			health.current -= dTime * (temp_team == 1 ? 100.0f : 1.0f);
-			if (health.current <= -300.0f)
+			//health.current -= dTime * 1.0f;
+			if (health.current <= -10.0f || temp_team == 1)
 			{
 				entity->world->SetEntity(entity->id, nullptr);
 				if (on_death)
@@ -219,7 +234,7 @@ void MobComponent::tick(float dTime)
 					}
 					list.clear();*/
 
-					float disk_radius = 0.25f;
+					float disk_radius = 0.5f;
 					float offset = 0.0f;
 					float height = crouch ? 1.0f : 1.5f;
 					float standing_height = crouch ? 0.75f : 1.25f;
@@ -339,10 +354,10 @@ void MobComponent::tick(float dTime)
 
 					if (temp_team == 0)
 					{
-						float fall_damage = std::fmaxf(0.0f, -10.0f - col->n.Dot(v));
-						fall_damage = std::fminf(200.0f, fall_damage);
+						float fall_one = -col->n.Dot(v) / 10.0f;
+						uint32_t fall_damage = fall_one * fall_one;
 						health.current -= fall_damage;
-						if (fall_damage > 0.0f)
+						if (fall_damage > 0)
 							hit = true;
 					}
 
@@ -361,9 +376,6 @@ void MobComponent::tick(float dTime)
 							target = land_n.Cross(target_right);
 							target.Normalize();
 
-							if (stamina.current <= 0.0f)
-								input["recover"] = 1.0f;
-
 							bool recovering = input.find("recover") != input.end();
 							bool rolling = input.find("rolling") != input.end();
 
@@ -373,9 +385,9 @@ void MobComponent::tick(float dTime)
 							if (!rolling)
 							{
 								if (target != Vec3() && run)
-									stamina.current -= dTime * 10.0f;
+									stamina_regen -= dTime * 1.0f;
 								else
-									stamina.current += dTime * 10.0f;
+									stamina_regen += dTime * 1.0f;
 							}
 
 							float speed = crouch ? 2.0f : run ? 9.0f : recovering ? 2.0f : 5.5f;
@@ -401,7 +413,7 @@ void MobComponent::tick(float dTime)
 								move_facing = move.Normalized();
 								v = move_facing * 12.5f + land_v;
 
-								stamina.current -= 10.0f;
+								stamina.current -= 1;
 
 								input.erase("roll");
 							}
@@ -414,12 +426,19 @@ void MobComponent::tick(float dTime)
 								v += land_v;
 								v += up * 4.0f;
 
-								stamina.current -= 10.0f;
+								stamina.current -= 1;
 
 								input.erase("jump");
 							}
 
-							stamina.current = std::fminf(stamina.current, stamina.max);
+							int32_t stamina_regen_integer = stamina_regen;
+							stamina_regen -= stamina_regen_integer;
+							stamina.current += stamina_regen_integer;
+
+							if (stamina.current >= stamina.max)
+							{
+								stamina_regen = std::fminf(stamina_regen, 0.0f);
+							}
 						}
 					}
 
@@ -450,39 +469,26 @@ void MobComponent::tick(float dTime)
 					pc->update();
 		}
 	}
-
-	auto acc = entity->getComponent<AnimationControlComponent>();
-	if (acc)
-	{
-		if (health.current <= 0.0f)
-		{
-			acc->set_state(1);
-		}
-		else
-		{
-			if (acc->state == 1)
-				acc->set_state(2);
-		}
-	}
-
 }
 
 void MobComponent::writeLog(outstream& os, ClientData& client)
 {
 	os << facing << move_facing << cam_facing << up;
 	os << v << land_n << land_v << landed;
-	os << health << stamina;
+	os << health << stamina << mana;
 	os << run << crouch;
 	os << cam_rot << move;
+	os << input;
 }
 
 void MobComponent::readLog(instream& is)
 {
 	is >> facing >> move_facing >> cam_facing >> up;
 	is >> v >> land_n >> land_v >> landed;
-	is >> health >> stamina;
+	is >> health >> stamina >> mana;
 	is >> run >> crouch;
 	is >> cam_rot >> move;
+	is >> input;
 }
 
 void MobComponent::writeLog(outstream& os)
@@ -508,10 +514,12 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 		landed = mob->landed;
 		health = mob->health;
 		stamina = mob->stamina;
+		mana = mob->mana;
 		run = mob->run;
 		crouch = mob->crouch;
 		cam_rot = bu_slerp(cam_rot, mob->cam_rot, fWeight);
 		move = mob->move;
+		input = mob->input;
 	}
 }
 
@@ -526,10 +534,10 @@ void MobComponent::write_to(outstream& os) const
 
 void MobComponent::do_damage(size_t damage, EntityID source)
 {
-	if (health.current > 0.0f)
+	if (health.current > 0)
 	{
 		health.current -= damage;
-		if (health.current <= 0.0f)
+		if (health.current <= 0)
 		{
 			auto source_entity = entity->world->GetEntity(source);
 			if (source_entity)
@@ -537,7 +545,7 @@ void MobComponent::do_damage(size_t damage, EntityID source)
 				auto source_mob = source_entity->getComponent<MobComponent>();
 				if (source_mob)
 				{
-					source_mob->health.max += 1.0f;
+					source_mob->health.max += 1;
 				}
 			}
 		}

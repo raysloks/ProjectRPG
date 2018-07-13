@@ -8,6 +8,10 @@
 
 float bu_blend(float current, float target, float a, float b, float dTime)
 {
+	if (isnan(current))
+		return target;
+	if (isnan(target))
+		return current;
 	float c = current-target;
 	float csign = signbit(c) ? -1.0f : 1.0f;
 	c = fabsf(c);
@@ -36,6 +40,10 @@ float bu_blend(float current, float target, float a, float b, float dTime)
 
 Vec3 bu_blend(const Vec3& current, const Vec3& target, float a, float b, float dTime)
 {
+	if (isnan(current.x) || isnan(current.y) || isnan(current.z))
+		return target;
+	if (isnan(target.x) || isnan(target.y) || isnan(target.z))
+		return current;
 	Vec3 dif = current-target;
 	float c = dif.Len();
 	Vec3 csign = dif / c;
@@ -65,6 +73,11 @@ Vec3 bu_blend(const Vec3& current, const Vec3& target, float a, float b, float d
 
 float bu_angle(float current, float target, float a, float b, float dTime)
 {
+	if (isnan(current))
+		return target;
+	if (isnan(target))
+		return current;
+
 	target = fmodf(target+M_PI, M_PI*2.0f)-M_PI;
 	current = fmodf(current+M_PI, M_PI*2.0f)-M_PI;
 
@@ -100,6 +113,11 @@ float bu_angle(float current, float target, float a, float b, float dTime)
 
 float bu_angle(float current, float target, float a)
 {
+	if (isnan(current))
+		return target;
+	if (isnan(target))
+		return current;
+
 	target = fmodf(target+M_PI, M_PI*2.0f)-M_PI;
 	current = fmodf(current+M_PI, M_PI*2.0f)-M_PI;
 
@@ -114,9 +132,10 @@ float bu_angle(float current, float target, float a)
 
 Vec3 bu_sphere(Vec3 current, Vec3 target, Vec3 pref, float a, float b, float dTime)
 {
-	current.Normalize();
-	if (current == Vec3() || current != current)
+	if (isnan(current.x) || isnan(current.y) || isnan(current.z))
 		return target;
+	if (isnan(target.x) || isnan(target.y) || isnan(target.z))
+		return current;
 	float c = current.Dot(target);
 	if (c>1.0f)
 		return target;
@@ -155,9 +174,10 @@ Vec3 bu_sphere(Vec3 current, Vec3 target, Vec3 pref, float a, float b, float dTi
 
 Vec3 bu_sphere(Vec3 current, Vec3 target, Vec3 pref, float a)
 {
-	current.Normalize();
-	if (current == Vec3() || current != current)
+	if (isnan(current.x) || isnan(current.y) || isnan(current.z))
 		return target;
+	if (isnan(target.x) || isnan(target.y) || isnan(target.z))
+		return current;
 	float c = current.Dot(target);
 	if (c>1.0f)
 		return target;

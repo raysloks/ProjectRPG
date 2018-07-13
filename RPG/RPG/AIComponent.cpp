@@ -190,8 +190,8 @@ AIComponent::AIComponent(void) : Serializable(_factory.id)
 
 		if (other != nullptr)
 		{
+			other->do_damage(1, entity->get_id());
 			other->hit = true;
-			other->health.current -= 5.0f;
 		}
 
 		checks.insert(std::make_pair(0.5f + time_over, chase));

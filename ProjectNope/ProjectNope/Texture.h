@@ -1,6 +1,7 @@
 #include "Resource.h"
 #include "GUIObject.h"
 #include "streams.h"
+#include "RenderSetup.h"
 
 #ifndef Texture_H
 #define Texture_H
@@ -17,6 +18,8 @@ public:
 	unsigned short getHeight(void);
 
 	virtual GLuint getGLTexID(void);
+
+	void render(RenderSetup& rs);
 
 	bool sRGB;
 	float fAnisotropicFiltering;

@@ -52,24 +52,20 @@ float snoise(vec2 v) {
 
 void main()
 {
-	/*vec4 tex_col = texture(diffuse, texCoord);
-
-	float z = (2.0 * zNear) / (zFar + zNear - texture(depth, texCoord).x * (zFar - zNear));
-
-	float samples = 0.0;
-	float total = 0.0;
-	for (int x=-8;x<=8;++x)
+	/*vec2 sobel = vec2(0.0);
+	vec2 dag = vec2(0.0);
+	for (int x=-1;x<=1;++x)
 	{
-		for (int y=-8;y<=8;++y)
+		for (int y=-1;y<=1;++y)
 		{
-			float zn = (2.0 * zNear) / (zFar + zNear - texture(depth, texCoord+vec2(x*pixel.x, y*pixel.y)).x * (zFar - zNear));
-			float d = step(zn, z);
-			samples += d / (sqrt(float(x*x+y*y))+1.0);
-			total += 1.0 / (sqrt(float(x*x+y*y))+1.0);
+			float zn = texture(depth, texCoord+vec2(x*pixel.x, y*pixel.y)).x;
+			sobel.x += zn * (x * (2.0 - abs(y)));
+			sobel.y += zn * (y * (2.0 - abs(x)));
+			dag.x += zn * ((-2.0 + 3.0 * abs(x)) * (2.0 - abs(y)));
+			dag.x += zn * ((-2.0 + 3.0 * abs(y)) * (2.0 - abs(x)));
 		}
-	}
-	tex_col = vec4(tex_col.rgb / max(samples/total*2.0, 1.0), 1.0);*/
-
+	}*/
+	
 	vec3 tex_col = vec3(0.0);
 	
 	float samples = 0.0;

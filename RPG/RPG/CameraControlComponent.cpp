@@ -64,7 +64,7 @@ void CameraControlComponent::pre_frame(float dTime)
 		{
 			if (p == nullptr)
 			{
-				PositionComponent * pc = entity->getComponent<PositionComponent>();
+				auto pc = entity->getComponent<PositionComponent>();
 				if (pc != nullptr)
 					p = &pc->p;
 			}
@@ -72,9 +72,27 @@ void CameraControlComponent::pre_frame(float dTime)
 			//set camera position relative to focus point
 			if (p != nullptr)
 			{
+				auto mob = entity->getComponent<MobComponent>();
+				if (mob)
+				{
+					offset -= mob->v / 20.0f + mob->facing / 2.0f;
+					offset = bu_blend(offset, Vec3(), -10.0f, 1.0f, dTime);
+					offset += mob->v / 20.0f + mob->facing / 2.0f;
+				}
+				else
+				{
+					offset = Vec3();
+				}
+
 				entity->world->cam_rot = cam_rot;
 				//entity->world->cam_pos = *p + up * 0.45f;
-				entity->world->cam_pos = *p + up * 0.2f + right * 0.5f + top * 0.5f - front * 3.0f;
+				auto regular_offset = up * 0.2f + right * 0.5f + top * 0.5f - front * 3.0f;
+				float regular_length = regular_offset.Len();
+				auto combined_offset = offset + regular_offset;
+				float combined_length = combined_offset.Len();
+				if (combined_length > regular_length)
+					combined_offset *= regular_length / combined_length;
+				entity->world->cam_pos = *p + combined_offset;
 				std::vector<std::shared_ptr<Collision>> list;
 				ColliderComponent::DiskCast(*p, entity->world->cam_pos, 0.25f, list);
 				std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });

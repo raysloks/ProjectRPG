@@ -3,6 +3,9 @@
 
 #include <istream>
 
+#include <vector>
+#include <map>
+
 namespace std
 {
 	class binistream :
@@ -25,6 +28,34 @@ namespace std
 	binistream& operator>>(binistream& is, double& d);
 
 	binistream& operator>>(binistream& is, std::string& str);
+
+	template <class T>
+	binistream& operator>>(binistream& is, std::vector<T>& vec)
+	{
+		uint32_t size;
+		is >> size;
+		vec.resize(size);
+		for (size_t i = 0; i < size; ++i)
+		{
+			is >> vec[i];
+		}
+		return is;
+	}
+	template <class Key, class Value>
+	binistream& operator>>(binistream& is, std::map<Key, Value>& m)
+	{
+		uint32_t size;
+		is >> size;
+		m.clear();
+		for (size_t i = 0; i < size; ++i)
+		{
+			Key key;
+			Value value;
+			is >> key >> value;
+			m.insert(std::make_pair(key, value));
+		}
+		return is;
+	}
 }
 
 #endif

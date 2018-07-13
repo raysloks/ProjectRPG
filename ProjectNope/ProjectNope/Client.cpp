@@ -1161,7 +1161,7 @@ void Client::render_world(void)
 			glDepthFunc(GL_EQUAL);
 			glDepthMask(GL_FALSE);
 
-			//glDisable(GL_BLEND);
+			glDisable(GL_BLEND);
 
 			glEnable(GL_ALPHA_TEST);
 			glAlphaFunc(GL_GREATER, 0.5f);
