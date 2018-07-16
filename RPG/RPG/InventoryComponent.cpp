@@ -13,6 +13,8 @@
 
 #include "MobComponent.h"
 
+#include "Decorator.h"
+
 const AutoSerialFactory<InventoryComponent> InventoryComponent::_factory("InventoryComponent");
 
 InventoryComponent::InventoryComponent(void) : Serializable(_factory.id)
@@ -22,6 +24,7 @@ InventoryComponent::InventoryComponent(void) : Serializable(_factory.id)
 InventoryComponent::InventoryComponent(instream& is, bool full) : Serializable(_factory.id)
 {
 	is >> owner;
+	decorator.reset(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", Material("data/assets/items/weapons/swords/claymore.tga"), 0));
 }
 
 InventoryComponent::~InventoryComponent(void)
@@ -41,6 +44,7 @@ void InventoryComponent::disconnect(void)
 void InventoryComponent::pre_frame(float dTime)
 {
 	set_display(true);
+	rot += dTime;
 }
 
 void InventoryComponent::tick(float dTime)
@@ -65,10 +69,6 @@ void InventoryComponent::set_display(bool enable)
 					{
 						func.reset(new std::function<void(RenderSetup&)>([this, mob](RenderSetup& rs)
 						{
-
-							auto y = Resource::get<Texture>("data/assets/y.tga");
-							if (y)
-								y->render(rs);
 
 							// health
 							rs.pushTransform();
@@ -102,14 +102,42 @@ void InventoryComponent::set_display(bool enable)
 							rs.popTransform();
 							rs.popTransform();
 
-							// reticle
-							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec3(rs.size / 2.0f)));
-							rs.addTransform(Matrix4::Translation(Vec3(-10.0f, 10.0f, 0.0f)));
-							Writing::setColor(1.0f, 1.0f, 1.0f);
-							Writing::render("O", rs);
-							rs.popTransform();
-							rs.popTransform();
+							if (false)
+							{
+								// reticle
+								rs.pushTransform();
+								rs.addTransform(Matrix4::Translation(Vec3(rs.size / 2.0f)));
+								rs.addTransform(Matrix4::Translation(Vec3(-32.0f, -32.0f, 0.0f)));
+								auto crosshair = Resource::get<Texture>("data/assets/crosshair.tga");
+								if (crosshair)
+									crosshair->render(rs);
+								rs.popTransform();
+							}
+
+							{
+								// test
+								rs.pushTransform();
+								rs.addTransform(Matrix4::Translation(Vec3(100.0f, 400.0f, 0.0f)));
+								rs.addTransform(Matrix4::Scale(Vec3(100.0f, 100.0f, 100.0f)));
+								rs.addTransform(Quaternion(Vec3(M_1_PI, 0.0f, 0.0f)));
+								rs.addTransform(Quaternion(Vec3(0.0f, rot, 0.0f)));
+								auto prog = ShaderProgram::Get("data/gfill_vert.txt", "data/gfill_frag.txt");
+								ShaderMod mod(prog, [](const std::shared_ptr<ShaderProgram>& prog) {
+									prog->Uniform("diffuse", 0); // texture unit 0
+									prog->Uniform("light", Vec3(1.0f, -1.0f, -1.0f).Normalize());
+									prog->Uniform("eye", Vec3(0.0f, 0.0f, -1.0f));
+								});
+								rs.pushMod(mod);
+								glEnable(GL_DEPTH_TEST);
+								glEnable(GL_CULL_FACE);
+								glDepthMask(GL_TRUE);
+								decorator->render(rs);
+								glDepthMask(GL_FALSE);
+								glDisable(GL_DEPTH_TEST);
+								glDisable(GL_CULL_FACE);
+								rs.popMod();
+								rs.popTransform();
+							}
 
 						}));
 					}

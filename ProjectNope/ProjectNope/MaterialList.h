@@ -15,9 +15,11 @@ public:
 	~MaterialList(void);
 
 	std::vector<Material> materials;
+
+	bool operator<(const MaterialList& rhs) const;
 };
 
 outstream& operator<<(outstream& os, const MaterialList& mats);
-instream& operator >> (instream& is, MaterialList& mats);
+instream& operator>>(instream& is, MaterialList& mats);
 
 #endif

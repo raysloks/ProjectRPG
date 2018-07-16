@@ -4,6 +4,7 @@ uniform sampler2D diffuse;
 uniform usampler2D shadow;
 
 uniform vec3 light;
+uniform vec3 light_color;
 
 uniform vec3 eye;
 
@@ -35,5 +36,5 @@ void main()
 
 	vec4 color = texture(diffuse, texco);
 
-	final_color = vec4(color.rgb * (vec3(intensity) + vec3(0.1, 0.1, 0.2) * (1.0 - dot(eye, n) * 0.5)), color.a);
+	final_color = vec4(color.rgb * (light_color * intensity + vec3(0.1, 0.1, 0.2) * (1.0 - dot(eye, n) * 0.5)), color.a);
 }

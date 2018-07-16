@@ -1,0 +1,40 @@
+#version 440
+
+uniform sampler2D diffuse;
+uniform sampler2D ao;
+uniform usampler2D shadow;
+
+uniform vec3 light_samples[128];
+
+uniform vec3 light;
+uniform vec3 light_color;
+
+in vec4 position;
+in vec2 texco;
+in vec3 norm;
+
+out vec4 final_color;
+
+void main()
+{
+	vec3 n = normalize(norm);
+	float intensity = dot(light, n);
+	intensity = clamp(intensity, 0.0, 1.0);
+	
+	/*uvec4 stencil_sample = texture(shadow, position.xy/position.w * 0.5 + 0.5);
+	float total_stencil = 0.0;
+	for (int j = 0; j < 4; j++)
+	{
+		for (int i = 0; i < 32; i++)
+		{
+			total_stencil += float((stencil_sample[j] >> i) & 1u);
+		}
+	}
+	float illumination = total_stencil / 128.0;
+
+	intensity *= illumination;*/
+
+	vec4 color = texture(diffuse, texco);
+
+	final_color = vec4(color.rgb * (light_color * intensity + vec3(0.1, 0.1, 0.2) + texture(ao, texco).rgb * vec3(0.2, 0.2, 0.4)), color.a);
+}

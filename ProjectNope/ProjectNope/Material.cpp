@@ -42,9 +42,14 @@ void Material::setTexture(size_t index, const std::string& fname)
 	tex[index] = fname;
 }
 
-bool Material::operator==(const Material & rhs)
+bool Material::operator==(const Material& rhs) const
 {
 	return tex == rhs.tex && loaded_tex == rhs.loaded_tex && mod == rhs.mod;
+}
+
+bool Material::operator<(const Material & rhs) const
+{
+	return tex < rhs.tex && loaded_tex < rhs.loaded_tex && mod < rhs.mod;
 }
 
 outstream& operator<<(outstream& os, const Material& mat)

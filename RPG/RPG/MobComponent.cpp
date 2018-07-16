@@ -106,8 +106,6 @@ void MobComponent::tick(float dTime)
 			move_facing = move.Normalized();
 		}
 
-		facing = move_facing;
-
 		for (auto i = input.begin(); i != input.end();)
 		{
 			i->second -= dTime;
@@ -148,8 +146,8 @@ void MobComponent::tick(float dTime)
 					mob.second->v += vdif * 0.5f;
 
 					dif *= 1.0f - l;
-					dp += dif * 0.5f;
-					mob.second->dp -= dif * 0.5f;
+					external_dp += dif * 0.5f;
+					mob.second->external_dp -= dif * 0.5f;
 				}
 			}
 
@@ -193,9 +191,11 @@ void MobComponent::tick(float dTime)
 			Vec3 g_dir = Vec3(0.0f, 0.0f, -1.0f);//-Vec3(*p).Normalized();
 			Vec3 g = g_dir * 9.8f;
 
-			dp += (g/2.0f * dTime + v) * dTime;
+			dp = (g/2.0f * dTime + v) * dTime + external_dp;
 
 			float t = 1.0f;
+
+			bool done_landing = false;
 
 			std::set<void*> ignored;
 			std::set<Vec3> previous;
@@ -234,15 +234,15 @@ void MobComponent::tick(float dTime)
 					}
 					list.clear();*/
 
-					float disk_radius = 0.5f;
+					float disk_radius = 0.45f;
 					float offset = 0.0f;
-					float height = crouch ? 1.0f : 1.5f;
 					float standing_height = crouch ? 0.75f : 1.25f;
+					float height = standing_height;
 					Vec3 dp_side = dp - up * up.Dot(dp);
-					ColliderComponent::DiskCast(*p - up * offset + dp, *p - up * (offset + standing_height) + dp, disk_radius, list);
+					ColliderComponent::DiskCast(*p - up * offset + dp, *p - up * (offset + height) + dp, disk_radius, list);
 					if (!list.empty())
 					{
-						list.erase(std::remove_if(list.begin(), list.end(), [](const std::shared_ptr<Collision>& col)
+						list.erase(std::remove_if(list.begin(), list.end(), [=](const std::shared_ptr<Collision>& col)
 						{
 							return col->n.z <= 0.5f;
 						}), list.end());
@@ -352,25 +352,30 @@ void MobComponent::tick(float dTime)
 
 					v -= col->v;
 
-					if (temp_team == 0)
 					{
 						float fall_one = -col->n.Dot(v) / 10.0f;
 						uint32_t fall_damage = fall_one * fall_one;
-						health.current -= fall_damage;
+						do_damage(fall_damage, EntityID());
 						if (fall_damage > 0)
 							hit = true;
 					}
 
-					v -= col->n*col->n.Dot(v);
+					float v_dot_n = v.Dot(col->n);
+					if (v_dot_n < 0.0f)
+						v -= col->n * v_dot_n;
 					v += col->v;
 
-					if (ignored.empty())
+					if (!done_landing)
 					{
 						if (crouch)
 							run = false;
 
 						if (landed)
 						{
+							done_landing = true;
+
+							facing = move_facing;
+
 							Vec3 target = move;
 							Vec3 target_right = target.Cross(up);
 							target = land_n.Cross(target_right);
@@ -442,7 +447,11 @@ void MobComponent::tick(float dTime)
 						}
 					}
 
-					dp = v * dTime * t;
+					float edp_dot_n = external_dp.Dot(col->n);
+					if (edp_dot_n < 0.0f)
+						external_dp -= col->n * edp_dot_n;
+
+					dp = (g / 2.0f * dTime * t + v) * dTime * t + external_dp;
 
 					bool should_break = false;
 					for (auto i=previous.begin();i!=previous.end();++i)
@@ -463,6 +472,7 @@ void MobComponent::tick(float dTime)
 			}
 			
 			dp = Vec3();
+			external_dp = Vec3();
 
 			if (prev != *p)
 				if (pc != nullptr)
@@ -534,18 +544,22 @@ void MobComponent::write_to(outstream& os) const
 
 void MobComponent::do_damage(size_t damage, EntityID source)
 {
+	if (source.id != 0xffffffff)
+		last_hit = source;
 	if (health.current > 0)
 	{
 		health.current -= damage;
 		if (health.current <= 0)
 		{
-			auto source_entity = entity->world->GetEntity(source);
+			auto source_entity = entity->world->GetEntity(last_hit);
 			if (source_entity)
 			{
 				auto source_mob = source_entity->getComponent<MobComponent>();
 				if (source_mob)
 				{
-					source_mob->health.max += 1;
+					source_mob->mana.current += 1;
+					if (source_mob->mana.current > source_mob->mana.max)
+						source_mob->mana.current = source_mob->mana.max;
 				}
 			}
 		}

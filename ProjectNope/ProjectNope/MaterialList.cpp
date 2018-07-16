@@ -10,6 +10,20 @@ MaterialList::~MaterialList(void)
 {
 }
 
+bool MaterialList::operator<(const MaterialList& rhs) const
+{
+	if (materials.size() < rhs.materials.size())
+		return true;
+	if (materials.size() > rhs.materials.size())
+		return false;
+	for (size_t i = 0; i < materials.size(); ++i)
+	{
+		if (materials[i] < rhs.materials[i])
+			return true;
+	}
+	return false;
+}
+
 outstream& operator<<(outstream& os, const MaterialList& mats)
 {
 	uint32_t nMats = mats.materials.size();

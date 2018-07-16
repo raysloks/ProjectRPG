@@ -38,6 +38,7 @@ public:
 	bool operator==(const Matrix4& rhs)const;
 
 	static Matrix4 Translation(const Vec3& v);
+	static Matrix4 Scale(const Vec3& v);
 	static Matrix4 Perspective(float fov, float aspect, float near, float far);
 };
 

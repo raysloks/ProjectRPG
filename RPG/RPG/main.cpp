@@ -116,7 +116,7 @@ public:
 		{
 			NewEntity * ent = new NewEntity();
 
-			PositionComponent * p = new PositionComponent();
+			PositionComponent * p = new PositionComponent(Vec3(0.0f, 0.0f, 23.0f));
 			ColliderComponent * c = new ColliderComponent();
 			GraphicsComponent * g = new GraphicsComponent(false, 0);
 
@@ -132,8 +132,6 @@ public:
 			g->decs.items.front()->local.mtrx[3][3] = 1.0f;
 			g->decs.items.front()->final = g->decs.items.front()->local;
 
-			p->p = Vec3(0.0f, 0.0f, 32.0f);
-
 			world->AddEntity(ent);
 		}
 
@@ -141,7 +139,7 @@ public:
 		{
 			NewEntity * ent = new NewEntity();
 
-			PositionComponent * p = new PositionComponent();
+			PositionComponent * p = new PositionComponent(Vec3(3.0f, 0.0f, 22.0f));
 			ColliderComponent * c = new ColliderComponent();
 			GraphicsComponent * g = new GraphicsComponent(false, 0);
 
@@ -157,37 +155,31 @@ public:
 			g->decs.items.front()->local.mtrx[3][3] = 1.0f;
 			g->decs.items.front()->final = g->decs.items.front()->local;
 
-			p->p = Vec3(3.0f, 0.0f, 32.0f);
-
 			world->AddEntity(ent);
 		}
 
 		// create swing
-		if (false)
 		{
 			NewEntity * ent = new NewEntity();
 
-			PositionComponent * p = new PositionComponent(Vec3(-13.0f, -5.0f, 22.0f));
-			GraphicsComponent * g = new GraphicsComponent();
+			PositionComponent * p = new PositionComponent(Vec3(-13.0f, 6.95f, 24.05f));
+			ColliderComponent * c = new ColliderComponent();
+			GraphicsComponent * g = new GraphicsComponent(false, 2);
 
 			ent->addComponent(p);
+			ent->addComponent(c);
 			ent->addComponent(g);
 
-			auto swing_prog = std::make_shared<ShaderProgram>("data/gfill_vert.txt", "data/swing_frag.txt");
+			std::string wibbly = "data/assets/wibbly.tga";
+			Resource::load(wibbly, { "!sRGB" , "linear" });
 
 			MaterialList materials;
-			materials.materials.push_back(Material("data/assets/concrete_blue.tga"));
-			//materials.materials.push_back(Material("data/assets/terrain/textures/plank.tga"));
-			std::shared_ptr<float> swing_time(new float);
-			materials.materials.back().mod = ShaderMod(swing_prog, [swing_time](const std::shared_ptr<ShaderProgram>& prog)
-			{
-				prog->Uniform("swing_time", *swing_time);
-				glEnable(GL_BLEND);
-				glDisable(GL_ALPHA_TEST);
-
-				*swing_time += 0.06f;
-			});
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", materials, 0)));
+			materials.materials.push_back(Material(wibbly));
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/plane.gmdl", materials, 0)));
+			g->decs.items.front()->local *= 2.0f;
+			g->decs.items.front()->local.mtrx[3][3] = 1.0f;
+			g->decs.items.front()->local *= Quaternion(Vec3(M_PI / 2.0f, 0.0f, 0.0f));
+			g->decs.items.front()->final = g->decs.items.front()->local;
 
 			world->AddEntity(ent);
 		}

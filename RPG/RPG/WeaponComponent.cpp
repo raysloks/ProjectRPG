@@ -134,7 +134,7 @@ WeaponComponent * WeaponComponent::swap(size_t index)
 	{
 	case 0:
 		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", Material("data/assets/items/weapons/swords/claymore.tga"), 0)));
-		g->decs.items.front()->local *= Quaternion(M_PI / 2.0f, Vec3(0.0f, 1.0f, 0.0f));
+		g->decs.items.front()->local *= Quaternion(-M_PI / 2.0f, Vec3(0.0f, 1.0f, 0.0f));
 		g->decs.items.front()->local *= 0.5f;
 		g->decs.items.front()->local.mtrx[3][3] *= 2.0f;
 		break;

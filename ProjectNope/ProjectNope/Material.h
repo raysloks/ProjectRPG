@@ -26,7 +26,8 @@ public:
 
 	ShaderMod mod;
 
-	bool operator==(const Material& rhs);
+	bool operator==(const Material& rhs) const;
+	bool operator<(const Material& rhs) const;
 };
 
 outstream& operator<<(outstream& os, const Material& mat);

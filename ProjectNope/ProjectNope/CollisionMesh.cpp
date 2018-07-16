@@ -267,13 +267,13 @@ std::vector<size_t> CollisionMesh::GetWallsInAABB(Vec3 box_min, Vec3 box_max) co
 	Vec3 min_scaled = box_min - aabb_min;
 	Vec3 max_scaled = box_max - aabb_min;
 
-	size_t x_min = std::ceilf(min_scaled.x * (grid_w / dif.x)) - 1;
-	size_t y_min = std::ceilf(min_scaled.y * (grid_h / dif.y)) - 1;
-	size_t z_min = std::ceilf(min_scaled.z * (grid_d / dif.z)) - 1;
+	int x_min = std::ceilf(min_scaled.x * (grid_w / dif.x)) - 1;
+	int y_min = std::ceilf(min_scaled.y * (grid_h / dif.y)) - 1;
+	int z_min = std::ceilf(min_scaled.z * (grid_d / dif.z)) - 1;
 
-	size_t x_max = std::floorf(max_scaled.x * (grid_w / dif.x));
-	size_t y_max = std::floorf(max_scaled.y * (grid_h / dif.y));
-	size_t z_max = std::floorf(max_scaled.z * (grid_d / dif.z));
+	int x_max = std::floorf(max_scaled.x * (grid_w / dif.x));
+	int y_max = std::floorf(max_scaled.y * (grid_h / dif.y));
+	int z_max = std::floorf(max_scaled.z * (grid_d / dif.z));
 
 	std::set<size_t> walls_in_aabb;
 

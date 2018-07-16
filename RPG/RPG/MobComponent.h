@@ -9,7 +9,7 @@
 #include "Quaternion.h"
 #include "EntityID.h"
 
-#include "HealthBar.h"
+#include "ResourceBar.h"
 
 #include <memory>
 #include <map>
@@ -51,9 +51,9 @@ public:
 	GlobalPosition * p;
 
 	//stats
-	HealthBar health;
-	HealthBar stamina;
-	HealthBar mana;
+	ResourceBar health;
+	ResourceBar stamina;
+	ResourceBar mana;
 
 	float stamina_regen;
 
@@ -75,6 +75,7 @@ public:
 	//movement
 	Vec3 v;
 	Vec3 dp;
+	Vec3 external_dp;
 	Vec3 land_n, land_v;
 	Vec3 move;
 	bool run, crouch;
@@ -87,6 +88,7 @@ public:
 
 	// todo rework
 	bool hit;
+	EntityID last_hit;
 };
 
 #endif

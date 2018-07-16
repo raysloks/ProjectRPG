@@ -3,22 +3,31 @@
 in vec4 position;
 in vec2 texco;
 
-uniform float swing_time;
+uniform vec3 angle;
+uniform float limit;
 uniform sampler2D diffuse;
 
 out vec4 final_color;
 
-const float PI = 3.1415926535897932384626433832795;
+const float pi = 3.1415926535897932384626433832795;
 
 void main()
 {
-	vec2 co = texco * 2.0 - 1.0;
+	vec4 map = texture(diffuse, texco + vec2(0.0, angle.z / pi));
 
-	float angle = atan(co.y, co.x);
+	vec4 tex_col = texture(diffuse, texco * 0.9 + map.xy * 0.1 + vec2(0.0, angle.y / pi));
 
-	float dist = length(co);
+	float intensity = tex_col.r * sin(angle.x) + tex_col.g * sin(angle.x + pi * 2.0 / 3.0) + tex_col.b * sin(angle.x + pi * 4.0 / 3.0);
 
-	float alpha = min(1.0, max(0.0, (dist - texture(diffuse, vec2(angle * 2.0 / PI + dist * dist, dist + swing_time * 0.23)).r + step(0.945, dist)) * step(dist, 0.955)));
+	float edge = texco.x * texco.y * (1.0 - texco.x) * (1.0 - texco.y) * 8.0;
 
-	final_color = vec4(vec3(1.0, 0.5, 0.1), alpha * alpha * alpha);
+	intensity *= edge;
+
+	intensity = max(-1.0, intensity);
+	intensity = min(1.0, intensity);
+
+	if (step(intensity, limit) > 0.5)
+		discard;
+
+	final_color = vec4(vec3(2.0, 0.8, 0.05) * (intensity * length(map.rgb) * (1.0 - limit)), 1.0);
 }

@@ -204,6 +204,10 @@ public:
 
 		rs.applyMods();
 		auto instance_shader = ShaderProgram::Get(Shader::get("data/gfill_skinned_vert.txt", SHADER_VERTEX), rs.current_program->geom, rs.current_program->frag);
+		if (tag == 1 && rs.pass == 5)
+		{
+			instance_shader = ShaderProgram::Get(Shader::get("data/gfill_skinned_vert.txt", SHADER_VERTEX), rs.current_program->geom, Shader::get("data/gfill_ao_simple_frag.txt", SHADER_FRAGMENT));
+		}
 
 		if (instance_shader->IsReady() && instance_animation && instance_mesh)
 		{
@@ -211,7 +215,7 @@ public:
 
 			if (instance_animation_texture)
 			{
-				glActiveTexture(GL_TEXTURE1);
+				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, instance_animation_texture->texid);
 
 				for (size_t i = 0; i < instance_count; i += 128)
@@ -221,9 +225,10 @@ public:
 					ShaderMod mod(instance_shader, [&rs, instance_animation_texture, i, nInstancesToRender, this](const std::shared_ptr<ShaderProgram>& prog) {
 						prog->UniformMatrix4fv("instance_transform", nInstancesToRender, (instance_transforms.begin() + i)._Ptr);
 						prog->Uniform1fv("instance_frame", nInstancesToRender, (instance_frames.begin() + i)._Ptr);
-						prog->Uniform("animation_data", 1);
+						prog->Uniform("animation_data", 2);
 						prog->Uniform("bone_count", (float)instance_animation_texture->w);
 						prog->Uniform("frame_count", (float)instance_animation_texture->h);
+						prog->Uniform("ao", 1);
 					});
 
 					rs.pushMod(mod);
@@ -253,9 +258,11 @@ public:
 	std::vector<Matrix4> instance_transforms;
 	std::vector<float> instance_frames;
 	size_t instance_count;
+
+	uint32_t tag;
 };
 
-std::map<std::pair<int, std::tuple<std::string, std::string, std::string>>, std::shared_ptr<InstancedGraphics>> instanced;
+std::map<std::pair<int, std::tuple<std::string, MaterialList, std::string>>, std::shared_ptr<InstancedGraphics>> instanced;
 
 void GraphicsComponent::prep(RenderSetup& rs)
 {
@@ -279,7 +286,7 @@ void GraphicsComponent::prep(RenderSetup& rs)
 				{
 					if (dec->bone_id == -1)
 					{
-						auto key = std::make_pair(dec->priority, std::make_tuple(dec->mesh_fname, dec->materials.materials.front().tex.front(), pose->anim));
+						auto key = std::make_pair(dec->priority, std::make_tuple(dec->mesh_fname, dec->materials, pose->anim));
 						auto it = instanced.find(key);
 						std::shared_ptr<InstancedGraphics> ig;
 						if (it != instanced.end())
@@ -289,6 +296,7 @@ void GraphicsComponent::prep(RenderSetup& rs)
 						else
 						{
 							ig.reset(new InstancedGraphics(dec->mesh_fname, dec->materials, pose->anim));
+							ig->tag = g->tag;
 							instanced.insert(std::make_pair(key, ig));
 						}
 						if (g->p)
@@ -444,11 +452,16 @@ void GraphicsComponent::prep(RenderSetup& rs)
 }
 
 std::shared_ptr<ShaderProgram> ao_shader;
+std::shared_ptr<ShaderProgram> swing_shader;
+
+Vec3 angle(0.0f, 0.0f, 0.0f);
 
 void GraphicsComponent::render_all(RenderSetup& rs)
 {
 	if (!ao_shader)
 		ao_shader = std::make_shared<ShaderProgram>("data/gfill_ao_vert.txt", "data/gfill_ao_frag.txt");
+	if (!swing_shader)
+		swing_shader = std::make_shared<ShaderProgram>("data/gfill_vert.txt", "data/swing_frag.txt");
 
 	for each (auto g in standard)
 	{
@@ -458,6 +471,17 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 			rs.pushMod(ShaderMod(ao_shader, [](const std::shared_ptr<ShaderProgram>& prog)
 			{
 				prog->Uniform("ao", 1);
+			}));
+			shader = true;
+		}
+		if (g->tag == 2)
+		{
+			if (rs.pass == 3 || rs.pass == 4)
+				continue;
+			rs.pushMod(ShaderMod(swing_shader, [](const std::shared_ptr<ShaderProgram>& prog)
+			{
+				prog->Uniform("angle", angle);
+				prog->Uniform("limit", -1.0f);// fmaxf(-1.0, fminf(1.0f, sinf(angle.x / 20.0f) * 5.0f)));
 			}));
 			shader = true;
 		}

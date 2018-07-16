@@ -269,8 +269,15 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	if (team == 0)
 	{
 		p->p = Vec3(-15.0f, -5.0f, 23.0f);
-		pose->anim = "data/assets/units/player/hoodlum.anim";
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/hoodlum.gmdl", Material("data/assets/units/player/hoodlum.tga"))));
+		//pose->anim = "data/assets/units/player/hoodlum.anim";
+		//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/hoodlum.gmdl", Material("data/assets/units/player/hoodlum.tga"))));
+		pose->anim = "data/assets/units/golem/golem.anim";
+		MaterialList materials;
+		materials.materials.push_back(Material("data/assets/black.tga"));
+		materials.materials.push_back(Material("data/assets/units/golem/golem.tga"));
+		materials.materials.back().tex.push_back("data/assets/units/golem/golem_ao.tga");
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/golem/golem.gmdl", materials)));
+		g->tag = 1;
 	}
 	if (team == 1)
 	{
@@ -362,7 +369,7 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 								ColliderComponent::LineCheck(p->p, *nearby.second->p, list);
 								if (list.empty())
 								{
-									nearby.second->do_damage(5, ent->get_id());
+									nearby.second->do_damage(4, ent->get_id());
 									nearby.second->hit = true;
 									Vec3 dif = *nearby.second->p - p->p;
 									dif.Normalize();

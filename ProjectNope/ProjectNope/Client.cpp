@@ -239,8 +239,12 @@ void Client::setup(void)
 	}
 }
 
+extern Vec3 angle;
+
 void Client::pre_frame(float dTime)
 {
+	angle += Vec3(1.0f, M_PI / 10.0f, M_E) * dTime;
+
 	isActive = true;
 	ActiveEvent * ae = new ActiveEvent();
 	for (std::vector<std::shared_ptr<Window>>::reverse_iterator win=windows.rbegin();win!=windows.rend();++win)
@@ -1158,7 +1162,7 @@ void Client::render_world(void)
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);
 			glEnable(GL_DEPTH_TEST);
-			glDepthFunc(GL_EQUAL);
+			glDepthFunc(GL_LEQUAL);
 			glDepthMask(GL_FALSE);
 
 			glDisable(GL_BLEND);
@@ -1173,13 +1177,16 @@ void Client::render_world(void)
 			rs.view = proj;
 			rs.pass = 5;
 
+			Vec3 light_color(1.0f, 0.95f, 0.8f);
+
 			{
 				glEnable(GL_STENCIL_TEST);
 				glStencilFunc(GL_EQUAL, 0, 0xff);
 				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-				ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality](const std::shared_ptr<ShaderProgram>& prog) {
+				ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality, light_color](const std::shared_ptr<ShaderProgram>& prog) {
 					prog->Uniform("light", light);
+					prog->Uniform("light_color", light_color);
 					prog->Uniform("diffuse", 0); // texture unit 0
 					prog->Uniform("shadow", 2); // texture unit 2
 					prog->UniformMatrix4f("transform", (rs.transform*proj).data);
@@ -1269,12 +1276,14 @@ void Client::render_world(void)
 
 		deferred_fb->bind();
 		glViewport(0, 0, buffer_w, buffer_h);
+		glClear(GL_DEPTH_BUFFER_BIT);
 
 		RenderSetup rs;
 
 		Matrix4 ortho;
 		ortho.mtrx[0][0] = 2.0f / view_w;
 		ortho.mtrx[1][1] = -2.0f / view_h;
+		ortho.mtrx[2][2] = 2.0f / std::max(view_w, view_h);
 
 		rs.size = Vec2(view_w, view_h);
 

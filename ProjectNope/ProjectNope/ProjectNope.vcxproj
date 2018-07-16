@@ -216,7 +216,7 @@
     <ClCompile Include="Glyph.cpp" />
     <ClCompile Include="GlyphString.cpp" />
     <ClCompile Include="GraphicsComponent.cpp" />
-    <ClCompile Include="HealthBar.cpp" />
+    <ClCompile Include="ResourceBar.cpp" />
     <ClCompile Include="IEvent.cpp" />
     <ClCompile Include="JoinGameWindow.cpp" />
     <ClCompile Include="Link.cpp" />
@@ -314,7 +314,7 @@
     <ClInclude Include="Glyph.h" />
     <ClInclude Include="GlyphString.h" />
     <ClInclude Include="GraphicsComponent.h" />
-    <ClInclude Include="HealthBar.h" />
+    <ClInclude Include="ResourceBar.h" />
     <ClInclude Include="JoinGameWindow.h" />
     <ClInclude Include="Link.h" />
     <ClInclude Include="LinkContainer.h" />

@@ -299,7 +299,7 @@ std::shared_ptr<Collision> Wall::DiskCastLine(const Vec3& sP, const Vec3& eP, co
 		float sqd = lp.Dot(fsP - vP);
 		sqd *= sqd;
 		sqd = r*r - sqd;
-		if (sqd > 0.0f) {
+		if (sqd >= 0.0f) {
 			sqd = sqrt(sqd);
 			float d = -(l.Dot(fsP - vP));
 			float d_close = d - sqd;
@@ -310,7 +310,8 @@ std::shared_ptr<Collision> Wall::DiskCastLine(const Vec3& sP, const Vec3& eP, co
 				if (col->dist <= cl && col->dist >= 0.0f)
 				{
 					col->t = col->dist / cl;
-					col->n = l.Cross(dir).Cross(l);
+					Vec3 dif = eP - sP;
+					col->n = dif.Cross(dir).Cross(dif);
 					col->n.Normalize();
 					if (col->n.Dot(dir) > 0.0f)
 						col->n = -col->n;

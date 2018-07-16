@@ -20,7 +20,12 @@ ShaderMod::~ShaderMod()
 {
 }
 
-bool ShaderMod::operator==(const ShaderMod& rhs)
+bool ShaderMod::operator==(const ShaderMod& rhs) const
 {
-	return shader == rhs.shader && !mod && !rhs.mod;
+	return shader == rhs.shader;// && !mod && !rhs.mod;
+}
+
+bool ShaderMod::operator<(const ShaderMod& rhs) const
+{
+	return shader < rhs.shader;// && !mod && !rhs.mod;
 }

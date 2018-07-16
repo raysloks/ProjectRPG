@@ -147,7 +147,13 @@ GlobalPosition SpawnComponent::select_position(void)
 {
 	Vec3 dif = aabb_max - aabb_min;
 	std::uniform_real_distribution<float> uni_dist;
-	return aabb_min + dif * Vec3(uni_dist(random), uni_dist(random), uni_dist(random));
+	auto pos = aabb_min + dif * Vec3(uni_dist(random), uni_dist(random), uni_dist(random));
+	std::vector<std::shared_ptr<Collision>> list;
+	ColliderComponent::SphereCast(pos, pos + Vec3(0.0f, 0.0f, -10.0f), 0.5f, list);
+	if (list.empty())
+		return pos;
+	std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
+	return list.front()->poo;
 }
 
 bool SpawnComponent::is_valid(const GlobalPosition& p) const

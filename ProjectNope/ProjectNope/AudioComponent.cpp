@@ -95,8 +95,12 @@ void AudioComponent::interpolate(Component * pComponent, float fWeight)
 
 void AudioComponent::write_to(outstream& os, ClientData& client) const
 {
+	os << _sound << offset << gain;
 	uint32_t client_side_id = client.getUnit(pos_id.id);
-	os << _sound << offset << gain << EntityID(client_side_id, client.unit_uid[client_side_id]);
+	if (client_side_id != 0xffffffff)
+		os << EntityID(client_side_id, client.unit_uid[client_side_id]);
+	else
+		os << EntityID();
 }
 
 void AudioComponent::write_to(outstream& os) const

@@ -400,6 +400,15 @@ Matrix4 Matrix4::Translation(const Vec3& v)
 	return ret;
 }
 
+Matrix4 Matrix4::Scale(const Vec3& v)
+{
+	Matrix4 ret;
+	ret.data[0] = v.x;
+	ret.data[5] = v.y;
+	ret.data[10] = v.z;
+	return ret;
+}
+
 Matrix4 Matrix4::Perspective(float fov, float aspect, float near_z, float far_z)
 {
 	float depth_z = far_z - near_z;
