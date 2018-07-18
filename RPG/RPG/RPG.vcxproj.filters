@@ -23,18 +23,53 @@
     <ClCompile Include="InventoryComponent.cpp">
       <Filter>Components</Filter>
     </ClCompile>
-    <ClCompile Include="AIComponent.cpp" />
     <ClCompile Include="HitBox.cpp" />
-    <ClCompile Include="OrbitComponent.cpp" />
-    <ClCompile Include="ProjectileComponent.cpp" />
-    <ClCompile Include="WeaponComponent.cpp" />
-    <ClCompile Include="SpawnComponent.cpp" />
-    <ClCompile Include="GameStateComponent.cpp" />
-    <ClCompile Include="TriggerComponent.cpp" />
     <ClCompile Include="TeamData.cpp" />
-    <ClCompile Include="ChatComponent.cpp" />
-    <ClCompile Include="ServiceComponent.cpp" />
-    <ClCompile Include="LearningComponent.cpp" />
+    <ClCompile Include="AnimationState.cpp">
+      <Filter>Animation States</Filter>
+    </ClCompile>
+    <ClCompile Include="AIComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraShakeComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ChatComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="GameStateComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="SpawnComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ServiceComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ProjectileComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="OrbitComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="LearningComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="TriggerComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="WeaponComponent.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="CycleState.cpp">
+      <Filter>Animation States</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleState.cpp">
+      <Filter>Animation States</Filter>
+    </ClCompile>
+    <ClCompile Include="RunCycleState.cpp">
+      <Filter>Animation States</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -58,22 +93,60 @@
     <ClInclude Include="InventoryComponent.h">
       <Filter>Components</Filter>
     </ClInclude>
-    <ClInclude Include="AIComponent.h" />
     <ClInclude Include="HitBox.h" />
-    <ClInclude Include="OrbitComponent.h" />
-    <ClInclude Include="ProjectileComponent.h" />
-    <ClInclude Include="WeaponComponent.h" />
-    <ClInclude Include="SpawnComponent.h" />
-    <ClInclude Include="GameStateComponent.h" />
-    <ClInclude Include="TriggerComponent.h" />
     <ClInclude Include="TeamData.h" />
-    <ClInclude Include="ChatComponent.h" />
-    <ClInclude Include="ServiceComponent.h" />
-    <ClInclude Include="LearningComponent.h" />
+    <ClInclude Include="AnimationState.h">
+      <Filter>Animation States</Filter>
+    </ClInclude>
+    <ClInclude Include="AIComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraShakeComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ChatComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GameStateComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="SpawnComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ServiceComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ProjectileComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="OrbitComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="LearningComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="TriggerComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="WeaponComponent.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CycleState.h">
+      <Filter>Animation States</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleState.h">
+      <Filter>Animation States</Filter>
+    </ClInclude>
+    <ClInclude Include="RunCycleState.h">
+      <Filter>Animation States</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">
       <UniqueIdentifier>{b634c4b3-7c5c-4d39-a5d5-b2d530e99399}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animation States">
+      <UniqueIdentifier>{d4b76233-5fd4-410e-b671-39b23ff9f656}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

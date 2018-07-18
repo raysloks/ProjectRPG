@@ -4,6 +4,7 @@
 #include "Component.h"
 
 #include "EntityID.h"
+#include "GlobalPosition.h"
 
 class AudioSource;
 class PositionComponent;

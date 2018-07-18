@@ -156,7 +156,9 @@
     <ClCompile Include="ActionData.cpp" />
     <ClCompile Include="AIComponent.cpp" />
     <ClCompile Include="AnimationControlComponent.cpp" />
+    <ClCompile Include="AnimationState.cpp" />
     <ClCompile Include="CameraControlComponent.cpp" />
+    <ClCompile Include="CameraShakeComponent.cpp" />
     <ClCompile Include="ChatComponent.cpp" />
     <ClCompile Include="GameStateComponent.cpp" />
     <ClCompile Include="HitBox.cpp" />
@@ -166,9 +168,12 @@
     <ClCompile Include="LearningComponent.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MobComponent.cpp" />
+    <ClCompile Include="RunCycleState.cpp" />
+    <ClCompile Include="SimpleState.cpp" />
     <ClCompile Include="OrbitComponent.cpp" />
     <ClCompile Include="PlayerInputComponent.cpp" />
     <ClCompile Include="ProjectileComponent.cpp" />
+    <ClCompile Include="CycleState.cpp" />
     <ClCompile Include="ServiceComponent.cpp" />
     <ClCompile Include="SkillNode.cpp" />
     <ClCompile Include="SpawnComponent.cpp" />
@@ -194,7 +199,9 @@
     <ClInclude Include="ActionData.h" />
     <ClInclude Include="AIComponent.h" />
     <ClInclude Include="AnimationControlComponent.h" />
+    <ClInclude Include="AnimationState.h" />
     <ClInclude Include="CameraControlComponent.h" />
+    <ClInclude Include="CameraShakeComponent.h" />
     <ClInclude Include="ChatComponent.h" />
     <ClInclude Include="GameStateComponent.h" />
     <ClInclude Include="HitBox.h" />
@@ -203,9 +210,12 @@
     <ClInclude Include="Item.h" />
     <ClInclude Include="LearningComponent.h" />
     <ClInclude Include="MobComponent.h" />
+    <ClInclude Include="RunCycleState.h" />
+    <ClInclude Include="SimpleState.h" />
     <ClInclude Include="OrbitComponent.h" />
     <ClInclude Include="PlayerInputComponent.h" />
     <ClInclude Include="ProjectileComponent.h" />
+    <ClInclude Include="CycleState.h" />
     <ClInclude Include="ServiceComponent.h" />
     <ClInclude Include="SkillNode.h" />
     <ClInclude Include="SpawnComponent.h" />

@@ -26,7 +26,7 @@ NewEntity::NewEntity(instream& is, bool full)
 			is >> sync;
 			component_sync.push_back(sync);
 		}
-		auto factory = Serializable::unserialize(is);
+		auto factory = Serializable::deserialize(is);
 		Component * comp;
 		if (factory != nullptr)
 			comp = dynamic_cast<Component*>(factory->create(is, full));
@@ -183,7 +183,7 @@ void NewEntity::readLog(instream& is)
 		if (index != 0xffffffff)
 		{
 			is >> sync;
-			auto factory = Serializable::unserialize(is);
+			auto factory = Serializable::deserialize(is);
 			Component * comp;
 			if (factory != nullptr)
 				comp = dynamic_cast<Component*>(factory->create(is, false));

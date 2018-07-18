@@ -230,15 +230,20 @@ SkeletalAnimation::SkeletalAnimation(instream& is)
 	for (int o=0;o<total_bones;++o)
 	{
 		int index, parent_index;
-		is >> index >> parent_index;
+		std::string name;
+		is >> index;
+		is >> name;
+		is >> parent_index;
 		if (index<0)
 			index = 0;//error in file
-		if (index>=armature.bones.size())
-			armature.bones.resize(index+1);
-		if (index>=parents.size())
-			parents.resize(index+1);
-		if (index>=locals.size())
-			locals.resize(index+1);
+		if (index >= armature.bones.size())
+			armature.bones.resize(index + 1);
+		if (index >= parents.size())
+			parents.resize(index + 1);
+		if (index >= locals.size())
+			locals.resize(index + 1);
+		if (index >= names.size())
+			names.resize(index + 1);
 		parents[index] = parent_index;
 		for (int i=0;i<4;++i) {
 			for (int j=0;j<4;++j) {
@@ -247,6 +252,7 @@ SkeletalAnimation::SkeletalAnimation(instream& is)
 			}
 			//std::cout << std::endl;
 		}
+		names[index] = name;
 	}
 	
 	for (int o=0;o<armature.bones.size();++o)
@@ -295,13 +301,23 @@ SkeletalAnimation::SkeletalAnimation(instream& is)
 		{
 			int group_index, total_channels;
 			is >> group_index >> total_channels;
-			if (group_index>=action->keys.size())
+			if (group_index >= action->keys.size())
 				action->keys.resize(group_index+1);
-			action->keys[group_index].resize(10);
+			if (group_index >= action->props.size())
+				action->props.resize(group_index + 1);
 			for (int j=0;j<total_channels;++j)
 			{
 				unsigned char type;
 				is >> type;
+				if (type >= action->keys[group_index].size())
+					action->keys[group_index].resize(type + 1);
+				if (type >= 10)
+				{
+					unsigned char prop = type - 10;
+					if (prop >= action->props[group_index].size())
+						action->props[group_index].resize(prop + 1);
+					is >> action->props[group_index][prop];
+				}
 				int total_keys;
 				is >> total_keys;
 				for (int k=0;k<total_keys;++k)
@@ -386,6 +402,11 @@ std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const Action& act) 
 				}
 			}
 			pos = Matrix4::Translation(Vec3(values[0], values[1], values[2]));
+			auto it = act.props[i].begin();
+			for (size_t j = 10; j < values.size() && it != act.props[i].end(); ++it, ++j)
+			{
+				pose->bones[i].props.insert(std::make_pair(*it, values[j]));
+			}
 		}
 		pose->bones[i].transform = rot*pos*armature.bones[i].transform;
 	}
@@ -447,21 +468,29 @@ float SkeletalAnimation::getLength(const std::string & action) const
 	return 0.0f;
 }
 
+int SkeletalAnimation::getIndex(const std::string& name) const
+{
+	for (int i = 0; i < names.size(); ++i)
+	{
+		if (names[i].compare(name) == 0)
+			return i;
+	}
+	return -1;
+}
+
 Matrix4 SkeletalAnimation::getMatrix(int bone_id, float frame) const
 {
+	if (bone_id >= armature.bones.size() || bone_id < 0)
+		return Matrix4();
+
 	frame -= 0.5f;
 	int frame_integer = frame;
-	int next_frame = frame_integer + 1;
+	int next_frame = std::ceilf(frame);
 
 	if (frame_integer < 0)
-		frame_integer = 0;
-	if (next_frame >= compiled_actions.size() / armature.bones.size())
-		next_frame = compiled_actions.size() / armature.bones.size() - 1;
-
-	if (frame < frame_integer)
-		frame = frame_integer;
-	if (frame > next_frame)
-		frame = next_frame;
+		return armature.bones[bone_id].total_transform;
+	if (next_frame >= frame_count)
+		return armature.bones[bone_id].total_transform;
 
 	Matrix4 matrix = compiled_actions[frame_integer * armature.bones.size() + bone_id];
 	Matrix4 next_matrix = compiled_actions[next_frame * armature.bones.size() + bone_id];
@@ -471,22 +500,56 @@ Matrix4 SkeletalAnimation::getMatrix(int bone_id, float frame) const
 	return armature.bones[bone_id].total_transform * (matrix * weight + next_matrix * (1.0f - weight));
 }
 
+float SkeletalAnimation::getProperty(const std::string& name, float frame) const
+{
+	auto it = compiled_props.find(name);
+	if (it == compiled_props.end())
+		return 0.0f;
+
+	frame -= 0.5f;
+	int frame_integer = frame;
+	int next_frame = frame_integer + 1;
+
+	if (frame_integer < 0)
+		return 0.0f;
+	if (next_frame >= frame_count)
+		return 0.0f;
+
+	float prop = it->second[frame_integer];
+	float next_prop = it->second[next_frame];
+
+	float weight = next_frame - frame;
+
+	return prop * weight + next_prop * (1.0f - weight);
+}
+
 void SkeletalAnimation::compileActions(float resolution)
 {
+	frame_count = 0;
 	float total_t = 0.0f;
-	for (auto action = actions.begin(); action != actions.end(); ++action)
+	for (auto& action : actions)
 	{
-		action->second.compiled_start = total_t + resolution * 0.5f;
-		for (float t = 0.0f; t <= action->second.length; t += resolution)
+		action.second.compiled_start = total_t + resolution * 0.5f;
+		for (float t = 0.0f; t <= action.second.length; t += resolution)
 		{
 			total_t += resolution;
-			auto pose = getPose(t, action->second);
-			for (size_t i = 0; i < pose->bones.size(); i++)
+			++frame_count;
+			auto pose = getPose(t, action.second);
+			for (size_t i = 0; i < pose->bones.size(); ++i)
 			{
 				compiled_actions.push_back(pose->rest->bones[i].total_inverse * pose->bones[i].total_transform);
+				if (i < action.second.props.size())
+				{
+					for (size_t j = 0; j < action.second.props[i].size(); ++j)
+					{
+						std::string prop_name = names[i] + "." + action.second.props[i][j];
+						compiled_props[prop_name].resize(frame_count);
+						compiled_props[prop_name][frame_count - 1] = pose->bones[i].props[action.second.props[i][j]];
+					}
+				}
 			}
 		}
-		action->second.compiled_end = total_t - resolution * 0.5f;
+		action.second.compiled_end = total_t - resolution * 0.5f;
 	}
 }
 

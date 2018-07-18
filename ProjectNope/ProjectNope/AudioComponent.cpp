@@ -59,18 +59,23 @@ void AudioComponent::pre_frame(float dTime)
 	{
 		if (p != nullptr)
 			src->SetPosition(p->p - entity->world->cam_pos);
-
-		if (entity->world->authority)
-			if (offset > src->sound->duration)
-				entity->world->SetEntity(entity->id, nullptr);
 	}
-
-	offset += dTime;
 }
 
 void AudioComponent::tick(float dTime)
 {
-	pre_frame(dTime);
+	if (src == nullptr && entity->world->authority)
+	{
+		auto sound = Resource::get<Sound>(_sound);
+		if (sound != nullptr)
+		{
+			src = new AudioSource(0, sound);
+		}
+	}
+	if (src != nullptr)
+		if (offset > src->sound->duration)
+			entity->world->SetEntity(entity->id, nullptr);
+	offset += dTime;
 }
 
 void AudioComponent::writeLog(outstream& os, ClientData& client)

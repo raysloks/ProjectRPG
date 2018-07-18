@@ -1498,7 +1498,7 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 				NewEntity * current_entity = world->GetEntity(id);
 				if (current_entity != nullptr)
 				{
-					if (!SyncState::is_ordered_strict(world->uid[id], uid))
+					if (SyncState::is_ordered_strict(world->uid[id], uid))
 					{
 						world->SetEntity(id, nullptr);
 						if (id < interpol_targets.size())
@@ -1507,6 +1507,10 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 								delete interpol_targets[id];
 							interpol_targets[id] = nullptr;
 						}
+					}
+					else
+					{
+						break;
 					}
 				}
 				NewEntity * unit = new NewEntity(in, false);
@@ -1636,6 +1640,7 @@ void Client::interpolate(float dTime)
 			{
 				if (interpol_targets[i] != nullptr)
 				{
+					interpol_targets[i]->tick(dTime);
 					if (interpol_elapsed[i] >= interpol_delay)
 					{
 						ent->interpolate(interpol_targets[i], 1.0f);

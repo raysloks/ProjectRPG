@@ -8,6 +8,7 @@ class AudioSource
 {
 public:
 	AudioSource(const std::shared_ptr<Sound>& sound);
+	AudioSource(ALuint source, const std::shared_ptr<Sound>& sound);
 	~AudioSource(void);
 
 	void Play(void);

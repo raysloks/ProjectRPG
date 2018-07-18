@@ -6,196 +6,12 @@
 #include "ColliderComponent.h"
 #include "AnimationControlComponent.h"
 
+#include "SimpleState.h"
+
 const AutoSerialFactory<AIComponent> AIComponent::_factory("AIComponent");
 
 AIComponent::AIComponent(void) : Serializable(_factory.id)
 {
-	idle = [this](float time_over)
-	{
-		std::uniform_real_distribution<float> uni_dist;
-
-		if (uni_dist(random) > 0.75f)
-		{
-			std::uniform_real_distribution<float> angle_distribution(0.0f, M_PI * 2.0f);
-
-			float angle = angle_distribution(random);
-			mob->move = mob->cam_facing + Vec3(cos(angle), sin(angle), 0.0f) * 1.1f;
-			mob->move.Normalize();
-			mob->cam_facing = mob->move;
-			mob->move *= 0.25f;
-		}
-		else
-		{
-			mob->move = Vec3();
-		}
-
-		auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(*mob->p, 10.0f);
-		MobComponent * other = nullptr;
-		for each (auto nearby in nearby_mobs)
-		{
-			if (nearby.second->temp_team != mob->temp_team)
-			{
-				std::vector<std::shared_ptr<Collision>> list;
-				ColliderComponent::LineCheck(*mob->p, *nearby.second->p, list);
-				if (list.empty())
-				{
-					other = nearby.second;
-					break;
-				}
-			}
-		}
-
-		if (other != nullptr)
-		{
-			Vec3 dif = *other->p - *mob->p;
-			dif.Normalize();
-			mob->move = dif;
-			mob->cam_facing = dif;
-
-			checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 1.0f + time_over, chase));
-		}
-		else
-		{
-			checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 4.0f + time_over, idle));
-		}
-	};
-
-	fall = [this](float time_over)
-	{
-		std::vector<std::shared_ptr<Collision>> list;
-		ColliderComponent::LineCheck(*mob->p, *mob->p + (mob->cam_facing - Vec3(mob->up)) * 2.0f, list);
-
-		if (list.empty())
-		{
-			mob->move = Vec3();
-		}
-
-		checks.insert(std::make_pair(0.5f + time_over, fall));
-	};
-
-	chase = [this](float time_over)
-	{
-		std::uniform_real_distribution<float> uni_dist;
-
-		auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(*mob->p + mob->cam_facing * 10.0f);
-		MobComponent * other = nullptr;
-		for each (auto nearby in nearby_mobs)
-		{
-			if (nearby.second->temp_team != mob->temp_team)
-			{
-				std::vector<std::shared_ptr<Collision>> list;
-				ColliderComponent::LineCheck(*mob->p, *nearby.second->p, list);
-				if (list.empty())
-				{
-					other = nearby.second;
-					break;
-				}
-			}
-		}
-
-		if (other != nullptr)
-		{
-			Vec3 dif = *other->p - *mob->p;
-			float l = dif.Len();
-			dif *= Quaternion((uni_dist(random) - uni_dist(random)) * (0.05f + atan(l / 100.0f)), Vec3(0.0f, 0.0f, 1.0f));
-			l = dif.Len();
-			dif /= l;
-			mob->move += dif;
-			mob->move.Normalize();
-			mob->cam_facing = mob->move;
-
-			if (l < 1.5f)
-			{
-				mob->move = Vec3();
-				checks.insert(std::make_pair(0.5f + time_over, attack));
-				auto acc = entity->getComponent<AnimationControlComponent>();
-				if (acc)
-				{
-					acc->set_state(3);
-				}
-			}
-			else
-			{
-				checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 0.25f + 0.25f + time_over, chase));
-			}
-		}
-		else
-		{
-			checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 0.25f + 0.25f + time_over, search));
-		}
-	};
-
-
-	search = [this](float time_over)
-	{
-		std::uniform_real_distribution<float> uni_dist;
-
-		auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(*mob->p + mob->cam_facing * 10.0f);
-		MobComponent * other = nullptr;
-		for each (auto nearby in nearby_mobs)
-		{
-			if (nearby.second->temp_team != mob->temp_team)
-			{
-				std::vector<std::shared_ptr<Collision>> list;
-				ColliderComponent::LineCheck(*mob->p, *nearby.second->p, list);
-				if (list.empty())
-				{
-					other = nearby.second;
-					break;
-				}
-			}
-		}
-
-		if (other != nullptr)
-		{
-			Vec3 dif = *other->p - *mob->p;
-			dif.Normalize();
-			mob->move = dif;
-			mob->cam_facing = dif;
-
-			checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 0.25f + 0.25f + time_over, chase));
-		}
-		else
-		{
-			if (uni_dist(random) > 0.95f)
-			{
-				checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 0.25f + 0.25f + time_over, idle));
-			}
-			else
-			{
-				checks.insert(std::make_pair((uni_dist(random) + uni_dist(random)) * 0.25f + 0.25f + time_over, search));
-			}
-		}
-	};
-
-	attack = [this](float time_over)
-	{
-		std::uniform_real_distribution<float> uni_dist;
-
-		auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(*mob->p + mob->cam_facing * 0.75f, 0.75f);
-		MobComponent * other = nullptr;
-		for each (auto nearby in nearby_mobs)
-		{
-			if (nearby.second->temp_team != mob->temp_team)
-			{
-				std::vector<std::shared_ptr<Collision>> list;
-				ColliderComponent::LineCheck(*mob->p, *nearby.second->p, list);
-				if (list.empty())
-				{
-					other = nearby.second;
-					break;
-				}
-			}
-		}
-
-		if (other != nullptr)
-		{
-			other->do_damage(1, entity->get_id());
-			other->hit = true;
-		}
-
-		checks.insert(std::make_pair(0.5f + time_over, chase));
-	};
 }
 
 AIComponent::AIComponent(instream& is, bool full) : Serializable(_factory.id)
@@ -220,41 +36,42 @@ void AIComponent::pre_frame(float dTime)
 
 void AIComponent::tick(float dTime)
 {
-	if (mob == nullptr)
+	if (entity->world->authority)
 	{
-		mob = entity->getComponent<MobComponent>();
-	}
+		auto mob = entity->getComponent<MobComponent>();
+		auto p = entity->getComponent<PositionComponent>();
+		auto acc = entity->getComponent<AnimationControlComponent>();
 
-	if (mob != nullptr)
-	{
-		if (mob->p != nullptr)
+		if (mob && p && acc)
 		{
-			if (checks.empty())
+			auto target_entity = entity->world->GetEntity(target);
+			if (target_entity)
 			{
-				checks.insert(std::make_pair(1.0f + dTime, idle));
-				checks.insert(std::make_pair(dTime, fall));
+				auto target_p = target_entity->getComponent<PositionComponent>();
+				if (target_p)
+				{
+					Vec3 dif = target_p->p - p->p;
+					float distance = dif.Len();
+					Vec3 dir = dif / distance;
+					mob->move = dir;
+					float facing_dot_dir = mob->facing.Dot(dir);
+					if (distance < 5.0f && facing_dot_dir > 0.8f && !acc->has_state("attack"))
+					{
+						acc->set_state(new SimpleState("attack", 0.25f));
+						mob->stamina.current -= 2;
+					}
+				}
+			}
+			else
+			{
+				auto nearby = entity->world->GetNearestComponents<MobComponent>(p->p, 30.0f);
+				for (auto other : nearby)
+				{
+					if (other.second->temp_team != mob->temp_team)
+						target = other.second->entity->get_id();
+				}
 			}
 		}
-	}
-
-	std::multimap<float, std::function<void(float)>> nchecks;
-	std::vector<std::pair<float, std::function<void(float)>>> checks_ready;
-	for each (auto check in checks)
-	{
-		if (check.first - dTime <= 0.0f)
-		{
-			checks_ready.push_back(std::make_pair(check.first - dTime, check.second));
-		}
-		else
-		{
-			nchecks.insert(std::make_pair(check.first - dTime, check.second));
-		}
-	}
-	checks = nchecks;
-
-	for each (auto check in checks_ready)
-	{
-		check.second(check.first);
 	}
 }
 

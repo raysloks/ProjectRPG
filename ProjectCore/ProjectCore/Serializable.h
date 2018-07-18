@@ -51,7 +51,7 @@ public:
 	virtual void write_to(outstream& os, bool full) const {}
 	
 	static void serialize(outstream& os, const Serializable * const instance);
-	static const StreamFactory<Serializable> * unserialize(instream& is);
+	static const StreamFactory<Serializable> * deserialize(instream& is);
 
 	static const StreamFactory<Serializable> * getFactory(uint32_t id);
 

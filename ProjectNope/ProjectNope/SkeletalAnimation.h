@@ -20,6 +20,7 @@ public:
 	~Action(void);
 
 	std::vector<std::vector<std::map<float, float>>> keys;
+	std::vector<std::vector<std::string>> props;
 	float length;
 
 	float compiled_start, compiled_end;
@@ -61,6 +62,8 @@ public:
 	Matrix4 total_transform;
 	Matrix4 total_inverse;
 	Bone* parent;
+
+	std::map<std::string, float> props;
 };
 
 #include "Resource.h"
@@ -81,16 +84,23 @@ public:
 	float getEnd(const std::string& action) const;
 	float getLength(const std::string& action) const;
 
+	int getIndex(const std::string& name) const;
 	Matrix4 getMatrix(int bone_id, float frame) const;
+	float getProperty(const std::string& name, float frame) const;
 
 	void compileActions(float resolution);
 	std::shared_ptr<Texture> getCompiledTexture(void);
 
 	Pose armature;
+	std::vector<std::string> names;
 	std::map<std::string, Action> actions;
+
+	size_t frame_count;
 
 	std::vector<Matrix4> compiled_actions;
 	std::shared_ptr<Texture> compiled_texture;
+
+	std::map<std::string, std::vector<float>> compiled_props;
 };
 
 #endif

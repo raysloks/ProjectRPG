@@ -102,14 +102,22 @@ MobComponent * SpawnComponent::spawn(void)
 			ent->addComponent(acc);
 			ent->addComponent(pose);
 
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/terrain/textures/ngrass.tga"))));
-			pose->anim = "data/assets/units/player/KnightGuy.anim";
+			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/terrain/textures/ngrass.tga"))));
+			//pose->anim = "data/assets/units/player/KnightGuy.anim";
 			/*g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
 			g->decs.items.back()->priority = 1;
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
 			g->decs.items.back()->priority = 2;
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
 			g->decs.items.back()->priority = 3;*/
+
+			pose->anim = "data/assets/units/golem/golem.anim";
+			MaterialList materials;
+			materials.materials.push_back(Material("data/assets/black.tga"));
+			materials.materials.push_back(Material("data/assets/units/golem/golem.tga"));
+			materials.materials.back().tex.push_back("data/assets/units/golem/golem_ao.tga");
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/golem/golem.gmdl", materials)));
+			g->tag = 1;
 
 			entity->world->AddEntity(ent);
 
@@ -119,6 +127,23 @@ MobComponent * SpawnComponent::spawn(void)
 			float angle = angle_dist(random);
 			mob->cam_facing = Vec3(cosf(angle), sinf(angle), 0.0f);
 			mob->temp_team = 1;
+			mob->health = ResourceBar(200);
+
+			{
+				NewEntity * ent = new NewEntity();
+
+				PositionComponent * p = new PositionComponent();
+				GraphicsComponent * g = new GraphicsComponent();
+
+				ent->addComponent(p);
+				ent->addComponent(g);
+
+				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/sphere32_16.gmdl", Material("data/assets/white.tga"), 0)));
+
+				acc->debug = p;
+
+				entity->world->AddEntity(ent);
+			}
 
 			return mob;
 		}
@@ -137,7 +162,6 @@ MobComponent * SpawnComponent::spawn(const Vec3& v)
 			std::uniform_real_distribution<float> uni_dist;
 			mob->move = v;
 			mob->cam_facing = v.Normalized();
-			ai->checks.insert(std::make_pair(2.0f + uni_dist(random) * 6.0f, ai->chase));
 		}
 	}
 	return mob;

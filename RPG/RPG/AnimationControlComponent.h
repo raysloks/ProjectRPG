@@ -2,6 +2,10 @@
 #define ANIMATION_CONTROL_COMPONENT_H
 
 #include "Component.h"
+#include "Vec3.h"
+
+class PositionComponent;
+class AnimationState;
 
 class AnimationControlComponent :
 	public Component
@@ -30,11 +34,18 @@ public:
 
 	static const AutoSerialFactory<AnimationControlComponent> _factory;
 
-	void set_state(uint32_t new_state);
+	void set_state(AnimationState * new_state);
 
-	uint32_t state;
-	size_t sync;
-	bool send;
+	bool has_state(const std::string& name);
+
+	Vec3 root;
+	uint32_t sync;
+	AnimationState * state;
+	float overtime;
+	std::vector<AnimationState*> removed_states;
+
+	PositionComponent * debug;
+	float scale;
 };
 
 #endif

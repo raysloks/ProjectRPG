@@ -28,8 +28,8 @@ supersampling_r = 1;
 
 fov = 90.0;
 
-near_z = 0.05;
-far_z = 500.0;
+near_z = 0.5;
+far_z = 5000.0;
 depth_partitions = 1;
 
 sensitivity = 0.00025;

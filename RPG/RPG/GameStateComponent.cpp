@@ -243,6 +243,9 @@ void GameStateComponent::startGame(void)
 #include "WeaponComponent.h"
 #include "ColliderComponent.h"
 #include "AudioComponent.h"
+#include "CameraShakeComponent.h"
+
+#include "SimpleState.h"
 
 MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t team, uint32_t index)
 {
@@ -269,8 +272,14 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	if (team == 0)
 	{
 		p->p = Vec3(-15.0f, -5.0f, 23.0f);
-		//pose->anim = "data/assets/units/player/hoodlum.anim";
-		//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/hoodlum.gmdl", Material("data/assets/units/player/hoodlum.tga"))));
+		pose->anim = "data/assets/units/player/hoodlum.anim";
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/hoodlum.gmdl", Material("data/assets/units/player/hoodlum.tga"))));
+	}
+	if (team == 1)
+	{
+		p->p = Vec3(-15.0f, -5.0f, 33.0f);
+		/*pose->anim = "data/assets/units/player/KnightGuy.anim";
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/terrain/textures/nground.tga"))));*/
 		pose->anim = "data/assets/units/golem/golem.anim";
 		MaterialList materials;
 		materials.materials.push_back(Material("data/assets/black.tga"));
@@ -278,12 +287,6 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 		materials.materials.back().tex.push_back("data/assets/units/golem/golem_ao.tga");
 		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/golem/golem.gmdl", materials)));
 		g->tag = 1;
-	}
-	if (team == 1)
-	{
-		p->p = Vec3(-15.0f, -5.0f, 33.0f);
-		pose->anim = "data/assets/units/player/KnightGuy.anim";
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/terrain/textures/nground.tga"))));
 	}
 	p->p += Vec3(0.0f, 1.0f, 0.0f) * index;
 	mob->temp_team = team;
@@ -298,103 +301,109 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 
 		mob->on_tick = [=](float dTime)
 		{
-			if (mob->input["attack"])
+			bool recovering = mob->input.find("recover") != mob->input.end();
+			bool rolling = acc->has_state("roll") || acc->has_state("hit");
+			bool attacking = acc->has_state("attack");
+			bool busy = rolling || attacking;
+
+			if (!busy && !recovering)
 			{
-				if (mob->weapon_index == 0)
+				if (mob->input["attack"])
 				{
-					//auto spawn_bullet = [=](const Vec3& muzzle_velocity)
-					//{
-					//	NewEntity * ent = new NewEntity();
-
-					//	PositionComponent * pos = new PositionComponent();
-					//	ProjectileComponent * projectile = new ProjectileComponent();
-					//	GraphicsComponent * g = new GraphicsComponent(false);
-
-					//	ent->addComponent(pos);
-					//	ent->addComponent(projectile);
-					//	ent->addComponent(g);
-
-					//	projectile->v = muzzle_velocity + mob->v;
-					//	projectile->drag = 0.01f;
-
-					//	pos->p = *mob->p + mob->up * 0.45f;
-
-					//	projectile->on_collision = [=](MobComponent * target)
-					//	{
-					//		if (target)
-					//		{
-					//			target->do_damage(20, mob->entity->get_id());
-					//			target->hit = true;
-					//		}
-					//		//ent->world->SetEntity(ent->id, nullptr);
-					//		projectile->v = Vec3();
-					//	};
-
-					//	projectile->shooter = mob;
-
-					//	g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
-					//	g->decs.items.front()->local *= 0.0127f * 0.5f;
-					//	g->decs.items.front()->local.data[15] = 1.0f;
-					//	g->decs.items.front()->local *= mob->cam_rot;
-
-					//	mob->entity->world->AddEntity(ent);
-					//};
-
-					//spawn_bullet(mob->cam_facing * 470.0f);
-
-					//mob->weapon->recoil += 0.3f;
-
-					//NewEntity * sound_ent = new NewEntity();
-					//auto audio = new AudioComponent("data/assets/audio/bang.wav");
-					//audio->pos_id = mob->weapon->entity->get_id();
-					//sound_ent->addComponent(audio);
-					//mob->entity->world->AddEntity(sound_ent);
-
-					if (acc->state != 4 && mob->landed && mob->input.find("recover") == mob->input.end())
+					if (mob->weapon_index == 0)
 					{
-						acc->set_state(4);
+						//auto spawn_bullet = [=](const Vec3& muzzle_velocity)
+						//{
+						//	NewEntity * ent = new NewEntity();
 
-						NewEntity * sound_ent = new NewEntity();
-						auto audio = new AudioComponent("data/assets/audio/hya.wav");
-						audio->pos_id = ent->get_id();
-						sound_ent->addComponent(audio);
-						ent->world->AddEntity(sound_ent);
+						//	PositionComponent * pos = new PositionComponent();
+						//	ProjectileComponent * projectile = new ProjectileComponent();
+						//	GraphicsComponent * g = new GraphicsComponent(false);
 
-						auto nearby_mobs = ent->world->GetNearestComponents<MobComponent>(p->p + mob->facing * 1.75f, 1.75f);
-						for each (auto nearby in nearby_mobs)
+						//	ent->addComponent(pos);
+						//	ent->addComponent(projectile);
+						//	ent->addComponent(g);
+
+						//	projectile->v = muzzle_velocity + mob->v;
+						//	projectile->drag = 0.01f;
+
+						//	pos->p = *mob->p + mob->up * 0.45f;
+
+						//	projectile->on_collision = [=](MobComponent * target)
+						//	{
+						//		if (target)
+						//		{
+						//			target->do_damage(20, mob->entity->get_id());
+						//			target->hit = true;
+						//		}
+						//		//ent->world->SetEntity(ent->id, nullptr);
+						//		projectile->v = Vec3();
+						//	};
+
+						//	projectile->shooter = mob;
+
+						//	g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", Material("data/assets/empty.tga"), 0)));
+						//	g->decs.items.front()->local *= 0.0127f * 0.5f;
+						//	g->decs.items.front()->local.data[15] = 1.0f;
+						//	g->decs.items.front()->local *= mob->cam_rot;
+
+						//	mob->entity->world->AddEntity(ent);
+						//};
+
+						//spawn_bullet(mob->cam_facing * 470.0f);
+
+						//mob->weapon->recoil += 0.3f;
+
+						//NewEntity * sound_ent = new NewEntity();
+						//auto audio = new AudioComponent("data/assets/audio/bang.wav");
+						//audio->pos_id = mob->weapon->entity->get_id();
+						//sound_ent->addComponent(audio);
+						//mob->entity->world->AddEntity(sound_ent);
+
+						if (mob->landed)
 						{
-							if (nearby.second->temp_team != mob->temp_team)
+							acc->set_state(new SimpleState("attack", 3.0f));
+
+							NewEntity * sound_ent = new NewEntity();
+							auto audio = new AudioComponent("data/assets/audio/hya.wav");
+							audio->pos_id = ent->get_id();
+							sound_ent->addComponent(audio);
+							ent->world->AddEntity(sound_ent);
+
+							auto nearby_mobs = ent->world->GetNearestComponents<MobComponent>(p->p + mob->facing * 1.75f, 1.75f);
+							for each (auto nearby in nearby_mobs)
 							{
-								std::vector<std::shared_ptr<Collision>> list;
-								ColliderComponent::LineCheck(p->p, *nearby.second->p, list);
-								if (list.empty())
+								if (nearby.second->temp_team != mob->temp_team)
 								{
-									nearby.second->do_damage(4, ent->get_id());
-									nearby.second->hit = true;
-									Vec3 dif = *nearby.second->p - p->p;
-									dif.Normalize();
-									nearby.second->v = dif * 8.0f + Vec3(0.0f, 0.0f, 1.0f);
-									nearby.second->input["rolling"] += 0.2f;
+									std::vector<std::shared_ptr<Collision>> list;
+									ColliderComponent::LineCheck(p->p, *nearby.second->p, list);
+									if (list.empty())
+									{
+										nearby.second->do_damage(4, ent->get_id());
+										nearby.second->hit = true;
+										Vec3 dif = *nearby.second->p - p->p;
+										dif.Normalize();
+										nearby.second->v = dif * 8.0f + Vec3(0.0f, 0.0f, 1.0f);
+									}
 								}
 							}
+
+							mob->stamina.current -= 1;
+							mob->input.erase("attack");
+						}
+					}
+
+					if (mob->weapon_index == 1)
+					{
+						if (mob->mana.current > 0.0f)
+						{
+							uint32_t power = std::min(4, mob->mana.current);
+							mob->do_heal(power, mob->entity->get_id());
+							mob->mana.current -= power;
 						}
 
-						mob->stamina.current -= 1;
-						mob->v = Vec3();
-						mob->input["rolling"] = 0.4f;
 						mob->input.erase("attack");
 					}
-				}
-
-				if (mob->weapon_index == 1)
-				{
-					if (mob->mana.current > 0.0f)
-					{
-						mob->do_heal(std::fminf(4.0f, mob->mana.current), mob->entity->get_id());
-						mob->mana.current -= 4.0f;
-					}
-
-					mob->input.erase("attack");
 				}
 			}
 		};
@@ -493,8 +502,7 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 					sound_ent->addComponent(audio);
 					mob->entity->world->AddEntity(sound_ent);
 
-					acc->set_state(0);
-					acc->set_state(3);
+					//acc->set_state(3);
 				}
 			}
 		};

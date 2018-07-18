@@ -25,6 +25,8 @@
 
 #include "BlendUtility.h"
 
+#include "SimpleState.h"
+
 const AutoSerialFactory<MobComponent> MobComponent::_factory("MobComponent");
 
 MobComponent::MobComponent(void) : Serializable(_factory.id), health(10), stamina(10), mana(10)
@@ -61,6 +63,8 @@ void MobComponent::tick(float dTime)
 {
 	if (entity->world->authority)
 	{
+		auto acc = entity->getComponent<AnimationControlComponent>();
+
 		if (input["switch"] && weapon)
 		{
 			weapon = weapon->swap(1 - weapon_index);
@@ -72,11 +76,14 @@ void MobComponent::tick(float dTime)
 		{
 			if (input.find("recover") == input.end())
 			{
-				NewEntity * sound_ent = new NewEntity();
-				auto audio = new AudioComponent("data/assets/audio/strained_breathing_short.wav");
-				audio->pos_id = entity->get_id();
-				sound_ent->addComponent(audio);
-				entity->world->AddEntity(sound_ent);
+				if (temp_team == 0)
+				{
+					NewEntity * sound_ent = new NewEntity();
+					auto audio = new AudioComponent("data/assets/audio/strained_breathing_short.wav");
+					audio->pos_id = entity->get_id();
+					sound_ent->addComponent(audio);
+					entity->world->AddEntity(sound_ent);
+				}
 
 				input["recover"] = 3.0f;
 			}
@@ -84,12 +91,6 @@ void MobComponent::tick(float dTime)
 
 		if (health.current <= 0)
 		{
-			auto ai = entity->getComponent<AIComponent>();
-			if (ai)
-			{
-				ai->checks.clear();
-			}
-
 			move = Vec3();
 			crouch = true;
 			//health.current -= dTime * 1.0f;
@@ -101,7 +102,7 @@ void MobComponent::tick(float dTime)
 			}
 		}
 
-		if (move != Vec3() && input.find("rolling") == input.end())
+		if (move != Vec3())
 		{
 			move_facing = move.Normalized();
 		}
@@ -150,9 +151,6 @@ void MobComponent::tick(float dTime)
 					mob.second->external_dp -= dif * 0.5f;
 				}
 			}
-
-			if (on_tick)
-				on_tick(dTime);
 
 			/*{
 				std::vector<std::shared_ptr<Collision>> list;
@@ -374,15 +372,18 @@ void MobComponent::tick(float dTime)
 						{
 							done_landing = true;
 
-							facing = move_facing;
-
 							Vec3 target = move;
 							Vec3 target_right = target.Cross(up);
 							target = land_n.Cross(target_right);
 							target.Normalize();
 
 							bool recovering = input.find("recover") != input.end();
-							bool rolling = input.find("rolling") != input.end();
+							bool rolling = acc->has_state("roll") || acc->has_state("hit");
+							bool attacking = acc->has_state("attack");
+							bool busy = rolling || attacking;
+
+							if (!busy)
+								facing = move_facing;
 
 							if (recovering)
 								run = false;
@@ -397,9 +398,12 @@ void MobComponent::tick(float dTime)
 
 							float speed = crouch ? 2.0f : run ? 9.0f : recovering ? 2.0f : 5.5f;
 
+							if (attacking)
+								speed = 0.0f;
+
 							target *= move.Len() * speed;
 
-							if (input.find("rolling") == input.end())
+							if (!rolling)
 							{
 								v -= land_v;
 								float nv = v.Dot(land_n);
@@ -411,29 +415,32 @@ void MobComponent::tick(float dTime)
 								v += land_v;
 							}
 
-							if (input.find("roll") != input.end() && move != Vec3() && health.current > 0.0f && !recovering && !rolling)
+							if (!recovering && !busy)
 							{
-								input["rolling"] += 0.5f;
+								if (input.find("roll") != input.end())
+								{
+									acc->set_state(new SimpleState("roll", 1.5f));
 
-								move_facing = move.Normalized();
-								v = move_facing * 12.5f + land_v;
+									move_facing = move.Normalized();
+									v = move_facing * 12.5f + land_v;
 
-								stamina.current -= 1;
+									stamina.current -= 1;
 
-								input.erase("roll");
-							}
+									input.erase("roll");
+								}
 
-							if (input.find("jump") != input.end() && health.current > 0.0f && !recovering && !rolling)
-							{
-								v -= land_v;
-								if (up.Dot(v)<0.0f)
-									v -= up * up.Dot(v);
-								v += land_v;
-								v += up * 4.0f;
+								if (input.find("jump") != input.end())
+								{
+									v -= land_v;
+									if (up.Dot(v)<0.0f)
+										v -= up * up.Dot(v);
+									v += land_v;
+									v += up * 4.0f;
 
-								stamina.current -= 1;
+									stamina.current -= 1;
 
-								input.erase("jump");
+									input.erase("jump");
+								}
 							}
 
 							int32_t stamina_regen_integer = stamina_regen;
@@ -474,6 +481,9 @@ void MobComponent::tick(float dTime)
 			dp = Vec3();
 			external_dp = Vec3();
 
+			if (on_tick)
+				on_tick(dTime);
+
 			if (prev != *p)
 				if (pc != nullptr)
 					pc->update();
@@ -511,7 +521,7 @@ void MobComponent::readLog(instream& is, ClientData& client)
 
 void MobComponent::interpolate(Component * pComponent, float fWeight)
 {
-	auto mob = dynamic_cast<MobComponent*>(pComponent);
+	auto mob = reinterpret_cast<MobComponent*>(pComponent);
 	if (mob != nullptr)
 	{
 		facing = bu_sphere(mob->facing, facing, up, fWeight);

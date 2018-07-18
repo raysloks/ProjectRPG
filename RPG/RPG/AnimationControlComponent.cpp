@@ -4,31 +4,46 @@
 
 #include "World.h"
 
+#include "Client.h"
+
 #include "MobComponent.h"
 #include "GraphicsComponent.h"
 #include "PoseComponent.h"
 #include "AudioComponent.h"
+#include "CameraShakeComponent.h"
+#include "PositionComponent.h"
+
+#include "BlendUtility.h"
+
+#include "AnimationState.h"
+#include "SimpleState.h"
+#include "CycleState.h"
+#include "RunCycleState.h"
 
 const AutoSerialFactory<AnimationControlComponent> AnimationControlComponent::_factory("AnimationControlComponent");
 
 AnimationControlComponent::AnimationControlComponent(void) : Serializable(_factory.id)
 {
+	scale = 1.0f;
+	sync = 0;
+	state = nullptr;
 }
 
 AnimationControlComponent::AnimationControlComponent(instream& is, bool full) : Serializable(_factory.id)
 {
+	scale = 1.0f;
+	sync = 0;
+	state = nullptr;
 }
 
 AnimationControlComponent::~AnimationControlComponent(void)
 {
+	if (state)
+		delete state;
 }
 
 void AnimationControlComponent::connect(NewEntity * pEntity, bool authority)
 {
-	sync = pEntity->ss.allocate([](ClientData& client)
-	{
-		
-	}, std::function<bool(ClientData&)>());
 }
 
 void AnimationControlComponent::disconnect(void)
@@ -37,9 +52,28 @@ void AnimationControlComponent::disconnect(void)
 
 void AnimationControlComponent::tick(float dTime)
 {
+	auto p = entity->getComponent<PositionComponent>();
 	auto g = entity->getComponent<GraphicsComponent>();
 	auto mob = entity->getComponent<MobComponent>();
 	auto pose = entity->getComponent<PoseComponent>();
+
+	do
+	{
+		if (!state)
+		{
+			set_state(new RunCycleState("run", 0.3f, "idle", 1.0f));
+		}
+
+		float added_time = overtime;
+		overtime = 0.0f;
+		if (state)
+			state->tick(dTime + added_time);
+	} while (overtime > 0.0f);
+
+	for (auto s : removed_states)
+		delete s;
+	removed_states.clear();
+
 	if (g && mob && pose)
 	{
 		if (!g->decs.items.empty())
@@ -50,6 +84,11 @@ void AnimationControlComponent::tick(float dTime)
 			flat_facing.Normalize();
 
 			Matrix4 transform = Matrix3(flat_facing.Cross(mob->up), flat_facing, mob->up);
+
+			if (mob->temp_team == 1)
+				scale = 3.0f;
+
+			transform *= Matrix4::Scale(Vec3(scale, scale, scale));
 
 			if (mob->crouch && mob->health.current > 0.0f) // temp
 				transform.mtrx[2][2] *= 0.75f;
@@ -64,7 +103,7 @@ void AnimationControlComponent::tick(float dTime)
 			if (mob->hit)
 			{
 				mob->hit = false;
-				set_state(5);
+				set_state(new SimpleState("hit", 4.0f));
 
 				if (entity->world->authority)
 				{
@@ -88,60 +127,45 @@ void AnimationControlComponent::tick(float dTime)
 				}
 			}
 
-			float prev_frame = pose->frame;
 			auto anim = Resource::get<SkeletalAnimation>(pose->anim);
 			if (anim)
 			{
-				switch (state)
+				if (entity->world->authority)
 				{
-				case 0:
-					set_state(1);
-					break;
-				case 1:
-				{
-					pose->frame += dTime * 30.0f;
-					if (pose->frame >= anim->getEnd("idle"))
-						pose->frame -= anim->getLength("idle");
-					if (mob->move != Vec3() || !mob->landed)
-						set_state(2);
-					break;
-				}
-				case 2:
-				{
-					pose->frame += dTime * 30.0f * Vec2(mob->v).Len();
-					float halfway = anim->getEnd("run") - anim->getLength("run") / 2.0f;
-					if (pose->frame > halfway && prev_frame <= halfway && !mob->landed)
-						pose->frame = halfway;
-					if (pose->frame >= anim->getEnd("run"))
+					if (anim->getProperty("Hand_R.active", pose->frame) > 0.5f)
 					{
-						if (mob->landed)
-							pose->frame -= anim->getLength("run");
-						else
-							pose->frame = anim->getEnd("run");
+						GlobalPosition pos = *mob->p + Vec3() * anim->getMatrix(anim->getIndex("Hand_R"), pose->frame) * transform;
+						float radius = 0.2f * scale;
+						if (debug)
+						{
+							debug->p = pos;
+							debug->update();
+							auto g = debug->entity->getComponent<GraphicsComponent>();
+							if (g)
+							{
+								g->decs.items.front()->local = Matrix4::Scale(Vec3(radius, radius, radius));
+								g->decs.update(0);
+							}
+						}
+						auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(pos, 0.5f + radius);
+						MobComponent * other = nullptr;
+						for each (auto nearby in nearby_mobs)
+						{
+							if (nearby.second->temp_team != mob->temp_team)
+							{
+								other = nearby.second;
+							}
+						}
+
+						if (other != nullptr)
+						{
+							other->do_damage(1, entity->get_id());
+							other->hit = true;
+							Vec3 dif = *other->p - *mob->p;
+							dif.Normalize();
+							other->v = dif * 8.0f + Vec3(0.0f, 0.0f, 1.0f);
+						}
 					}
-					if (mob->move == Vec3() && mob->landed)
-						set_state(1);
-					if (mob->input.find("rolling") != mob->input.end())
-						set_state(3);
-					break;
-				}
-				case 3:
-					pose->frame += dTime * 120.0f;
-					if (pose->frame > anim->getEnd("roll"))
-						set_state(2);
-					break;
-				case 4:
-					pose->frame += dTime * 300.0f;
-					if (pose->frame > anim->getEnd("attack"))
-						set_state(2);
-					break;
-				case 5:
-					pose->frame += dTime * 60.0f;
-					if (pose->frame > anim->getEnd("hit"))
-						set_state(2);
-					break;
-				default:
-					break;
 				}
 			}
 		}
@@ -154,12 +178,22 @@ void AnimationControlComponent::pre_frame(float dTime)
 
 void AnimationControlComponent::writeLog(outstream& os, ClientData& client)
 {
-	os << state;
+	os << scale;
+	Serializable::serialize(os, state);
+	if (state)
+		state->write_to(os, false);
+	os << sync;
 }
 
 void AnimationControlComponent::readLog(instream& is)
 {
-	is >> state;
+	is >> scale;
+	auto factory = Serializable::deserialize(is);
+	if (factory)
+		set_state(dynamic_cast<AnimationState*>(factory->create(is, false)));
+	else
+		set_state(nullptr);
+	is >> sync;
 }
 
 void AnimationControlComponent::writeLog(outstream& os)
@@ -173,7 +207,22 @@ void AnimationControlComponent::readLog(instream& is, ClientData& client)
 void AnimationControlComponent::interpolate(Component * pComponent, float fWeight)
 {
 	auto other = reinterpret_cast<AnimationControlComponent*>(pComponent);
-	set_state(other->state);
+	
+	if (SyncState::is_ordered_strict(sync, other->sync))
+	{
+		if (other->state)
+			set_state(dynamic_cast<AnimationState*>(Serializable::getFactory(other->state->getSerialID())->create(other->state)));
+		else
+			set_state(nullptr);
+		sync = other->sync;
+	}
+	else
+	{
+		if (state && other->state)
+			state->interpolate(other->state, fWeight);
+	}
+
+	scale = bu_blend(other->scale, scale, fWeight);
 }
 
 void AnimationControlComponent::write_to(outstream& os, ClientData& client) const
@@ -184,40 +233,32 @@ void AnimationControlComponent::write_to(outstream& os) const
 {
 }
 
-void AnimationControlComponent::set_state(uint32_t new_state)
+void AnimationControlComponent::set_state(AnimationState * new_state)
 {
-	if (new_state != state)
+	++sync;
+	if (new_state)
 	{
 		auto pose = entity->getComponent<PoseComponent>();
-		if (pose)
-		{
-			auto anim = Resource::get<SkeletalAnimation>(pose->anim);
-			if (anim)
-			{
-				switch (new_state)
-				{
-				case 0:
-					break;
-				case 1:
-					pose->frame = anim->getStart("idle");
-					break;
-				case 2:
-					pose->frame = anim->getStart("run");
-					break;
-				case 3:
-					pose->frame = anim->getStart("roll");
-					break;
-				case 4:
-					pose->frame = anim->getStart("attack");
-					break;
-				case 5:
-					pose->frame = anim->getStart("hit");
-					break;
-				default:
-					break;
-				}
-			}
-		}
-		state = new_state;
+		auto mob = entity->getComponent<MobComponent>();
+
+		new_state->acc = this;
+		new_state->pose = pose;
+		new_state->mob = mob;
 	}
+	if (state)
+	{
+		state->leave(new_state);
+		removed_states.push_back(state);
+	}
+	if (new_state)
+		new_state->enter(state);
+	state = new_state;
+}
+
+bool AnimationControlComponent::has_state(const std::string & name)
+{
+	SimpleState * simple = dynamic_cast<SimpleState*>(state);
+	if (simple)
+		return simple->name.compare(name) == 0;
+	return false;
 }

@@ -34,7 +34,7 @@ void Serializable::Register(const std::string& name, const size_t& id, StreamFac
 	if (_names==0)
 		_names = new std::map<uint32_t, std::string>;
 	if ((*_reg)[id]!=0)// && name.compare((*_names)[id])!=0)
-		throw std::exception("Hash collision!");
+		throw std::runtime_error("Hash collision!");
 	(*_reg)[id] = factory;
 	(*_names)[id] = name;
 }
@@ -44,7 +44,7 @@ void Serializable::serialize(outstream& os, const Serializable * const instance)
 	os << instance->_serID;
 }
 
-const StreamFactory<Serializable> * Serializable::unserialize(instream& is)
+const StreamFactory<Serializable> * Serializable::deserialize(instream& is)
 {
 	uint32_t id;
 	is >> id;

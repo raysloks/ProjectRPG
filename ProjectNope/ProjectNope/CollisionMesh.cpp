@@ -195,9 +195,9 @@ void CollisionMesh::CalcGrid(void)
 {
 	Vec3 dif = aabb_max - aabb_min;
 
-	grid_w = max(1, dif.x / 2.0f);
-	grid_h = max(1, dif.y / 2.0f);
-	grid_d = max(1, dif.z / 2.0f);
+	grid_w = max(1, dif.x / 20.0f);
+	grid_h = max(1, dif.y / 20.0f);
+	grid_d = max(1, dif.z / 20.0f);
 
 	grid.clear();
 	grid.resize(grid_w * grid_h * grid_d);

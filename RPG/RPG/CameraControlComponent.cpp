@@ -6,6 +6,7 @@
 
 #include "PositionComponent.h"
 #include "MobComponent.h"
+#include "CameraShakeComponent.h"
 
 #include "BlendUtility.h"
 
@@ -93,6 +94,13 @@ void CameraControlComponent::pre_frame(float dTime)
 				if (combined_length > regular_length)
 					combined_offset *= regular_length / combined_length;
 				entity->world->cam_pos = *p + combined_offset;
+
+				auto shakes = entity->world->GetNearestComponents<CameraShakeComponent>(*p);
+				for (auto shake : shakes)
+				{
+					entity->world->cam_pos += shake.second->getShake() / (shake.first + 1.0f);
+				}
+
 				std::vector<std::shared_ptr<Collision>> list;
 				ColliderComponent::DiskCast(*p, entity->world->cam_pos, 0.25f, list);
 				std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });

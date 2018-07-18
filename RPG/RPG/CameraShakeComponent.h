@@ -1,31 +1,23 @@
-#ifndef AI_COMPONENT_H
-#define AI_COMPONENT_H
+#ifndef CAMERA_SHAKE_COMPONENT_H
+#define CAMERA_SHAKE_COMPONENT_H
 
 #include "Component.h"
 
-#include <random>
-#include <map>
-#include <functional>
-#include <queue>
-
 #include "Vec3.h"
-#include "GlobalPosition.h"
-#include "EntityID.h"
 
-class MobComponent;
-
-class AIComponent :
+class CameraShakeComponent :
 	public Component
 {
 public:
-	AIComponent(void);
-	AIComponent(instream& is, bool full);
-	~AIComponent(void);
+	CameraShakeComponent(void);
+	CameraShakeComponent(instream& is, bool full);
+	~CameraShakeComponent(void);
 
 	void connect(NewEntity * pEntity, bool authority);
 	void disconnect(void);
 
 	void pre_frame(float dTime);
+	void post_frame(float dTime);
 	void tick(float dTime);
 
 	void writeLog(outstream& os, ClientData& client);
@@ -39,12 +31,11 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	static const AutoSerialFactory<AIComponent> _factory;
+	static const AutoSerialFactory<CameraShakeComponent> _factory;
 
-	std::queue<GlobalPosition> path;
-	EntityID target;
+	Vec3 getShake(void) const;
 
-	std::default_random_engine random;
+	float t;
 };
 
 #endif
