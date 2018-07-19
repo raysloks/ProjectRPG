@@ -12,6 +12,7 @@
 #include "AudioComponent.h"
 #include "CameraShakeComponent.h"
 #include "PositionComponent.h"
+#include "HitComponent.h"
 
 #include "BlendUtility.h"
 
@@ -57,6 +58,8 @@ void AnimationControlComponent::tick(float dTime)
 	auto mob = entity->getComponent<MobComponent>();
 	auto pose = entity->getComponent<PoseComponent>();
 
+	float prev_frame = pose->frame;
+
 	do
 	{
 		if (!state)
@@ -74,98 +77,66 @@ void AnimationControlComponent::tick(float dTime)
 		delete s;
 	removed_states.clear();
 
-	if (g && mob && pose)
-	{
-		if (!g->decs.items.empty())
-		{
-			if (mob->facing == Vec3())
-				mob->facing = Vec3(0.0f, 1.0f, 0.0f);
-			Vec3 flat_facing = mob->facing - mob->up * mob->up.Dot(mob->facing);
-			flat_facing.Normalize();
+	if (mob->facing == Vec3())
+		mob->facing = Vec3(0.0f, 1.0f, 0.0f);
+	Vec3 flat_facing = mob->facing - mob->up * mob->up.Dot(mob->facing);
+	flat_facing.Normalize();
 
-			Matrix4 transform = Matrix3(flat_facing.Cross(mob->up), flat_facing, mob->up);
+	Matrix4 transform = Matrix4::Translation(-root);
+	transform *= Matrix3(flat_facing.Cross(mob->up), flat_facing, mob->up);
 
-			if (mob->temp_team == 1)
-				scale = 3.0f;
+	if (mob->temp_team == 1)
+		scale = 3.0f;
 
-			transform *= Matrix4::Scale(Vec3(scale, scale, scale));
+	transform *= Matrix4::Scale(Vec3(scale, scale, scale));
 
-			if (mob->crouch && mob->health.current > 0.0f) // temp
-				transform.mtrx[2][2] *= 0.75f;
-
-			transform *= Matrix4::Translation(-mob->up * (mob->crouch ? 0.75f : 1.25f));
+	transform *= Matrix4::Translation(-mob->up * (mob->crouch ? 0.75f : 1.25f));
 			
-			for (auto dec : g->decs.items)
-			{
-				dec->local = transform;
-			}
+	for (auto dec : g->decs.items)
+	{
+		dec->local = transform;
+	}
 
-			if (mob->hit)
-			{
-				mob->hit = false;
-				set_state(new SimpleState("hit", 4.0f));
+	if (mob->hit)
+	{
+		mob->hit = false;
+		set_state(new SimpleState("hit", 4.0f));
+	}
 
-				if (entity->world->authority)
+	auto anim = Resource::get<SkeletalAnimation>(pose->anim);
+	if (anim)
+	{
+		Vec3 root_position = Vec3() * anim->getMatrix(anim->getIndex("root"), pose->frame);
+		Vec3 root_movement = (root_position - root) * Matrix3(transform);
+		root = root_position;
+		if (entity->world->authority)
+		{
+			mob->external_dp += root_movement;
+
+			float active = anim->getProperty("Hand_R.active", pose->frame);
+			GlobalPosition pos = *mob->p + Vec3() * anim->getMatrix(anim->getIndex("Hand_R"), pose->frame) * transform;
+			float radius = 0.2f * scale * active;
+			if (debug)
+			{
+				debug->p = pos;
+				debug->update();
+				auto g = debug->entity->getComponent<GraphicsComponent>();
+				if (g)
 				{
-					if (mob->temp_team == 0)
-					{
-						NewEntity * sound_ent = new NewEntity();
-						auto audio = new AudioComponent("data/assets/audio/ouch.wav");
-						audio->pos_id = entity->get_id();
-						sound_ent->addComponent(audio);
-						entity->world->AddEntity(sound_ent);
-					}
-
-					if (mob->temp_team == 1)
-					{
-						NewEntity * sound_ent = new NewEntity();
-						auto audio = new AudioComponent("data/assets/audio/ZombieOuch.wav");
-						audio->pos_id = entity->get_id();
-						sound_ent->addComponent(audio);
-						entity->world->AddEntity(sound_ent);
-					}
+					g->decs.items.front()->local = Matrix4::Scale(Vec3(radius, radius, radius));
+					g->decs.update(0);
 				}
-			}
-
-			auto anim = Resource::get<SkeletalAnimation>(pose->anim);
-			if (anim)
-			{
-				if (entity->world->authority)
+				auto h = debug->entity->getComponent<HitComponent>();
+				if (h)
 				{
-					if (anim->getProperty("Hand_R.active", pose->frame) > 0.5f)
+					h->active = active > 0.5f;
+					h->r = radius;
+					h->func = [=](MobComponent * target, const Vec3& v)
 					{
-						GlobalPosition pos = *mob->p + Vec3() * anim->getMatrix(anim->getIndex("Hand_R"), pose->frame) * transform;
-						float radius = 0.2f * scale;
-						if (debug)
-						{
-							debug->p = pos;
-							debug->update();
-							auto g = debug->entity->getComponent<GraphicsComponent>();
-							if (g)
-							{
-								g->decs.items.front()->local = Matrix4::Scale(Vec3(radius, radius, radius));
-								g->decs.update(0);
-							}
-						}
-						auto nearby_mobs = entity->world->GetNearestComponents<MobComponent>(pos, 0.5f + radius);
-						MobComponent * other = nullptr;
-						for each (auto nearby in nearby_mobs)
-						{
-							if (nearby.second->temp_team != mob->temp_team)
-							{
-								other = nearby.second;
-							}
-						}
-
-						if (other != nullptr)
-						{
-							other->do_damage(1, entity->get_id());
-							other->hit = true;
-							Vec3 dif = *other->p - *mob->p;
-							dif.Normalize();
-							other->v = dif * 8.0f + Vec3(0.0f, 0.0f, 1.0f);
-						}
-					}
+						target->do_damage(4, entity->get_id());
+						target->hit = true;
+						target->v += v * 0.2f;
+					};
 				}
 			}
 		}
@@ -236,6 +207,7 @@ void AnimationControlComponent::write_to(outstream& os) const
 void AnimationControlComponent::set_state(AnimationState * new_state)
 {
 	++sync;
+	root = Vec3();
 	if (new_state)
 	{
 		auto pose = entity->getComponent<PoseComponent>();
@@ -259,6 +231,6 @@ bool AnimationControlComponent::has_state(const std::string & name)
 {
 	SimpleState * simple = dynamic_cast<SimpleState*>(state);
 	if (simple)
-		return simple->name.compare(name) == 0;
+		return strncmp(simple->name.c_str(), name.c_str(), name.size()) == 0;
 	return false;
 }

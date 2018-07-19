@@ -22,7 +22,8 @@ public:
 
 	void write_to(outstream& os, bool full) const;
 
-	float t, speed;
+	float t, prev_t;
+	float speed;
 	std::string name;
 	std::map<float, std::function<void(void)>> events;
 

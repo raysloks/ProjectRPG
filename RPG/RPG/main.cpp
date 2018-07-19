@@ -222,7 +222,7 @@ public:
 			return world->AddEntity(ent);
 		};
 
-		auto spawn = createSpawner(Vec3(21.0f, 20.0f, 21.0f), Vec3(41.0f, 40.0f, 30.0f));
+		auto spawn = createSpawner(Vec3(10.0f, 10.0f, 0.0f), Vec3(20.0f, 20.0f, 1.0f));
 		spawn->spawn();
 		return;
 

@@ -9,11 +9,6 @@ const AutoSerialFactory<HitComponent> HitComponent::_factory("HitComponent");
 
 HitComponent::HitComponent(void) : Serializable(_factory.id)
 {
-	points.push_back(Vec3(0.0f, 0.5f, 0.0f));
-	points.push_back(Vec3(0.0f, 1.0f, 0.0f));
-	points.push_back(Vec3(0.0f, 1.5f, 0.0f));
-	points.push_back(Vec3(0.0f, 2.0f, 0.0f));
-	points.push_back(Vec3(0.0f, 2.5f, 0.0f));
 }
 
 HitComponent::HitComponent(instream& is, bool full) : Serializable(_factory.id)
@@ -43,30 +38,33 @@ void HitComponent::tick(float dTime)
 	if (pc != 0)
 		p = pc->p;
 
+	std::set<MobComponent*> next_hit;
+
 	if (active)
 	{
-		for (auto ent = entity->world->units.begin(); ent != entity->world->units.end(); ++ent)
+		for (auto ent : entity->world->units)
 		{
-			if (*ent != 0)
+			if (ent)
 			{
-				MobComponent * mc = (*ent)->getComponent<MobComponent>();
-				if (mc != 0 && hit.find(mc) == hit.end())
+				MobComponent * mob = ent->getComponent<MobComponent>();
+				if (mob)
 				{
-					if (mc->p != 0)
+					auto mob_p = ent->getComponent<PositionComponent>();
+					if (mob_p)
 					{
-						GlobalPosition target = *mc->p + mc->up * 0.5f;
+						GlobalPosition target = mob_p->p;
 						GlobalPosition prev_target = target;
-						float r = 0.5f;
+						float r_plus_r = r + 0.5f;
 
-						for (auto i = points.begin(); i != points.end(); ++i)
+						auto c = Wall::SphereLine(prev_p - prev_target, p - target, Vec3(), r_plus_r);
+
+						if (c || Vec3(prev_p - prev_target).LenPwr() <= r_plus_r * r_plus_r)
 						{
-							auto c = Wall::SphereLine(*i*prev_mtrx + (prev_p - prev_target), *i*mtrx + (p - target), Vec3(), r);
-
-							if (c != 0 || Vec3((prev_p + *i*prev_mtrx) - prev_target).LenPwr() <= r*r)
+							next_hit.insert(mob);
+							if (hit.find(mob) == hit.end())
 							{
-								mc->hit = true;
-								hit.insert(mc);
-								//std::cout << "hit " << std::distance(points.begin(), i) << " on " << std::distance(entity->world->units.begin(), ent) << std::endl;
+								if (func)
+									func(mob, Vec3(p - prev_p) / dTime);
 							}
 						}
 					}
@@ -74,8 +72,9 @@ void HitComponent::tick(float dTime)
 			}
 		}
 	}
+
+	hit = next_hit;
 	prev_p = p;
-	prev_mtrx = mtrx;
 }
 
 void HitComponent::writeLog(outstream& os, ClientData& client)

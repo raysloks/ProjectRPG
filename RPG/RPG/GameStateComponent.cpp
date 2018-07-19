@@ -271,13 +271,13 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 
 	if (team == 0)
 	{
-		p->p = Vec3(-15.0f, -5.0f, 23.0f);
+		p->p = Vec3(-5.0f, -5.0f, 0.0f);
 		pose->anim = "data/assets/units/player/hoodlum.anim";
 		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/hoodlum.gmdl", Material("data/assets/units/player/hoodlum.tga"))));
 	}
 	if (team == 1)
 	{
-		p->p = Vec3(-15.0f, -5.0f, 33.0f);
+		p->p = Vec3(-5.0f, 5.0f, 0.0f);
 		/*pose->anim = "data/assets/units/player/KnightGuy.anim";
 		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/terrain/textures/nground.tga"))));*/
 		pose->anim = "data/assets/units/golem/golem.anim";
@@ -288,7 +288,7 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/golem/golem.gmdl", materials)));
 		g->tag = 1;
 	}
-	p->p += Vec3(0.0f, 1.0f, 0.0f) * index;
+	p->p += Vec3(1.0f, 0.0f, 0.0f) * index;
 	mob->temp_team = team;
 
 
@@ -380,10 +380,10 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 									if (list.empty())
 									{
 										nearby.second->do_damage(4, ent->get_id());
-										nearby.second->hit = true;
+										/*nearby.second->hit = true;
 										Vec3 dif = *nearby.second->p - p->p;
 										dif.Normalize();
-										nearby.second->v = dif * 8.0f + Vec3(0.0f, 0.0f, 1.0f);
+										nearby.second->v = dif * 8.0f + Vec3(0.0f, 0.0f, 1.0f);*/
 									}
 								}
 							}
@@ -395,11 +395,16 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 
 					if (mob->weapon_index == 1)
 					{
-						if (mob->mana.current > 0.0f)
+						if (mob->mana.current > 0)
 						{
 							uint32_t power = std::min(4, mob->mana.current);
-							mob->do_heal(power, mob->entity->get_id());
-							mob->mana.current -= power;
+							auto state = new SimpleState("attack");
+							state->events.insert(std::make_pair(1.0f, [=]()
+							{
+								mob->do_heal(power, mob->entity->get_id());
+								mob->mana.current -= power;
+							}));
+							acc->set_state(state);
 						}
 
 						mob->input.erase("attack");

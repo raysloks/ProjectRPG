@@ -377,6 +377,7 @@ std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const Action& act) 
 		}
 		Matrix4 rot;
 		Matrix4 pos;
+		Matrix4 scl;
 		if (values.size()>0)
 		{
 			Quaternion q(values[3], values[4], values[5], values[6]);
@@ -402,6 +403,7 @@ std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const Action& act) 
 				}
 			}
 			pos = Matrix4::Translation(Vec3(values[0], values[1], values[2]));
+			scl = Matrix4::Scale(Vec3(values[7], values[8], values[9]));
 			auto it = act.props[i].begin();
 			for (size_t j = 10; j < values.size() && it != act.props[i].end(); ++it, ++j)
 			{
@@ -512,7 +514,7 @@ float SkeletalAnimation::getProperty(const std::string& name, float frame) const
 
 	if (frame_integer < 0)
 		return 0.0f;
-	if (next_frame >= frame_count)
+	if (next_frame >= it->second.size())
 		return 0.0f;
 
 	float prop = it->second[frame_integer];
@@ -543,7 +545,7 @@ void SkeletalAnimation::compileActions(float resolution)
 					for (size_t j = 0; j < action.second.props[i].size(); ++j)
 					{
 						std::string prop_name = names[i] + "." + action.second.props[i][j];
-						compiled_props[prop_name].resize(frame_count);
+						compiled_props[prop_name].resize(frame_count, 0.0f);
 						compiled_props[prop_name][frame_count - 1] = pose->bones[i].props[action.second.props[i][j]];
 					}
 				}

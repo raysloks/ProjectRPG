@@ -192,21 +192,13 @@ float bu_wrap(float current, float target, float a)
 	if (isnan(target))
 		return current;
 
-	current += 0.5f;
-	current -= floorf(current);
-	current -= 0.5f;
-	target += 0.5f;
-	target -= floorf(target);
-	target -= 0.5f;
-
 	float c = current - target;
 	if (c > 0.5f)
 		c -= 1.0f;
 	if (c < -0.5f)
 		c += 1.0f;
 	c *= a;
-	target += c;
-	return target - floorf(target);
+	return target + c;
 }
 
 Vec3 bu_sphere(Vec3 current, Vec3 target, Vec3 pref, float a, float b, float dTime)

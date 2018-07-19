@@ -3,9 +3,9 @@
 
 #include "Component.h"
 
-#include "Matrix4.h"
 #include "GlobalPosition.h"
 
+#include <functional>
 #include <set>
 
 class MobComponent;
@@ -37,9 +37,9 @@ public:
 
 	static const AutoSerialFactory<HitComponent> _factory;
 
+	std::function<void(MobComponent*, const Vec3&)> func;
 	bool active;
-	std::vector<Vec3> points;
-	Matrix4 mtrx, prev_mtrx;
+	float r;
 	GlobalPosition prev_p;
 	std::set<MobComponent*> hit;
 };

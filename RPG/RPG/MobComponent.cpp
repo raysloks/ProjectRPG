@@ -379,8 +379,7 @@ void MobComponent::tick(float dTime)
 
 							bool recovering = input.find("recover") != input.end();
 							bool rolling = acc->has_state("roll") || acc->has_state("hit");
-							bool attacking = acc->has_state("attack");
-							bool busy = rolling || attacking;
+							bool busy = !acc->has_state("run");
 
 							if (!busy)
 								facing = move_facing;
@@ -398,7 +397,7 @@ void MobComponent::tick(float dTime)
 
 							float speed = crouch ? 2.0f : run ? 9.0f : recovering ? 2.0f : 5.5f;
 
-							if (attacking)
+							if (busy)
 								speed = 0.0f;
 
 							target *= move.Len() * speed;
@@ -554,6 +553,9 @@ void MobComponent::write_to(outstream& os) const
 
 void MobComponent::do_damage(size_t damage, EntityID source)
 {
+	if (damage == 0)
+		return;
+
 	if (source.id != 0xffffffff)
 		last_hit = source;
 	if (health.current > 0)
@@ -577,6 +579,27 @@ void MobComponent::do_damage(size_t damage, EntityID source)
 	else
 	{
 		health.current -= damage;
+	}
+
+	if (entity->world->authority)
+	{
+		if (temp_team == 0)
+		{
+			NewEntity * sound_ent = new NewEntity();
+			auto audio = new AudioComponent("data/assets/audio/ouch.wav");
+			audio->pos_id = entity->get_id();
+			sound_ent->addComponent(audio);
+			entity->world->AddEntity(sound_ent);
+		}
+
+		if (temp_team == 1)
+		{
+			NewEntity * sound_ent = new NewEntity();
+			auto audio = new AudioComponent("data/assets/audio/ZombieOuch.wav");
+			audio->pos_id = entity->get_id();
+			sound_ent->addComponent(audio);
+			entity->world->AddEntity(sound_ent);
+		}
 	}
 }
 

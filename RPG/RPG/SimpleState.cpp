@@ -11,11 +11,13 @@ const AutoSerialFactory<SimpleState> SimpleState::_factory("SimpleState");
 SimpleState::SimpleState(const std::string& n, float s) : name(n), speed(s), Serializable(_factory.id)
 {
 	t = 0.0f;
+	prev_t = 0.0f;
 }
 
 SimpleState::SimpleState(instream& is, bool full) : Serializable(_factory.id)
 {
 	is >> t >> speed >> name;
+	prev_t = t;
 }
 
 SimpleState::~SimpleState()
@@ -35,6 +37,14 @@ void SimpleState::tick(float dTime)
 		acc->set_state(nullptr);
 		acc->overtime = (t - 1.0f) / speed;
 	}
+
+	for (auto e : events)
+	{
+		if (prev_t < e.first && t >= e.first)
+			e.second();
+	}
+
+	prev_t = t;
 
 	auto anim = Resource::get<SkeletalAnimation>(pose->anim);
 	if (anim)

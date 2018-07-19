@@ -11,6 +11,7 @@
 #include "AIComponent.h"
 #include "AnimationControlComponent.h"
 #include "PoseComponent.h"
+#include "HitComponent.h"
 
 const AutoSerialFactory<SpawnComponent> SpawnComponent::_factory("SpawnComponent");
 
@@ -128,15 +129,19 @@ MobComponent * SpawnComponent::spawn(void)
 			mob->cam_facing = Vec3(cosf(angle), sinf(angle), 0.0f);
 			mob->temp_team = 1;
 			mob->health = ResourceBar(200);
+			mob->stamina = ResourceBar(50);
+			mob->mana = ResourceBar(100);
 
 			{
 				NewEntity * ent = new NewEntity();
 
 				PositionComponent * p = new PositionComponent();
 				GraphicsComponent * g = new GraphicsComponent();
+				HitComponent * h = new HitComponent();
 
 				ent->addComponent(p);
 				ent->addComponent(g);
+				ent->addComponent(h);
 
 				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/sphere32_16.gmdl", Material("data/assets/white.tga"), 0)));
 

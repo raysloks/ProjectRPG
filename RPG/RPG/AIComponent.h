@@ -44,6 +44,8 @@ public:
 	std::queue<GlobalPosition> path;
 	EntityID target;
 
+	float delay;
+
 	std::default_random_engine random;
 };
 
