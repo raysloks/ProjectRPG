@@ -61,7 +61,7 @@ Client::Client(World * pWorld)
 
 	show_entity_list = false;
 
-	light = Vec3(1.0f, -1.0f, 1.0f);
+	light = Vec3(-1.0f, 1.0f, 1.0f);
 	light.Normalize();
 
 	Vec3 pole(0.0f, 0.0f, 1.0f);
