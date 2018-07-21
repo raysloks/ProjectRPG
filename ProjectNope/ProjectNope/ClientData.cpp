@@ -27,7 +27,7 @@ uint32_t ClientData::addKnownUnit(uint32_t id)
 {
 	for (size_t i = 0; i < known_units.size(); i++)
 	{
-		if (known_units[i] == 0xffffffff || known_units[i] == id) {
+		if (known_units[i] == 0xffffffff) {
 			known_units[i] = id;
 			++unit_uid[i];
 			up_to_date[i] = false;
@@ -44,13 +44,13 @@ uint32_t ClientData::addKnownUnit(uint32_t id)
 
 uint32_t ClientData::forgetUnit(uint32_t id)
 {
-	for (size_t i = 0; i < known_units.size(); i++)
+	for (size_t i = 0; i < known_units.size(); ++i)
 	{
-		if (known_units[i] == id) {
-			uint32_t ret = i;
+		if (known_units[i] == id)
+		{
 			known_units[i] = 0xffffffff;
 			sync[i].clear();
-			return ret;
+			return i;
 		}
 	}
 	return 0xffffffff;

@@ -70,6 +70,12 @@
     <ClCompile Include="RunCycleState.cpp">
       <Filter>Animation States</Filter>
     </ClCompile>
+    <ClCompile Include="GolemUnit.cpp">
+      <Filter>Units</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowSpawnUnit.cpp">
+      <Filter>Units</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -140,6 +146,12 @@
     <ClInclude Include="RunCycleState.h">
       <Filter>Animation States</Filter>
     </ClInclude>
+    <ClInclude Include="GolemUnit.h">
+      <Filter>Units</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowSpawnUnit.h">
+      <Filter>Units</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">
@@ -147,6 +159,9 @@
     </Filter>
     <Filter Include="Animation States">
       <UniqueIdentifier>{d4b76233-5fd4-410e-b671-39b23ff9f656}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Units">
+      <UniqueIdentifier>{70c0c34a-f601-4bd4-af42-90786654fd0f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

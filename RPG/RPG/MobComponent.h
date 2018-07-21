@@ -57,6 +57,8 @@ public:
 
 	float stamina_regen;
 
+	float speed_mod;
+
 	size_t temp_team;
 
 	WeaponComponent * weapon;
@@ -70,7 +72,8 @@ public:
 	Vec3 cam_facing, follow;
 	Quaternion cam_rot;
 
-	float time_under_control;
+	float r;
+	bool use_base_collision;
 
 	//movement
 	Vec3 v;

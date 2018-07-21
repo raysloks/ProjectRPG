@@ -35,6 +35,9 @@ MobComponent::MobComponent(void) : Serializable(_factory.id), health(10), stamin
 	move_facing = facing;
 	follow = facing;
 	up = Vec3(0.0f, 0.0f, 1.0f);
+	speed_mod = 1.0f;
+	r = 0.5f;
+	use_base_collision = true;
 }
 
 MobComponent::MobComponent(instream& is, bool full) : Serializable(_factory.id)
@@ -130,25 +133,33 @@ void MobComponent::tick(float dTime)
 			if (Vec3(*p).LenPwr() > 4000000.0f)
 				entity->world->SetEntity(entity->id, nullptr);
 
-			auto mobs = entity->world->GetNearestComponents<MobComponent>(*p, 2.0f);
-			for each (auto mob in mobs)
+			if (use_base_collision)
 			{
-				if (mob.first < 1.0f && mob.second != this)
+				auto mobs = entity->world->GetNearestComponents<MobComponent>(*p);
+				for each (auto mob in mobs)
 				{
-					Vec3 dif = *p - *mob.second->p;
-					float l = dif.Len();
-					if (l != 0.0f)
-						dif /= l;
+					if (mob.second->use_base_collision)
+					{
+						float r_plus_r = r + mob.second->r;
+						if (mob.first < r_plus_r && mob.second != this)
+						{
+							Vec3 dif = *p - *mob.second->p;
+							float l = mob.first;
+							Vec3 dir = dif;
+							if (l != 0.0f)
+								dir /= l;
 
-					Vec3 vdif = v - mob.second->v;
-					vdif = dif * dif.Dot(vdif);
+							Vec3 vdif = v - mob.second->v;
+							vdif = dif * dif.Dot(vdif);
 
-					v -= vdif * 0.5f;
-					mob.second->v += vdif * 0.5f;
+							v -= vdif * 0.5f;
+							mob.second->v += vdif * 0.5f;
 
-					dif *= 1.0f - l;
-					external_dp += dif * 0.5f;
-					mob.second->external_dp -= dif * 0.5f;
+							dif *= r_plus_r - l;
+							external_dp += dif * 0.5f;
+							mob.second->external_dp -= dif * 0.5f;
+						}
+					}
 				}
 			}
 
@@ -195,7 +206,7 @@ void MobComponent::tick(float dTime)
 
 			bool done_landing = false;
 
-			std::set<void*> ignored;
+			std::set<Wall*> ignored;
 			std::set<Vec3> previous;
 
 			/*auto wpc = weapon->entity->getComponent<PositionComponent>();
@@ -232,9 +243,9 @@ void MobComponent::tick(float dTime)
 					}
 					list.clear();*/
 
-					float disk_radius = 0.45f;
+					float disk_radius = 0.9f * r;
 					float offset = 0.0f;
-					float standing_height = crouch ? 0.75f : 1.25f;
+					float standing_height = (crouch ? 1.5f : 2.5f) * r;
 					float height = standing_height;
 					Vec3 dp_side = dp - up * up.Dot(dp);
 					ColliderComponent::DiskCast(*p - up * offset + dp, *p - up * (offset + height) + dp, disk_radius, list);
@@ -312,12 +323,12 @@ void MobComponent::tick(float dTime)
 					(*i)->n = up;
 				}*/
 
-				ColliderComponent::SphereCast(*p, *p+dp, 0.5f, list);
+				ColliderComponent::SphereCast(*p, *p+dp, r, list);
 
 				std::shared_ptr<Collision> col;
 				for (auto i=list.begin();i!=list.end();++i)
 				{
-					if (ignored.find((*i)->ce)==ignored.end())
+					if (ignored.find((*i)->wall)==ignored.end())
 						if ((*i)->t>=0.0f && (*i)->t<=1.0f)
 							if ((*i)->n.Dot(dp-(*i)->v*dTime)<0.0f)
 							{
@@ -395,7 +406,9 @@ void MobComponent::tick(float dTime)
 									stamina_regen += dTime * 1.0f;
 							}
 
-							float speed = crouch ? 2.0f : run ? 9.0f : recovering ? 2.0f : 5.5f;
+							float speed = crouch ? 2.0f : run ? 90.0f : recovering ? 2.0f : 5.5f;
+
+							speed *= speed_mod;
 
 							if (busy)
 								speed = 0.0f;
@@ -467,7 +480,7 @@ void MobComponent::tick(float dTime)
 					if (should_break)
 						break;
 
-					ignored.insert(col->ce);
+					ignored.insert(col->wall);
 				}
 				else
 				{
@@ -498,6 +511,7 @@ void MobComponent::writeLog(outstream& os, ClientData& client)
 	os << run << crouch;
 	os << cam_rot << move;
 	os << input;
+	os << r;
 }
 
 void MobComponent::readLog(instream& is)
@@ -508,6 +522,7 @@ void MobComponent::readLog(instream& is)
 	is >> run >> crouch;
 	is >> cam_rot >> move;
 	is >> input;
+	is >> r;
 }
 
 void MobComponent::writeLog(outstream& os)
@@ -539,6 +554,7 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 		cam_rot = bu_slerp(cam_rot, mob->cam_rot, fWeight);
 		move = mob->move;
 		input = mob->input;
+		r = mob->r;
 	}
 }
 

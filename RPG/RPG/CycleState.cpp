@@ -27,9 +27,20 @@ void CycleState::enter(AnimationState * prev)
 
 void CycleState::tick(float dTime)
 {
+	if (!authority)
+		prev_t = t;
+
 	t += dTime * speed;
 
 	t -= floorf(t);
+
+	for (auto e : events)
+	{
+		if (prev_t < e.first && t >= e.first)
+			e.second();
+	}
+
+	prev_t = t;
 
 	auto anim = Resource::get<SkeletalAnimation>(pose->anim);
 	if (anim)

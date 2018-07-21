@@ -1,9 +1,15 @@
 #include "HitComponent.h"
-#include "Wall.h"
-#include "PositionComponent.h"
-#include "MobComponent.h"
+
 #include "NewEntity.h"
 #include "World.h"
+
+#include "Wall.h"
+
+#include "PositionComponent.h"
+#include "GraphicsComponent.h"
+#include "PoseComponent.h"
+#include "MobComponent.h"
+#include "AnimationControlComponent.h"
 
 const AutoSerialFactory<HitComponent> HitComponent::_factory("HitComponent");
 
@@ -33,10 +39,41 @@ void HitComponent::pre_frame(float dTime)
 
 void HitComponent::tick(float dTime)
 {
-	GlobalPosition p;
-	PositionComponent * pc = entity->getComponent<PositionComponent>();
-	if (pc != 0)
-		p = pc->p;
+	if (!entity->world->authority)
+		return;
+
+	auto p = entity->getComponent<PositionComponent>();
+	auto g = entity->getComponent<GraphicsComponent>();
+
+	float r = 0.0f;
+	active = false;
+	auto ent = entity->world->GetEntity(owner);
+	if (ent)
+	{
+		auto pose = ent->getComponent<PoseComponent>();
+		auto anim = Resource::get<SkeletalAnimation>(pose->anim);
+		if (anim)
+		{
+			auto mob = ent->getComponent<MobComponent>();
+			auto acc = ent->getComponent<AnimationControlComponent>();
+
+			float prop = anim->getProperty(bone + ".active", pose->frame);
+			GlobalPosition pos = *mob->p + Vec3() * anim->getMatrix(anim->getIndex(bone), pose->frame) * acc->transform;
+			r = radius * acc->scale * prop;
+			p->p = pos;
+			p->update();
+			if (g)
+			{
+				g->decs.items.front()->local = Matrix4::Scale(Vec3(r, r, r));
+				g->decs.update(0);
+			}
+			active = prop > 0.5f;
+		}
+	}
+	else
+	{
+		entity->world->SetEntity(entity->id, nullptr);
+	}
 
 	std::set<MobComponent*> next_hit;
 
@@ -56,7 +93,7 @@ void HitComponent::tick(float dTime)
 						GlobalPosition prev_target = target;
 						float r_plus_r = r + 0.5f;
 
-						auto c = Wall::SphereLine(prev_p - prev_target, p - target, Vec3(), r_plus_r);
+						auto c = Wall::SphereLine(prev_p - prev_target, p->p - target, Vec3(), r_plus_r);
 
 						if (c || Vec3(prev_p - prev_target).LenPwr() <= r_plus_r * r_plus_r)
 						{
@@ -64,7 +101,7 @@ void HitComponent::tick(float dTime)
 							if (hit.find(mob) == hit.end())
 							{
 								if (func)
-									func(mob, Vec3(p - prev_p) / dTime);
+									func(mob, Vec3(p->p - prev_p) / dTime);
 							}
 						}
 					}
@@ -74,7 +111,8 @@ void HitComponent::tick(float dTime)
 	}
 
 	hit = next_hit;
-	prev_p = p;
+	prev_p = p->p;
+	prev_r = r;
 }
 
 void HitComponent::writeLog(outstream& os, ClientData& client)

@@ -28,6 +28,8 @@
 #include "ChatComponent.h"
 #include "ServiceComponent.h"
 
+#include "GolemUnit.h"
+
 #include "ShaderProgram.h"
 
 #include "ClientData.h"
@@ -222,8 +224,7 @@ public:
 			return world->AddEntity(ent);
 		};
 
-		auto spawn = createSpawner(Vec3(10.0f, 10.0f, 0.0f), Vec3(20.0f, 20.0f, 1.0f));
-		spawn->spawn();
+		GolemUnit::spawn(Vec3(20.0f, 20.0f, 0.0f), world);
 		return;
 
 		// create spawner

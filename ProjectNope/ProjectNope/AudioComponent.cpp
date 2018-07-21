@@ -64,7 +64,9 @@ void AudioComponent::pre_frame(float dTime)
 
 void AudioComponent::tick(float dTime)
 {
-	if (src == nullptr && entity->world->authority)
+	if (!entity->world->authority)
+		return;
+	if (src == nullptr)
 	{
 		auto sound = Resource::get<Sound>(_sound);
 		if (sound != nullptr)

@@ -39,7 +39,7 @@ public:
 
 	static const AutoSerialFactory<SpawnComponent> _factory;
 
-	MobComponent * spawn(void);
+	MobComponent * spawn();
 	MobComponent * spawn(const Vec3& v);
 	GlobalPosition select_position(void);
 

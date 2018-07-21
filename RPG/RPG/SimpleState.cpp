@@ -30,6 +30,9 @@ void SimpleState::enter(AnimationState * prev)
 
 void SimpleState::tick(float dTime)
 {
+	if (!authority)
+		prev_t = t;
+
 	t += dTime * speed;
 
 	if (t > 1.0f)

@@ -116,6 +116,24 @@ void ColliderComponent::LineCheck(const GlobalPosition& sP, const GlobalPosition
 	}
 }
 
+void ColliderComponent::SphereCheck(const GlobalPosition& vP, float r, std::vector<std::shared_ptr<Collision>>& list)
+{
+	TimeslotB(collision);
+
+	for (auto i = all.begin(); i != all.end(); ++i) {
+		if (*i) {
+			int j = list.size();
+			(*i)->mesh.SphereCheck(vP - (*i)->p/*-v*dTime*/, r, list);
+			for (; j<list.size(); ++j) {
+				list[j]->comp = *i;
+				list[j]->poc += (*i)->p;
+				list[j]->poo += (*i)->p;
+				list[j]->v += (*i)->v;
+			}
+		}
+	}
+}
+
 void ColliderComponent::SphereCast(const GlobalPosition& sP, const GlobalPosition& eP, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
 	TimeslotB(collision);

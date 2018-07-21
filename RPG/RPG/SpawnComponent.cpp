@@ -75,7 +75,7 @@ void SpawnComponent::write_to(outstream& os) const
 {
 }
 
-MobComponent * SpawnComponent::spawn(void)
+MobComponent * SpawnComponent::spawn()
 {
 	auto pos = select_position();
 	if (is_valid(pos))
@@ -85,72 +85,6 @@ MobComponent * SpawnComponent::spawn(void)
 			return mob->temp_team != 1;
 		}))
 		{
-			NewEntity * ent = new NewEntity();
-
-			PositionComponent * p = new PositionComponent();
-			p->p = pos;
-			GraphicsComponent * g = new GraphicsComponent();
-			AIComponent * ai = new AIComponent();
-			ai->random.seed(random());
-			MobComponent * mob = new MobComponent();
-			AnimationControlComponent * acc = new AnimationControlComponent();
-			PoseComponent * pose = new PoseComponent();
-
-			ent->addComponent(p);
-			ent->addComponent(g);
-			ent->addComponent(ai);
-			ent->addComponent(mob);
-			ent->addComponent(acc);
-			ent->addComponent(pose);
-
-			//g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/KnightGuy.gmdl", Material("data/assets/terrain/textures/ngrass.tga"))));
-			//pose->anim = "data/assets/units/player/KnightGuy.anim";
-			/*g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/left.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
-			g->decs.items.back()->priority = 1;
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/eyes/right.gmdl", Material("data/assets/decorators/eyes/basic.tga"))));
-			g->decs.items.back()->priority = 2;
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/decorators/mouth/mouth.gmdl", Material("data/assets/decorators/mouth/neutral.tga"))));
-			g->decs.items.back()->priority = 3;*/
-
-			pose->anim = "data/assets/units/golem/golem.anim";
-			MaterialList materials;
-			materials.materials.push_back(Material("data/assets/black.tga"));
-			materials.materials.push_back(Material("data/assets/units/golem/golem.tga"));
-			materials.materials.back().tex.push_back("data/assets/units/golem/golem_ao.tga");
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/golem/golem.gmdl", materials)));
-			g->tag = 1;
-
-			entity->world->AddEntity(ent);
-
-			std::uniform_real_distribution<float> uni_dist;
-			std::uniform_real_distribution<float> angle_dist(0.0f, M_PI * 2.0f);
-			mob->p = &p->p;
-			float angle = angle_dist(random);
-			mob->cam_facing = Vec3(cosf(angle), sinf(angle), 0.0f);
-			mob->temp_team = 1;
-			mob->health = ResourceBar(200);
-			mob->stamina = ResourceBar(50);
-			mob->mana = ResourceBar(100);
-
-			{
-				NewEntity * ent = new NewEntity();
-
-				PositionComponent * p = new PositionComponent();
-				GraphicsComponent * g = new GraphicsComponent();
-				HitComponent * h = new HitComponent();
-
-				ent->addComponent(p);
-				ent->addComponent(g);
-				ent->addComponent(h);
-
-				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/sphere32_16.gmdl", Material("data/assets/white.tga"), 0)));
-
-				acc->debug = p;
-
-				entity->world->AddEntity(ent);
-			}
-
-			return mob;
 		}
 	}
 	return nullptr;

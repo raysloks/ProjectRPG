@@ -4,6 +4,7 @@
 #include "GlobalPosition.h"
 
 class Component;
+class Wall;
 
 class Collision
 {
@@ -14,7 +15,7 @@ public:
 	Vec3 n, disp, v;
 	float dist, t;
 	Component * comp;
-	void * ce;
+	Wall * wall;
 };
 
 #endif

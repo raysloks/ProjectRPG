@@ -4,6 +4,7 @@
 #include "Component.h"
 
 #include "GlobalPosition.h"
+#include "EntityID.h"
 
 #include <functional>
 #include <set>
@@ -37,9 +38,11 @@ public:
 
 	static const AutoSerialFactory<HitComponent> _factory;
 
+	EntityID owner;
+	std::string bone;
 	std::function<void(MobComponent*, const Vec3&)> func;
 	bool active;
-	float r;
+	float radius, prev_r;
 	GlobalPosition prev_p;
 	std::set<MobComponent*> hit;
 };

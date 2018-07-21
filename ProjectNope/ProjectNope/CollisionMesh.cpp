@@ -303,11 +303,35 @@ std::vector<size_t> CollisionMesh::GetWallsInAABB(Vec3 box_min, Vec3 box_max) co
 
 void CollisionMesh::SphereCheck(const Vec3& vP, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
-	for (int i=0;i<walls.size();++i)
+	Vec3 box_min = Vec3(INFINITE, INFINITE, INFINITE);
+	Vec3 box_max = -box_min;
+
+	box_max.x = std::fmaxf(box_max.x, vP.x + r);
+	box_max.y = std::fmaxf(box_max.y, vP.y + r);
+	box_max.z = std::fmaxf(box_max.z, vP.z + r);
+
+	box_max.x = std::fmaxf(box_max.x, vP.x + r);
+	box_max.y = std::fmaxf(box_max.y, vP.y + r);
+	box_max.z = std::fmaxf(box_max.z, vP.z + r);
+
+	box_min.x = std::fminf(box_min.x, vP.x - r);
+	box_min.y = std::fminf(box_min.y, vP.y - r);
+	box_min.z = std::fminf(box_min.z, vP.z - r);
+
+	box_min.x = std::fminf(box_min.x, vP.x - r);
+	box_min.y = std::fminf(box_min.y, vP.y - r);
+	box_min.z = std::fminf(box_min.z, vP.z - r);
+
+	auto walls_in_box = GetWallsInAABB(box_min, box_max);
+	//std::cout << walls_in_box.size() << std::endl;
+	TimeslotC(sphere_check);
+	for each (auto wall in walls_in_box)
 	{
-		std::shared_ptr<Collision> col = walls[i].SphereCheck(vP, r);
-		if (col!=0)
+		std::shared_ptr<Collision> col = walls[wall].SphereCheck(vP, r);
+		if (col != nullptr) {
+			col->wall = &walls[wall];
 			list.push_back(col);
+		}
 	}
 }
 
@@ -339,7 +363,7 @@ void CollisionMesh::LineCheck(const Vec3& sP, const Vec3& eP, std::vector<std::s
 	{
 		std::shared_ptr<Collision> col = walls[wall].LineCheck(sP, eP);
 		if (col != nullptr) {
-			col->ce = &walls[wall];
+			col->wall = &walls[wall];
 			list.push_back(col);
 		}
 	}
@@ -377,7 +401,7 @@ void CollisionMesh::SphereCast(const Vec3& sP, const Vec3& eP, float r, std::vec
 		std::shared_ptr<Collision> col = walls[wall].SphereCast(sP, eP, r);
 		if (col != nullptr)
 		{
-			col->ce = &walls[wall];
+			col->wall = &walls[wall];
 			list.push_back(col);
 		}
 	}
@@ -415,7 +439,7 @@ void CollisionMesh::DiskCast(const Vec3& sP, const Vec3& eP, float r, std::vecto
 		std::shared_ptr<Collision> col = walls[wall].DiskCast(sP, eP, r);
 		if (col != nullptr)
 		{
-			col->ce = &walls[wall];
+			col->wall = &walls[wall];
 			list.push_back(col);
 		}
 	}
@@ -428,7 +452,7 @@ void CollisionMesh::LowerDisk(const Vec3 & lock, const Vec3 & center, const Vec3
 		std::shared_ptr<Collision> col = walls[i].LowerDisk(lock, center, axis, dir, r);
 		if (col != nullptr)
 		{
-			col->ce = &walls[i];
+			col->wall = &walls[i];
 			list.push_back(col);
 		}
 	}

@@ -41,6 +41,8 @@ AnimationControlComponent::~AnimationControlComponent(void)
 {
 	if (state)
 		delete state;
+	for (auto s : removed_states)
+		delete s;
 }
 
 void AnimationControlComponent::connect(NewEntity * pEntity, bool authority)
@@ -64,7 +66,22 @@ void AnimationControlComponent::tick(float dTime)
 	{
 		if (!state)
 		{
-			set_state(new RunCycleState("run", 0.3f, "idle", 1.0f));
+			auto run_cycle = new RunCycleState("run", 0.3f, "idle", 1.0f);
+			if (entity->world->authority)
+			{
+				auto func = [=]()
+				{
+					NewEntity * sound_ent = new NewEntity();
+					auto audio = new AudioComponent("data/assets/audio/step.wav");
+					audio->gain = scale * 0.25f;
+					audio->pos_id = entity->get_id();
+					sound_ent->addComponent(audio);
+					entity->world->AddEntity(sound_ent);
+				};
+				run_cycle->events.insert(std::make_pair(0.5f, func));
+				run_cycle->events.insert(std::make_pair(1.0f, func));
+			}
+			set_state(run_cycle);
 		}
 
 		float added_time = overtime;
@@ -82,15 +99,12 @@ void AnimationControlComponent::tick(float dTime)
 	Vec3 flat_facing = mob->facing - mob->up * mob->up.Dot(mob->facing);
 	flat_facing.Normalize();
 
-	Matrix4 transform = Matrix4::Translation(-root);
+	transform = Matrix4::Translation(-root);
 	transform *= Matrix3(flat_facing.Cross(mob->up), flat_facing, mob->up);
-
-	if (mob->temp_team == 1)
-		scale = 3.0f;
 
 	transform *= Matrix4::Scale(Vec3(scale, scale, scale));
 
-	transform *= Matrix4::Translation(-mob->up * (mob->crouch ? 0.75f : 1.25f));
+	transform *= Matrix4::Translation(-mob->up * (mob->crouch ? 1.5f : 2.5f) * mob->r);
 			
 	for (auto dec : g->decs.items)
 	{
@@ -112,33 +126,6 @@ void AnimationControlComponent::tick(float dTime)
 		if (entity->world->authority)
 		{
 			mob->external_dp += root_movement;
-
-			float active = anim->getProperty("Hand_R.active", pose->frame);
-			GlobalPosition pos = *mob->p + Vec3() * anim->getMatrix(anim->getIndex("Hand_R"), pose->frame) * transform;
-			float radius = 0.2f * scale * active;
-			if (debug)
-			{
-				debug->p = pos;
-				debug->update();
-				auto g = debug->entity->getComponent<GraphicsComponent>();
-				if (g)
-				{
-					g->decs.items.front()->local = Matrix4::Scale(Vec3(radius, radius, radius));
-					g->decs.update(0);
-				}
-				auto h = debug->entity->getComponent<HitComponent>();
-				if (h)
-				{
-					h->active = active > 0.5f;
-					h->r = radius;
-					h->func = [=](MobComponent * target, const Vec3& v)
-					{
-						target->do_damage(4, entity->get_id());
-						target->hit = true;
-						target->v += v * 0.2f;
-					};
-				}
-			}
 		}
 	}
 }
@@ -150,9 +137,15 @@ void AnimationControlComponent::pre_frame(float dTime)
 void AnimationControlComponent::writeLog(outstream& os, ClientData& client)
 {
 	os << scale;
-	Serializable::serialize(os, state);
 	if (state)
+	{
+		Serializable::serialize(os, state);
 		state->write_to(os, false);
+	}
+	else
+	{
+		os << (uint32_t)0;
+	}
 	os << sync;
 }
 
@@ -216,6 +209,8 @@ void AnimationControlComponent::set_state(AnimationState * new_state)
 		new_state->acc = this;
 		new_state->pose = pose;
 		new_state->mob = mob;
+		
+		new_state->authority = entity->world->authority;
 	}
 	if (state)
 	{

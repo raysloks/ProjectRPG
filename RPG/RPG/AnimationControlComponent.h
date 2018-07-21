@@ -3,6 +3,7 @@
 
 #include "Component.h"
 #include "Vec3.h"
+#include "Matrix4.h"
 
 class PositionComponent;
 class AnimationState;
@@ -44,8 +45,8 @@ public:
 	float overtime;
 	std::vector<AnimationState*> removed_states;
 
-	PositionComponent * debug;
 	float scale;
+	Matrix4 transform;
 };
 
 #endif

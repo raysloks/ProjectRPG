@@ -1,14 +1,16 @@
 #ifndef ITEM_H
 #define ITEM_H
 
+#include "Decorator.h"
+
 class Item
 {
 public:
 	Item();
 	~Item();
 
-	unsigned int type;
-	bool soulbound;
+	std::string name;
+	std::shared_ptr<Decorator> dec;
 };
 
 #endif

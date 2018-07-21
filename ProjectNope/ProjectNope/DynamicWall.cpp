@@ -370,7 +370,7 @@ std::shared_ptr<Collision> DynamicWall::SphereCast(const Vec3& sP, const Vec3& e
 				col->t = t;
 				col->disp = col->poo-eP;
 				col->dist = Vec3(col->poo-sP).Len();
-				col->ce = this;
+				col->wall = this;
 				col->v = vV1*w.x+vV2*w.y+vV3*w.z;
 				return col;
 			}

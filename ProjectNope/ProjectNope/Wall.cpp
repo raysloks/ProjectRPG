@@ -311,12 +311,12 @@ std::shared_ptr<Collision> Wall::DiskCastLine(const Vec3& sP, const Vec3& eP, co
 				{
 					col->t = col->dist / cl;
 					Vec3 dif = eP - sP;
+					col->poo = vP + dir * col->dist;
+					col->poc = poc;
 					col->n = dif.Cross(dir).Cross(dif);
 					col->n.Normalize();
 					if (col->n.Dot(dir) > 0.0f)
 						col->n = -col->n;
-					col->poo = vP + dir * col->dist;
-					col->poc = poc;
 					return col;
 				}
 			}
@@ -560,4 +560,84 @@ std::shared_ptr<Collision> Wall::LowerDisk(const Vec3 & lock, const Vec3 & cente
 	}
 
 	return std::shared_ptr<Collision>();
+}
+
+float Wall::PlaneLineFloat(const Vec3& pN, float pD, const Vec3& sP, const Vec3& eP)
+{
+	return (pD - pN.Dot(sP)) / (pN.Dot(eP - sP));
+}
+
+Vec3 Wall::PlaneLineVector(const Vec3& pN, float pD, const Vec3& sP, const Vec3& eP)
+{
+	Vec3 ldd = eP - sP;
+	return sP + ldd * (pD - pN.Dot(sP)) / (pN.Dot(ldd));
+}
+
+std::vector<Wall> ClipTriangle(const Vec3& one, const Vec3& two, const Vec3& outlier, const Vec3& pN, float pD)
+{
+	std::vector<Wall> ret;
+	auto i31 = Wall::PlaneLineVector(pN, pD, outlier, one);
+	auto i23 = Wall::PlaneLineVector(pN, pD, two, outlier);
+	ret.push_back(Wall(outlier, i31, i23));
+	ret.push_back(Wall(i31, one, i23));
+	ret.push_back(Wall(i23, one, two));
+	return ret;
+}
+
+std::vector<Wall> Wall::Clip(const Vec3& pN, float pD)
+{
+	float pd1 = pN.Dot(p1);
+	float pd2 = pN.Dot(p2);
+	float pd3 = pN.Dot(p3);
+
+	if (pd1 < pD)
+	{
+		if (pd2 < pD)
+		{
+			if (pd3 < pD)
+			{
+				return std::vector<Wall>({ Wall(*this) });
+			}
+			else
+			{
+				return ClipTriangle(p1, p2, p3, pN, pD);
+			}
+		}
+		else
+		{
+			if (pd3 < pD)
+			{
+				return ClipTriangle(p3, p1, p2, pN, pD);
+			}
+			else
+			{
+				return ClipTriangle(p2, p3, p1, pN, pD);
+			}
+		}
+	}
+	else
+	{
+		if (pd2 < pD)
+		{
+			if (pd3 < pD)
+			{
+				return ClipTriangle(p2, p3, p1, pN, pD);
+			}
+			else
+			{
+				return ClipTriangle(p3, p1, p2, pN, pD);
+			}
+		}
+		else
+		{
+			if (pd3 < pD)
+			{
+				return ClipTriangle(p1, p2, p3, pN, pD);
+			}
+			else
+			{
+				return std::vector<Wall>({ Wall(*this) });
+			}
+		}
+	}
 }

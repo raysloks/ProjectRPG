@@ -23,4 +23,5 @@ public:
 	AnimationControlComponent * acc;
 	PoseComponent * pose;
 	MobComponent * mob;
+	bool authority;
 };

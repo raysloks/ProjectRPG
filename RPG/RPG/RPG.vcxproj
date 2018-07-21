@@ -161,6 +161,7 @@
     <ClCompile Include="CameraShakeComponent.cpp" />
     <ClCompile Include="ChatComponent.cpp" />
     <ClCompile Include="GameStateComponent.cpp" />
+    <ClCompile Include="GolemUnit.cpp" />
     <ClCompile Include="HitBox.cpp" />
     <ClCompile Include="HitComponent.cpp" />
     <ClCompile Include="InventoryComponent.cpp" />
@@ -169,6 +170,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MobComponent.cpp" />
     <ClCompile Include="RunCycleState.cpp" />
+    <ClCompile Include="ShadowSpawnUnit.cpp" />
     <ClCompile Include="SimpleState.cpp" />
     <ClCompile Include="OrbitComponent.cpp" />
     <ClCompile Include="PlayerInputComponent.cpp" />
@@ -204,6 +206,7 @@
     <ClInclude Include="CameraShakeComponent.h" />
     <ClInclude Include="ChatComponent.h" />
     <ClInclude Include="GameStateComponent.h" />
+    <ClInclude Include="GolemUnit.h" />
     <ClInclude Include="HitBox.h" />
     <ClInclude Include="HitComponent.h" />
     <ClInclude Include="InventoryComponent.h" />
@@ -211,6 +214,7 @@
     <ClInclude Include="LearningComponent.h" />
     <ClInclude Include="MobComponent.h" />
     <ClInclude Include="RunCycleState.h" />
+    <ClInclude Include="ShadowSpawnUnit.h" />
     <ClInclude Include="SimpleState.h" />
     <ClInclude Include="OrbitComponent.h" />
     <ClInclude Include="PlayerInputComponent.h" />

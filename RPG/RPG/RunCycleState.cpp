@@ -39,9 +39,24 @@ void RunCycleState::tick(float dTime)
 		return;
 	}
 
-	float prev_t = t;
+	if (!authority)
+		prev_t = t;
 
 	t += dTime * mob->v.Len() * speed / acc->scale;
+
+	if (!mob->landed)
+	{
+		if (prev_t <= 1.0f && t > 1.0f)
+			t = 1.0f;
+		if (prev_t <= 0.5f && t > 0.5f)
+			t = 0.5f;
+	}
+
+	for (auto e : events)
+	{
+		if (prev_t < e.first && t >= e.first)
+			e.second();
+	}
 
 	if (mob->landed)
 	{
@@ -49,11 +64,11 @@ void RunCycleState::tick(float dTime)
 	}
 	else
 	{
-		if (prev_t <= 1.0f && t > 1.0f)
-			t = 1.0f;
-		if (prev_t <= 0.5f && t > 0.5f)
-			t = 0.5f;
+		if (t > 1.0f)
+			t -= 1.0f;
 	}
+
+	prev_t = t;
 
 	auto anim = Resource::get<SkeletalAnimation>(pose->anim);
 	if (anim)

@@ -50,7 +50,6 @@ public:
 	bool owner;
 
 	SyncContainer<Item> items;
-	std::shared_ptr<Decorator> decorator;
 
 	float rot;
 };

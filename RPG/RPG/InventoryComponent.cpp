@@ -24,7 +24,8 @@ InventoryComponent::InventoryComponent(void) : Serializable(_factory.id)
 InventoryComponent::InventoryComponent(instream& is, bool full) : Serializable(_factory.id)
 {
 	is >> owner;
-	decorator.reset(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", Material("data/assets/items/weapons/swords/claymore.tga"), 0));
+	items.items.push_back(std::make_shared<Item>());
+	items.items.push_back(std::make_shared<Item>());
 }
 
 InventoryComponent::~InventoryComponent(void)
@@ -114,11 +115,22 @@ void InventoryComponent::set_display(bool enable)
 								rs.popTransform();
 							}
 
+							rs.pushTransform();
+							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 200.0f, 0.0f)));
+							for (auto item : items.items)
 							{
 								// test
+								rs.addTransform(Matrix4::Translation(Vec3(0.0f, 50.0f, 0.0f)));
+
 								rs.pushTransform();
-								rs.addTransform(Matrix4::Translation(Vec3(100.0f, 400.0f, 0.0f)));
-								rs.addTransform(Matrix4::Scale(Vec3(100.0f, 100.0f, 100.0f)));
+								rs.addTransform(Matrix4::Translation(Vec3(20.0f, 10.0f, 0.0f)));
+								Writing::setColor(1.0f, 1.0f, 1.0f);
+								Writing::render(item->name, rs);
+								rs.popTransform();
+								rs.popTransform();
+
+								rs.pushTransform();
+								rs.addTransform(Matrix4::Scale(Vec3(50.0f, 50.0f, 50.0f)));
 								rs.addTransform(Quaternion(Vec3(M_1_PI, 0.0f, 0.0f)));
 								rs.addTransform(Quaternion(Vec3(0.0f, rot, 0.0f)));
 								auto prog = ShaderProgram::Get("data/gfill_vert.txt", "data/gfill_frag.txt");
@@ -131,13 +143,14 @@ void InventoryComponent::set_display(bool enable)
 								glEnable(GL_DEPTH_TEST);
 								glEnable(GL_CULL_FACE);
 								glDepthMask(GL_TRUE);
-								decorator->render(rs);
+								item->dec->render(rs);
 								glDepthMask(GL_FALSE);
 								glDisable(GL_DEPTH_TEST);
 								glDisable(GL_CULL_FACE);
 								rs.popMod();
 								rs.popTransform();
 							}
+							rs.popTransform();
 
 						}));
 					}

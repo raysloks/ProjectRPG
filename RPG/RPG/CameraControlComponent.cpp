@@ -88,26 +88,31 @@ void CameraControlComponent::pre_frame(float dTime)
 				entity->world->cam_rot = cam_rot;
 				//entity->world->cam_pos = *p + up * 0.45f;
 				auto regular_offset = up * 0.2f + right * 0.5f + top * 0.5f - front * 3.0f;
+				regular_offset *= 1.5f;
+
 				float regular_length = regular_offset.Len();
 				auto combined_offset = offset + regular_offset;
 				float combined_length = combined_offset.Len();
 				if (combined_length > regular_length)
 					combined_offset *= regular_length / combined_length;
-				entity->world->cam_pos = *p + combined_offset;
 
 				auto shakes = entity->world->GetNearestComponents<CameraShakeComponent>(*p);
 				for (auto shake : shakes)
 				{
-					entity->world->cam_pos += shake.second->getShake() / (shake.first + 1.0f);
+					combined_offset += shake.second->getShake() / (shake.first + 1.0f);
 				}
 
-				std::vector<std::shared_ptr<Collision>> list;
-				ColliderComponent::DiskCast(*p, entity->world->cam_pos, 0.25f, list);
-				std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
-				if (!list.empty())
 				{
-					entity->world->cam_pos = list.front()->poo;
+					std::vector<std::shared_ptr<Collision>> list;
+					ColliderComponent::DiskCast(*p, *p + combined_offset, 0.45f, list);
+					std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
+					if (!list.empty())
+					{
+						combined_offset *= list.front()->t;
+					}
 				}
+
+				entity->world->cam_pos = *p + combined_offset;
 			}
 		}
 	}

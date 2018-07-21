@@ -14,6 +14,14 @@
 
 class MobComponent;
 
+class AIWrapper
+{
+public:
+	virtual ~AIWrapper() {}
+
+	virtual void tick(float dTime) = 0;
+};
+
 class AIComponent :
 	public Component
 {
@@ -41,12 +49,7 @@ public:
 
 	static const AutoSerialFactory<AIComponent> _factory;
 
-	std::queue<GlobalPosition> path;
-	EntityID target;
-
-	float delay;
-
-	std::default_random_engine random;
+	AIWrapper * wrapper;
 };
 
 #endif

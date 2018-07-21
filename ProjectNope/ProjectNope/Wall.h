@@ -30,6 +30,10 @@ public:
 	std::shared_ptr<Collision> DiskCast(const Vec3& sP, const Vec3& eP, float r);
 	std::shared_ptr<Collision> LowerDisk(const Vec3& lock, const Vec3& center, const Vec3& axis, const Vec3& dir, float r);
 
+	static float PlaneLineFloat(const Vec3& pN, float pD, const Vec3& sP, const Vec3& eP);
+	static Vec3 PlaneLineVector(const Vec3& pN, float pD, const Vec3& sP, const Vec3& eP);
+	std::vector<Wall> Clip(const Vec3& pN, float pD);
+
 	Vec3 p1,p2,p3,n,n12,n23,n31;
 	float l12,l23,l31;
 };
