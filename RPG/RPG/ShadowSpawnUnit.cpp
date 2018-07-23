@@ -144,69 +144,6 @@ void ShadowSpawnAI::tick(float dTime)
 				acc->set_state(new SimpleState("attack", 1.0f));
 				mob->stamina.current -= 1;
 			}
-			if (mob->mana.current > 0 && facing_dot_dir > 0.8f && acc->has_state("run"))
-			{
-				uint32_t power = std::min(5, mob->mana.current);
-				float modifier = power / 5.0f;
-				float scale = cbrtf(modifier);
-				auto state = new SimpleState("attack", 1.0f);
-				state->events.insert(std::make_pair(0.5f, [=]()
-				{
-					mob->mana.current -= power;
-
-					NewEntity * ent = new NewEntity();
-
-					PositionComponent * pos = new PositionComponent();
-					ProjectileComponent * projectile = new ProjectileComponent();
-					GraphicsComponent * g = new GraphicsComponent(false);
-
-					ent->addComponent(pos);
-					ent->addComponent(projectile);
-					ent->addComponent(g);
-
-					projectile->v = dif + mob->v + Vec3(0.0f, 0.0f, 9.8f / 2.0f);
-
-					pos->p = *mob->p;
-
-					projectile->on_collision = [=](MobComponent * target)
-					{
-						if (target)
-						{
-							if (target->temp_team != mob->temp_team)
-							{
-								target->do_damage(power, mob->entity->get_id());
-								target->hit = true;
-							}
-						}
-						ent->world->SetEntity(ent->id, nullptr);
-
-						auto spawn = ShadowSpawnUnit::spawn(pos->p + Vec3(0.0f, 0.0f, 1.0f), ent->world);
-
-						spawn->v += Vec3(0.0f, 0.0f, 1.0f);
-
-						spawn->health.current *= modifier;
-						spawn->health.max *= modifier;
-						spawn->stamina.current *= modifier;
-						spawn->stamina.max *= modifier;
-						spawn->mana.current *= modifier;
-						spawn->mana.max *= modifier;
-
-						auto spawn_acc = spawn->entity->getComponent<AnimationControlComponent>();
-
-						spawn_acc->scale = scale;
-						spawn->speed_mod = scale;
-						spawn->r *= scale;
-					};
-
-					projectile->shooter = mob;
-
-					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/shadowspawn/shadowspawn.gmdl", Material("data/assets/black.tga"), 0)));
-					g->decs.items.front()->local = Matrix4::Scale(Vec3(scale, scale, scale)) * Quaternion::lookAt(mob->facing, mob->up);
-
-					world->AddEntity(ent);
-				}));
-				acc->set_state(state);
-			}
 
 			if (distance > 20.0f)
 			{

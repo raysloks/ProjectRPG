@@ -28,6 +28,7 @@
 #include "ChatComponent.h"
 #include "ServiceComponent.h"
 
+#include "ShadowSpawnUnit.h"
 #include "GolemUnit.h"
 
 #include "ShaderProgram.h"
@@ -152,15 +153,19 @@ public:
 
 			MaterialList materials;
 			materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
+			materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
 
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/terrain/tos.gmdl", materials, 0)));
 
 			world->AddEntity(ent);
 		}
 
-		GolemUnit::spawn(Vec3(0.0f, -120.0f, 0.0f), world);
+		ShadowSpawnUnit::spawn(Vec3(0.0f, 30.0f, 0.0f), world);
+		ShadowSpawnUnit::spawn(Vec3(-5.0f, 50.0f, 0.0f), world);
+		ShadowSpawnUnit::spawn(Vec3(5.0f, 60.0f, 0.0f), world);
+		GolemUnit::spawn(Vec3(0.0f, -150.0f, 0.0f), world);
 
-		// create swing
+		// create wibbly wobbly wall
 		{
 			NewEntity * ent = new NewEntity();
 
@@ -182,6 +187,23 @@ public:
 			g->decs.items.front()->local.mtrx[3][3] = 1.0f;
 			g->decs.items.front()->local *= Quaternion(Vec3(M_PI / 2.0f, 0.0f, 0.0f));
 			g->decs.items.front()->final = g->decs.items.front()->local;
+
+			world->AddEntity(ent);
+		}
+
+		// create grass
+		{
+			NewEntity * ent = new NewEntity();
+
+			PositionComponent * p = new PositionComponent(Vec3(-34.0f, -5.0f, -1.0f));
+			GraphicsComponent * g = new GraphicsComponent(false, 3);
+
+			ent->addComponent(p);
+			ent->addComponent(g);
+
+			MaterialList materials;
+			materials.materials.push_back(Material("data/assets/grass_short.tga"));
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/grass.gmdl", materials, 0)));
 
 			world->AddEntity(ent);
 		}
@@ -586,6 +608,7 @@ int main(int argc, char* argv[])
 							std::cout << t->func(i) << std::endl;
 
 						delete t;
+						delete[] vftable;
 					}
 				}
 

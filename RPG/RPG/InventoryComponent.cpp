@@ -24,8 +24,6 @@ InventoryComponent::InventoryComponent(void) : Serializable(_factory.id)
 InventoryComponent::InventoryComponent(instream& is, bool full) : Serializable(_factory.id)
 {
 	is >> owner;
-	items.items.push_back(std::make_shared<Item>());
-	items.items.push_back(std::make_shared<Item>());
 }
 
 InventoryComponent::~InventoryComponent(void)

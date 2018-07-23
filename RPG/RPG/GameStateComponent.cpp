@@ -120,7 +120,7 @@ void GameStateComponent::tick(float dTime)
 			if (getMinimumAliveSurvivorProgress() == 1.0f)
 			{
 				game_over = true;
-				countdown = 10.0f;
+				countdown = 3.0f;
 				teams[0].score += 100 * getAverageSurvivorProgress();
 			}
 
@@ -132,7 +132,7 @@ void GameStateComponent::tick(float dTime)
 			if (mobs.empty())
 			{
 				game_over = true;
-				countdown = 10.0f;
+				countdown = 3.0f;
 			}
 		}
 	}
@@ -782,7 +782,7 @@ void GameStateComponent::set_display(bool enable)
 						rs.popTransform();
 					}
 
-					if (!setting_up && !game_over)
+					if (!setting_up && !game_over && false)
 					{
 						rs.pushTransform();
 						rs.addTransform(Matrix4::Translation(Vec3(400.0f, 100.0f, 0.0f)));

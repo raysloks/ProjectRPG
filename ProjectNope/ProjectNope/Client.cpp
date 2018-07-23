@@ -647,6 +647,7 @@ void Client::render_world(void)
 	Matrix4 invrot = world->cam_rot;
 
 	Matrix4 proj = rot * pers;
+	Matrix4 proj_inv = proj.Inverse();
 
 	Matrix4 biasMat;
 	biasMat.mtrx[0][0] = 0.5f;
@@ -668,7 +669,7 @@ void Client::render_world(void)
 		sky_prog->Uniform("horizon", horizon);
 		sky_prog->Uniform("zenith", zenith);
 		sky_prog->Uniform("light", light);
-		sky_prog->UniformMatrix4f("proj_inv", proj.Inverse().data);
+		sky_prog->UniformMatrix4f("proj_inv", proj_inv.data);
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
@@ -1178,24 +1179,27 @@ void Client::render_world(void)
 			rs.pass = 5;
 
 			Vec3 light_color(1.0f, 0.95f, 0.8f);
+			Vec3 fog_add(0.0001f, 0.000125f, 0.0002f);
 
 			{
 				glEnable(GL_STENCIL_TEST);
 				glStencilFunc(GL_EQUAL, 0, 0xff);
 				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-				ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality, light_color](const std::shared_ptr<ShaderProgram>& prog) {
+				ShaderMod mod(shader_program, [=, &rs](const std::shared_ptr<ShaderProgram>& prog) {
 					prog->Uniform("light", light);
 					prog->Uniform("light_color", light_color);
+					prog->Uniform("fog_add", fog_add);
 					prog->Uniform("diffuse", 0); // texture unit 0
-					prog->Uniform("shadow", 2); // texture unit 2
+					prog->Uniform("shadow", 3); // texture unit 2
 					prog->UniformMatrix4f("transform", (rs.transform*proj).data);
 					prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
-					prog->Uniform("eye", Vec3(0.0f, 0.0f, -1.0f) * world->cam_rot);
+					prog->UniformMatrix4f("proj", proj.data);
+					prog->UniformMatrix4f("proj_inv", proj_inv.data);
 					prog->Uniform3fv("light_samples", light_samples);
 				});
 
-				glActiveTexture(GL_TEXTURE2);
+				glActiveTexture(GL_TEXTURE3);
 				glBindTexture(GL_TEXTURE_2D, stencil_buf->gl_texture_id);
 
 				rs.pushMod(mod);
@@ -1212,12 +1216,14 @@ void Client::render_world(void)
 				glStencilFunc(GL_NOTEQUAL, 0, 0xff);
 				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-				ShaderMod mod(shader_program, [this, proj, &rs, shadow_quality](const std::shared_ptr<ShaderProgram>& prog) {
+				ShaderMod mod(shader_program, [=, &rs](const std::shared_ptr<ShaderProgram>& prog) {
 					prog->Uniform("light", Vec3());
+					prog->Uniform("fog_add", fog_add);
 					prog->Uniform("diffuse", 0); // texture unit 0
 					prog->UniformMatrix4f("transform", (rs.transform*proj).data);
 					prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
-					prog->Uniform("eye", Vec3(0.0f, 0.0f, -1.0f) * world->cam_rot);
+					prog->UniformMatrix4f("proj", proj.data);
+					prog->UniformMatrix4f("proj_inv", proj_inv.data);
 				});
 
 				rs.pushMod(mod);

@@ -33,9 +33,11 @@ void RunCycleState::tick(float dTime)
 	if (mob->move == Vec3() && mob->landed)
 	{
 		idle.tick(dTime);
-		t *= 2.0f;
-		t -= floorf(t);
-		t *= 0.5f;
+		if (t <= 0.5f)
+			t = 0.5f;
+		else
+			t = 1.0f;
+		prev_t = t;
 		return;
 	}
 

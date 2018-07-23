@@ -131,7 +131,11 @@ void MobComponent::tick(float dTime)
 		if (p != nullptr)
 		{
 			if (Vec3(*p).LenPwr() > 4000000.0f)
-				entity->world->SetEntity(entity->id, nullptr);
+			{
+				*p = Vec3();
+				v = Vec3();
+				//entity->world->SetEntity(entity->id, nullptr);
+			}
 
 			if (use_base_collision)
 			{
@@ -194,8 +198,8 @@ void MobComponent::tick(float dTime)
 			//v += move * dTime * 100.0f;
 
 			landed = false;
-			land_n = Vec3(); // smooth these out for some cases
-			land_v = Vec3(); // -''-
+			//land_n = Vec3(); // smooth these out for some cases
+			//land_v = Vec3(); // -''-
 
 			Vec3 g_dir = Vec3(0.0f, 0.0f, -1.0f);//-Vec3(*p).Normalized();
 			Vec3 g = g_dir * 9.8f;
@@ -352,21 +356,24 @@ void MobComponent::tick(float dTime)
 
 					*p = col->poo;
 
-					if (col->n.Dot(up)>0.5f)
-						landed = true;
-					if (col->n.Dot(up) > land_n.Dot(up)) {
-						land_n = col->n;
-						land_v = col->v;
-					}
-
 					v -= col->v;
 
+					if (col->n.Dot(up) > 0.5f)
+						landed = true;
+
 					{
-						float fall_one = -col->n.Dot(v) / 10.0f;
-						uint32_t fall_damage = fall_one * fall_one;
-						do_damage(fall_damage, EntityID());
+						float fall_one = col->n.Dot(v) / 10.0f;
+						int32_t fall_damage = fall_one * fall_one - 1.0f;
 						if (fall_damage > 0)
+						{
 							hit = true;
+							do_damage(fall_damage, EntityID());
+						}
+					}
+
+					if (col->n.Dot(up) > land_n.Dot(up) || ignored.empty()) {
+						land_n = col->n;
+						land_v = col->v;
 					}
 
 					float v_dot_n = v.Dot(col->n);
@@ -406,7 +413,7 @@ void MobComponent::tick(float dTime)
 									stamina_regen += dTime * 1.0f;
 							}
 
-							float speed = crouch ? 2.0f : run ? 90.0f : recovering ? 2.0f : 5.5f;
+							float speed = crouch ? 2.0f : run ? 9.0f : recovering ? 2.0f : 5.5f;
 
 							speed *= speed_mod;
 
@@ -429,12 +436,12 @@ void MobComponent::tick(float dTime)
 
 							if (!recovering && !busy)
 							{
-								if (input.find("roll") != input.end())
+								if (input.find("roll") != input.end() && target != Vec3())
 								{
 									acc->set_state(new SimpleState("roll", 1.5f));
 
 									move_facing = move.Normalized();
-									v = move_facing * 12.5f + land_v;
+									v = target.Normalized() * 12.5f + land_v;
 
 									stamina.current -= 1;
 

@@ -453,6 +453,7 @@ void GraphicsComponent::prep(RenderSetup& rs)
 
 std::shared_ptr<ShaderProgram> ao_shader;
 std::shared_ptr<ShaderProgram> swing_shader;
+std::shared_ptr<ShaderProgram> grass_shader;
 
 Vec3 angle(0.0f, 0.0f, 0.0f);
 
@@ -462,6 +463,8 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 		ao_shader = std::make_shared<ShaderProgram>("data/gfill_ao_vert.txt", "data/gfill_ao_frag.txt");
 	if (!swing_shader)
 		swing_shader = std::make_shared<ShaderProgram>("data/gfill_vert.txt", "data/swing_frag.txt");
+	if (!grass_shader)
+		grass_shader = std::make_shared<ShaderProgram>("data/grass_vert.txt", "data/grass_frag.txt");
 
 	for each (auto g in standard)
 	{
@@ -482,6 +485,16 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 			{
 				prog->Uniform("angle", angle);
 				prog->Uniform("limit", -1.0f);// fmaxf(-1.0, fminf(1.0f, sinf(angle.x / 20.0f) * 5.0f)));
+			}));
+			shader = true;
+		}
+		if (g->tag == 3)
+		{
+			if (rs.pass == 3 || rs.pass == 4)
+				continue;
+			rs.pushMod(ShaderMod(grass_shader, [](const std::shared_ptr<ShaderProgram>& prog)
+			{
+				prog->Uniform("angle", angle);
 			}));
 			shader = true;
 		}

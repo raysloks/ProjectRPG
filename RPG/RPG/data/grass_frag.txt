@@ -19,7 +19,7 @@ void main()
 {
 	vec3 n = normalize(norm);
 	float intensity = dot(light, n);
-	intensity = max(0.0, intensity);
+	intensity += length(light);
 	intensity = sqrt(intensity);
 	
 	/*uvec4 stencil_sample = texture(shadow, position.xy/position.w * 0.5 + 0.5);
@@ -38,8 +38,8 @@ void main()
 	vec4 color = texture(diffuse, texco);
 
 	vec3 world = (position * proj_inv).xyz;
-
-	vec3 pre_color = color.rgb * (light_color * intensity + vec3(0.1, 0.1, 0.2) * (1.0 - dot(normalize(world), n) * 0.5));
+	
+	vec3 pre_color = color.rgb * (light_color * intensity + vec3(0.1, 0.1, 0.2) * 0.25);
 	pre_color += fog_add * length(world);
 	final_color = vec4(pre_color, color.a);
 }
