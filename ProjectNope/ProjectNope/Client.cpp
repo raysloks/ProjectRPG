@@ -692,7 +692,7 @@ void Client::render_world(void)
 
 		pers = Matrix4::Perspective(fov, aspect, near_z, far_z);
 		proj = rot * pers;
-
+		proj_inv = proj.Inverse();
 
 		// render depth pre-pass
 		if (depth_fill_prog->IsReady())

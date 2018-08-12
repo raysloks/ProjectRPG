@@ -12,6 +12,7 @@
 #include "Item.h"
 
 #include "MobComponent.h"
+#include "InteractComponent.h"
 
 #include "Decorator.h"
 
@@ -150,6 +151,27 @@ void InventoryComponent::set_display(bool enable)
 							}
 							rs.popTransform();
 
+							auto p = entity->getComponent<PositionComponent>();
+							auto interacts = entity->world->GetNearestComponents<InteractComponent>(p->p + mob->cam_facing, 2.0f);
+							if (!interacts.empty())
+							{
+								auto other_p = interacts.begin()->second->entity->getComponent<PositionComponent>();
+								rs.pushTransform();
+								rs.addTransform(Matrix4::Translation(Vec3(rs.size * 0.5f)));
+								rs.addTransform(Matrix4::Translation(Vec3(Vec3(other_p->p - entity->world->cam_pos) * rs.view * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f)));
+								rs.pushTransform();
+								rs.addTransform(Matrix4::Translation(Vec3(20.0f, 0.0f, 0.0f)));
+								Writing::setSize(25);
+								Writing::setColor(1.0f, 1.0f, 1.0f);
+								Writing::render(interacts.begin()->second->action_name, rs);
+								rs.popTransform();
+								rs.popTransform();
+								rs.addTransform(Matrix4::Translation(Vec3(-32.0f, -32.0f, 0.0f)));
+								auto crosshair = Resource::get<Texture>("data/assets/interact.tga");
+								if (crosshair)
+									crosshair->render(rs);
+								rs.popTransform();
+							}
 						}));
 					}
 					else

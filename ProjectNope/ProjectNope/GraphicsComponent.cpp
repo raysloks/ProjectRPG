@@ -218,9 +218,9 @@ public:
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, instance_animation_texture->texid);
 
-				for (size_t i = 0; i < instance_count; i += 128)
+				for (size_t i = 0; i < instance_count; i += 64)
 				{
-					size_t nInstancesToRender = min(128, instance_count - i);
+					size_t nInstancesToRender = min(64, instance_count - i);
 
 					ShaderMod mod(instance_shader, [&rs, instance_animation_texture, i, nInstancesToRender, this](const std::shared_ptr<ShaderProgram>& prog) {
 						prog->UniformMatrix4fv("instance_transform", nInstancesToRender, (instance_transforms.begin() + i)._Ptr);

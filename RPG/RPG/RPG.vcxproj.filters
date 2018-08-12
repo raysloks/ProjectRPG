@@ -76,6 +76,7 @@
     <ClCompile Include="ShadowSpawnUnit.cpp">
       <Filter>Units</Filter>
     </ClCompile>
+    <ClCompile Include="InteractComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -152,6 +153,7 @@
     <ClInclude Include="ShadowSpawnUnit.h">
       <Filter>Units</Filter>
     </ClInclude>
+    <ClInclude Include="InteractComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

@@ -18,8 +18,8 @@ layout(std430) buffer instance_data_frame
 
 uniform mat4 transform;
 
-uniform mat4 instance_transform[128];
-uniform float instance_frame[128];
+uniform mat4 instance_transform[64];
+uniform float instance_frame[64];
 
 uniform sampler2D animation_data;
 

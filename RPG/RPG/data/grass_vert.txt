@@ -15,9 +15,9 @@ in vec2 texCoord0;
 
 void main()
 {
-	norm = normal_transform * normal;
+	norm = normal_transform * (normal * texCoord0.y + vec3(0.0, 0.0, 1.0 - texCoord0.y));
 	texco = texCoord0;
-	vec4 p = pos + vec4(sin(angle * vec3(10.0, 10.0, 0.1)) * 0.1 * texCoord0.y, 0.0);
+	vec4 p = pos + vec4(sin(angle * vec3(5.0, 10.0, 0.1) + pos.yxz) * vec3(0.1, 0.2, 0.1) * pos.z, 0.0);
 	position = transform * p;
 	gl_Position = transform * p;
 }

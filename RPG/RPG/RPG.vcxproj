@@ -164,6 +164,7 @@
     <ClCompile Include="GolemUnit.cpp" />
     <ClCompile Include="HitBox.cpp" />
     <ClCompile Include="HitComponent.cpp" />
+    <ClCompile Include="InteractComponent.cpp" />
     <ClCompile Include="InventoryComponent.cpp" />
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="LearningComponent.cpp" />
@@ -209,6 +210,7 @@
     <ClInclude Include="GolemUnit.h" />
     <ClInclude Include="HitBox.h" />
     <ClInclude Include="HitComponent.h" />
+    <ClInclude Include="InteractComponent.h" />
     <ClInclude Include="InventoryComponent.h" />
     <ClInclude Include="Item.h" />
     <ClInclude Include="LearningComponent.h" />

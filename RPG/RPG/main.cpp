@@ -27,6 +27,7 @@
 #include "TriggerComponent.h"
 #include "ChatComponent.h"
 #include "ServiceComponent.h"
+#include "InteractComponent.h"
 
 #include "ShadowSpawnUnit.h"
 #include "GolemUnit.h"
@@ -145,15 +146,24 @@ public:
 
 			PositionComponent * p = new PositionComponent();
 			ColliderComponent * c = new ColliderComponent();
-			GraphicsComponent * g = new GraphicsComponent(false, 0);
+			GraphicsComponent * g = new GraphicsComponent(false, 1);
 
 			ent->addComponent(p);
 			ent->addComponent(c);
 			ent->addComponent(g);
 
+			std::string ao = "data/assets/terrain/textures/tos_ao.tga";
+
+			Resource::load(ao, { "!sRGB" , "linear" });
+
 			MaterialList materials;
 			materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
 			materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
+
+			for (auto material = materials.materials.begin(); material != materials.materials.end(); ++material)
+			{
+				material->tex.push_back(ao);
+			}
 
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/terrain/tos.gmdl", materials, 0)));
 
@@ -169,13 +179,15 @@ public:
 		{
 			NewEntity * ent = new NewEntity();
 
-			PositionComponent * p = new PositionComponent(Vec3(-13.0f, 6.95f, 24.05f));
+			PositionComponent * p = new PositionComponent(Vec3(-13.0f, 7.0f, 1.0f));
 			ColliderComponent * c = new ColliderComponent();
 			GraphicsComponent * g = new GraphicsComponent(false, 2);
+			InteractComponent * i = new InteractComponent();
 
 			ent->addComponent(p);
 			ent->addComponent(c);
 			ent->addComponent(g);
+			ent->addComponent(i);
 
 			std::string wibbly = "data/assets/wibbly.tga";
 			Resource::load(wibbly, { "!sRGB" , "linear" });
@@ -187,6 +199,9 @@ public:
 			g->decs.items.front()->local.mtrx[3][3] = 1.0f;
 			g->decs.items.front()->local *= Quaternion(Vec3(M_PI / 2.0f, 0.0f, 0.0f));
 			g->decs.items.front()->final = g->decs.items.front()->local;
+
+			i->name = "Shadow Wall";
+			i->action_name = "Open";
 
 			world->AddEntity(ent);
 		}
@@ -203,7 +218,7 @@ public:
 
 			MaterialList materials;
 			materials.materials.push_back(Material("data/assets/grass_short.tga"));
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/grass.gmdl", materials, 0)));
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/grass_wide.gmdl", materials, 0)));
 
 			world->AddEntity(ent);
 		}

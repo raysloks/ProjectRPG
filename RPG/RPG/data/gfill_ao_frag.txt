@@ -8,6 +8,10 @@ uniform vec3 light_samples[128];
 
 uniform vec3 light;
 uniform vec3 light_color;
+uniform vec3 fog_add;
+
+uniform mat4 proj;
+uniform mat4 proj_inv;
 
 in vec4 position;
 in vec2 texco;
@@ -37,5 +41,9 @@ void main()
 
 	vec4 color = texture(diffuse, texco);
 
-	final_color = vec4(color.rgb * (light_color * intensity + vec3(0.1, 0.1, 0.2) + texture(ao, texco_ao).rgb * vec3(0.2, 0.2, 0.4)), color.a);
+	vec3 world = vec3(proj_inv * position);
+
+	vec3 pre_color = color.rgb * (light_color * intensity + vec3(0.01, 0.01, 0.02) * (1.0 + dot(normalize(world), n) * 0.5) + texture(ao, texco_ao).rgb * vec3(0.1, 0.1, 0.2));
+	pre_color += fog_add * length(world);
+	final_color = vec4(pre_color, color.a);
 }
