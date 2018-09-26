@@ -49,7 +49,7 @@ void AudioComponent::pre_frame(float dTime)
 		auto sound = Resource::get<Sound>(_sound);
 		if (sound != nullptr)
 		{
-			src = new AudioSource(sound);
+			src = new AudioSource(std::make_shared<Sound>());
 			alSourcef(src->source, AL_GAIN, gain);
 			alSourcef(src->source, AL_SAMPLE_OFFSET, offset * src->sound->sample_rate);
 			src->Play();

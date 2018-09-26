@@ -6,23 +6,20 @@ ALCcontext  * con = 0;
 
 Sound::Sound(void)
 {
-	buffer = 0;
-	alGenBuffers(1, &buffer);
-
 	float freq = 440.f;
-    int seconds = 4;
-    unsigned sample_rate = 22050;
-    size_t buf_size = seconds * sample_rate;
+	duration = 4.0f;
+    sample_rate = 22050;
+    size_t buf_size = duration * sample_rate;
+	data_size = buf_size * 2;
 
-    short *samples;
-    samples = new short[buf_size];
-    for(int i=0; i<buf_size; ++i) {
-        samples[i] = 32760 * 0.5 * sin( (2.f*float(M_PI)*freq)/sample_rate * i );
+	data = new char[data_size];
+	short * samples = (short*)data;
+    for (size_t i = 0; i < buf_size; ++i)
+	{
+        samples[i] = 32760.0f * 0.5f * sin((2.0f * float(M_PI) * freq) / sample_rate * i);
     }
 
-    alBufferData(buffer, AL_FORMAT_MONO16, samples, buf_size, sample_rate);
-
-	delete []samples;
+	format = AL_FORMAT_MONO16;
 }
 
 Sound::Sound(instream& is, const std::set<std::string>& options)
