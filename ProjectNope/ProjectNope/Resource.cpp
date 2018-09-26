@@ -116,16 +116,15 @@ std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set
 {
 	bool blocking = options.find("block") != options.end();
 
-	mutex.lock();
-	if (loading.find(name)==loading.cend()) {
+	std::shared_ptr<std::lock_guard<std::mutex>> lock(new std::lock_guard<std::mutex>(mutex));
+	if (loading.find(name) == loading.cend())
+	{
 
 		auto it = resources.find(name);
 		if (it!=resources.end()) {
 			if (options.find("reload")!=options.end()) {
 				resources.erase(it);
 			} else {
-				mutex.unlock();
-				std::lock_guard<std::mutex> lock(mutex);
 				if (it->second != nullptr)
 					return resources[name];
 				else
@@ -133,7 +132,7 @@ std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set
 			}
 		}
 ;
-		mutex.unlock();
+		lock.reset();
 		if (blocking)
 		{
 			_load(name, options);
@@ -152,9 +151,7 @@ std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set
 
 	}
 
-	mutex.unlock();
-	std::lock_guard<std::mutex> lock(mutex);
-	if (options.find("block") != options.end())
+	if (blocking || !loading[name].second)
 	{
 		loading[name].first.join();
 		loading.erase(name);
@@ -162,12 +159,6 @@ std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set
 	}
 	else
 	{
-		if (!loading[name].second)
-		{
-			loading[name].first.join();
-			loading.erase(name);
-			return resources[name];
-		}
 		return nullptr;
 	}
 }

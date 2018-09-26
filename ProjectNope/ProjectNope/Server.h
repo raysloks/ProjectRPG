@@ -59,8 +59,6 @@ public:
 
 	int snapshotTimer, snapshotRate;
 
-	bool snapshotBeforeTick;
-
 	std::shared_ptr<ScriptMemory> mem;
 
 	virtual void onServerActivated(void);

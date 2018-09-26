@@ -10,6 +10,8 @@
 
 #include "ControlState.h"
 
+#include "EntityID.h"
+
 class MobComponent;
 
 class PlayerInputComponent :
@@ -43,14 +45,8 @@ public:
 
 	uint32_t client_id;
 
-	MobComponent * mob = nullptr;
-
-	GlobalPosition * p = nullptr;
-
-	Vec3 move;
-	Quaternion cam_rot;
-	ControlState cs;
-	bool run;
+	GlobalPosition target_location;
+	EntityID target;
 };
 
 #endif

@@ -66,7 +66,7 @@ void AnimationControlComponent::tick(float dTime)
 	{
 		if (!state)
 		{
-			auto run_cycle = new RunCycleState("run", 0.3f, "idle", 1.0f);
+			auto run_cycle = new RunCycleState("run", 0.5f, "idle", 1.0f);
 			if (entity->world->authority)
 			{
 				auto func = [=]()
@@ -94,39 +94,15 @@ void AnimationControlComponent::tick(float dTime)
 		delete s;
 	removed_states.clear();
 
-	if (mob->facing == Vec3())
-		mob->facing = Vec3(0.0f, 1.0f, 0.0f);
-	Vec3 flat_facing = mob->facing - mob->up * mob->up.Dot(mob->facing);
-	flat_facing.Normalize();
+	Vec3 up(0.0f, 0.0f, 1.0f);
 
-	transform = Matrix4::Translation(-root);
-	transform *= Matrix3(flat_facing.Cross(mob->up), flat_facing, mob->up);
+	transform = Matrix3(mob->facing.Cross(up), mob->facing, up);
 
 	transform *= Matrix4::Scale(Vec3(scale, scale, scale));
-
-	transform *= Matrix4::Translation(-mob->up * (mob->crouch ? 1.5f : 2.5f) * mob->r);
 			
 	for (auto dec : g->decs.items)
 	{
 		dec->local = transform;
-	}
-
-	if (mob->hit)
-	{
-		mob->hit = false;
-		set_state(new SimpleState("hit", 4.0f));
-	}
-
-	auto anim = Resource::get<SkeletalAnimation>(pose->anim);
-	if (anim)
-	{
-		Vec3 root_position = Vec3() * anim->getMatrix(anim->getIndex("root"), pose->frame);
-		Vec3 root_movement = (root_position - root) * Matrix3(transform);
-		root = root_position;
-		if (entity->world->authority)
-		{
-			mob->external_dp += root_movement;
-		}
 	}
 }
 
