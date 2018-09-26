@@ -18,7 +18,7 @@ Vec2::~Vec2(void)
 {
 }
 
-Vec2::operator Vec3(void) const
+Vec2::operator Vec3(void)
 {
 	return Vec3(x, y, 0.0f);
 }

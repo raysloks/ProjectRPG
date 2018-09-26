@@ -170,10 +170,10 @@ public:
 			world->AddEntity(ent);
 		}
 
-		/*ShadowSpawnUnit::spawn(Vec3(0.0f, 30.0f, 0.0f), world);
+		ShadowSpawnUnit::spawn(Vec3(0.0f, 30.0f, 0.0f), world);
 		ShadowSpawnUnit::spawn(Vec3(-5.0f, 50.0f, 0.0f), world);
 		ShadowSpawnUnit::spawn(Vec3(5.0f, 60.0f, 0.0f), world);
-		GolemUnit::spawn(Vec3(0.0f, -150.0f, 0.0f), world);*/
+		GolemUnit::spawn(Vec3(0.0f, -150.0f, 0.0f), world);
 
 		// create wibbly wobbly wall
 		{

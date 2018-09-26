@@ -77,12 +77,33 @@ void SpawnComponent::write_to(outstream& os) const
 
 MobComponent * SpawnComponent::spawn()
 {
+	auto pos = select_position();
+	if (is_valid(pos))
+	{
+		if (!in_view(pos, entity->world, [](MobComponent * mob)
+		{
+			return mob->temp_team != 1;
+		}))
+		{
+		}
+	}
 	return nullptr;
 }
 
 MobComponent * SpawnComponent::spawn(const Vec3& v)
 {
-	return nullptr;
+	auto mob = spawn();
+	if (mob)
+	{
+		auto ai = mob->entity->getComponent<AIComponent>();
+		if (ai)
+		{
+			std::uniform_real_distribution<float> uni_dist;
+			mob->move = v;
+			mob->cam_facing = v.Normalized();
+		}
+	}
+	return mob;
 }
 
 GlobalPosition SpawnComponent::select_position(void)

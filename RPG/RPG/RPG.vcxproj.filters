@@ -77,8 +77,6 @@
       <Filter>Units</Filter>
     </ClCompile>
     <ClCompile Include="InteractComponent.cpp" />
-    <ClCompile Include="NavigationMesh.cpp" />
-    <ClCompile Include="NavigationNode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -156,8 +154,6 @@
       <Filter>Units</Filter>
     </ClInclude>
     <ClInclude Include="InteractComponent.h" />
-    <ClInclude Include="NavigationMesh.h" />
-    <ClInclude Include="NavigationNode.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

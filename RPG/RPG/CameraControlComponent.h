@@ -39,7 +39,18 @@ public:
 
 	static const AutoSerialFactory<CameraControlComponent> _factory;
 
-	GlobalPosition p;
+	uint32_t client_id;
+
+	GlobalPosition * p;
+
+	Vec2 cam_rot_basic;
+	Quaternion cam_rot;
+
+	Vec3 offset;
+
+	Vec3 forward, up;
+	Vec3 front, top;
+	Vec3 right;
 };
 
 #endif

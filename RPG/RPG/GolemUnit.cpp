@@ -63,11 +63,15 @@ MobComponent * GolemUnit::spawn(const GlobalPosition& pos, World * world)
 
 	world->AddEntity(entity);
 
+	mob->p = &p->p;
+
 	mob->r = 1.0f;
+	mob->use_base_collision = false;
 	
-	mob->team = 1;
+	mob->temp_team = 1;
 
 	mob->health = ResourceBar(100);
+	mob->stamina = ResourceBar(50);
 	mob->mana = ResourceBar(50);
 
 	auto wrapper = new GolemAI();
@@ -82,6 +86,7 @@ MobComponent * GolemUnit::spawn(const GlobalPosition& pos, World * world)
 		if (target == mob)
 			return;
 		target->do_damage(4, entity->get_id());
+		target->hit = true;
 		target->v += v * 0.2f;
 	};
 
@@ -141,20 +146,24 @@ void GolemAI::tick(float dTime)
 			Vec3 dif = target_p->p - p->p;
 			float distance = dif.Len();
 			Vec3 dir = dif / distance;
+			mob->move = dir;
 			float facing_dot_dir = mob->facing.Dot(dir);
 			if (distance < 3.0f && facing_dot_dir > 0.8f && acc->has_state("run") && delay > 0.2f)
 			{
 				acc->set_state(new SimpleState("attack_down", 1.0f));
+				mob->stamina.current -= 1;
 				delay = 0.0f;
 			}
 			if (distance < 5.0f && facing_dot_dir > 0.8f && acc->has_state("run") && delay > 0.4f)
 			{
 				acc->set_state(new SimpleState("attack_sweep", 0.8f));
+				mob->stamina.current -= 1;
 				delay = 0.0f;
 			}
 			if (distance < 7.0f && facing_dot_dir > 0.8f && acc->has_state("run") && delay > 0.6f)
 			{
 				acc->set_state(new SimpleState("attack_heavy", 0.3f));
+				mob->stamina.current -= 2;
 				delay = 0.0f;
 			}
 			if (mob->mana.current > 0 && facing_dot_dir > 0.8f && acc->has_state("run") && delay > 0.8f)
@@ -179,15 +188,16 @@ void GolemAI::tick(float dTime)
 
 					projectile->v = dif + mob->v + Vec3(0.0f, 0.0f, 9.8f / 2.0f);
 
-					pos->p = p->p;
+					pos->p = *mob->p;
 
 					projectile->on_collision = [=](MobComponent * target)
 					{
 						if (target)
 						{
-							if (target->team != mob->team)
+							if (target->temp_team != mob->temp_team)
 							{
 								target->do_damage(power, mob->entity->get_id());
+								target->hit = true;
 							}
 						}
 						ent->world->SetEntity(ent->id, nullptr);
@@ -198,18 +208,22 @@ void GolemAI::tick(float dTime)
 
 						spawn->health.current *= modifier;
 						spawn->health.max *= modifier;
+						spawn->stamina.current *= modifier;
+						spawn->stamina.max *= modifier;
 						spawn->mana.current *= modifier;
 						spawn->mana.max *= modifier;
 
 						auto spawn_acc = spawn->entity->getComponent<AnimationControlComponent>();
 
 						spawn_acc->scale = scale;
+						spawn->speed_mod = scale;
 						spawn->r *= scale;
 					};
 
 					projectile->shooter = mob;
 
 					g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/shadowspawn/shadowspawn.gmdl", Material("data/assets/black.tga"), 0)));
+					g->decs.items.front()->local = Matrix4::Scale(Vec3(scale, scale, scale)) * Quaternion::lookAt(mob->facing, mob->up);
 
 					world->AddEntity(ent);
 				}));
@@ -227,11 +241,11 @@ void GolemAI::tick(float dTime)
 	}
 	else
 	{
-		mob->target_location = p->p;
+		mob->move = Vec3();
 		auto nearby = world->GetNearestComponents<MobComponent>(p->p, 30.0f);
 		for (auto other : nearby)
 		{
-			if (other.second->team != mob->team)
+			if (other.second->temp_team != mob->temp_team)
 				target = other.second->entity->get_id();
 		}
 	}

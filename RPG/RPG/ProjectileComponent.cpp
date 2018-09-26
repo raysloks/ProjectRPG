@@ -45,7 +45,7 @@ void ProjectileComponent::tick(float dTime)
 
 		Vec3 dp = v * dTime + g * dTime * dTime;
 
-		std::vector<std::pair<MobComponent*, std::shared_ptr<Collision>>> hits;/*
+		std::vector<std::pair<MobComponent*, std::shared_ptr<Collision>>> hits;
 		auto mobs = entity->world->GetNearestComponents<MobComponent>(pc->p);
 		for each (auto mob in mobs)
 		{
@@ -62,7 +62,7 @@ void ProjectileComponent::tick(float dTime)
 					hits.push_back(std::make_pair(mob.second, col));
 				}
 			}
-		}*/
+		}
 
 		std::vector<std::shared_ptr<Collision>> list;
 		ColliderComponent::LineCheck(pc->p, pc->p + dp, list);

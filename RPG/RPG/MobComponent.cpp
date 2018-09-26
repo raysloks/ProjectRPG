@@ -29,16 +29,20 @@
 
 const AutoSerialFactory<MobComponent> MobComponent::_factory("MobComponent");
 
-MobComponent::MobComponent(void) : Serializable(_factory.id), health(40), mana(25)
+MobComponent::MobComponent(void) : Serializable(_factory.id), health(10), stamina(10), mana(10)
 {
 	facing = Vec3(0.0f, 1.0f, 0.0f);
-	speed = 3.0f;
+	move_facing = facing;
+	follow = facing;
+	up = Vec3(0.0f, 0.0f, 1.0f);
+	speed_mod = 1.0f;
 	r = 0.5f;
+	use_base_collision = true;
 }
 
 MobComponent::MobComponent(instream& is, bool full) : Serializable(_factory.id)
 {
-	is >> facing;
+	is >> facing >> move_facing >> cam_facing >> up;
 }
 
 MobComponent::~MobComponent(void)
@@ -58,67 +62,474 @@ void MobComponent::disconnect(void)
 #include "LineComponent.h"
 #include "AudioComponent.h"
 
-#include "NavigationMesh.h"
-
 void MobComponent::tick(float dTime)
 {
-	if (!entity->world->authority)
-		return;
-
-	std::shared_ptr<NavigationMesh> navmesh;
-	auto mesh = Resource::get<Mesh>("data/assets/plane8x8.gmdl");
-	if (mesh)
+	if (entity->world->authority)
 	{
-		navmesh.reset(new NavigationMesh(*mesh));
-	}
+		auto acc = entity->getComponent<AnimationControlComponent>();
 
-	auto target_ent = entity->world->GetEntity(target);
-	if (target_ent)
-	{
-		auto target_p = target_ent->getComponent<PositionComponent>();
-		if (target_p)
+		if (input["switch"] && weapon)
 		{
-			target_location = target_p->p;
-		}
-	}
-
-	v = Vec3();
-	auto p = entity->getComponent<PositionComponent>();
-	if (p)
-	{
-		if (navmesh && path.empty())
-		{
-			path = navmesh->GetPath(Vec3(p->p), Vec3(target_location));
+			weapon = weapon->swap(1 - weapon_index);
+			weapon_index = 1 - weapon_index;
+			input.erase("switch");
 		}
 
-		if (!path.empty())
+		if (stamina.current <= 0)
 		{
-			Vec3 dif = Vec3(path.back()) - p->p;
-			float l = dif.Len();
-			if (l > 0.1f)
+			if (input.find("recover") == input.end())
 			{
-				Vec3 dir = dif / l;
-				facing = dir;
-				v = dir * speed;
-				p->p += v * dTime;
-				p->update();
+				if (temp_team == 0)
+				{
+					NewEntity * sound_ent = new NewEntity();
+					auto audio = new AudioComponent("data/assets/audio/strained_breathing_short.wav");
+					audio->pos_id = entity->get_id();
+					sound_ent->addComponent(audio);
+					entity->world->AddEntity(sound_ent);
+				}
+
+				input["recover"] = 3.0f;
 			}
+		}
+
+		if (health.current <= 0)
+		{
+			move = Vec3();
+			crouch = true;
+			//health.current -= dTime * 1.0f;
+			if (health.current <= -10.0f || temp_team == 1)
+			{
+				entity->world->SetEntity(entity->id, nullptr);
+				if (on_death)
+					on_death();
+			}
+		}
+
+		if (move != Vec3())
+		{
+			move_facing = move.Normalized();
+		}
+
+		for (auto i = input.begin(); i != input.end();)
+		{
+			i->second -= dTime;
+			if (i->second <= 0.0f)
+				i = input.erase(i);
 			else
+				++i;
+		}
+
+		auto pc = entity->getComponent<PositionComponent>();
+		if (pc != nullptr)
+		{
+			p = &pc->p;
+		}
+
+		if (move.Len()>1.0f)
+			move.Normalize();
+
+		if (p != nullptr)
+		{
+			if (Vec3(*p).LenPwr() > 4000000.0f)
 			{
-				path.pop_back();
+				*p = Vec3();
+				v = Vec3();
+				//entity->world->SetEntity(entity->id, nullptr);
 			}
+
+			if (use_base_collision)
+			{
+				auto mobs = entity->world->GetNearestComponents<MobComponent>(*p);
+				for each (auto mob in mobs)
+				{
+					if (mob.second->use_base_collision)
+					{
+						float r_plus_r = r + mob.second->r;
+						if (mob.first < r_plus_r && mob.second != this)
+						{
+							Vec3 dif = *p - *mob.second->p;
+							float l = mob.first;
+							Vec3 dir = dif;
+							if (l != 0.0f)
+								dir /= l;
+
+							Vec3 vdif = v - mob.second->v;
+							vdif = dif * dif.Dot(vdif);
+
+							v -= vdif * 0.5f;
+							mob.second->v += vdif * 0.5f;
+
+							dif *= r_plus_r - l;
+							external_dp += dif * 0.5f;
+							mob.second->external_dp -= dif * 0.5f;
+						}
+					}
+				}
+			}
+
+			/*{
+				std::vector<std::shared_ptr<Collision>> list;
+				ColliderComponent::DiskCast(*p + Vec3(0.0f, 0.0f, -0.9f), *p + Vec3(0.0f, 0.0f, -1.1f), 0.25f, list);
+
+				std::shared_ptr<Collision> col;
+				for (auto i = list.begin(); i != list.end(); ++i)
+				{
+					if ((*i)->t >= 0.0f && (*i)->t <= 1.0f)
+						if (col != 0)
+						{
+							if (col->t>(*i)->t)
+								col = *i;
+						}
+						else
+						{
+							col = *i;
+						}
+				}
+
+				if (col != 0)
+				{
+					*p = col->poo;
+					v -= col->n*col->n.Dot(v);
+				}
+			}*/
+
+			GlobalPosition prev = *p;
+
+			//v += move * dTime * 100.0f;
+
+			landed = false;
+			//land_n = Vec3(); // smooth these out for some cases
+			//land_v = Vec3(); // -''-
+
+			Vec3 g_dir = Vec3(0.0f, 0.0f, -1.0f);//-Vec3(*p).Normalized();
+			Vec3 g = g_dir * 9.8f;
+
+			dp = (g/2.0f * dTime + v) * dTime + external_dp;
+
+			float t = 1.0f;
+
+			bool done_landing = false;
+
+			std::set<Wall*> ignored;
+			std::set<Vec3> previous;
+
+			/*auto wpc = weapon->entity->getComponent<PositionComponent>();
+			if (wpc != nullptr)
+			{
+				wpc->p = *p;
+				wpc->update();
+			}*/
+
+			while (t>0.0f)
+			{
+				std::vector<std::shared_ptr<Collision>> list;
+
+				if (t == 1.0f)
+				{
+					auto line = entity->getComponent<LineComponent>();
+					if (line != 0)
+					{
+						line->lines.clear();
+						line->lines.resize(16);
+						line->color.clear();
+						line->color.resize(16);
+					}
+
+					/*ColliderComponent::DiskCast(*p, *p - up * (0.25f), 0.5f, list);
+					if (!list.empty())
+					{
+						std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
+						if (list.front()->n.Dot(up) > 0.5f)
+						{
+							v += up * dTime * 25.0f;
+							landed = true;
+						}
+					}
+					list.clear();*/
+
+					float disk_radius = 0.9f * r;
+					float offset = 0.0f;
+					float standing_height = (crouch ? 1.5f : 2.5f) * r;
+					float height = standing_height;
+					Vec3 dp_side = dp - up * up.Dot(dp);
+					ColliderComponent::DiskCast(*p - up * offset + dp, *p - up * (offset + height) + dp, disk_radius, list);
+					if (!list.empty())
+					{
+						list.erase(std::remove_if(list.begin(), list.end(), [=](const std::shared_ptr<Collision>& col)
+						{
+							return col->n.z <= 0.5f;
+						}), list.end());
+						if (!list.empty())
+						{
+							std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
+							Vec3 axis = Vec3(list.front()->poc - list.front()->poo).Cross(up).Normalize();
+							GlobalPosition pivot = list.front()->poc;
+							GlobalPosition center = list.front()->poo;
+
+							/*auto wpc = weapon->entity->getComponent<PositionComponent>();
+							if (wpc != nullptr)
+							{
+							wpc->p = list.front()->poc;
+							wpc->update();
+							}*/
+
+							Vec3 n = list.front()->n;
+							float tdt = list.front()->t;
+							list.clear();
+
+							if (line != 0)
+							{
+								line->lines[0].first = pivot - *p;
+								line->lines[0].second = pivot + up - *p;
+								line->color[0].first = Vec3(1.0f, 1.0f, 1.0f);
+								line->color[0].second = Vec3(1.0f, 0.0f, 0.0f);
+
+								line->lines[3].first = pivot - *p;
+								line->lines[3].second = center - *p;
+								line->color[3].first = Vec3(1.0f, 0.0f, 0.0f);
+								line->color[3].second = Vec3(1.0f, 0.0f, 0.0f);
+
+								line->lines[6].first = pivot - *p;
+								line->lines[6].second = pivot + axis - *p;
+								line->color[6].first = Vec3(1.0f, 0.0f, 0.0f);
+								line->color[6].second = Vec3(0.0f, 0.0f, 0.0f);
+							}
+
+							if (pivot == center)
+							{
+								std::shared_ptr<Collision> col(new Collision());
+								col->t = 1.0f;
+								col->n = n;
+								col->poo = center + up * standing_height;
+								list.push_back(col);
+							}
+							else
+							{
+								std::shared_ptr<Collision> col(new Collision());
+								col->t = 1.0f;
+								col->n = n;
+								col->poo = center + up * standing_height;
+								list.push_back(col);
+							}
+						}
+					}
+
+					if (!list.empty())
+					{
+						land_n = list.front()->n;
+						land_v = list.front()->v;
+					}
+				}
+
+				/*for (auto i = list.begin(); i != list.end(); ++i)
+				{
+					(*i)->poo += up * 0.75f;
+					(*i)->n = up;
+				}*/
+
+				ColliderComponent::SphereCast(*p, *p+dp, r, list);
+
+				std::shared_ptr<Collision> col;
+				for (auto i=list.begin();i!=list.end();++i)
+				{
+					if (ignored.find((*i)->wall)==ignored.end())
+						if ((*i)->t>=0.0f && (*i)->t<=1.0f)
+							if ((*i)->n.Dot(dp-(*i)->v*dTime)<0.0f)
+							{
+								if (col!=0)
+								{
+									if (col->t>(*i)->t)
+										col = *i;
+								}
+								else
+								{
+									col = *i;
+								}
+							}
+				}
+
+				if (col!=0)
+				{
+					t -= col->t;
+
+					v += g * dTime * col->t;
+
+					*p = col->poo;
+
+					v -= col->v;
+
+					if (col->n.Dot(up) > 0.5f)
+						landed = true;
+
+					{
+						float fall_one = col->n.Dot(v) / 10.0f;
+						int32_t fall_damage = fall_one * fall_one - 1.0f;
+						if (fall_damage > 0)
+						{
+							hit = true;
+							do_damage(fall_damage, EntityID());
+						}
+					}
+
+					if (col->n.Dot(up) > land_n.Dot(up) || ignored.empty()) {
+						land_n = col->n;
+						land_v = col->v;
+					}
+
+					float v_dot_n = v.Dot(col->n);
+					if (v_dot_n < 0.0f)
+						v -= col->n * v_dot_n;
+					v += col->v;
+
+					if (!done_landing)
+					{
+						if (crouch)
+							run = false;
+
+						if (landed)
+						{
+							done_landing = true;
+
+							Vec3 target = move;
+							Vec3 target_right = target.Cross(up);
+							target = land_n.Cross(target_right);
+							target.Normalize();
+
+							bool recovering = input.find("recover") != input.end();
+							bool rolling = acc->has_state("roll") || acc->has_state("hit");
+							bool busy = !acc->has_state("run");
+
+							if (!busy)
+								facing = move_facing;
+
+							if (recovering)
+								run = false;
+							
+							if (!rolling)
+							{
+								if (target != Vec3() && run)
+									stamina_regen -= dTime * 1.0f;
+								else
+									stamina_regen += dTime * 1.0f;
+							}
+
+							float speed = crouch ? 2.0f : run ? 9.0f : recovering ? 2.0f : 5.5f;
+
+							speed *= speed_mod;
+
+							if (busy)
+								speed = 0.0f;
+
+							target *= move.Len() * speed;
+
+							if (!rolling)
+							{
+								v -= land_v;
+								float nv = v.Dot(land_n);
+								v -= land_n * nv;
+
+								v = bu_blend(v, target, -0.5f, -40.0f, dTime);
+
+								v += land_n * nv;
+								v += land_v;
+							}
+
+							if (!recovering && !busy)
+							{
+								if (input.find("roll") != input.end() && target != Vec3())
+								{
+									acc->set_state(new SimpleState("roll", 1.5f));
+
+									move_facing = move.Normalized();
+									v = target.Normalized() * 12.5f + land_v;
+
+									stamina.current -= 1;
+
+									input.erase("roll");
+								}
+
+								if (input.find("jump") != input.end())
+								{
+									v -= land_v;
+									if (up.Dot(v)<0.0f)
+										v -= up * up.Dot(v);
+									v += land_v;
+									v += up * 4.0f;
+
+									stamina.current -= 1;
+
+									input.erase("jump");
+								}
+							}
+
+							int32_t stamina_regen_integer = stamina_regen;
+							stamina_regen -= stamina_regen_integer;
+							stamina.current += stamina_regen_integer;
+
+							if (stamina.current >= stamina.max)
+							{
+								stamina_regen = std::fminf(stamina_regen, 0.0f);
+							}
+						}
+					}
+
+					float edp_dot_n = external_dp.Dot(col->n);
+					if (edp_dot_n < 0.0f)
+						external_dp -= col->n * edp_dot_n;
+
+					dp = (g / 2.0f * dTime * t + v) * dTime * t + external_dp;
+
+					bool should_break = false;
+					for (auto i=previous.begin();i!=previous.end();++i)
+						if (i->Dot(dp)<=0.0f)
+							should_break = true;
+
+					if (should_break)
+						break;
+
+					ignored.insert(col->wall);
+				}
+				else
+				{
+					*p += dp;
+					v += g*dTime*t;
+					break;
+				}
+			}
+			
+			dp = Vec3();
+			external_dp = Vec3();
+
+			if (on_tick)
+				on_tick(dTime);
+
+			if (prev != *p)
+				if (pc != nullptr)
+					pc->update();
 		}
 	}
 }
 
 void MobComponent::writeLog(outstream& os, ClientData& client)
 {
-	os << facing << v << health << mana << r;
+	os << facing << move_facing << cam_facing << up;
+	os << v << land_n << land_v << landed;
+	os << health << stamina << mana;
+	os << run << crouch;
+	os << cam_rot << move;
+	os << input;
+	os << r;
 }
 
 void MobComponent::readLog(instream& is)
 {
-	is >> facing >> v >> health >> mana >> r;
+	is >> facing >> move_facing >> cam_facing >> up;
+	is >> v >> land_n >> land_v >> landed;
+	is >> health >> stamina >> mana;
+	is >> run >> crouch;
+	is >> cam_rot >> move;
+	is >> input;
+	is >> r;
 }
 
 void MobComponent::writeLog(outstream& os)
@@ -134,18 +545,29 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 	auto mob = reinterpret_cast<MobComponent*>(pComponent);
 	if (mob != nullptr)
 	{
-		Vec3 up(0.0f, 0.0f, 1.0f);
 		facing = bu_sphere(mob->facing, facing, up, fWeight);
-		v = mob->v;
+		move_facing = bu_sphere(mob->move_facing, move_facing, up, fWeight);
+		cam_facing = bu_sphere(mob->cam_facing, cam_facing, up, fWeight);
+		up = bu_sphere(mob->up, up, facing.Cross(up), fWeight);
+		v = mob->v;// v*(1.0f - fWeight) + mob->v*fWeight;
+		land_n = mob->land_n;
+		land_v = mob->land_v;
+		landed = mob->landed;
 		health = mob->health;
+		stamina = mob->stamina;
 		mana = mob->mana;
+		run = mob->run;
+		crouch = mob->crouch;
+		cam_rot = bu_slerp(cam_rot, mob->cam_rot, fWeight);
+		move = mob->move;
+		input = mob->input;
 		r = mob->r;
 	}
 }
 
 void MobComponent::write_to(outstream& os, ClientData& client) const
 {
-	os << facing;
+	os << facing << move_facing << cam_facing << up;
 }
 
 void MobComponent::write_to(outstream& os) const
@@ -157,17 +579,50 @@ void MobComponent::do_damage(size_t damage, EntityID source)
 	if (damage == 0)
 		return;
 
+	if (source.id != 0xffffffff)
+		last_hit = source;
 	if (health.current > 0)
 	{
 		health.current -= damage;
 		if (health.current <= 0)
 		{
-			health.current = 0;
+			auto source_entity = entity->world->GetEntity(last_hit);
+			if (source_entity)
+			{
+				auto source_mob = source_entity->getComponent<MobComponent>();
+				if (source_mob)
+				{
+					source_mob->mana.current += 1;
+					if (source_mob->mana.current > source_mob->mana.max)
+						source_mob->mana.current = source_mob->mana.max;
+				}
+			}
 		}
 	}
 	else
 	{
 		health.current -= damage;
+	}
+
+	if (entity->world->authority)
+	{
+		if (temp_team == 0)
+		{
+			NewEntity * sound_ent = new NewEntity();
+			auto audio = new AudioComponent("data/assets/audio/ouch.wav");
+			audio->pos_id = entity->get_id();
+			sound_ent->addComponent(audio);
+			entity->world->AddEntity(sound_ent);
+		}
+
+		if (temp_team == 1)
+		{
+			NewEntity * sound_ent = new NewEntity();
+			auto audio = new AudioComponent("data/assets/audio/ZombieOuch.wav");
+			audio->pos_id = entity->get_id();
+			sound_ent->addComponent(audio);
+			entity->world->AddEntity(sound_ent);
+		}
 	}
 }
 

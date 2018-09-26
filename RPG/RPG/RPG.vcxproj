@@ -170,8 +170,6 @@
     <ClCompile Include="LearningComponent.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MobComponent.cpp" />
-    <ClCompile Include="NavigationMesh.cpp" />
-    <ClCompile Include="NavigationNode.cpp" />
     <ClCompile Include="RunCycleState.cpp" />
     <ClCompile Include="ShadowSpawnUnit.cpp" />
     <ClCompile Include="SimpleState.cpp" />
@@ -217,8 +215,6 @@
     <ClInclude Include="Item.h" />
     <ClInclude Include="LearningComponent.h" />
     <ClInclude Include="MobComponent.h" />
-    <ClInclude Include="NavigationMesh.h" />
-    <ClInclude Include="NavigationNode.h" />
     <ClInclude Include="RunCycleState.h" />
     <ClInclude Include="ShadowSpawnUnit.h" />
     <ClInclude Include="SimpleState.h" />

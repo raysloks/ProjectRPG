@@ -15,7 +15,7 @@ public:
 	Vec2(instream& is);
 	~Vec2(void);
 
-	operator Vec3(void) const;
+	operator Vec3(void);
 	
 	float Len(void)const;
 	float LenPwr(void)const;

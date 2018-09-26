@@ -58,7 +58,7 @@ void HitComponent::tick(float dTime)
 			auto acc = ent->getComponent<AnimationControlComponent>();
 
 			float prop = anim->getProperty(bone + ".active", pose->frame);
-			GlobalPosition pos = Vec3() * anim->getMatrix(anim->getIndex(bone), pose->frame) * acc->transform;
+			GlobalPosition pos = *mob->p + Vec3() * anim->getMatrix(anim->getIndex(bone), pose->frame) * acc->transform;
 			r = radius * acc->scale * prop;
 			p->p = pos;
 			p->update();

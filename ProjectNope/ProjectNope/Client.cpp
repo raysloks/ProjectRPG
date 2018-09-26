@@ -33,8 +33,6 @@
 
 #include "Profiler.h"
 
-#include "AudioSource.h"
-
 extern double secondsPerStep;
 extern double fpsCap;
 extern bool forceCap;
@@ -1318,7 +1316,7 @@ void Client::render_world(void)
 			rs.popTransform();
 		}
 
-		hideCursor = false;
+		hideCursor = true;
 		for (auto win = windows.begin(); win != windows.end(); ++win)
 		{
 			dynamic_cast<RectangleWindow*>(win->get())->x = -view_w / 2;
@@ -1329,7 +1327,7 @@ void Client::render_world(void)
 				win->get()->onRender();
 			win->get()->render();
 		}
-		lockCursor = true;
+		lockCursor = hideCursor; // allow cursor to escape window when visible
 
 #if TIMESLOT_LEVEL >= 0
 		//if (input.isDown(Platform::KeyEvent::P))

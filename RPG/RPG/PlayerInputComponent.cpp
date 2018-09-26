@@ -7,7 +7,6 @@
 #include "PositionComponent.h"
 #include "MobComponent.h"
 #include "CameraControlComponent.h"
-#include "ColliderComponent.h"
 
 #include "ClientData.h"
 
@@ -26,6 +25,7 @@ PlayerInputComponent::PlayerInputComponent(void) : Serializable(_factory.id)
 
 PlayerInputComponent::PlayerInputComponent(instream& is, bool full) : Serializable(_factory.id)
 {
+	is >> cs;
 }
 
 PlayerInputComponent::~PlayerInputComponent(void)
@@ -42,76 +42,115 @@ void PlayerInputComponent::disconnect(void)
 
 void PlayerInputComponent::post_frame(float dTime)
 {
+	if (p == nullptr) {
+		auto pc = entity->getComponent<PositionComponent>();
+		p = &pc->p;
+	}
+	if (mob == nullptr)
+		mob = entity->getComponent<MobComponent>();
+
 	Client * client = entity->world->client;
 	if (client != nullptr)
 	{
 		if (client->clientData->client_id == client_id || !entity->world->authority)
 		{
-			int view_w = client->platform->get_width();
-			int view_h = client->platform->get_height();
+			const Input& input = client->input;
 
-			Vec3 mouse(client->input.mouse_x, client->input.mouse_y, -1.0f);
-			mouse -= Vec3(view_w / 2, view_h / 2, 0.0f);
-			mouse /= Vec3(view_w / 2, -view_h / 2, 1.0f);
+			move = client->input.ctrl[0].left_analog.out;
 
-			double aspect = ((double)view_w) / ((double)view_h);
+			if (move.Len() > 1.0f)
+				move.Normalize();
 
-			Matrix4 pers = Matrix4::Perspective(40.0f, aspect, 1.0f, 100.0f);
-
-			Matrix4 rot = entity->world->cam_rot.getConj();
-			Matrix4 invrot = entity->world->cam_rot;
-
-			Matrix4 proj = rot * pers;
-			Matrix4 proj_inv = proj.Inverse();
-
-			mouse *= proj_inv;
-
-			mouse *= 100.0f;
-
-			GlobalPosition current_target_location;
-			EntityID current_target;
-
+			if (client->isActive)
 			{
-				std::vector<std::shared_ptr<Collision>> list;
-				ColliderComponent::LineCheck(entity->world->cam_pos, entity->world->cam_pos + mouse, list);
-				if (!list.empty())
-				{
-					std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
-
-					current_target_location = list.front()->poc;
-				}
-			}
-			
-			auto mobs = entity->world->GetNearestComponents<MobComponent>(entity->world->cam_pos);
-			for each (auto mob in mobs)
-			{
-				auto p = mob.second->entity->getComponent<PositionComponent>();
-				auto col = Wall::SphereLine(Vec3(), mouse, p->p - entity->world->cam_pos, mob.second->r);
-				if (col != nullptr)
-				{
-					current_target = mob.second->entity->get_id();
-				}
+				if (input.isDown(Platform::KeyEvent::W) || input.isDown(Platform::KeyEvent::UP))
+					move.y += 1.0f;
+				if (input.isDown(Platform::KeyEvent::A) || input.isDown(Platform::KeyEvent::LEFT))
+					move.x -= 1.0f;
+				if (input.isDown(Platform::KeyEvent::S) || input.isDown(Platform::KeyEvent::DOWN))
+					move.y -= 1.0f;
+				if (input.isDown(Platform::KeyEvent::D) || input.isDown(Platform::KeyEvent::RIGHT))
+					move.x += 1.0f;
 			}
 
-			if (client->input.isPressed(Platform::KeyEvent::RMB))
+			if (move.Len() > 1.0f)
+				move.Normalize();
+
+			/*Vec3 local_dir = move;
+			move.x = local_dir.x*cos(camera->x) - local_dir.y*sin(camera->x);
+			move.y = local_dir.x*sin(camera->x) + local_dir.y*cos(camera->x);*/
+
+			Vec3 fx, fy;
+
+			auto ccc = entity->getComponent<CameraControlComponent>();
+			if (ccc != nullptr)
 			{
-				target_location = current_target_location;
-				target = current_target;
+				fx = ccc->right;
+				fy = ccc->forward;
+
+				cam_rot = ccc->cam_rot;
 			}
+
+			float l = move.Len();
+			move = fy * move.y + fx * move.x;
+			move.Normalize();
+			move *= l;
+
+			cs.input["run"] = input.isDown(Platform::KeyEvent::LSHIFT) || input.ctrl[0].left_trigger.out;
+			cs.input["crouch"] = input.isDown(Platform::KeyEvent::LCTRL) || input.ctrl[0].b.down;
+			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].a.pressed)
+				cs.activate("jump");
+			if (input.isPressed(Platform::KeyEvent::LMB) || input.ctrl[0].x.pressed)
+				cs.activate("attack");
+			if (input.isPressed(Platform::KeyEvent::RMB) || input.ctrl[0].right_trigger.pressed)
+				cs.activate("roll");
+			if (input.isPressed(Platform::KeyEvent::TAB) || input.ctrl[0].y.pressed)
+				cs.activate("switch");
 		}
 	}
 }
 
 void PlayerInputComponent::tick(float dTime)
 {
-	if (!entity->world->authority)
-		return;
-
-	auto mob = entity->getComponent<MobComponent>();
-	if (mob)
+	if (p == nullptr)
 	{
-		mob->target_location = target_location;
-		mob->target = target;
+		auto pc = entity->getComponent<PositionComponent>();
+		p = &pc->p;
+	}
+	if (mob == nullptr)
+		mob = entity->getComponent<MobComponent>();
+
+	if (mob != nullptr)
+	{
+		mob->cam_facing = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
+		mob->cam_rot = cam_rot;
+
+		if (entity->world->authority)
+		{
+			float buffer_duration = 0.4f;
+
+			mob->move = move;
+
+			mob->run = cs.input["run"];
+			mob->crouch = cs.input["crouch"];
+
+			if (cs.active.find("jump") != cs.active.end())
+				mob->input["jump"] = buffer_duration;
+
+			if (cs.active.find("attack") != cs.active.end())
+				mob->input["attack"] = buffer_duration;
+
+			if (cs.active.find("roll") != cs.active.end())
+				mob->input["roll"] = buffer_duration;
+
+			if (cs.active.find("switch") != cs.active.end())
+				mob->input["switch"] = buffer_duration;
+
+			cs.active.erase("switch");
+			cs.active.erase("attack");
+			cs.active.erase("roll");
+			cs.active.erase("jump");
+		}
 	}
 }
 
@@ -125,19 +164,16 @@ void PlayerInputComponent::readLog(instream& is)
 
 void PlayerInputComponent::writeLog(outstream& os)
 {
-	os << target_location << target;
+	os << cs << move << cam_rot;
 }
 
 void PlayerInputComponent::readLog(instream& is, ClientData& client)
 {
 	if (client.client_id == client_id)
 	{
-		is >> target_location >> target;
-		if (target.id != 0xffffffff)
-		{
-			target.id = client.getRealID(target.id);
-			target.uid = entity->world->uid[target.id];
-		}
+		ControlState ncs;
+		is >> ncs >> move >> cam_rot;
+		ncs.update(cs);
 	}
 }
 
@@ -147,6 +183,7 @@ void PlayerInputComponent::interpolate(Component * pComponent, float fWeight)
 
 void PlayerInputComponent::write_to(outstream& os, ClientData& client) const
 {
+	os << cs;
 }
 
 void PlayerInputComponent::write_to(outstream& os) const

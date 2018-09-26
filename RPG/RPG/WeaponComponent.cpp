@@ -76,7 +76,9 @@ void WeaponComponent::tick(float dTime)
 
 	if (mob)
 	{
+		recoil -= mob->run;
 		recoil *= exp(log(0.05f) * dTime);
+		recoil += mob->run;
 	}
 	else
 	{

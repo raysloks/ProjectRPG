@@ -45,7 +45,7 @@ void TriggerComponent::tick(float dTime)
 		std::vector<MobComponent*> passed_mobs;
 		for each (auto mob in mobs)
 		{
-			if (mob->team == 0)
+			if (mob->temp_team == 0)
 			{
 				auto p = mob->entity->getComponent<PositionComponent>();
 				if (p)

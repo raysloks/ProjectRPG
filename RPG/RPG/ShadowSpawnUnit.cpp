@@ -55,11 +55,14 @@ MobComponent * ShadowSpawnUnit::spawn(const GlobalPosition& pos, World * world)
 
 	world->AddEntity(entity);
 
+	mob->p = &p->p;
+
 	mob->r = 0.25f;
 
-	mob->team = 1;
+	mob->temp_team = 1;
 
 	mob->health = ResourceBar(5);
+	mob->stamina = ResourceBar(5);
 	mob->mana = ResourceBar(2);
 
 	auto wrapper = new ShadowSpawnAI();
@@ -71,9 +74,10 @@ MobComponent * ShadowSpawnUnit::spawn(const GlobalPosition& pos, World * world)
 
 	auto func = [=](MobComponent * target, const Vec3& v)
 	{
-		if (target->team == mob->team)
+		if (target->temp_team == mob->temp_team)
 			return;
 		target->do_damage(1, entity->get_id());
+		target->hit = true;
 	};
 
 	{
@@ -133,10 +137,12 @@ void ShadowSpawnAI::tick(float dTime)
 			Vec3 dif = target_p->p - p->p;
 			float distance = dif.Len();
 			Vec3 dir = dif / distance;
+			mob->move = dir;
 			float facing_dot_dir = mob->facing.Dot(dir);
 			if (distance < 1.2f * acc->scale + target_mob->r && facing_dot_dir > 0.8f && acc->has_state("run"))
 			{
 				acc->set_state(new SimpleState("attack", 1.0f));
+				mob->stamina.current -= 1;
 			}
 
 			if (distance > 20.0f)
@@ -147,11 +153,11 @@ void ShadowSpawnAI::tick(float dTime)
 	}
 	else
 	{
-		mob->target_location = p->p;
+		mob->move = Vec3();
 		auto nearby = world->GetNearestComponents<MobComponent>(p->p, 10.0f);
 		for (auto other : nearby)
 		{
-			if (other.second->team != mob->team)
+			if (other.second->temp_team != mob->temp_team)
 				target = other.second->entity->get_id();
 		}
 	}

@@ -74,14 +74,28 @@ void InventoryComponent::set_display(bool enable)
 							rs.pushTransform();
 							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 100.0f, 0.0f)));
 							Writing::setSize(25);
-							Writing::setColor(0.0f, 1.0f, 0.0f);
+							Writing::setColor(1.0f, 0.0f, 0.0f);
 							Writing::render(std::to_string((int)std::floorf(mob->health.current)) + " / " + std::to_string((int)std::floorf(mob->health.max)), rs);
+							rs.popTransform();
+							rs.popTransform();
+
+							// stamina
+							rs.pushTransform();
+							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 140.0f, 0.0f)));
+							Writing::setSize(25);
+							Writing::setColor(0.0f, 1.0f, 0.0f);
+							Writing::render(std::to_string((int)std::floorf(mob->stamina.current)) + " / " + std::to_string((int)std::floorf(mob->stamina.max)), rs);
+							if (mob->input.find("recover") != mob->input.end())
+							{
+								Writing::render(" X", rs);
+								rs.popTransform();
+							}
 							rs.popTransform();
 							rs.popTransform();
 
 							// mana
 							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 140.0f, 0.0f)));
+							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 180.0f, 0.0f)));
 							Writing::setSize(25);
 							Writing::setColor(0.0f, 0.0f, 1.0f);
 							Writing::render(std::to_string((int)std::floorf(mob->mana.current)) + " / " + std::to_string((int)std::floorf(mob->mana.max)), rs);
@@ -138,7 +152,7 @@ void InventoryComponent::set_display(bool enable)
 							rs.popTransform();
 
 							auto p = entity->getComponent<PositionComponent>();
-							auto interacts = entity->world->GetNearestComponents<InteractComponent>(p->p + mob->facing, 2.0f);
+							auto interacts = entity->world->GetNearestComponents<InteractComponent>(p->p + mob->cam_facing, 2.0f);
 							if (!interacts.empty())
 							{
 								auto other_p = interacts.begin()->second->entity->getComponent<PositionComponent>();

@@ -100,8 +100,9 @@ void Server::tick(float dTime)
 		}
 	}
 
-	if (world->authority)
-		world->tick(dTime);
+	if (!snapshotBeforeTick)
+		if (world->authority)
+			world->tick(dTime);
 
 	if (con != nullptr)
 	{
@@ -221,6 +222,10 @@ void Server::tick(float dTime)
 		}
 	}
 
+	if (snapshotBeforeTick)
+		if (world->authority)
+			world->tick(dTime);
+
 	//Profiler::print();
 }
 
@@ -293,6 +298,8 @@ void Server::open(unsigned short port)
 
 	snapshotTimer = 0;
 	snapshotRate = 2;
+
+	snapshotBeforeTick = false;
 }
 
 void Server::close(void)
