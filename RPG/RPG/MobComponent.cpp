@@ -410,7 +410,7 @@ void MobComponent::tick(float dTime)
 								if (target != Vec3() && run)
 									stamina_regen -= dTime * 1.0f;
 								else
-									stamina_regen += dTime * 1.0f;
+									stamina_regen += dTime * 10.0f / 3.0f;
 							}
 
 							float speed = crouch ? 2.0f : run ? 9.0f : recovering ? 2.0f : 5.5f;

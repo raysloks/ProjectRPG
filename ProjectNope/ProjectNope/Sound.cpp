@@ -4,25 +4,52 @@
 ALCdevice * dev = 0;
 ALCcontext  * con = 0;
 
+float clamp(float x, float lowerlimit, float upperlimit) {
+	if (x < lowerlimit)
+		x = lowerlimit;
+	if (x > upperlimit)
+		x = upperlimit;
+	return x;
+}
+
+float smoothstep(float edge0, float edge1, float x) {
+	// Scale, bias and saturate x to 0..1 range
+	x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+	// Evaluate polynomial
+	return x * x * (3 - 2 * x);
+}
+
 Sound::Sound(void)
 {
 	buffer = 0;
-	alGenBuffers(1, &buffer);
 
-	float freq = 440.f;
-    int seconds = 4;
-    unsigned sample_rate = 22050;
-    size_t buf_size = seconds * sample_rate;
+	float freq = 220.0f;
+	float freq2 = 440.0f;
+	float freq3 = 880.0f;
+	duration = 2.0f;
+	sample_rate = 22050;
+	size_t buf_size = duration * sample_rate;
+	data_size = buf_size * 2;
 
-    short *samples;
-    samples = new short[buf_size];
-    for(int i=0; i<buf_size; ++i) {
-        samples[i] = 32760 * 0.5 * sin( (2.f*float(M_PI)*freq)/sample_rate * i );
-    }
+	data = new char[data_size];
+	short * samples = reinterpret_cast<short*>(data);
+	for (size_t i = 0; i < buf_size; ++i)
+	{
+		float t = float(i) / sample_rate;
+		float delta_t = t - 0.1f;
+		if (delta_t > 0.0f)
+			delta_t /= 1.9f;
+		if (delta_t < 0.0f)
+			delta_t /= 0.1f;
+		float modifier = 1.0f - abs(delta_t);
+		modifier = smoothstep(0.0f, 1.0f, modifier);
+		modifier = fmaxf(0.0f, fminf(1.0f, modifier));
+		samples[i] = 32760.0f * 0.25f * sin((2.0f * float(M_PI) * freq) / sample_rate * i) * modifier;
+		samples[i] += 32760.0f * 0.15f * sin((2.0f * float(M_PI) * freq2) / sample_rate * i) * modifier;
+		samples[i] += 32760.0f * 0.05f * sin((2.0f * float(M_PI) * freq3) / sample_rate * i) * modifier;
+	}
 
-    alBufferData(buffer, AL_FORMAT_MONO16, samples, buf_size, sample_rate);
-
-	delete []samples;
+	format = AL_FORMAT_MONO16;
 }
 
 Sound::Sound(instream& is, const std::set<std::string>& options)
