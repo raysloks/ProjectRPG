@@ -159,6 +159,7 @@ public:
 			MaterialList materials;
 			materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
 			materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
+			materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
 
 			for (auto material = materials.materials.begin(); material != materials.materials.end(); ++material)
 			{

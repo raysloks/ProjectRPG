@@ -113,7 +113,7 @@ std::tuple<Vec2, Vec2, Vec2, Vec2> getMapping(unsigned int code_point, unsigned 
 
 void loadBitmap(unsigned int code_page)
 {
-	std::shared_ptr<Texture> tex = Resource::get<Texture>(font + "/" + std::to_string((_ULonglong)code_page) + ".tga");
+	std::shared_ptr<Texture> tex = Resource::get<Texture>(font + "/" + std::to_string((long long)code_page) + ".tga");
 	if (tex!=0) {
 		glBindTexture(GL_TEXTURE_2D, tex->getGLTexID());
 		glEnable(GL_BLEND);
