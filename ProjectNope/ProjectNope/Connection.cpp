@@ -14,7 +14,6 @@ Connection::Connection(const boost::asio::ip::udp::endpoint& ep) : service_(), s
 
 Connection::~Connection(void)
 {
-	work.~work();
 	service_.stop();
 	t.join();
 }

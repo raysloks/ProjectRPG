@@ -84,10 +84,11 @@ void CameraControlComponent::pre_frame(float dTime)
 				{
 					offset = Vec3();
 				}
+				offset = Vec3();
 
 				entity->world->cam_rot = cam_rot;
 				//entity->world->cam_pos = *p + up * 0.45f;
-				auto regular_offset = up * 0.2f + right * 0.5f + top * 0.5f - front * 3.0f;
+				auto regular_offset = up * 0.2f + right * 0.0f + top * 0.5f - front * 3.0f;
 				regular_offset *= 1.5f;
 
 				float regular_length = regular_offset.Len();

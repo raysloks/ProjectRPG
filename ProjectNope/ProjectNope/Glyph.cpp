@@ -8,6 +8,8 @@
 
 #include "GlyphAtlas.h"
 
+extern FT_Library ftLibrary;
+
 Glyph::Glyph(void)
 {
 }
@@ -60,7 +62,8 @@ Glyph::Glyph(FT_Face face, unsigned long code, GlyphAtlas * atlas)
 
 Glyph::~Glyph(void)
 {
-	FT_Done_Glyph(ftBitmap);
+	if (ftLibrary)
+		FT_Done_Glyph(ftBitmap);
 }
 
 void Glyph::insert(float * p, float * t, float offset_x, float offset_y) const

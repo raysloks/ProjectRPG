@@ -1,4 +1,5 @@
 #include "Window.h"
+#include <algorithm>
 
 Window::Window(void)
 {
@@ -14,21 +15,17 @@ Window::~Window(void)
 {
 	if (parent != nullptr)
 	{
-		for (auto it = children.begin(); it != children.end(); ++it)
-		{
-			if (*it == this)
-				parent->children.erase(it);
-		}
+		parent->children.erase(std::remove(parent->children.begin(), parent->children.end(), this), parent->children.end());
 	}
 }
 
-void Window::render(void)
+void Window::render(RenderSetup& rs)
 {
-	for (auto it = children.begin(); it != children.end(); ++it)
+	for (auto child : children)
 	{
-		if (!(*it)->onRender)
-			(*it)->onRender();
-		(*it)->render();
+		if (child->onRender)
+			child->onRender();
+		child->render(rs);
 	}
 }
 
@@ -36,11 +33,7 @@ bool Window::addChild(Window * child)
 {
 	if (child->parent != nullptr)
 	{
-		for (auto it = child->parent->children.begin(); it != child->parent->children.end(); ++it)
-		{
-			if (*it == child)
-				child->parent->children.erase(it);
-		}
+		child->parent->children.erase(std::remove(child->parent->children.begin(), child->parent->children.end(), child), child->parent->children.end());
 	}
 	child->parent = this;
 	children.push_back(child);
@@ -49,9 +42,9 @@ bool Window::addChild(Window * child)
 
 bool Window::handleEvent(IEvent * pEvent)
 {
-	for (auto it = children.begin(); it != children.end(); ++it)
+	for (auto child : children)
 	{
-		if ((*it)->handleEvent(pEvent))
+		if (child->handleEvent(pEvent))
 			return true;
 	}
 	return false;

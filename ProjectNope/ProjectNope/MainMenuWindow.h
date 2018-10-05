@@ -13,7 +13,7 @@ public:
 	MainMenuWindow(World * world, Client * client, int x, int y, int width, int height);
 	~MainMenuWindow(void);
 
-	void render(void);
+	void render(RenderSetup& rs);
 
 	bool handleEvent(IEvent * pEvent);
 //private:

@@ -32,7 +32,7 @@ void TextBoxWindow::render(void)
 
 	glTranslatef(-x, -y, 0.0f);
 
-	RectangleWindow::render();
+	//RectangleWindow::render();
 
 	glDisable(GL_TEXTURE_2D);
 

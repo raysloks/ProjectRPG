@@ -113,8 +113,9 @@ void Client::disconnect(void)
 		delete clientData;
 	clientData = nullptr;
 	
+	world->clear();
+	world->clean();
 	world->authority = true;
-	clientData->client_id = 0;
 }
 
 Client::~Client(void)
@@ -1319,15 +1320,18 @@ void Client::render_world(void)
 		hideCursor = true;
 		for (auto win = windows.begin(); win != windows.end(); ++win)
 		{
-			dynamic_cast<RectangleWindow*>(win->get())->x = -view_w / 2;
-			dynamic_cast<RectangleWindow*>(win->get())->y = -view_h / 2;
+			dynamic_cast<RectangleWindow*>(win->get())->x = 0;
+			dynamic_cast<RectangleWindow*>(win->get())->y = 0;
 			dynamic_cast<RectangleWindow*>(win->get())->w = view_w;
 			dynamic_cast<RectangleWindow*>(win->get())->h = view_h;
 			if (win->get()->onRender)
 				win->get()->onRender();
-			win->get()->render();
+			rs.pushTransform();
+			win->get()->render(rs);
+			rs.popTransform();
 		}
-		lockCursor = hideCursor; // allow cursor to escape window when visible
+		lockCursor = true;
+		//lockCursor = hideCursor; // allow cursor to escape window when visible
 
 #if TIMESLOT_LEVEL >= 0
 		//if (input.isDown(Platform::KeyEvent::P))
@@ -1417,11 +1421,12 @@ bool Client::HandleEvent(IEvent * pEvent)
 		return false;
 	}
 
-	for (std::vector<std::shared_ptr<Window>>::reverse_iterator win=windows.rbegin();win!=windows.rend();++win)
+	for (std::vector<std::shared_ptr<Window>>::reverse_iterator win = windows.rbegin(); win != windows.rend(); ++win)
 	{
 		if (win->get()->handleEvent(pEvent))
 			return false;
 	}
+
 	if (pEvent->GetType()==KeyDownEvent::event_type) {
 		KeyDownEvent * ev = (KeyDownEvent*)pEvent;
 		input.onDown(ev->key);

@@ -26,8 +26,6 @@ void GlyphString::render(RenderSetup& rs)
 {
 	rs.pushTransform();
 
-	rs.applyMods();
-
 	TimeslotC(string_render);
 
 	VBO vbo;
@@ -99,6 +97,11 @@ void GlyphString::render(RenderSetup& rs)
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, fr->atlas->texture->texid);
+
+		rs.addTransform(Matrix4::Translation(Vec3(offset_x, offset_y, 0.0f) * offset));
+
+		rs.applyMods();
+
 		vbo.draw(rs);
 
 		rs.addTransform(Matrix4::Translation(Vec3(offset_x, offset_y, 0.0f)));

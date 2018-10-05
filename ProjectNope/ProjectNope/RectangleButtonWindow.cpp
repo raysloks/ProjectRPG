@@ -15,6 +15,46 @@ RectangleButtonWindow::~RectangleButtonWindow(void)
 {
 }
 
+#include "Texture.h"
+
+void RectangleButtonWindow::render(RenderSetup& rs)
+{
+	rs.pushTransform();
+	rs.addTransform(Matrix4::Translation(Vec3(x, y, 0.0f)));
+	rs.addTransform(Matrix4::Scale(Vec3(w, h, 1.0f)));
+
+	Vec4 color(1.0f, 1.0f, 1.0f, 0.4f);
+	if (hover)
+		color = Vec4(0.8f, 0.8f, 0.8f, 0.4f);
+	if (pressed)
+		color = Vec4(0.6f, 0.6f, 0.6f, 0.4f);
+	ShaderMod mod(nullptr, [color](const std::shared_ptr<ShaderProgram>& prog) {
+		prog->Uniform("color", color);
+	});
+
+	rs.pushMod(mod);
+
+	auto image = Resource::get<Texture>("data/assets/white.tga");
+	if (image)
+		image->render(rs);
+
+	rs.popMod();
+
+	rs.popTransform();
+
+	rs.pushTransform();
+	rs.addTransform(Matrix4::Translation(Vec3(x, y + h, 0.0f)));
+	Writing::setSize(25);
+	Writing::setColor(0.0f, 0.0f, 0.0f);
+	Writing::render(text, rs);
+	rs.popTransform();
+	rs.popTransform();
+	rs.pushTransform();
+	rs.addTransform(Matrix4::Translation(Vec3(x, y, 0.0f)));
+	Window::render(rs);
+	rs.popTransform();
+}
+
 bool RectangleButtonWindow::handleEvent(IEvent * pEvent)
 {
 	if (pEvent->GetType()==MouseMoveEvent::event_type) {
@@ -37,6 +77,7 @@ bool RectangleButtonWindow::handleEvent(IEvent * pEvent)
 				if (onClick)
 					onClick();
 				pressed = true;
+				return true;
 			}
 		}
 	}
@@ -51,56 +92,4 @@ bool RectangleButtonWindow::handleEvent(IEvent * pEvent)
 		}
 	}
 	return false;
-}
-
-void RectangleButtonWindow::render(void)
-{
-	glDisable(GL_TEXTURE_2D);
-
-	glBegin(GL_TRIANGLES);
-
-	/*if (pressed)
-		glColor3f(1.0f, 1.0f, 1.0f);
-	else {
-		glColor3f(0.0f, 0.0f, 0.0f);
-		if (hover)
-			glColor3f(0.5f, 0.5f, 0.0f);
-	}
-	glVertex2f(x+w, y);
-	glVertex2f(x, y+h);
-	glVertex2f(x+w, y+h);
-
-	if (pressed)
-		glColor3f(0.0f, 0.0f, 0.0f);
-	else {
-		glColor3f(1.0f, 1.0f, 1.0f);
-		if (hover)
-			glColor3f(1.0f, 1.0f, 1.0f);
-	}
-	glVertex2f(x, y);
-	glVertex2f(x+w, y);
-	glVertex2f(x, y+h);*/
-
-	if (hover)
-		glColor4f(1.0f, 1.0f, 1.0f, 0.75f);
-	else
-		glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
-	glVertex2f(x+w, y);
-	glVertex2f(x+w, y+h);
-	glVertex2f(x, y+h);
-	glVertex2f(x, y);
-	glVertex2f(x+w, y);
-	glVertex2f(x, y+h);
-
-	glEnd();
-
-	Writing::setFont("data/assets/fonts/Lora-Regular.ttf");
-	Writing::setColor(0.0f, 0.0f, 0.0f, 1.0f);
-	//Writing::setSize(Vec2(8.0f, 16.0f));
-
-	glTranslatef(x+offset.x, y+offset.y, 0.0f);
-	//Writing::render(text);
-	glTranslatef(-x-offset.x, -y-offset.y, 0.0f);
-
-	RectangleWindow::render();
 }

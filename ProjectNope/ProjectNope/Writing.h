@@ -12,6 +12,7 @@ namespace Writing
 	void setColor(float r, float g, float b, float a = 1.0f);
 	void setSize(size_t size);
 	void setSize(size_t x_size, size_t y_size);
+	void setOffset(const Vec2& offset);
 	void render(const std::string& text, RenderSetup& rs);
 
 	std::string::iterator erase(std::string& str, const std::string::iterator& p);

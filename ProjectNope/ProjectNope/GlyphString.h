@@ -2,6 +2,7 @@
 #define GLYPH_STRING_H
 
 #include <string>
+#include <Vec2.h>
 
 class RenderSetup;
 
@@ -16,6 +17,7 @@ public:
 
 	std::string font, string;
 	size_t x_size, y_size;
+	Vec2 offset;
 };
 
 #endif

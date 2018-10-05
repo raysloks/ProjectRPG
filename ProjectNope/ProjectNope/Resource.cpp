@@ -182,12 +182,10 @@ void Resource::unload(const std::string& name)
 void Resource::unload(void)
 {
 	mutex.lock();
+	std::cout << "unloading resources..." << std::endl;
 	resources.clear();
-	for (auto i = loading.begin(); i != loading.end(); ++i)
-	{
-		i->second.first.join();
-	}
 	loading.clear();
+	std::cout << "finished unloading resources." << std::endl;
 	mutex.unlock();
 }
 

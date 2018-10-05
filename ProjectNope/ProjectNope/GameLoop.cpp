@@ -48,7 +48,19 @@ GameLoop::GameLoop(World * w, Server * s, Client * c)
 
 GameLoop::~GameLoop(void)
 {
+	if (client)
+	{
+		if (ftLibrary != nullptr)
+		{
+			FT_Error ftError = FT_Done_FreeType(ftLibrary);
+			ftLibrary = nullptr;
+		}
+
+		delete gpEventManager;
+	}
+
 	world->clear();
+	world->clean();
 
 	if (server != nullptr)
 		delete server;
@@ -57,28 +69,14 @@ GameLoop::~GameLoop(void)
 	
 	if (world != nullptr)
 		delete world;
-
-	Resource::unload();
-
-	if (ftLibrary != nullptr) {
-		FT_Error ftError = FT_Done_FreeType(ftLibrary);
-	}
-
-	delete gpEventManager;
 }
 
 void GameLoop::init(void)
 {
-	gpEventManager = new GameEventManager();
-
-	FT_Error ftError = FT_Init_FreeType(&ftLibrary);
-	if (ftError)
+	if (client)
 	{
-		MessageBoxA(0, "FreeType error initializing library!", "ERROR", MB_OK | MB_ICONERROR);
-	}
+		gpEventManager = new GameEventManager();
 
-	if (client != nullptr)
-	{
 		gpEventManager->AddListener(client, KeyDownEvent::event_type);
 		gpEventManager->AddListener(client, KeyUpEvent::event_type);
 		gpEventManager->AddListener(client, MouseMoveEvent::event_type);
@@ -87,6 +85,12 @@ void GameLoop::init(void)
 		gpEventManager->AddListener(client, ResizeEvent::event_type);
 		//std::cout << "initializing audio..." << std::endl;
 		//Sound::init();
+
+		FT_Error ftError = FT_Init_FreeType(&ftLibrary);
+		if (ftError)
+		{
+			MessageBoxA(0, "FreeType error initializing library!", "ERROR", MB_OK | MB_ICONERROR);
+		}
 	}
 
 	//SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);

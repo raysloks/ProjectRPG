@@ -9,6 +9,7 @@
 std::string font;
 float r, g, b, a;
 size_t x_size, y_size;
+Vec2 offset;
 
 void Writing::setFont(const std::string& name)
 {
@@ -33,6 +34,11 @@ void Writing::setSize(size_t xs, size_t ys)
 {
 	x_size = xs;
 	y_size = ys;
+}
+
+void Writing::setOffset(const Vec2& off)
+{
+	offset = off;
 }
 
 std::pair<std::string::iterator, std::string::iterator> Writing::getRange(const std::string::iterator& begin, const std::string::iterator& pos, const std::string::iterator& end)
@@ -143,6 +149,7 @@ void Writing::render(const std::string& text, RenderSetup& rs)
 	gs.font = font;
 	gs.x_size = x_size;
 	gs.y_size = y_size;
+	gs.offset = offset;
 	gs.render(rs);
 
 	rs.popMod();

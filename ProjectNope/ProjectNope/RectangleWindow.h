@@ -8,11 +8,11 @@ class RectangleWindow :
 {
 public:
 	RectangleWindow(int x, int y, int width, int height);
-	virtual ~RectangleWindow(void);
+	~RectangleWindow(void);
 
-	virtual bool handleEvent(IEvent * pEvent);
+	bool handleEvent(IEvent * pEvent);
 
-	virtual void render(void);
+	void render(RenderSetup& rs);
 
 	int x, y, w, h;
 protected:

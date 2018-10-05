@@ -5,6 +5,8 @@
 #include "IEvent.h"
 #include <functional>
 
+class RenderSetup;
+
 class Window
 {
 public:
@@ -12,7 +14,7 @@ public:
 	Window(Window * parent);
 	virtual ~Window(void);
 
-	virtual void render(void);
+	virtual void render(RenderSetup& rs);
 
 	bool addChild(Window * child);
 

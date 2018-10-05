@@ -1,4 +1,5 @@
 #include "RectangleWindow.h"
+#include "RenderSetup.h"
 
 RectangleWindow::RectangleWindow(int px, int py, int width, int height)
 {
@@ -13,8 +14,16 @@ RectangleWindow::~RectangleWindow(void)
 {
 }
 
+void RectangleWindow::render(RenderSetup& rs)
+{
+	rs.pushTransform();
+	rs.addTransform(Matrix4::Translation(Vec3(x, y, 0.0f)));
+	Window::render(rs);
+	rs.popTransform();
+}
+
 #include "PlatformEvents.h"
-#include "GUIObject.h"
+#include "KeyEvent.h"
 #include <iostream>
 
 bool RectangleWindow::handleEvent(IEvent * pEvent)
@@ -52,12 +61,6 @@ bool RectangleWindow::handleEvent(IEvent * pEvent)
 				onClick();
 		}
 	}
-	return focus;
-}
-
-void RectangleWindow::render(void)
-{
-	glTranslatef(x, y, 0.0f);
-	Window::render();
-	glTranslatef(-x, -y, 0.0f);
+	//return focus;
+	return false;
 }

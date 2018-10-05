@@ -177,16 +177,21 @@ void InventoryComponent::set_display(bool enable)
 					else
 					{
 						func.reset(new std::function<void(RenderSetup&)>([this, mob](RenderSetup& rs) {
-							/*rs.pushTransform();
-							rs.transform = Matrix4();
-							if (mob->p)
-								rs.addTransform(Matrix4::Translation(*mob->p - rs.origin));
-							rs.addTransform(rs.view);
+							rs.pushTransform();
+							PositionComponent * p = entity->getComponent<PositionComponent>();
+							if (p)
+							{
+								rs.addTransform(Matrix4::Translation(Vec3(rs.size * 0.5f)));
+								rs.addTransform(Matrix4::Translation(Vec3(Vec3(p->p - entity->world->cam_pos) * rs.view * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f)));
+								rs.addTransform(Matrix4::Translation(Vec3(0.0f, -60.0f, 0.0f)));
+							}
+							Writing::setOffset(Vec2(-0.5f, 0.0f));
 							Writing::setSize(25);
 							Writing::setColor(0.3f, 0.5f, 0.1f);
 							Writing::render("Ally guy test", rs);
+							Writing::setOffset(Vec2());
 							rs.popTransform();
-							rs.popTransform();*/
+							rs.popTransform();
 						}));
 					}
 					client->render2D.push_back(func);

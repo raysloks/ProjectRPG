@@ -10,7 +10,7 @@ FontResource::FontResource(const std::string& buf) : buffer(buf), ftFace(0)
 
 FontResource::~FontResource(void)
 {
-	if (ftFace != nullptr)
+	if (ftFace != nullptr && ftLibrary)
 		FT_Done_Face(ftFace);
 }
 

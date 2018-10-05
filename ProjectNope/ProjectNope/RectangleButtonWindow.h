@@ -11,9 +11,9 @@ public:
 	RectangleButtonWindow(int x, int y, int width, int height);
 	~RectangleButtonWindow(void);
 
-	virtual bool handleEvent(IEvent * pEvent);
+	void render(RenderSetup& rs);
 
-	virtual void render(void);
+	bool handleEvent(IEvent * pEvent);
 
 	std::string text;
 

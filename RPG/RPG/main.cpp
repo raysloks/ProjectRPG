@@ -39,6 +39,7 @@
 #include "Matrix3.h"
 
 #include <regex>
+#include <atomic>
 
 class MyServer :
 	public Server
@@ -494,11 +495,11 @@ public:
 	unsigned int b;
 };
 
-void start_engine_instance(std::string address, uint16_t port, uint64_t lobby_id, char option)
+void start_engine_instance(std::string address, uint16_t port, uint64_t lobby_id, char option, std::atomic<bool>& running)
 {
 	World * world = new World();
-	Server * server = nullptr;// = new MyServer(world);
-	Client * client = nullptr;// = new Client(world);
+	Server * server = nullptr;
+	Client * client = nullptr;
 
 	if (option == 'p')
 	{
@@ -539,12 +540,12 @@ void start_engine_instance(std::string address, uint16_t port, uint64_t lobby_id
 		gl.init();
 		if (client != nullptr)
 		{
-			while (client->IsAlive())
+			while (client->IsAlive() && running)
 				gl.tick();
 		}
 		else
 		{
-			while (true)
+			while (running)
 				gl.tick();
 		}
 	}
@@ -668,14 +669,20 @@ int main(int argc, char* argv[])
 
 	//std::shared_ptr<ISteamWrapper> steam(ISteamWrapper::make());
 	
+	std::atomic<bool> running = true;
 	if (option == 'h')
 	{
-		std::thread t(std::bind(start_engine_instance, address, port, lobby_id, 's'));
-		start_engine_instance("127.0.0.1", port, lobby_id, 'c');
+		std::thread t([&]()
+		{
+			start_engine_instance(address, port, lobby_id, 's', running);
+		});
+		start_engine_instance("127.0.0.1", port, lobby_id, 'c', running);
+		running = false;
 		t.join();
 	}
 	else
 	{
-		start_engine_instance(address, port, lobby_id, option);
+		start_engine_instance(address, port, lobby_id, option, running);
 	}
+	Resource::unload();
 }
