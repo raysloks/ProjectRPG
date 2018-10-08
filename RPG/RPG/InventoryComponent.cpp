@@ -183,7 +183,9 @@ void InventoryComponent::set_display(bool enable)
 							{
 								rs.addTransform(Matrix4::Translation(Vec3(rs.size * 0.5f)));
 								rs.addTransform(Matrix4::Translation(Vec3(Vec3(p->p - entity->world->cam_pos) * rs.view * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f)));
-								rs.addTransform(Matrix4::Translation(Vec3(0.0f, -60.0f, 0.0f)));
+								float scale = 4.0f / Vec3(p->p - entity->world->cam_pos).Len();
+								rs.addTransform(Matrix4::Scale(Vec3(scale, scale, scale)));
+								rs.addTransform(Matrix4::Translation(Vec3(0.0f, -64.0f, 0.0f)));
 							}
 							Writing::setOffset(Vec2(-0.5f, 0.0f));
 							Writing::setSize(25);
