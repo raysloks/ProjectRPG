@@ -46,8 +46,6 @@ public:
 	Vec2 cam_rot_basic;
 	Quaternion cam_rot;
 
-	Vec3 offset;
-
 	Vec3 forward, up;
 	Vec3 front, top;
 	Vec3 right;

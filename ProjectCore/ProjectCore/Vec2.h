@@ -20,7 +20,8 @@ public:
 	float Len(void)const;
 	float LenPwr(void)const;
 
-	void Normalize(void);
+	Vec2& Normalize(void);
+	Vec2 Normalized(void) const;
 
 	float Dot(const Vec2& rhs)const;
 

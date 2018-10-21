@@ -93,7 +93,7 @@ MainMenuWindow::~MainMenuWindow(void)
 
 void MainMenuWindow::render(RenderSetup& rs)
 {
-	client->hideCursor = state == 2;
+	//client->hideCursor = state == 2;
 	if (state == 1)
 		RectangleWindow::render(rs);
 }

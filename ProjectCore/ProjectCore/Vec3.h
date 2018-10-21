@@ -14,6 +14,7 @@ public:
 	float x, y, z;
 
 	Vec3(void);
+	Vec3(float a);
 	Vec3(float a, float b, float c);
 	Vec3(instream& is);
 	~Vec3(void);

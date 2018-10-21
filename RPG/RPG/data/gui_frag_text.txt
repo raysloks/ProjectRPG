@@ -1,0 +1,17 @@
+#version 440
+
+uniform sampler2D alpha;
+uniform vec4 color;
+
+in vec2 texco;
+
+out vec4 final_color;
+
+void main()
+{
+	vec4 temp_color = color;
+
+	temp_color.a *= texture(alpha, texco).r;
+
+	final_color = temp_color;
+}

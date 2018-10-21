@@ -31,10 +31,18 @@ float Vec2::LenPwr(void)const {
 	return x*x + y*y;
 }
 
-void Vec2::Normalize(void) {
-	float l = LenPwr();
-	if (l!=0.0f)
-		*this /= sqrt(l);
+Vec2& Vec2::Normalize(void) {
+	float l = Len();
+	if (l != 0.0f)
+		*this /= l;
+	return *this;
+}
+
+Vec2 Vec2::Normalized(void) const {
+	float l = Len();
+	if (l != 0.0f)
+		return *this / l;
+	return *this;
 }
 
 float Vec2::Dot(const Vec2& rhs)const {

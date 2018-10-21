@@ -85,11 +85,6 @@ void InventoryComponent::set_display(bool enable)
 							Writing::setSize(25);
 							Writing::setColor(0.0f, 1.0f, 0.0f);
 							Writing::render(std::to_string((int)std::floorf(mob->stamina.current)) + " / " + std::to_string((int)std::floorf(mob->stamina.max)), rs);
-							if (mob->input.find("recover") != mob->input.end())
-							{
-								Writing::render(" X", rs);
-								rs.popTransform();
-							}
 							rs.popTransform();
 							rs.popTransform();
 
@@ -101,77 +96,6 @@ void InventoryComponent::set_display(bool enable)
 							Writing::render(std::to_string((int)std::floorf(mob->mana.current)) + " / " + std::to_string((int)std::floorf(mob->mana.max)), rs);
 							rs.popTransform();
 							rs.popTransform();
-
-							if (false)
-							{
-								// reticle
-								rs.pushTransform();
-								rs.addTransform(Matrix4::Translation(Vec3(rs.size / 2.0f)));
-								rs.addTransform(Matrix4::Translation(Vec3(-32.0f, -32.0f, 0.0f)));
-								auto crosshair = Resource::get<Texture>("data/assets/crosshair.tga");
-								if (crosshair)
-									crosshair->render(rs);
-								rs.popTransform();
-							}
-
-							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 200.0f, 0.0f)));
-							for (auto item : items.items)
-							{
-								// test
-								rs.addTransform(Matrix4::Translation(Vec3(0.0f, 50.0f, 0.0f)));
-
-								rs.pushTransform();
-								rs.addTransform(Matrix4::Translation(Vec3(20.0f, 10.0f, 0.0f)));
-								Writing::setColor(1.0f, 1.0f, 1.0f);
-								Writing::render(item->name, rs);
-								rs.popTransform();
-								rs.popTransform();
-
-								rs.pushTransform();
-								rs.addTransform(Matrix4::Scale(Vec3(50.0f, 50.0f, 50.0f)));
-								rs.addTransform(Quaternion(Vec3(M_1_PI, 0.0f, 0.0f)));
-								rs.addTransform(Quaternion(Vec3(0.0f, rot, 0.0f)));
-								auto prog = ShaderProgram::Get("data/gfill_vert.txt", "data/gfill_frag.txt");
-								ShaderMod mod(prog, [](const std::shared_ptr<ShaderProgram>& prog) {
-									prog->Uniform("diffuse", 0); // texture unit 0
-									prog->Uniform("light", Vec3(1.0f, -1.0f, -1.0f).Normalize());
-									prog->Uniform("eye", Vec3(0.0f, 0.0f, -1.0f));
-								});
-								rs.pushMod(mod);
-								glEnable(GL_DEPTH_TEST);
-								glEnable(GL_CULL_FACE);
-								glDepthMask(GL_TRUE);
-								item->dec->render(rs);
-								glDepthMask(GL_FALSE);
-								glDisable(GL_DEPTH_TEST);
-								glDisable(GL_CULL_FACE);
-								rs.popMod();
-								rs.popTransform();
-							}
-							rs.popTransform();
-
-							auto p = entity->getComponent<PositionComponent>();
-							auto interacts = entity->world->GetNearestComponents<InteractComponent>(p->p + mob->cam_facing, 2.0f);
-							if (!interacts.empty())
-							{
-								auto other_p = interacts.begin()->second->entity->getComponent<PositionComponent>();
-								rs.pushTransform();
-								rs.addTransform(Matrix4::Translation(Vec3(rs.size * 0.5f)));
-								rs.addTransform(Matrix4::Translation(Vec3(Vec3(other_p->p - entity->world->cam_pos) * rs.view * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f)));
-								rs.pushTransform();
-								rs.addTransform(Matrix4::Translation(Vec3(20.0f, 0.0f, 0.0f)));
-								Writing::setSize(25);
-								Writing::setColor(1.0f, 1.0f, 1.0f);
-								Writing::render(interacts.begin()->second->action_name, rs);
-								rs.popTransform();
-								rs.popTransform();
-								rs.addTransform(Matrix4::Translation(Vec3(-32.0f, -32.0f, 0.0f)));
-								auto crosshair = Resource::get<Texture>("data/assets/interact.tga");
-								if (crosshair)
-									crosshair->render(rs);
-								rs.popTransform();
-							}
 						}));
 					}
 					else

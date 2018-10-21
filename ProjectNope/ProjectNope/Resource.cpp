@@ -181,12 +181,16 @@ void Resource::unload(const std::string& name)
 
 void Resource::unload(void)
 {
-	mutex.lock();
+	//mutex.lock();
 	std::cout << "unloading resources..." << std::endl;
-	resources.clear();
+	for (auto& loader : loading)
+	{
+		loader.second.first.join();
+	}
 	loading.clear();
+	resources.clear();
 	std::cout << "finished unloading resources." << std::endl;
-	mutex.unlock();
+	//mutex.unlock();
 }
 
 bool Resource::is_loaded(const std::string& name)

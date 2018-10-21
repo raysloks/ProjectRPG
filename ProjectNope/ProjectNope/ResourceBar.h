@@ -10,6 +10,9 @@ public:
 	ResourceBar(int32_t maxAmount);
 	~ResourceBar(void);
 
+	int32_t Add(int32_t amount);
+	int32_t Remove(int32_t amount);
+
 	int32_t current, max;
 };
 

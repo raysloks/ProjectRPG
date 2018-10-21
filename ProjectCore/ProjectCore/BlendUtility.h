@@ -7,6 +7,7 @@ class Quaternion;
 float bu_blend(float current, float target, float a, float b, float dTime);
 float bu_blend(float current, float target, float a);
 Vec3 bu_blend(const Vec3& current, const Vec3& target, float a, float b, float dTime);
+Vec3 bu_blend(const Vec3& current, const Vec3& target, float a);
 float bu_angle(float current, float target, float a, float b, float dTime);
 float bu_angle(float current, float target, float a);
 float bu_wrap(float current, float target, float a, float b, float dTime);

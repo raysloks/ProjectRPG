@@ -122,35 +122,7 @@ void PlayerInputComponent::tick(float dTime)
 
 	if (mob != nullptr)
 	{
-		mob->cam_facing = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
-		mob->cam_rot = cam_rot;
-
-		if (entity->world->authority)
-		{
-			float buffer_duration = 0.4f;
-
-			mob->move = move;
-
-			mob->run = cs.input["run"];
-			mob->crouch = cs.input["crouch"];
-
-			if (cs.active.find("jump") != cs.active.end())
-				mob->input["jump"] = buffer_duration;
-
-			if (cs.active.find("attack") != cs.active.end())
-				mob->input["attack"] = buffer_duration;
-
-			if (cs.active.find("roll") != cs.active.end())
-				mob->input["roll"] = buffer_duration;
-
-			if (cs.active.find("switch") != cs.active.end())
-				mob->input["switch"] = buffer_duration;
-
-			cs.active.erase("switch");
-			cs.active.erase("attack");
-			cs.active.erase("roll");
-			cs.active.erase("jump");
-		}
+		mob->move = move;
 	}
 }
 

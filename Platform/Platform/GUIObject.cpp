@@ -112,7 +112,7 @@ namespace Platform
 			wcMold.style = CS_OWNDC;
 			wcMold.lpfnWndProc = GUIObject::WinProc;
 			wcMold.hInstance = hInstance;
-			wcMold.hCursor = LoadCursor(NULL, IDC_ARROW);
+			wcMold.hCursor = (HICON)LoadImage(NULL, "cursor.ico", 1, 64, 64, LR_LOADFROMFILE);
 			//wcMold.hbrBackground = (HBRUSH)2;
 			wcMold.lpszMenuName = NULL;
 			wcMold.lpszClassName = wc_name;

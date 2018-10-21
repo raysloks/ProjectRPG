@@ -92,7 +92,7 @@ Client::Client(World * pWorld)
 	flat_stencil_prog = ShaderProgram::Get("data/flat_stencil_vert.txt", "data/flat_stencil_geom.txt", "data/flat_stencil_frag.txt");
 	fullscreen_stencil_prog = ShaderProgram::Get("data/fullscreen_vert.txt", "data/flat_stencil_frag.txt");
 	flat_stencil_outer_prog = ShaderProgram::Get("data/stencil_vert.txt", "data/stencil_geom.txt", "data/flat_stencil_frag.txt");
-	gui_prog = ShaderProgram::Get("data/gui_vert.txt", "data/gui_frag.txt");
+	gui_prog = ShaderProgram::Get("data/gui_vert.txt", "data/gui_frag_text.txt");
 }
 
 void Client::connect(const std::string& address, uint16_t port)
@@ -1002,7 +1002,7 @@ void Client::render_world(void)
 						prog->Uniform("full", 1);
 
 						prog->UniformMatrix4f("proj", proj.data);
-						prog->UniformMatrix4f("proj_inv", proj.Inverse().data);
+						prog->UniformMatrix4f("proj_inv", proj_inv.data);
 
 						prog->Uniform("light", light, 0.0f);
 
@@ -1051,9 +1051,9 @@ void Client::render_world(void)
 					glStencilFunc(GL_EQUAL, 0, 0xff);
 					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-					glActiveTexture(GL_TEXTURE2);
-					glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
 					glActiveTexture(GL_TEXTURE3);
+					glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
+					glActiveTexture(GL_TEXTURE4);
 					if (light_lookup_tex != nullptr)
 						glBindTexture(GL_TEXTURE_2D, light_lookup_tex->getGLTexID());
 
@@ -1086,7 +1086,7 @@ void Client::render_world(void)
 							prog->Uniform("third", (i + 2) % 3);
 
 							prog->UniformMatrix4f("proj", proj.data);
-							prog->UniformMatrix4f("proj_inv", proj.Inverse().data);
+							prog->UniformMatrix4f("proj_inv", proj_inv.data);
 
 							prog->Uniform("zNear", near_z);
 							prog->Uniform("zFar", far_z);
@@ -1103,8 +1103,8 @@ void Client::render_world(void)
 							prog->Uniform3fv("light_samples", light_samples);
 							prog->Uniform("noise_a", noise_a);
 
-							prog->Uniform("depth", 2);
-							prog->Uniform("lookup", 3);
+							prog->Uniform("depth", 3);
+							prog->Uniform("lookup", 4);
 						});
 
 						rs.pushMod(mod);
@@ -1317,7 +1317,7 @@ void Client::render_world(void)
 			rs.popTransform();
 		}
 
-		hideCursor = true;
+		hideCursor = false;
 		for (auto win = windows.begin(); win != windows.end(); ++win)
 		{
 			dynamic_cast<RectangleWindow*>(win->get())->x = 0;

@@ -66,24 +66,6 @@ void WeaponComponent::pre_frame(float dTime)
 
 void WeaponComponent::tick(float dTime)
 {
-	if (!entity->world->authority)
-		return;
-
-	MobComponent * mob = nullptr;
-	auto ent = entity->world->GetEntity(mob_id);
-	if (ent)
-		mob = ent->getComponent<MobComponent>();
-
-	if (mob)
-	{
-		recoil -= mob->run;
-		recoil *= exp(log(0.05f) * dTime);
-		recoil += mob->run;
-	}
-	else
-	{
-		entity->world->SetEntity(entity->id, nullptr);
-	}
 }
 
 void WeaponComponent::writeLog(outstream& os, ClientData& client)

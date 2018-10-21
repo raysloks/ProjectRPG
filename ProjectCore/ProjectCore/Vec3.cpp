@@ -8,6 +8,10 @@ Vec3::Vec3(void) : x(0.0f), y(0.0f), z(0.0f)
 {
 }
 
+Vec3::Vec3(float a) : x(a), y(a), z(a)
+{
+}
+
 Vec3::Vec3(float a, float b, float c) : x(a), y(b), z(c)
 {
 }

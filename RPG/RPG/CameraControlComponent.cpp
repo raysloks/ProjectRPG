@@ -22,24 +22,11 @@ const AutoSerialFactory<CameraControlComponent> CameraControlComponent::_factory
 
 CameraControlComponent::CameraControlComponent(void) : Serializable(_factory.id)
 {
-	cam_rot_basic = Vec2(0.0f, M_PI_2);
-
-	cam_rot *= Quaternion(M_PI / 2.0f, Vec3(1.0f, 0.0f, 0.0f));
-
-	front = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
-	top = Vec3(0.0f, 1.0f, 0.0f) * cam_rot;
-	right = Vec3(-1.0f, 0.0f, 0.0f) * cam_rot;
 }
 
 CameraControlComponent::CameraControlComponent(instream& is, bool full) : Serializable(_factory.id)
 {
-	cam_rot_basic = Vec2(0.0f, M_PI_2);
-
-	cam_rot *= Quaternion(M_PI / 2.0f, Vec3(1.0f, 0.0f, 0.0f));
-
-	front = Vec3(0.0f, 0.0f, 1.0f) * cam_rot;
-	top = Vec3(0.0f, 1.0f, 0.0f) * cam_rot;
-	right = Vec3(-1.0f, 0.0f, 0.0f) * cam_rot;
+	cam_rot_basic = Vec2(M_PI_4, M_PI_2 + M_PI_4);
 }
 
 CameraControlComponent::~CameraControlComponent(void)
@@ -73,47 +60,19 @@ void CameraControlComponent::pre_frame(float dTime)
 			//set camera position relative to focus point
 			if (p != nullptr)
 			{
-				auto mob = entity->getComponent<MobComponent>();
-				if (mob)
-				{
-					offset -= mob->v / 20.0f + mob->facing / 2.0f;
-					offset = bu_blend(offset, Vec3(), -10.0f, 1.0f, dTime);
-					offset += mob->v / 20.0f + mob->facing / 2.0f;
-				}
-				else
-				{
-					offset = Vec3();
-				}
-				offset = Vec3();
-
 				entity->world->cam_rot = cam_rot;
 				//entity->world->cam_pos = *p + up * 0.45f;
-				auto regular_offset = up * 0.2f + right * 0.0f + top * 0.5f - front * 3.0f;
-				regular_offset *= 1.5f;
-
-				float regular_length = regular_offset.Len();
-				auto combined_offset = offset + regular_offset;
-				float combined_length = combined_offset.Len();
-				if (combined_length > regular_length)
-					combined_offset *= regular_length / combined_length;
+				auto offset = -front * 3.0f;
+				offset *= 3.0f;
+				offset *= 3.0f;
 
 				auto shakes = entity->world->GetNearestComponents<CameraShakeComponent>(*p);
 				for (auto shake : shakes)
 				{
-					combined_offset += shake.second->getShake() / (shake.first + 1.0f);
+					offset += shake.second->getShake() / (shake.first + 1.0f);
 				}
 
-				{
-					std::vector<std::shared_ptr<Collision>> list;
-					ColliderComponent::DiskCast(*p, *p + combined_offset, 0.45f, list);
-					std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
-					if (!list.empty())
-					{
-						combined_offset *= list.front()->t;
-					}
-				}
-
-				entity->world->cam_pos = *p + combined_offset;
+				entity->world->cam_pos = *p + offset;
 			}
 		}
 	}
@@ -167,7 +126,7 @@ void CameraControlComponent::post_frame(float dTime)
 			mouse_move += Vec2(f.x*controller_sensitivity_x, -f.y*controller_sensitivity_y)*controller_sensitivity*dTime;
 
 
-			cam_rot_basic += mouse_move;
+			//cam_rot_basic += mouse_move;
 			
 			cam_rot_basic.x = std::fmodf(cam_rot_basic.x, M_PI * 2.0f);
 			cam_rot_basic.y = std::fminf(M_PI, std::fmaxf(0.0f, cam_rot_basic.y));

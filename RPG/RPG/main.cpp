@@ -142,6 +142,7 @@ public:
 		}
 
 		// create level
+		if (false)
 		{
 			NewEntity * ent = new NewEntity();
 
@@ -171,6 +172,28 @@ public:
 
 			world->AddEntity(ent);
 		}
+
+		// create level
+		{
+			NewEntity * ent = new NewEntity();
+
+			PositionComponent * p = new PositionComponent();
+			ColliderComponent * c = new ColliderComponent();
+			GraphicsComponent * g = new GraphicsComponent(false, 0);
+
+			ent->addComponent(p);
+			ent->addComponent(c);
+			ent->addComponent(g);
+
+			MaterialList materials;
+			materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
+
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/test_level.gmdl", materials, 0)));
+
+			world->AddEntity(ent);
+		}
+
+		return;
 
 		ShadowSpawnUnit::spawn(Vec3(0.0f, 30.0f, 0.0f), world);
 		ShadowSpawnUnit::spawn(Vec3(-5.0f, 50.0f, 0.0f), world);

@@ -80,6 +80,16 @@ Vec3 bu_blend(const Vec3& current, const Vec3& target, float a, float b, float d
 	return target;
 }
 
+Vec3 bu_blend(const Vec3& current, const Vec3& target, float a)
+{
+	if (isnan(current.x) || isnan(current.y) || isnan(current.z))
+		return target;
+	if (isnan(target.x) || isnan(target.y) || isnan(target.z))
+		return current;
+	Vec3 c = target - current;
+	return current + c * a;
+}
+
 
 float bu_angle(float current, float target, float a, float b, float dTime)
 {

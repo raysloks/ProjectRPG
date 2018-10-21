@@ -77,6 +77,9 @@
       <Filter>Units</Filter>
     </ClCompile>
     <ClCompile Include="InteractComponent.cpp" />
+    <ClCompile Include="Mob.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="Tile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -154,6 +157,9 @@
       <Filter>Units</Filter>
     </ClInclude>
     <ClInclude Include="InteractComponent.h" />
+    <ClInclude Include="Mob.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="Tile.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">
@@ -165,5 +171,8 @@
     <Filter Include="Units">
       <UniqueIdentifier>{70c0c34a-f601-4bd4-af42-90786654fd0f}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="cursor.ico" />
   </ItemGroup>
 </Project>

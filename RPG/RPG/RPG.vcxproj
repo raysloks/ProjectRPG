@@ -169,8 +169,10 @@
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="LearningComponent.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Mob.cpp" />
     <ClCompile Include="MobComponent.cpp" />
     <ClCompile Include="RunCycleState.cpp" />
+    <ClCompile Include="Scene.cpp" />
     <ClCompile Include="ShadowSpawnUnit.cpp" />
     <ClCompile Include="SimpleState.cpp" />
     <ClCompile Include="OrbitComponent.cpp" />
@@ -181,6 +183,7 @@
     <ClCompile Include="SkillNode.cpp" />
     <ClCompile Include="SpawnComponent.cpp" />
     <ClCompile Include="TeamData.cpp" />
+    <ClCompile Include="Tile.cpp" />
     <ClCompile Include="TriggerComponent.cpp" />
     <ClCompile Include="WeaponComponent.cpp" />
   </ItemGroup>
@@ -214,8 +217,10 @@
     <ClInclude Include="InventoryComponent.h" />
     <ClInclude Include="Item.h" />
     <ClInclude Include="LearningComponent.h" />
+    <ClInclude Include="Mob.h" />
     <ClInclude Include="MobComponent.h" />
     <ClInclude Include="RunCycleState.h" />
+    <ClInclude Include="Scene.h" />
     <ClInclude Include="ShadowSpawnUnit.h" />
     <ClInclude Include="SimpleState.h" />
     <ClInclude Include="OrbitComponent.h" />
@@ -226,8 +231,12 @@
     <ClInclude Include="SkillNode.h" />
     <ClInclude Include="SpawnComponent.h" />
     <ClInclude Include="TeamData.h" />
+    <ClInclude Include="Tile.h" />
     <ClInclude Include="TriggerComponent.h" />
     <ClInclude Include="WeaponComponent.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="cursor.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -15,6 +15,9 @@
 #include <map>
 #include <functional>
 
+#include "Mob.h"
+#include "Scene.h"
+
 class GlobalPosition;
 class ActionData;
 class WeaponComponent;
@@ -55,43 +58,10 @@ public:
 	ResourceBar stamina;
 	ResourceBar mana;
 
-	float stamina_regen;
+	Vec2 move, facing;
 
-	float speed_mod;
-
-	size_t temp_team;
-
-	WeaponComponent * weapon;
-	size_t weapon_index;
-
-	std::function<void(void)> on_death;
-	std::function<void(float)> on_tick;
-
-	//facing
-	Vec3 facing, up, move_facing;
-	Vec3 cam_facing, follow;
-	Quaternion cam_rot;
-
-	float r;
-	bool use_base_collision;
-
-	//movement
-	Vec3 v;
-	Vec3 dp;
-	Vec3 external_dp;
-	Vec3 land_n, land_v;
-	Vec3 move;
-	bool run, crouch;
-	bool landed;
-
-	std::map<std::string, float> input;
-
-	// maybe rework
-	std::shared_ptr<ActionData> action;
-
-	// todo rework
-	bool hit;
-	EntityID last_hit;
+	Mob mob;
+	Scene scene;
 };
 
 #endif
