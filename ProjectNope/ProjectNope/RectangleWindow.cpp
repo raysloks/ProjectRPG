@@ -56,7 +56,7 @@ bool RectangleWindow::handleEvent(IEvent * pEvent)
 	if (pEvent->GetType()==KeyDownEvent::event_type) {
 		KeyDownEvent * ev = (KeyDownEvent*)pEvent;
 		if (ev->key==Platform::KeyEvent::LMB || ev->key==Platform::KeyEvent::MMB || ev->key==Platform::KeyEvent::RMB) {
-			focus = ev->x>=x && ev->y>=y && ev->x<=x+w && ev->y<=y+h;
+			focus = ev->x>=x && ev->y>=y && ev->x<x+w && ev->y<y+h;
 			if (onClick)
 				onClick();
 		}

@@ -29,59 +29,51 @@
 
 const AutoSerialFactory<MobComponent> MobComponent::_factory("MobComponent");
 
-MobComponent::MobComponent(void) : Serializable(_factory.id), health(10), stamina(10), mana(10), scene(64, 64)
+MobComponent::MobComponent(void) : Serializable(_factory.id), health(10), stamina(10), mana(10), scene(8, 8, 8)
 {
 	facing = Vec2(0.0f, 1.0f);
 
-	memset(scene.tiles, 0, sizeof(Tile) * scene.w * scene.h);
-
-	Tile * iterator = scene.tiles;
-	for (size_t y = 0; y < scene.h; ++y)
+	for (size_t z = 0; z < scene.d * CHUNK_SIZE; ++z)
 	{
-		for (size_t x = 0; x < scene.w; ++x)
+		for (size_t y = 0; y < scene.h * CHUNK_SIZE; ++y)
 		{
-			if (y == 0 || y == scene.h - 1 || x == 0 || x == scene.w - 1)
+			for (size_t x = 0; x < scene.w * CHUNK_SIZE; ++x)
 			{
-				iterator->solid = 1;
+				if (z + 8 <= x / 4 || z == 0)
+				{
+					scene.setTile(x, y, z, { 1 });
+				}
 			}
-			++iterator;
 		}
 	}
 
-	scene.getTile(4, 4)->solid = 1;
-	scene.getTile(4, 2)->solid = 1;
-	scene.getTile(5, 2)->solid = 1;
-
 	mob.x = 6.0f;
 	mob.y = 4.0f;
+	mob.z = 2.0f;
 	mob.r = 0.25f;
 }
 
-MobComponent::MobComponent(instream& is, bool full) : Serializable(_factory.id), scene(64, 64)
+MobComponent::MobComponent(instream& is, bool full) : Serializable(_factory.id), scene(8, 8, 8)
 {
 	is >> facing;
 
-	memset(scene.tiles, 0, sizeof(Tile) * scene.w * scene.h);
-
-	Tile * iterator = scene.tiles;
-	for (size_t y = 0; y < scene.h; ++y)
+	for (size_t z = 0; z < scene.d * CHUNK_SIZE; ++z)
 	{
-		for (size_t x = 0; x < scene.w; ++x)
+		for (size_t y = 0; y < scene.h * CHUNK_SIZE; ++y)
 		{
-			if (y == 0 || y == scene.h - 1 || x == 0 || x == scene.w - 1)
+			for (size_t x = 0; x < scene.w * CHUNK_SIZE; ++x)
 			{
-				iterator->solid = 1;
+				if (z + 8 <= x / 4 || z == 0)
+				{
+					scene.setTile(x, y, z, { 1 });
+				}
 			}
-			++iterator;
 		}
 	}
 
-	scene.getTile(4, 4)->solid = 1;
-	scene.getTile(4, 2)->solid = 1;
-	scene.getTile(5, 2)->solid = 1;
-
 	mob.x = 6.0f;
 	mob.y = 4.0f;
+	mob.z = 2.0f;
 	mob.r = 0.25f;
 }
 
@@ -104,32 +96,66 @@ void MobComponent::disconnect(void)
 
 void MobComponent::tick(float dTime)
 {
-	if (move != Vec2() && entity->world->authority)
+	for (auto& timer : timers)
 	{
-		facing = move.Normalized();
+		timer.second -= dTime;
+	}
 
-		Vec2 target = move;
-		target *= 4.0f * dTime;
+	auto acc = entity->getComponent<AnimationControlComponent>();
+	if (entity->world->authority && acc)
+	{
+		if (move != Vec2())
+		{
+			Vec2 target = move;
+			target *= 4.0f * dTime;
 
-		mob.move(target, scene);
+			if (acc->has_state("attack"))
+				target *= 0.5f;
+
+			mob.move(target, scene);
+		}
+
+		if (!acc->has_state("attack"))
+		{
+			if (timers["attack"] > 0.0f)
+			{
+				auto acc = entity->getComponent<AnimationControlComponent>();
+				if (acc)
+				{
+					acc->set_state(new SimpleState("attack", 3.0f));
+					timers["attack"] = 0.0f;
+				}
+			}
+			if (timers["jump"] > 0.0f && mob.land)
+			{
+				mob.v += Vec3(0.0f, 0.0f, 5.0f);
+				timers["jump"] = 0.0f;
+			}
+		}
+
+		Vec3 g(0.0f, 0.0f, -9.8f);
+
+		mob.move_velocity((mob.v + g * dTime) * dTime, scene);
+
+		mob.v += g * dTime;
 	}
 
 	auto pc = entity->getComponent<PositionComponent>();
 	if (pc != nullptr)
 	{
-		pc->p = Vec3(mob.p);
+		pc->p = mob.p + Vec3(0.0f, 0.0f, -mob.r);
 	}
 }
 
 void MobComponent::writeLog(outstream& os, ClientData& client)
 {
-	os << facing << move << mob.p;
+	os << facing << move << mob.p << mob.land;
 	os << health << stamina << mana;
 }
 
 void MobComponent::readLog(instream& is)
 {
-	is >> facing >> move >> mob.p;
+	is >> facing >> move >> mob.p >> mob.land;
 	is >> health >> stamina >> mana;
 }
 
@@ -146,11 +172,13 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 	auto other = reinterpret_cast<MobComponent*>(pComponent);
 	if (other != nullptr)
 	{
-		facing = bu_sphere(other->facing, facing, Vec3(0.0f, 0.0f, 1.0f), fWeight);
+		facing.x = bu_angle(other->facing.x, facing.x, fWeight);
+		facing.y = bu_blend(other->facing.y, facing.y, fWeight);
 		health = other->health;
 		stamina = other->stamina;
 		mana = other->mana;
 		mob.p = bu_blend(mob.p, other->mob.p, fWeight);
+		mob.land = other->mob.land;
 		move = bu_blend(move, other->move, fWeight);
 	}
 }

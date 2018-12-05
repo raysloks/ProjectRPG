@@ -20,11 +20,12 @@ const AutoSerialFactory<InventoryComponent> InventoryComponent::_factory("Invent
 
 InventoryComponent::InventoryComponent(void) : Serializable(_factory.id)
 {
+	name = "Oogabooga";
 }
 
 InventoryComponent::InventoryComponent(instream& is, bool full) : Serializable(_factory.id)
 {
-	is >> owner;
+	is >> owner >> name;
 }
 
 InventoryComponent::~InventoryComponent(void)
@@ -69,33 +70,62 @@ void InventoryComponent::set_display(bool enable)
 					{
 						func.reset(new std::function<void(RenderSetup&)>([this, mob](RenderSetup& rs)
 						{
+							auto sprite = Resource::get<Texture>("data/assets/white.tga");
 
 							// health
 							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 100.0f, 0.0f)));
+							rs.addTransform(Matrix4::Translation(Vec2(0.0f, rs.size.y)));
+							rs.addTransform(Matrix4::Translation(Vec3(10.0f, -10.0f, 0.0f)));
 							Writing::setSize(25);
-							Writing::setColor(1.0f, 0.0f, 0.0f);
+							Writing::setColor(0.75f, 0.25f, 0.25f);
 							Writing::render(std::to_string((int)std::floorf(mob->health.current)) + " / " + std::to_string((int)std::floorf(mob->health.max)), rs);
 							rs.popTransform();
 							rs.popTransform();
 
+							rs.pushTransform();
+							rs.addTransform(Matrix4::Scale(Vec3(16.0f, mob->health.max * 4.0f, 0.0f)));
+							if (sprite)
+								sprite->render(rs);
+							rs.popTransform();
+
 							// stamina
 							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 140.0f, 0.0f)));
+							rs.addTransform(Matrix4::Translation(Vec2(rs.size.x * 0.5f, rs.size.y)));
+							rs.addTransform(Matrix4::Translation(Vec3(0.0f, -10.0f, 0.0f)));
 							Writing::setSize(25);
-							Writing::setColor(0.0f, 1.0f, 0.0f);
+							Writing::setColor(0.25f, 0.75f, 0.25f);
+							Writing::setOffset(Vec2(-0.5f, 0.0f));
 							Writing::render(std::to_string((int)std::floorf(mob->stamina.current)) + " / " + std::to_string((int)std::floorf(mob->stamina.max)), rs);
+							Writing::setOffset(Vec2(0.0f, 0.0f));
 							rs.popTransform();
+							rs.popTransform();
+
+							rs.pushTransform();
+							rs.addTransform(Matrix4::Translation(Vec2(16.0f, 0.0f)));
+							rs.addTransform(Matrix4::Scale(Vec3(16.0f, mob->stamina.max * 4.0f, 0.0f)));
+							if (sprite)
+								sprite->render(rs);
 							rs.popTransform();
 
 							// mana
 							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec3(100.0f, 180.0f, 0.0f)));
+							rs.addTransform(Matrix4::Translation(Vec2(rs.size.x, rs.size.y)));
+							rs.addTransform(Matrix4::Translation(Vec3(-10.0f, -10.0f, 0.0f)));
 							Writing::setSize(25);
-							Writing::setColor(0.0f, 0.0f, 1.0f);
+							Writing::setColor(0.25f, 0.25f, 0.75f);
+							Writing::setOffset(Vec2(-1.0f, 0.0f));
 							Writing::render(std::to_string((int)std::floorf(mob->mana.current)) + " / " + std::to_string((int)std::floorf(mob->mana.max)), rs);
+							Writing::setOffset(Vec2());
 							rs.popTransform();
 							rs.popTransform();
+
+							rs.pushTransform();
+							rs.addTransform(Matrix4::Translation(Vec2(32.0f, 0.0f)));
+							rs.addTransform(Matrix4::Scale(Vec3(16.0f, mob->mana.max * 4.0f, 0.0f)));
+							if (sprite)
+								sprite->render(rs);
+							rs.popTransform();
+
 						}));
 					}
 					else
@@ -106,17 +136,27 @@ void InventoryComponent::set_display(bool enable)
 							if (p)
 							{
 								rs.addTransform(Matrix4::Translation(Vec3(rs.size * 0.5f)));
-								rs.addTransform(Matrix4::Translation(Vec3(Vec3(p->p - entity->world->cam_pos) * rs.view * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f)));
-								float scale = 4.0f / Vec3(p->p - entity->world->cam_pos).Len();
-								rs.addTransform(Matrix4::Scale(Vec3(scale, scale, scale)));
-								rs.addTransform(Matrix4::Translation(Vec3(0.0f, -64.0f, 0.0f)));
+								GlobalPosition text_position = p->p + Vec3(0.0f, 0.0f, 1.75f);
+								Vec3 screen_pos = Vec3(text_position - entity->world->cam_pos) * rs.view;
+								if (screen_pos.z < 1.0f)
+								{
+									rs.addTransform(Matrix4::Translation(screen_pos * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f));
+									float scale = rs.size.y * (1.0f / 256.0f) / Vec3(text_position - entity->world->cam_pos).Len();
+									rs.addTransform(Matrix4::Scale(Vec3(scale, scale, scale)));
+									rs.addTransform(Matrix4::Translation(Vec3(0.0f, 0.0f, 0.0f)));
+
+									Writing::setOffset(Vec2(-0.5f, 0.0f));
+									Writing::setSize(25);
+									Writing::setColor(0.0f, 0.0f, 0.0f);
+									Writing::render(name, rs);
+									rs.popTransform();
+									rs.addTransform(Matrix4::Translation(Vec3(-2.0f, -2.0f, 0.0f)));
+									Writing::setColor(0.3f, 0.5f, 0.1f);
+									Writing::render(name, rs);
+									Writing::setOffset(Vec2());
+									rs.popTransform();
+								}
 							}
-							Writing::setOffset(Vec2(-0.5f, 0.0f));
-							Writing::setSize(25);
-							Writing::setColor(0.3f, 0.5f, 0.1f);
-							Writing::render("Ally guy test", rs);
-							Writing::setOffset(Vec2());
-							rs.popTransform();
 							rs.popTransform();
 						}));
 					}
@@ -157,7 +197,7 @@ void InventoryComponent::interpolate(Component * pComponent, float fWeight)
 
 void InventoryComponent::write_to(outstream& os, ClientData& client) const
 {
-	os << (client.client_id == client_id);
+	os << (client.client_id == client_id) << name;
 }
 
 void InventoryComponent::write_to(outstream& os) const

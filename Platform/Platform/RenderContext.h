@@ -7,7 +7,10 @@
 #pragma comment(lib, "OpenGl32.lib")
 #pragma comment(lib, "GlU32.lib")
 
-extern PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
+extern PFNWGLSWAPINTERVALEXTPROC wglSwapInterval;
+extern PFNWGLGETPIXELFORMATATTRIBIVARBPROC wglGetPixelFormatAttribiv;
+extern PFNWGLGETPIXELFORMATATTRIBFVARBPROC wglGetPixelFormatAttribfv;
+extern PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormat;
 extern PFNGLCREATESHADERPROC glCreateShader;
 extern PFNGLSHADERSOURCEPROC glShaderSource;
 extern PFNGLCOMPILESHADERPROC glCompileShader;
@@ -113,6 +116,8 @@ namespace Platform
 		void AddVertexArrays(size_t n);
 		void ReturnVertexArray(GLuint vertexArray);
 		GLuint GetVertexArray(void);
+
+		static void LoadFunctions(HWND wnd);
 
 		static void ReleaseBuffer(GLuint buffer);
 		static void ReleaseVertexArray(GLuint vertexArray);

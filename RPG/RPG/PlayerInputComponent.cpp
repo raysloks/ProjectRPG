@@ -7,6 +7,8 @@
 #include "PositionComponent.h"
 #include "MobComponent.h"
 #include "CameraControlComponent.h"
+#include "AnimationControlComponent.h"
+#include "SimpleState.h"
 
 #include "ClientData.h"
 
@@ -42,10 +44,6 @@ void PlayerInputComponent::disconnect(void)
 
 void PlayerInputComponent::post_frame(float dTime)
 {
-	if (p == nullptr) {
-		auto pc = entity->getComponent<PositionComponent>();
-		p = &pc->p;
-	}
 	if (mob == nullptr)
 		mob = entity->getComponent<MobComponent>();
 
@@ -88,7 +86,7 @@ void PlayerInputComponent::post_frame(float dTime)
 				fx = ccc->right;
 				fy = ccc->forward;
 
-				cam_rot = ccc->cam_rot;
+				facing = ccc->cam_rot_basic;
 			}
 
 			float l = move.Len();
@@ -96,33 +94,30 @@ void PlayerInputComponent::post_frame(float dTime)
 			move.Normalize();
 			move *= l;
 
-			cs.input["run"] = input.isDown(Platform::KeyEvent::LSHIFT) || input.ctrl[0].left_trigger.out;
-			cs.input["crouch"] = input.isDown(Platform::KeyEvent::LCTRL) || input.ctrl[0].b.down;
-			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].a.pressed)
-				cs.activate("jump");
 			if (input.isPressed(Platform::KeyEvent::LMB) || input.ctrl[0].x.pressed)
 				cs.activate("attack");
-			if (input.isPressed(Platform::KeyEvent::RMB) || input.ctrl[0].right_trigger.pressed)
-				cs.activate("roll");
-			if (input.isPressed(Platform::KeyEvent::TAB) || input.ctrl[0].y.pressed)
-				cs.activate("switch");
+			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].a.pressed)
+				cs.activate("jump");
 		}
 	}
 }
 
 void PlayerInputComponent::tick(float dTime)
 {
-	if (p == nullptr)
-	{
-		auto pc = entity->getComponent<PositionComponent>();
-		p = &pc->p;
-	}
 	if (mob == nullptr)
 		mob = entity->getComponent<MobComponent>();
 
-	if (mob != nullptr)
+	if (mob != nullptr && entity->world->authority)
 	{
 		mob->move = move;
+		mob->facing = facing;
+
+		float buffer_duration = 0.2f;
+
+		if (cs.consume("attack"))
+			mob->timers["attack"] = buffer_duration;
+		if (cs.consume("jump"))
+			mob->timers["jump"] = buffer_duration;
 	}
 }
 
@@ -136,7 +131,7 @@ void PlayerInputComponent::readLog(instream& is)
 
 void PlayerInputComponent::writeLog(outstream& os)
 {
-	os << cs << move << cam_rot;
+	os << move << facing << cs;
 }
 
 void PlayerInputComponent::readLog(instream& is, ClientData& client)
@@ -144,7 +139,7 @@ void PlayerInputComponent::readLog(instream& is, ClientData& client)
 	if (client.client_id == client_id)
 	{
 		ControlState ncs;
-		is >> ncs >> move >> cam_rot;
+		is >> move >> facing >> ncs;
 		ncs.update(cs);
 	}
 }

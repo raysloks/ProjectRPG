@@ -41,7 +41,7 @@ public:
 
 	uint32_t client_id;
 
-	GlobalPosition * p;
+	PositionComponent * p;
 
 	Vec2 cam_rot_basic;
 	Quaternion cam_rot;

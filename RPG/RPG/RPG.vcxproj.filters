@@ -80,6 +80,7 @@
     <ClCompile Include="Mob.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Tile.cpp" />
+    <ClCompile Include="Chunk.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -160,6 +161,7 @@
     <ClInclude Include="Mob.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Tile.h" />
+    <ClInclude Include="Chunk.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

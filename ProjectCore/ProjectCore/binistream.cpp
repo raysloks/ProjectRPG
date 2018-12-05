@@ -79,11 +79,9 @@ namespace std
 	binistream& operator>>(binistream& is, std::string &str)
 	{
 		uint32_t size;
-		is.read((char*)&size, sizeof(size));
-		//std::cout << size;
+		is >> size;
 		str.resize(size);
 		is.read(&str[0], size);
-		//std::cout << " " << str << std::endl;
 		return is;
 	}
 }

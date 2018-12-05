@@ -48,6 +48,7 @@ public:
 	std::shared_ptr<std::function<void(RenderSetup&)>> func;
 
 	bool owner;
+	std::string name;
 
 	SyncContainer<Item> items;
 

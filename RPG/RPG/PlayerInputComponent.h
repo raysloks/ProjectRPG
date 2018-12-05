@@ -45,12 +45,8 @@ public:
 
 	MobComponent * mob = nullptr;
 
-	GlobalPosition * p = nullptr;
-
-	Vec3 move;
-	Quaternion cam_rot;
+	Vec2 move, facing;
 	ControlState cs;
-	bool run;
 };
 
 #endif

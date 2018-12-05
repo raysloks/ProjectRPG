@@ -23,7 +23,7 @@ void main()
 	intensity = max(0.0, intensity);
 	intensity = sqrt(intensity);
 	
-	uvec4 stencil_sample = texture(shadow, position.xy/position.w * 0.5 + 0.5);
+	/*uvec4 stencil_sample = texture(shadow, position.xy/position.w * 0.5 + 0.5);
 	float total_stencil = 0.0;
 	for (int j = 0; j < 4; j++)
 	{
@@ -34,7 +34,7 @@ void main()
 	}
 	float illumination = total_stencil / 128.0;
 
-	intensity *= illumination;
+	intensity *= illumination;*/
 
 	vec4 color = texture(diffuse, texco);
 

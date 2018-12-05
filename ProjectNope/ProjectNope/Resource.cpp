@@ -31,7 +31,7 @@ void _load(std::string name, std::set<std::string> options)
 {
 	bool blocking = options.find("block") != options.end();
 
-	try
+	//try
 	{
 		//LARGE_INTEGER freq, start, end;
 		//QueryPerformanceFrequency(&freq);
@@ -39,7 +39,8 @@ void _load(std::string name, std::set<std::string> options)
 
 		//std::cout << std::string("loading resource: ") + name << std::endl;
 		std::fstream f(name, std::ios_base::binary | std::ios_base::in);
-		if (!f.is_open() || f.bad() || !f.good()) {
+		if (!f)
+		{
 			mutex.lock();
 			if (!blocking)
 				loading[name].second = false;
@@ -49,17 +50,16 @@ void _load(std::string name, std::set<std::string> options)
 			//std::cout << std::string("failed to load resource: ") + name + "\r\n";
 			return;
 		}
-		std::stringstream buffer;
-		buffer << f.rdbuf();
 
-		//f.close();
+		std::string buffer;
+		f.seekg(0, std::ios::end);
+		buffer.resize(f.tellg());
+		f.seekg(0, std::ios::beg);
+		f.read(&buffer[0], buffer.size());
+		f.close();
 
-		//QueryPerformanceCounter(&end);
-		//double durationInSeconds = static_cast<double>(end.QuadPart - start.QuadPart) / freq.QuadPart;
-
-		//std::cout << std::string("file closed: ") + name << " taking " << durationInSeconds << " seconds" << std::endl;
-
-		std::istringstream is(buffer.str());
+		std::stringstream is;
+		is.str(buffer);
 
 		std::pair<std::string, std::shared_ptr<Resource>> res;
 		if (name.find(".tga") != std::string::npos) {
@@ -75,10 +75,10 @@ void _load(std::string name, std::set<std::string> options)
 			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new SkeletalAnimation(instream(is.rdbuf()))));
 		}
 		else if (name.find(".ttf") != std::string::npos) {
-			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new FontResource(buffer.str())));
+			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new FontResource(buffer)));
 		}
 		else {
-			std::shared_ptr<StringResource> text(new StringResource(buffer.str()));
+			std::shared_ptr<StringResource> text(new StringResource(buffer));
 			res = std::pair<std::string, std::shared_ptr<Resource>>(name, text);
 		}
 
@@ -93,7 +93,7 @@ void _load(std::string name, std::set<std::string> options)
 
 		//std::cout << std::string("resource finalized: ") + name << " taking " << durationInSeconds << " seconds" << std::endl;
 	}
-	catch (std::exception& e)
+	/*catch (std::exception& e)
 	{
 		std::cout << "Failed to load resource \"" << name << "\". Reason: \"" << e.what() << '"' << std::endl;
 
@@ -102,7 +102,7 @@ void _load(std::string name, std::set<std::string> options)
 			loading[name].second = false;
 		resources.insert(std::pair<std::string, std::shared_ptr<Resource>>(name, nullptr));
 		mutex.unlock();
-	}
+	}*/
 }
 
 void Resource::add(const std::string& name, const std::shared_ptr<Resource>& res)
@@ -157,7 +157,6 @@ std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set
 	if (options.find("block") != options.end())
 	{
 		loading[name].first.join();
-		loading.erase(name);
 		return resources[name];
 	}
 	else

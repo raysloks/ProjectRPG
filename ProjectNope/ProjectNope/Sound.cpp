@@ -23,9 +23,9 @@ Sound::Sound(void)
 {
 	buffer = 0;
 
-	float freq = 220.0f;
-	float freq2 = 440.0f;
-	float freq3 = 880.0f;
+	float freq = 440.0f;
+	float freq2 = 880.0f;
+	float freq3 = 1000.0f;
 	duration = 2.0f;
 	sample_rate = 22050;
 	size_t buf_size = duration * sample_rate;

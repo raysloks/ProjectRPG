@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vec2.h"
+#include "Vec3.h"
 
 class Scene;
 
@@ -10,18 +10,19 @@ public:
 	Mob();
 	~Mob();
 
-	void move(const Vec2& d, Scene& scene);
-	void move(float dx, float dy, Scene& scene);
-	void moveHor(float dx, Scene& scene);
-	void moveVer(float dy, Scene& scene);
+	void move_velocity(const Vec3& d, Scene& scene);
+	void move(const Vec3& d, Scene& scene);
+	void move(float dx, float dy, float dz, Scene& scene);
 
 	union
 	{
-		Vec2 p;
+		Vec3 p;
 		struct
 		{
-			float x, y;
+			float x, y, z;
 		};
 	};
+	Vec3 v;
 	float r;
+	uint32_t land;
 };

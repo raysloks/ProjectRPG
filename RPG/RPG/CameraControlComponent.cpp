@@ -41,7 +41,7 @@ void CameraControlComponent::disconnect(void)
 {
 }
 
-#include "ColliderComponent.h"
+#include "GraphicsComponent.h"
 
 void CameraControlComponent::pre_frame(float dTime)
 {
@@ -50,29 +50,29 @@ void CameraControlComponent::pre_frame(float dTime)
 	{
 		if (client->clientData->client_id == client_id || !entity->world->authority)
 		{
-			if (p == nullptr)
-			{
-				auto pc = entity->getComponent<PositionComponent>();
-				if (pc != nullptr)
-					p = &pc->p;
-			}
+			if (!p)
+				p = entity->getComponent<PositionComponent>();
 
 			//set camera position relative to focus point
-			if (p != nullptr)
+			if (p)
 			{
 				entity->world->cam_rot = cam_rot;
-				//entity->world->cam_pos = *p + up * 0.45f;
-				auto offset = -front * 3.0f;
-				offset *= 3.0f;
-				offset *= 3.0f;
 
-				auto shakes = entity->world->GetNearestComponents<CameraShakeComponent>(*p);
+				auto offset = up * 1.25f;
+
+				auto shakes = entity->world->GetNearestComponents<CameraShakeComponent>(p->p);
 				for (auto shake : shakes)
 				{
 					offset += shake.second->getShake() / (shake.first + 1.0f);
 				}
 
-				entity->world->cam_pos = *p + offset;
+				entity->world->cam_pos = p->p + offset;
+			}
+
+			auto g = entity->getComponent<GraphicsComponent>();
+			if (g)
+			{
+				g->decs.items.clear();
 			}
 		}
 	}
@@ -126,7 +126,7 @@ void CameraControlComponent::post_frame(float dTime)
 			mouse_move += Vec2(f.x*controller_sensitivity_x, -f.y*controller_sensitivity_y)*controller_sensitivity*dTime;
 
 
-			//cam_rot_basic += mouse_move;
+			cam_rot_basic += mouse_move;
 			
 			cam_rot_basic.x = std::fmodf(cam_rot_basic.x, M_PI * 2.0f);
 			cam_rot_basic.y = std::fminf(M_PI, std::fmaxf(0.0f, cam_rot_basic.y));

@@ -60,7 +60,7 @@ bool RectangleButtonWindow::handleEvent(IEvent * pEvent)
 	if (pEvent->GetType()==MouseMoveEvent::event_type) {
 		MouseMoveEvent * ev = (MouseMoveEvent*)pEvent;
 		if (!ev->relative)
-			if (ev->x>=x && ev->y>=y && ev->x<=x+w && ev->y<=y+h) {
+			if (ev->x>=x && ev->y>=y && ev->x<x+w && ev->y<y+h) {
 				hover = true;
 			} else {
 				if (hover) {
@@ -73,7 +73,7 @@ bool RectangleButtonWindow::handleEvent(IEvent * pEvent)
 		KeyDownEvent * ev = (KeyDownEvent*)pEvent;
 		if (ev->key==Platform::KeyEvent::LMB || ev->key==Platform::KeyEvent::MMB || ev->key==Platform::KeyEvent::RMB)
 		{
-			if (ev->x>=x && ev->y>=y && ev->x<=x+w && ev->y<=y+h) {
+			if (ev->x>=x && ev->y>=y && ev->x<x+w && ev->y<y+h) {
 				if (onClick)
 					onClick();
 				pressed = true;

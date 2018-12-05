@@ -4,7 +4,10 @@
 
 Platform::RenderContext * gRenderContext;
 
-PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = 0;
+PFNWGLSWAPINTERVALEXTPROC wglSwapInterval = 0;
+PFNWGLGETPIXELFORMATATTRIBIVARBPROC wglGetPixelFormatAttribiv = 0;
+PFNWGLGETPIXELFORMATATTRIBFVARBPROC wglGetPixelFormatAttribfv = 0;
+PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormat = 0;
 PFNGLCREATESHADERPROC glCreateShader = 0;
 PFNGLSHADERSOURCEPROC glShaderSource = 0;
 PFNGLCOMPILESHADERPROC glCompileShader = 0;
@@ -109,7 +112,149 @@ namespace Platform
 	{
 		gRenderContext = this;
 
-		PIXELFORMATDESCRIPTOR pfd= {
+		hWnd = wnd;
+		hDC = GetDC(hWnd);
+
+		int attribsDesired[] = {
+			WGL_DRAW_TO_WINDOW_ARB, 1,
+			WGL_SUPPORT_OPENGL_ARB, 1,
+			WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
+			WGL_COLOR_BITS_ARB, 32,
+			WGL_RED_BITS_ARB, 8,
+			WGL_GREEN_BITS_ARB, 8,
+			WGL_BLUE_BITS_ARB, 8,
+			WGL_DOUBLE_BUFFER_ARB, 1,
+			0,0
+		};
+		UINT nMatchingFormats;
+		int index = 0;
+		if (!wglChoosePixelFormat(hDC, attribsDesired, NULL, 1, &index, &nMatchingFormats)) {
+			printf("ERROR: wglChoosePixelFormat failed!\n");
+		}
+		if (nMatchingFormats == 0) {
+			printf("ERROR: No 10bpc WGL_ARB_pixel_formats found!\n");
+		}
+
+		// Double-check that the format is really 10bpc
+		int redBits;
+		int alphaBits;
+		int uWglPfmtAttributeName = WGL_RED_BITS_ARB;
+		wglGetPixelFormatAttribiv(hDC, index, 0, 1, &uWglPfmtAttributeName,
+			&redBits);
+		uWglPfmtAttributeName = WGL_ALPHA_BITS_ARB;
+		wglGetPixelFormatAttribiv(hDC, index, 0, 1, &uWglPfmtAttributeName,
+			&alphaBits);
+		printf("pixelformat chosen, index %d red bits: %d alpha bits: %d",
+			index, redBits, alphaBits);
+
+		PIXELFORMATDESCRIPTOR pfd = { 0 };
+		pfd.nSize = sizeof(pfd);
+		pfd.nVersion = 1;
+
+		DescribePixelFormat(hDC, index, sizeof(pfd), &pfd);
+
+		SetPixelFormat(hDC, index, &pfd);
+
+		hRC = wglCreateContext(hDC);
+		wglMakeCurrent(hDC, hRC);
+	}
+
+	RenderContext::~RenderContext(void)
+	{
+		glDeleteBuffers(buffers.size(), buffers.begin()._Ptr);
+		buffers.clear();
+		glDeleteVertexArrays(vertexArrays.size(), vertexArrays.begin()._Ptr);
+		vertexArrays.clear();
+
+		wglMakeCurrent(hDC, NULL);
+		wglDeleteContext(hRC);
+
+		gRenderContext = nullptr;
+	}
+
+	void RenderContext::Swap(void)
+	{
+		SwapBuffers(hDC);
+	}
+
+	void RenderContext::SetVSync(int value)
+	{
+		wglSwapInterval(value);
+	}
+
+	void RenderContext::ReserveBuffers(size_t n)
+	{
+		if (buffers.size() < n)
+		{
+			AddBuffers(n - buffers.size());
+		}
+	}
+
+	void RenderContext::AddBuffers(size_t n)
+	{
+		buffers.resize(buffers.size() + n);
+		glGenBuffers(n, (buffers.end() - n)._Ptr);
+	}
+
+	void RenderContext::ReturnBuffer(GLuint buffer)
+	{
+		buffers.push_back(buffer);
+	}
+
+	GLuint RenderContext::GetBuffer(void)
+	{
+		if (buffers.size())
+		{
+			GLuint buffer = buffers.back();
+			buffers.pop_back();
+			return buffer;
+		}
+
+		GLuint buffer;
+		glGenBuffers(1, &buffer);
+		return buffer;
+	}
+
+	void RenderContext::ReserveVertexArrays(size_t n)
+	{
+		if (vertexArrays.size() < n)
+		{
+			AddVertexArrays(n - vertexArrays.size());
+		}
+	}
+
+	void RenderContext::AddVertexArrays(size_t n)
+	{
+		vertexArrays.resize(vertexArrays.size() + n);
+		glGenVertexArrays(n, (vertexArrays.end() - n)._Ptr);
+		for (size_t i = vertexArrays.size() - n; i < vertexArrays.size(); i++)
+		{
+			glBindVertexArray(vertexArrays[i]);
+		}
+	}
+
+	void RenderContext::ReturnVertexArray(GLuint vertexArray)
+	{
+		vertexArrays.push_back(vertexArray);
+	}
+
+	GLuint RenderContext::GetVertexArray(void)
+	{
+		if (vertexArrays.size())
+		{
+			GLuint vertexArray = vertexArrays.back();
+			vertexArrays.pop_back();
+			return vertexArray;
+		}
+
+		GLuint vertexArray;
+		glGenVertexArrays(1, &vertexArray);
+		return vertexArray;
+	}
+
+	void RenderContext::LoadFunctions(HWND wnd)
+	{
+		PIXELFORMATDESCRIPTOR pfd = {
 			sizeof(PIXELFORMATDESCRIPTOR),
 			1,
 			PFD_DRAW_TO_WINDOW |
@@ -122,23 +267,28 @@ namespace Platform
 			0,
 			0,
 			0, 0, 0, 0,
-			depth,
-			0,
+			24,
+			8,
 			0,
 			PFD_MAIN_PLANE,
 			0,
 			0, 0, 0
 		};
 
-		hWnd = wnd;
-		hDC = GetDC(hWnd);
-		PixelFormat = ChoosePixelFormat(hDC, &pfd);
-		SetPixelFormat(hDC, PixelFormat, &pfd);
-		hRC = wglCreateContext(hDC);
-		wglMakeCurrent(hDC, hRC);
+		HDC dc = GetDC(wnd);
+		GLuint pixelformat = ChoosePixelFormat(dc, &pfd);
+		SetPixelFormat(dc, pixelformat, &pfd);
+		HGLRC rc = wglCreateContext(dc);
+		wglMakeCurrent(dc, rc);
 
-		wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
-		reportFunc("wglSwapIntervalEXT", wglSwapIntervalEXT);
+		wglSwapInterval = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+		reportFunc("wglSwapIntervalEXT", wglSwapInterval);
+		wglGetPixelFormatAttribiv = (PFNWGLGETPIXELFORMATATTRIBIVARBPROC)wglGetProcAddress("wglGetPixelFormatAttribivARB");
+		reportFunc("wglGetPixelFormatAttribivARB", wglGetPixelFormatAttribiv);
+		wglGetPixelFormatAttribfv = (PFNWGLGETPIXELFORMATATTRIBFVARBPROC)wglGetProcAddress("wglGetPixelFormatAttribfvARB");
+		reportFunc("wglGetPixelFormatAttribfvARB", wglGetPixelFormatAttribfv);
+		wglChoosePixelFormat = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+		reportFunc("wglChoosePixelFormatARB", wglChoosePixelFormat);
 		glCreateShader = (PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader");
 		reportFunc("glCreateShader", glCreateShader);
 		glShaderSource = (PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource");
@@ -297,99 +447,6 @@ namespace Platform
 		reportFunc("glStencilOpSeparate", glStencilOpSeparate);
 		glStencilMaskSeparate = (PFNGLSTENCILMASKSEPARATEPROC)wglGetProcAddress("glStencilMaskSeparate");
 		reportFunc("glStencilMaskSeparate", glStencilMaskSeparate);
-	}
-
-	RenderContext::~RenderContext(void)
-	{
-		glDeleteBuffers(buffers.size(), buffers.begin()._Ptr);
-		buffers.clear();
-		glDeleteVertexArrays(vertexArrays.size(), vertexArrays.begin()._Ptr);
-		vertexArrays.clear();
-
-		wglMakeCurrent(hDC, NULL);
-		wglDeleteContext(hRC);
-
-		gRenderContext = nullptr;
-	}
-
-	void RenderContext::Swap(void)
-	{
-		SwapBuffers(hDC);
-	}
-
-	void RenderContext::SetVSync(int value)
-	{
-		wglSwapIntervalEXT(value);
-	}
-
-	void RenderContext::ReserveBuffers(size_t n)
-	{
-		if (buffers.size() < n)
-		{
-			AddBuffers(n - buffers.size());
-		}
-	}
-
-	void RenderContext::AddBuffers(size_t n)
-	{
-		buffers.resize(buffers.size() + n);
-		glGenBuffers(n, (buffers.end() - n)._Ptr);
-	}
-
-	void RenderContext::ReturnBuffer(GLuint buffer)
-	{
-		buffers.push_back(buffer);
-	}
-
-	GLuint RenderContext::GetBuffer(void)
-	{
-		if (buffers.size())
-		{
-			GLuint buffer = buffers.back();
-			buffers.pop_back();
-			return buffer;
-		}
-
-		GLuint buffer;
-		glGenBuffers(1, &buffer);
-		return buffer;
-	}
-
-	void RenderContext::ReserveVertexArrays(size_t n)
-	{
-		if (vertexArrays.size() < n)
-		{
-			AddVertexArrays(n - vertexArrays.size());
-		}
-	}
-
-	void RenderContext::AddVertexArrays(size_t n)
-	{
-		vertexArrays.resize(vertexArrays.size() + n);
-		glGenVertexArrays(n, (vertexArrays.end() - n)._Ptr);
-		for (size_t i = vertexArrays.size() - n; i < vertexArrays.size(); i++)
-		{
-			glBindVertexArray(vertexArrays[i]);
-		}
-	}
-
-	void RenderContext::ReturnVertexArray(GLuint vertexArray)
-	{
-		vertexArrays.push_back(vertexArray);
-	}
-
-	GLuint RenderContext::GetVertexArray(void)
-	{
-		if (vertexArrays.size())
-		{
-			GLuint vertexArray = vertexArrays.back();
-			vertexArrays.pop_back();
-			return vertexArray;
-		}
-
-		GLuint vertexArray;
-		glGenVertexArrays(1, &vertexArray);
-		return vertexArray;
 	}
 
 	void RenderContext::ReleaseBuffer(GLuint buffer)

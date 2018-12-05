@@ -59,46 +59,85 @@ namespace Platform
 			obj->OnMouseMove(LOWORD(lParam), HIWORD(lParam), false);
 			return 0;
 		case WM_INPUT:
+		{
+			UINT dwSize;
+			GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize,
+				sizeof(RAWINPUTHEADER));
+			LPBYTE lpb = new BYTE[dwSize];
+			if (lpb == NULL)
 			{
-				UINT dwSize;
-				GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize, 
-					sizeof(RAWINPUTHEADER));
-				LPBYTE lpb = new BYTE[dwSize];
-				if (lpb == NULL)
-				{
-					return 0;
-				}
-				GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
-
-				RAWINPUT* raw = (RAWINPUT*)lpb;
-
-				if (raw->header.dwType == RIM_TYPEMOUSE)
-				{
-					obj->OnMouseMove(raw->data.mouse.lLastX, raw->data.mouse.lLastY, true);
-					if (raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
-						obj->OnMouseWheel(static_cast<signed short>(raw->data.mouse.usButtonData));
-				}
-
-				if (raw->header.dwType == RIM_TYPEKEYBOARD)
-				{
-					unsigned short key = raw->data.keyboard.VKey;
-					bool extended = (raw->data.keyboard.Flags & 0x2) != 0;
-					if (key==VK_SHIFT) key=extended ? VK_RSHIFT : VK_LSHIFT;
-					if (key==VK_CONTROL) key=extended ? VK_RCONTROL : VK_LCONTROL;
-					if (raw->data.keyboard.Flags & 0x1) {
-						obj->OnKeyUp(KeyEvent(key));
-					} else {
-						obj->OnKeyDown(KeyEvent(key));
-					}
-				}
-
-				delete[] lpb;
 				return 0;
 			}
+			GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
+
+			RAWINPUT* raw = (RAWINPUT*)lpb;
+
+			if (raw->header.dwType == RIM_TYPEMOUSE)
+			{
+				obj->OnMouseMove(raw->data.mouse.lLastX, raw->data.mouse.lLastY, true);
+				if (raw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
+					obj->OnMouseWheel(static_cast<signed short>(raw->data.mouse.usButtonData));
+			}
+
+			if (raw->header.dwType == RIM_TYPEKEYBOARD)
+			{
+				unsigned short key = raw->data.keyboard.VKey;
+				bool extended = (raw->data.keyboard.Flags & 0x2) != 0;
+				if (key == VK_SHIFT) key = extended ? VK_RSHIFT : VK_LSHIFT;
+				if (key == VK_CONTROL) key = extended ? VK_RCONTROL : VK_LCONTROL;
+				if (raw->data.keyboard.Flags & 0x1) {
+					obj->OnKeyUp(KeyEvent(key));
+				}
+				else {
+					obj->OnKeyDown(KeyEvent(key));
+				}
+			}
+
+			delete[] lpb;
+			return 0;
+		}
+		case WM_SETCURSOR:
+		{
+
+			break;
+		}
 		default:
 			break;
 		}
 		return DefWindowProc(hWnd, Msg, wParam, lParam);
+	}
+
+	struct DisplayInfo
+	{
+		RECT rect;
+		std::string name;
+	};
+
+	std::vector<DisplayInfo> monitors;
+
+	BOOL MyMonitorEnumProc(HMONITOR hMonitor, HDC hDC, LPRECT Arg3, LPARAM Arg4)
+	{
+		MONITORINFOEX monitor_info;
+		monitor_info.cbSize = sizeof(MONITORINFOEX);
+		GetMonitorInfo(hMonitor, &monitor_info);
+
+		DISPLAY_DEVICE dd;
+		dd.cb = sizeof(dd);
+		int monitorIndex = 0;
+		while (EnumDisplayDevices(monitor_info.szDevice, monitorIndex, &dd, 0))
+		{
+			monitors.push_back({ monitor_info.rcMonitor, dd.DeviceString });
+			std::cout << dd.DeviceName << ", " << dd.DeviceString << "\n";
+			++monitorIndex;
+		}
+
+		return TRUE;
+	}
+
+	void UpdateMonitorInfo()
+	{
+		monitors.clear();
+		EnumDisplayMonitors(NULL, NULL, MyMonitorEnumProc, NULL);
 	}
 
 	void GUIObject::_InitWnd(void)
@@ -118,8 +157,14 @@ namespace Platform
 			wcMold.lpszClassName = wc_name;
 			RegisterClassEx(&wcMold);
 
+			HWND dummy = CreateWindowEx(0, wc_name, "dummy", 0, 0, 0, 0, 0, 0, 0, hInstance, 0);
+			RenderContext::LoadFunctions(dummy);
+			DestroyWindow(dummy);
+
 			_cvis = true;
 			isInit = true;
+
+			UpdateMonitorInfo();
 
 			RAWINPUTDEVICE rid[2];
 			rid[0].usUsagePage = 0x01;
@@ -137,31 +182,17 @@ namespace Platform
 
 		DWORD dwExStyle, dwStyle;
 
-		if (isFullScr) {
-			DEVMODE dmScreenSettings;
-			memset(&dmScreenSettings,0,sizeof(dmScreenSettings));
-			dmScreenSettings.dmSize=sizeof(dmScreenSettings);
-			dmScreenSettings.dmPelsWidth    = mW;
-			dmScreenSettings.dmPelsHeight   = mH;
-			dmScreenSettings.dmBitsPerPel   = 32;
-			dmScreenSettings.dmFields=DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
+		//dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+		dwExStyle = 0;
+		dwStyle = WS_POPUP;
+		//dwStyle = WS_OVERLAPPEDWINDOW;
+		
+		SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 
-			ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
-
-			mX = 0;
-			mY = 0;
-
-			dwExStyle = WS_EX_APPWINDOW;
-			dwStyle = WS_POPUP;
-		} else {
-			//dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-			dwExStyle = 0;
-			//dwStyle = WS_POPUP;
-			dwStyle = WS_OVERLAPPEDWINDOW;
-		}
-
+		mX = monitors[0].rect.left;
+		mY = monitors[0].rect.top;
 		RECT wr = {mX, mY, mX + mW, mY + mH};
-		AdjustWindowRectEx(&wr, dwStyle, FALSE, dwExStyle);
+		//AdjustWindowRectEx(&wr, dwStyle, FALSE, dwExStyle);
 
 		hWnd = CreateWindowEx(dwExStyle, wc_name, mName.c_str(),
 			dwStyle, wr.left, wr.top,
@@ -169,10 +200,10 @@ namespace Platform
 			NULL, NULL,
 			hInstance, NULL);
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)this);
-		pContext = std::shared_ptr<RenderContext>(new RenderContext(hWnd, z_depth));
 		ShowWindow(hWnd, SW_SHOW);
 		SetFocus(hWnd);
 		SetForegroundWindow(hWnd);
+		pContext = std::shared_ptr<RenderContext>(new RenderContext(hWnd, z_depth));
 	}
 
 	GUIObject::GUIObject(const std::string& name, int x, int y, int w, int h, int depth_depth, bool fullscreen)

@@ -42,6 +42,26 @@ void ControlState::update(ControlState& cs)
 	cs.empty = false;
 }
 
+bool ControlState::consume(const std::string& str)
+{
+	if (active[str] > 0)
+	{
+		--active[str];
+		return true;
+	}
+	return false;
+}
+
+bool ControlState::consume_all(const std::string & str)
+{
+	if (active[str] > 0)
+	{
+		active[str] = 0;
+		return true;
+	}
+	return false;
+}
+
 outstream& operator<<(outstream& os, const ControlState& cs)
 {
 	os << (uint32_t)cs.input.size();

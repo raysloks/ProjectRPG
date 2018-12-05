@@ -25,14 +25,12 @@ MainMenuWindow::MainMenuWindow(World * pWorld, Client * pClient, int px, int py,
 
 	RectangleButtonWindow * start_game_button = new RectangleButtonWindow(64, 256, 256, 32);
 	start_game_button->onClick = [this] (void) {
-		if (client->clientData==0) {
-			client->clientData = new ClientData();
+		if (client->world->authority)
 			client->connect("127.0.0.1", 7777);
-		}
 		this->state = 2;
 	};
 	start_game_button->onRender = [this, start_game_button] (void) {
-		if (client->clientData==0)
+		if (client->world->authority)
 			start_game_button->text = "New Game";
 		else
 			start_game_button->text = "Resume Game";
@@ -93,7 +91,7 @@ MainMenuWindow::~MainMenuWindow(void)
 
 void MainMenuWindow::render(RenderSetup& rs)
 {
-	//client->hideCursor = state == 2;
+	client->hideCursor = state == 2;
 	if (state == 1)
 		RectangleWindow::render(rs);
 }

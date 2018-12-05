@@ -50,7 +50,7 @@ Client::Client(World * pWorld)
 	Sound::init();
 
 	platform = new TempPlatform();
-	platform->set_position(0, 32);
+	platform->set_position(0, 0);
 	platform->set_z_depth(0);
 
 	world = pWorld;
@@ -61,7 +61,7 @@ Client::Client(World * pWorld)
 
 	show_entity_list = false;
 
-	light = Vec3(-1.0f, 1.0f, 1.0f);
+	light = Vec3(1.0f, 2.0f, M_PI);
 	light.Normalize();
 
 	Vec3 pole(0.0f, 0.0f, 1.0f);
@@ -111,10 +111,11 @@ void Client::disconnect(void)
 	con = nullptr;
 	if (clientData != nullptr)
 		delete clientData;
-	clientData = nullptr;
+	clientData = new ClientData();
 	
 	world->clear();
 	world->clean();
+	interpol_targets.clear();
 	world->authority = true;
 }
 
@@ -532,6 +533,8 @@ void Client::render_world(void)
 
 	float supersample_r = 1.0f;
 
+	float jitter = 0.0f;
+
 	int shadow_quality = 1;
 	int ao_quality = 1;
 
@@ -558,6 +561,9 @@ void Client::render_world(void)
 		var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("ao_quality"));
 		if (var != 0)
 			ao_quality = var->f;
+		var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("jitter"));
+		if (var != 0)
+			jitter = var->f;
 	}
 
 
@@ -640,9 +646,9 @@ void Client::render_world(void)
 
 	Matrix4 pers = Matrix4::Perspective(fov, aspect, near_z, far_z);
 
-	std::uniform_real_distribution<float> jitter_distribution(-0.5f, 0.5f);
+	std::uniform_real_distribution<float> jitter_distribution(-1.0f, 1.0f);
 	Vec2 view_texel_jitter(jitter_distribution(random), jitter_distribution(random));
-	//pers *= Matrix4::Translation(Vec3(view_texel_jitter.x / buffer_w, view_texel_jitter.y / buffer_h, 0.0f));
+	view_texel_jitter *= jitter;
 
 	Matrix4 rot = world->cam_rot.getConj();
 	Matrix4 invrot = world->cam_rot;
@@ -660,7 +666,6 @@ void Client::render_world(void)
 
 	Matrix4 light_alignment = Matrix3(acos(light.Dot(Vec3(0.0f, 0.0f, 1.0f))), -light.Cross(Vec3(0.0f, 0.0f, 1.0f)));
 
-
 	// render background
 	if (sky_prog->Use())
 	{
@@ -674,7 +679,6 @@ void Client::render_world(void)
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
-	
 
 	float o_near_z = near_z;
 	float o_far_z = far_z;
@@ -692,6 +696,7 @@ void Client::render_world(void)
 		}
 
 		pers = Matrix4::Perspective(fov, aspect, near_z, far_z);
+		pers *= Matrix4::Translation(Vec3(view_texel_jitter.x / buffer_w, view_texel_jitter.y / buffer_h, 0.0f));
 		proj = rot * pers;
 		proj_inv = proj.Inverse();
 
@@ -1157,7 +1162,6 @@ void Client::render_world(void)
 			}
 		}
 
-
 		// render shaded geometry
 		if (shader_program->IsReady())
 		{
@@ -1305,7 +1309,7 @@ void Client::render_world(void)
 		rs.pushMod(mod);
 
 		Writing::setColor(0.0f, 0.0f, 0.0f);
-		Writing::setFont("data/assets/fonts/Lora-Regular.ttf");
+		Writing::setFont("data/assets/fonts/NotoSans-SemiBold.ttf");
 		Writing::setSize(12);
 
 		rs.addTransform(Matrix4::Translation(Vec3(-view_w / 2.0f, -view_h / 2.0f, 0.0f)));

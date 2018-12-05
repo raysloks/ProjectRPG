@@ -21,7 +21,6 @@
 class TypeIteratorBase;
 class ScriptMemory;
 class Matrix3;
-class Chunk;
 class Collision;
 class NewEntity;
 class RenderSetup;

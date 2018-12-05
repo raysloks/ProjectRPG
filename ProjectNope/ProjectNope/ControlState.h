@@ -14,6 +14,8 @@ public:
 
 	void activate(const std::string& str);
 	void update(ControlState& cs);
+	bool consume(const std::string& str);
+	bool consume_all(const std::string& str);
 
 	std::map<std::string, float> input;
 	std::map<std::string, int> check;

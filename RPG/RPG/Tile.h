@@ -1,12 +1,8 @@
 #pragma once
 
-#include <sys\types.h>
+#include <cstdint>
 
-class Tile
+struct Tile
 {
-public:
-	Tile();
-	~Tile();
-
-	off_t solid;
+	uint32_t solid;
 };

@@ -8,11 +8,12 @@
 #include "Vec2.h"
 #include "Quaternion.h"
 #include "EntityID.h"
+#include "ControlState.h"
 
 #include "ResourceBar.h"
 
 #include <memory>
-#include <map>
+#include <unordered_map>
 #include <functional>
 
 #include "Mob.h"
@@ -59,6 +60,8 @@ public:
 	ResourceBar mana;
 
 	Vec2 move, facing;
+
+	std::unordered_map<std::string, float> timers;
 
 	Mob mob;
 	Scene scene;

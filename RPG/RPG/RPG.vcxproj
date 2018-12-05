@@ -160,6 +160,7 @@
     <ClCompile Include="CameraControlComponent.cpp" />
     <ClCompile Include="CameraShakeComponent.cpp" />
     <ClCompile Include="ChatComponent.cpp" />
+    <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="GameStateComponent.cpp" />
     <ClCompile Include="GolemUnit.cpp" />
     <ClCompile Include="HitBox.cpp" />
@@ -209,6 +210,7 @@
     <ClInclude Include="CameraControlComponent.h" />
     <ClInclude Include="CameraShakeComponent.h" />
     <ClInclude Include="ChatComponent.h" />
+    <ClInclude Include="Chunk.h" />
     <ClInclude Include="GameStateComponent.h" />
     <ClInclude Include="GolemUnit.h" />
     <ClInclude Include="HitBox.h" />

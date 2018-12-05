@@ -186,9 +186,27 @@ public:
 			ent->addComponent(g);
 
 			MaterialList materials;
-			materials.materials.push_back(Material("data/assets/terrain/textures/nground.tga"));
+			materials.materials.push_back(Material("data/assets/square_stone2.tga"));
 
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/test_level.gmdl", materials, 0)));
+			Scene scene(8, 8, 8);
+
+			for (size_t z = 0; z < scene.d * CHUNK_SIZE; ++z)
+			{
+				for (size_t y = 0; y < scene.h * CHUNK_SIZE; ++y)
+				{
+					for (size_t x = 0; x < scene.w * CHUNK_SIZE; ++x)
+					{
+						if (z + 8 <= x / 4 || z == 0)
+						{
+							scene.setTile(x, y, z, { 1 });
+						}
+					}
+				}
+			}
+
+			Resource::add("scene_mesh", scene.createMesh());
+
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("scene_mesh", materials, 0)));
 
 			world->AddEntity(ent);
 		}
@@ -264,7 +282,7 @@ public:
 
 			trigger->func = [game_state, progress](MobComponent * mob)
 			{
-				game_state->setProgress(mob, progress);
+				//game_state->setProgress(mob, progress);
 			};
 
 			world->AddEntity(ent);
@@ -485,7 +503,7 @@ public:
 		auto game_states = world->GetComponents<GameStateComponent>();
 		if (game_states.size())
 		{
-			game_states.front()->removePlayer(data.client_id);
+			//game_states.front()->removePlayer(data.client_id);
 		}
 	}
 };
@@ -574,9 +592,9 @@ void start_engine_instance(std::string address, uint16_t port, uint64_t lobby_id
 	}
 }
 
-int main(int argc, char* argv[])
-//INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-	//PSTR lpCmdLine, INT nCmdShow)
+INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+	PSTR lpCmdLine, INT nCmdShow)
+//int main()
 {
 	if (false)
 	{
@@ -669,7 +687,7 @@ int main(int argc, char* argv[])
 
 	std::cout << "starting game..." << std::endl;
 
-	/*std::cmatch match_server;
+	std::cmatch match_server;
 	std::regex reg_server("\\+server (.*)");
 	if (std::regex_match(lpCmdLine, match_server, reg_server))
 	{
@@ -688,7 +706,7 @@ int main(int argc, char* argv[])
 
 	std::cmatch match_connect_lobby;
 	std::regex reg_connect_lobby("\\+connect_lobby (.*)");
-	std::regex_match(lpCmdLine, match_connect_lobby, reg_connect_lobby);*/
+	std::regex_match(lpCmdLine, match_connect_lobby, reg_connect_lobby);
 
 	//std::shared_ptr<ISteamWrapper> steam(ISteamWrapper::make());
 	

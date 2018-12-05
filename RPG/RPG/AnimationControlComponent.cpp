@@ -62,6 +62,7 @@ void AnimationControlComponent::tick(float dTime)
 
 	float prev_frame = pose->frame;
 
+	overtime += dTime;
 	do
 	{
 		if (!state)
@@ -87,22 +88,15 @@ void AnimationControlComponent::tick(float dTime)
 		float added_time = overtime;
 		overtime = 0.0f;
 		if (state)
-			state->tick(dTime + added_time);
+			state->tick(added_time);
 	} while (overtime > 0.0f);
 
 	for (auto s : removed_states)
 		delete s;
 	removed_states.clear();
 
-	Vec3 up(0.0f, 0.0f, 1.0f);
-
-	if (mob->facing == Vec3())
-		mob->facing = Vec3(0.0f, 1.0f, 0.0f);
-	Vec3 flat_facing = mob->facing - up * up.Dot(mob->facing);
-	flat_facing.Normalize();
-
 	transform = Matrix4::Translation(-root);
-	transform *= Matrix3(flat_facing.Cross(up), flat_facing, up);
+	transform *= Quaternion(M_PI - mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
 
 	transform *= Matrix4::Scale(Vec3(scale, scale, scale));
 			

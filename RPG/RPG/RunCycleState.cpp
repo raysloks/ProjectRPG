@@ -30,20 +30,28 @@ void RunCycleState::enter(AnimationState * prev)
 
 void RunCycleState::tick(float dTime)
 {
-	if (mob->move == Vec2())
+	if (mob->move == Vec2() && mob->mob.land)
 	{
 		idle.tick(dTime);
-		/*if (t <= 0.5f)
-			t = 0.5f;
-		else
-			t = 1.0f;
-		prev_t = t;*/
+		t = 0.5f;
+		if (prev_t > 0.25f && prev_t <= 0.75f)
+			t = 0.0f;
 		return;
 	}
 
 	prev_t = t;
 
-	t += dTime * mob->move.Len() * speed / acc->scale;
+	t += dTime * 2.0f * speed / acc->scale;
+
+	if (!mob->mob.land)
+	{
+		if (prev_t <= 0.5f && t > 0.5f)
+			t = 0.5f;
+		if (prev_t <= 1.0f && t > 1.0f)
+			t = 1.0f;
+		if (prev_t <= 0.0f && t > 0.0f)
+			t = 0.0f;
+	}
 
 	for (auto e : events)
 	{
@@ -52,6 +60,8 @@ void RunCycleState::tick(float dTime)
 	}
 
 	t -= floorf(t);
+
+	prev_t = t;
 
 	auto anim = Resource::get<SkeletalAnimation>(pose->anim);
 	if (anim)

@@ -223,7 +223,7 @@ Matrix4 Bone::getTransform(void)const
 SkeletalAnimation::SkeletalAnimation(instream& is)
 {
 	armature.rest = &armature;
-	int total_bones;
+	uint32_t total_bones;
 	is >> total_bones;
 	std::vector<int> parents;
 	std::vector<Matrix4> locals;
@@ -286,7 +286,7 @@ SkeletalAnimation::SkeletalAnimation(instream& is)
 		armature.bones[i].total_inverse = armature.bones[i].total_transform.Inverse();
 	}
 
-	int total_actions;
+	uint32_t total_actions;
 	is >> total_actions;
 	for (int o=0;o<total_actions;++o)
 	{
@@ -295,7 +295,7 @@ SkeletalAnimation::SkeletalAnimation(instream& is)
 		actions.insert(std::pair<std::string, Action>(action_name, Action()));
 		Action * action = &actions.at(action_name);
 		action->anim = this;
-		int total_groups;
+		uint32_t total_groups;
 		is >> total_groups;
 		for (int i=0;i<total_groups;++i)
 		{

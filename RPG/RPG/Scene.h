@@ -2,16 +2,20 @@
 
 #include <vector>
 
-#include "Tile.h"
+#include "Chunk.h"
+#include "Mesh.h"
 
 class Scene
 {
 public:
-	Scene(size_t width, size_t height);
+	Scene(size_t width, size_t height, size_t depth);
 	~Scene();
 
-	Tile * getTile(size_t x, size_t y) const;
+	Tile getTile(size_t x, size_t y, size_t z) const;
+	void setTile(size_t x, size_t y, size_t z, Tile tile);
 
-	size_t w, h;
-	Tile * tiles;
+	std::shared_ptr<Mesh> createMesh() const;
+
+	size_t w, h, d;
+	Chunk **chunks, *empty, *solid;
 };

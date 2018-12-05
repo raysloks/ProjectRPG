@@ -503,12 +503,15 @@ void Mesh::buildVBO(void)
 				}
 			}
 
-			if (!vert.front().w.empty())
+			if (!vert.empty())
 			{
-				(*i)->addBuffer();
-				(*i)->addVertexStruct(VertexStruct("bone_weight", 4, false, 0, 0));
-				(*i)->addBuffer();
-				(*i)->addVertexStruct(VertexStruct("bone_index", 4, false, 0, 0));
+				if (!vert.front().w.empty())
+				{
+					(*i)->addBuffer();
+					(*i)->addVertexStruct(VertexStruct("bone_weight", 4, false, 0, 0));
+					(*i)->addBuffer();
+					(*i)->addVertexStruct(VertexStruct("bone_index", 4, false, 0, 0));
+				}
 			}
 		}
 
@@ -605,13 +608,16 @@ void Mesh::buildVBO(void)
 			glBufferData(GL_ARRAY_BUFFER, setref.uv_points.size() * 3 * sizeof(Vec2), t_data, GL_STATIC_DRAW);
 		}
 
-		if (!vert.front().w.empty())
+		if (!vert.empty())
 		{
-			size_t buf = (setref.nTextures > 0) ? 3 : 2;
-			glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[buf].first);
-			glBufferData(GL_ARRAY_BUFFER, setref.vertices.size() * 3 * 4 * sizeof(float), w_data, GL_STATIC_DRAW);
-			glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[buf + 1].first);
-			glBufferData(GL_ARRAY_BUFFER, setref.vertices.size() * 3 * 4 * sizeof(float), i_data, GL_STATIC_DRAW);
+			if (!vert.front().w.empty())
+			{
+				size_t buf = (setref.nTextures > 0) ? 3 : 2;
+				glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[buf].first);
+				glBufferData(GL_ARRAY_BUFFER, setref.vertices.size() * 3 * 4 * sizeof(float), w_data, GL_STATIC_DRAW);
+				glBindBuffer(GL_ARRAY_BUFFER, (*i)->buffers[buf + 1].first);
+				glBufferData(GL_ARRAY_BUFFER, setref.vertices.size() * 3 * 4 * sizeof(float), i_data, GL_STATIC_DRAW);
+			}
 		}
 
 		delete[] i_data;

@@ -5,9 +5,9 @@
 
 #include <memory>
 #include <functional>
+#include <unordered_map>
 
 class RenderSetup;
-class TeamData;
 class MobComponent;
 
 enum GameState
@@ -45,34 +45,13 @@ public:
 
 	static const AutoSerialFactory<GameStateComponent> _factory;
 
-	void startGame(void);
-
 	MobComponent * createAvatar(uint32_t client_id, uint32_t team, uint32_t index);
-
-	uint32_t getPlayerTeam(uint32_t client_id) const;
-	void addPlayer(uint32_t client_id, uint32_t team);
-	void removePlayer(uint32_t client_id);
-
-	void swapTeams(void);
-
-	void setProgress(MobComponent * mob, float progress);
-	float getAverageSurvivorProgress(void);
-	float getMaximumSurvivorProgress(void);
-	float getMinimumAliveSurvivorProgress(void);
 
 	void set_display(bool enable);
 
 	std::shared_ptr<std::function<void(RenderSetup&)>> func;
 
-	bool setting_up, game_over;
-	std::vector<TeamData> teams;
-
-	uint32_t team_selection;
-	bool ready;
-
-	float survivor_progress;
-	
-	float countdown;
+	std::unordered_map<uint32_t, MobComponent*> avatars;
 };
 
 #endif
