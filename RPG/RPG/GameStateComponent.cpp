@@ -138,8 +138,6 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	inv->client_id = client_id;
 
 	entity->world->AddEntity(ent);
-	
-	mob->p = &p->p;
 
 	return mob;
 }

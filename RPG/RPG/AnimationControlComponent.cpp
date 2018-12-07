@@ -79,8 +79,8 @@ void AnimationControlComponent::tick(float dTime)
 					sound_ent->addComponent(audio);
 					entity->world->AddEntity(sound_ent);
 				};
-				run_cycle->events.insert(std::make_pair(0.5f, func));
-				run_cycle->events.insert(std::make_pair(1.0f, func));
+				run_cycle->events.insert(std::make_pair(0.05f, func));
+				run_cycle->events.insert(std::make_pair(0.55f, func));
 			}
 			set_state(run_cycle);
 		}
@@ -95,7 +95,7 @@ void AnimationControlComponent::tick(float dTime)
 		delete s;
 	removed_states.clear();
 
-	transform = Matrix4::Translation(-root);
+	transform = Matrix4::Translation(-root - mob->up * 1.0f);
 	transform *= Quaternion(M_PI - mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
 
 	transform *= Matrix4::Scale(Vec3(scale, scale, scale));
@@ -119,7 +119,7 @@ void AnimationControlComponent::tick(float dTime)
 		root = root_position;
 		if (entity->world->authority)
 		{
-			mob->mob.move(root_movement, mob->scene);
+			mob->external_dp += root_movement;
 		}
 	}
 }

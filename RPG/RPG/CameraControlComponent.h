@@ -49,6 +49,8 @@ public:
 	Vec3 forward, up;
 	Vec3 front, top;
 	Vec3 right;
+
+	float distance;
 };
 
 #endif

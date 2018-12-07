@@ -8,19 +8,14 @@
 #include "Vec2.h"
 #include "Quaternion.h"
 #include "EntityID.h"
-#include "ControlState.h"
 
 #include "ResourceBar.h"
 
 #include <memory>
-#include <unordered_map>
+#include <map>
 #include <functional>
 
-#include "Mob.h"
-#include "Scene.h"
-
-class GlobalPosition;
-class ActionData;
+class PositionComponent;
 class WeaponComponent;
 
 class MobComponent :
@@ -52,19 +47,46 @@ public:
 	void do_damage(size_t damage, EntityID source);
 	void do_heal(size_t heal, EntityID source);
 
-	GlobalPosition * p;
+	PositionComponent * p;
 
 	//stats
 	ResourceBar health;
 	ResourceBar stamina;
 	ResourceBar mana;
 
-	Vec2 move, facing;
+	float stamina_regen;
 
-	std::unordered_map<std::string, float> timers;
+	float speed_mod;
 
-	Mob mob;
-	Scene scene;
+	size_t temp_team;
+
+	WeaponComponent * weapon;
+	size_t weapon_index;
+
+	std::function<void(void)> on_death;
+	std::function<void(float)> on_tick;
+
+	//facing
+	Vec2 facing;
+	Vec3 up;
+
+	float r;
+	bool use_base_collision;
+
+	//movement
+	Vec3 v;
+	Vec3 dp;
+	Vec3 external_dp;
+	Vec3 land_n, land_v;
+	Vec3 move;
+	bool run, crouch;
+	bool landed;
+
+	std::map<std::string, float> input;
+
+	// todo rework
+	bool hit;
+	EntityID last_hit;
 };
 
 #endif

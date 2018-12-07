@@ -27,6 +27,7 @@ CameraControlComponent::CameraControlComponent(void) : Serializable(_factory.id)
 CameraControlComponent::CameraControlComponent(instream& is, bool full) : Serializable(_factory.id)
 {
 	cam_rot_basic = Vec2(M_PI_4, M_PI_2 + M_PI_4);
+	distance = 0.0f;
 }
 
 CameraControlComponent::~CameraControlComponent(void)
@@ -58,7 +59,7 @@ void CameraControlComponent::pre_frame(float dTime)
 			{
 				entity->world->cam_rot = cam_rot;
 
-				auto offset = up * 1.25f;
+				auto offset = up * 0.25f - front * distance;
 
 				auto shakes = entity->world->GetNearestComponents<CameraShakeComponent>(p->p);
 				for (auto shake : shakes)
@@ -72,7 +73,8 @@ void CameraControlComponent::pre_frame(float dTime)
 			auto g = entity->getComponent<GraphicsComponent>();
 			if (g)
 			{
-				g->decs.items.clear();
+				if (distance == 0.0f)
+					g->decs.items.clear();
 			}
 		}
 	}
@@ -130,6 +132,10 @@ void CameraControlComponent::post_frame(float dTime)
 			
 			cam_rot_basic.x = std::fmodf(cam_rot_basic.x, M_PI * 2.0f);
 			cam_rot_basic.y = std::fminf(M_PI, std::fmaxf(0.0f, cam_rot_basic.y));
+
+
+			distance -= input.mouse_dif_z / 256.0f;
+			distance = fmaxf(0.0f, fminf(4.0f, distance));
 
 
 			cam_rot = Quaternion();

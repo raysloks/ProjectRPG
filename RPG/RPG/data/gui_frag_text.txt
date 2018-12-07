@@ -11,7 +11,13 @@ void main()
 {
 	vec4 temp_color = color;
 
-	temp_color.a *= texture(alpha, texco).r;
+	float tex_alpha = texture(alpha, texco).r;
+
+	tex_alpha = (tex_alpha - 0.5) / min(1.0, (fwidth(texco.x) + fwidth(texco.y)) * 1024.0) + 0.5;
+
+	tex_alpha = max(0.0, min(1.0, tex_alpha));
+
+	temp_color.a *= tex_alpha;
 
 	final_color = temp_color;
 }

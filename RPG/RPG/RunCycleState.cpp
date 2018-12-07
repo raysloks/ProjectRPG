@@ -30,7 +30,7 @@ void RunCycleState::enter(AnimationState * prev)
 
 void RunCycleState::tick(float dTime)
 {
-	if (mob->move == Vec2() && mob->mob.land)
+	if (mob->move == Vec2() && mob->landed)
 	{
 		idle.tick(dTime);
 		t = 0.5f;
@@ -43,7 +43,7 @@ void RunCycleState::tick(float dTime)
 
 	t += dTime * 2.0f * speed / acc->scale;
 
-	if (!mob->mob.land)
+	if (!mob->landed)
 	{
 		if (prev_t <= 0.5f && t > 0.5f)
 			t = 0.5f;

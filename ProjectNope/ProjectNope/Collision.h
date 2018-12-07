@@ -15,7 +15,7 @@ public:
 	Vec3 n, disp, v;
 	float dist, t;
 	Component * comp;
-	Wall * wall;
+	void * wall;
 };
 
 #endif

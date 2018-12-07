@@ -55,7 +55,7 @@ void ProjectileComponent::tick(float dTime)
 					ok = false;
 			if (ok)
 			{
-				auto col = Wall::SphereLine(Vec3(), dp, *mob.second->p - pc->p, 0.5f);
+				auto col = Wall::SphereLine(Vec3(), dp, mob.second->p->p - pc->p, 0.5f);
 				if (col != nullptr)
 				{
 					col->poo += pc->p;

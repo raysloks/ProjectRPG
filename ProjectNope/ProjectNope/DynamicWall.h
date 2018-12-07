@@ -21,6 +21,7 @@ public:
 	void applyVelocity(const std::shared_ptr<Collision>& col)const;
 	bool validate(const Vec3& sP, const Vec3& dif, float t)const;
 
+	void * id;
 	Vec3 vV1, vV2, vV3;
 };
 

@@ -142,7 +142,7 @@ public:
 		}
 
 		// create level
-		if (false)
+		if (true)
 		{
 			NewEntity * ent = new NewEntity();
 
@@ -169,44 +169,6 @@ public:
 			}
 
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/terrain/tos.gmdl", materials, 0)));
-
-			world->AddEntity(ent);
-		}
-
-		// create level
-		{
-			NewEntity * ent = new NewEntity();
-
-			PositionComponent * p = new PositionComponent();
-			ColliderComponent * c = new ColliderComponent();
-			GraphicsComponent * g = new GraphicsComponent(false, 0);
-
-			ent->addComponent(p);
-			ent->addComponent(c);
-			ent->addComponent(g);
-
-			MaterialList materials;
-			materials.materials.push_back(Material("data/assets/square_stone2.tga"));
-
-			Scene scene(8, 8, 8);
-
-			for (size_t z = 0; z < scene.d * CHUNK_SIZE; ++z)
-			{
-				for (size_t y = 0; y < scene.h * CHUNK_SIZE; ++y)
-				{
-					for (size_t x = 0; x < scene.w * CHUNK_SIZE; ++x)
-					{
-						if (z + 8 <= x / 4 || z == 0)
-						{
-							scene.setTile(x, y, z, { 1 });
-						}
-					}
-				}
-			}
-
-			Resource::add("scene_mesh", scene.createMesh());
-
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("scene_mesh", materials, 0)));
 
 			world->AddEntity(ent);
 		}

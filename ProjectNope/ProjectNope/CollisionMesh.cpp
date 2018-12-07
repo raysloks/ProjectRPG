@@ -174,6 +174,7 @@ void CollisionMesh::CalcBounds(void)
 	aabb_max += Vec3(1.0f, 1.0f, 1.0f);
 	aabb_min -= Vec3(1.0f, 1.0f, 1.0f);
 
+	dif = aabb_max - aabb_min;
 	/*float f;
 	bounds = 0.0f;
 	for (auto i=walls.begin();i!=walls.end();++i)
@@ -193,37 +194,49 @@ void CollisionMesh::CalcBounds(void)
 
 void CollisionMesh::CalcGrid(void)
 {
-	Vec3 dif = aabb_max - aabb_min;
+	grid_w = max(1, dif.x / 64.0f);
+	grid_h = max(1, dif.y / 64.0f);
+	grid_d = max(1, dif.z / 64.0f);
 
-	grid_w = max(1, dif.x / 100.0f);
-	grid_h = max(1, dif.y / 100.0f);
-	grid_d = max(1, dif.z / 100.0f);
+	grid_wh = grid_w * grid_h;
 
 	grid.clear();
 	grid.resize(grid_w * grid_h * grid_d);
 
+	Vec3 margin = Vec3(1.0f, 1.0f, 1.0f) * 4.0f;
+
 	for (size_t i = 0; i < walls.size(); i++)
 	{
 		auto aabb = walls[i].GetAABB();
-		auto cells = GetCellsInAABB(aabb.first, aabb.second);
+		auto cells = GetCellsInAABB(aabb.first - margin, aabb.second + margin);
 		//std::cout << cells.size() << std::endl;
 		for each (auto cell in cells)
 		{
-			grid[cell].push_back(i);
+			grid[cell].push_back(walls[i]);
+			grid[cell].back().id = &walls[i];
 		}
 	}
 }
 
+size_t CollisionMesh::GetCell(Vec3 vP) const
+{
+	Vec3 scaled = vP - aabb_min;
+
+	size_t x = scaled.x * (grid_w / dif.x);
+	size_t y = scaled.y * (grid_h / dif.y);
+	size_t z = scaled.z * (grid_d / dif.z);
+
+	return x + y * grid_w + z * grid_wh;
+}
+
 std::vector<size_t> CollisionMesh::GetCellsInAABB(Vec3 box_min, Vec3 box_max) const
 {
-	Vec3 dif = aabb_max - aabb_min;
-
 	Vec3 min_scaled = box_min - aabb_min;
 	Vec3 max_scaled = box_max - aabb_min;
 
-	size_t x_min = std::ceilf(min_scaled.x * (grid_w / dif.x)) - 1;
-	size_t y_min = std::ceilf(min_scaled.y * (grid_h / dif.y)) - 1;
-	size_t z_min = std::ceilf(min_scaled.z * (grid_d / dif.z)) - 1;
+	off_t x_min = std::ceilf(min_scaled.x * (grid_w / dif.x)) - 1;
+	off_t y_min = std::ceilf(min_scaled.y * (grid_h / dif.y)) - 1;
+	off_t z_min = std::ceilf(min_scaled.z * (grid_d / dif.z)) - 1;
 
 	size_t x_max = std::floorf(max_scaled.x * (grid_w / dif.x));
 	size_t y_max = std::floorf(max_scaled.y * (grid_h / dif.y));
@@ -237,7 +250,7 @@ std::vector<size_t> CollisionMesh::GetCellsInAABB(Vec3 box_min, Vec3 box_max) co
 		{
 			for (size_t z = max(0, z_min); z <= min(grid_d - 1, z_max); z++)
 			{
-				ret.push_back(x + y * grid_w + z * grid_w * grid_h);
+				ret.push_back(x + y * grid_w + z * grid_wh);
 			}
 		}
 	}
@@ -262,8 +275,6 @@ std::vector<size_t> CollisionMesh::GetWallsInAABB(Vec3 box_min, Vec3 box_max) co
 		return ret;
 	}
 
-	Vec3 dif = aabb_max - aabb_min;
-
 	Vec3 min_scaled = box_min - aabb_min;
 	Vec3 max_scaled = box_max - aabb_min;
 
@@ -285,7 +296,7 @@ std::vector<size_t> CollisionMesh::GetWallsInAABB(Vec3 box_min, Vec3 box_max) co
 			{
 				for each (auto wall in grid[x + y * grid_w + z * grid_w * grid_h])
 				{
-					walls_in_aabb.insert(wall);
+					//walls_in_aabb.insert(wall);
 				}
 			}
 		}
@@ -303,33 +314,16 @@ std::vector<size_t> CollisionMesh::GetWallsInAABB(Vec3 box_min, Vec3 box_max) co
 
 void CollisionMesh::SphereCheck(const Vec3& vP, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
-	Vec3 box_min = Vec3(INFINITE, INFINITE, INFINITE);
-	Vec3 box_max = -box_min;
-
-	box_max.x = std::fmaxf(box_max.x, vP.x + r);
-	box_max.y = std::fmaxf(box_max.y, vP.y + r);
-	box_max.z = std::fmaxf(box_max.z, vP.z + r);
-
-	box_max.x = std::fmaxf(box_max.x, vP.x + r);
-	box_max.y = std::fmaxf(box_max.y, vP.y + r);
-	box_max.z = std::fmaxf(box_max.z, vP.z + r);
-
-	box_min.x = std::fminf(box_min.x, vP.x - r);
-	box_min.y = std::fminf(box_min.y, vP.y - r);
-	box_min.z = std::fminf(box_min.z, vP.z - r);
-
-	box_min.x = std::fminf(box_min.x, vP.x - r);
-	box_min.y = std::fminf(box_min.y, vP.y - r);
-	box_min.z = std::fminf(box_min.z, vP.z - r);
-
-	auto walls_in_box = GetWallsInAABB(box_min, box_max);
-	//std::cout << walls_in_box.size() << std::endl;
-	TimeslotC(sphere_check);
-	for each (auto wall in walls_in_box)
+	auto cell_index = GetCell(vP);
+	if (cell_index >= grid.size())
+		return;
+	auto& cell = grid[cell_index];
+	for (auto wall : cell)
 	{
-		std::shared_ptr<Collision> col = walls[wall].SphereCheck(vP, r);
-		if (col != nullptr) {
-			col->wall = &walls[wall];
+		std::shared_ptr<Collision> col = wall.SphereCheck(vP, r);
+		if (col != nullptr)
+		{
+			col->wall = wall.id;
 			list.push_back(col);
 		}
 	}
@@ -337,33 +331,16 @@ void CollisionMesh::SphereCheck(const Vec3& vP, float r, std::vector<std::shared
 
 void CollisionMesh::LineCheck(const Vec3& sP, const Vec3& eP, std::vector<std::shared_ptr<Collision>>& list)
 {
-	Vec3 box_min = Vec3(INFINITE, INFINITE, INFINITE);
-	Vec3 box_max = -box_min;
-
-	box_max.x = std::fmaxf(box_max.x, sP.x);
-	box_max.y = std::fmaxf(box_max.y, sP.y);
-	box_max.z = std::fmaxf(box_max.z, sP.z);
-
-	box_max.x = std::fmaxf(box_max.x, eP.x);
-	box_max.y = std::fmaxf(box_max.y, eP.y);
-	box_max.z = std::fmaxf(box_max.z, eP.z);
-
-	box_min.x = std::fminf(box_min.x, sP.x);
-	box_min.y = std::fminf(box_min.y, sP.y);
-	box_min.z = std::fminf(box_min.z, sP.z);
-
-	box_min.x = std::fminf(box_min.x, eP.x);
-	box_min.y = std::fminf(box_min.y, eP.y);
-	box_min.z = std::fminf(box_min.z, eP.z);
-
-	auto walls_in_box = GetWallsInAABB(box_min, box_max);
-	//std::cout << walls_in_box.size() << std::endl;
-	TimeslotC(line_check);
-	for each (auto wall in walls_in_box)
+	auto cell_index = GetCell(sP);
+	if (cell_index >= grid.size())
+		return;
+	auto& cell = grid[cell_index];
+	for (auto wall : cell)
 	{
-		std::shared_ptr<Collision> col = walls[wall].LineCheck(sP, eP);
-		if (col != nullptr) {
-			col->wall = &walls[wall];
+		std::shared_ptr<Collision> col = wall.LineCheck(sP, eP);
+		if (col != nullptr)
+		{
+			col->wall = wall.id;
 			list.push_back(col);
 		}
 	}
@@ -371,37 +348,16 @@ void CollisionMesh::LineCheck(const Vec3& sP, const Vec3& eP, std::vector<std::s
 
 void CollisionMesh::SphereCast(const Vec3& sP, const Vec3& eP, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
-	Vec3 box_min = Vec3(INFINITE, INFINITE, INFINITE);
-	Vec3 box_max = -box_min;
-
-	box_max.x = std::fmaxf(box_max.x, sP.x);
-	box_max.y = std::fmaxf(box_max.y, sP.y);
-	box_max.z = std::fmaxf(box_max.z, sP.z);
-
-	box_max.x = std::fmaxf(box_max.x, eP.x);
-	box_max.y = std::fmaxf(box_max.y, eP.y);
-	box_max.z = std::fmaxf(box_max.z, eP.z);
-
-	box_min.x = std::fminf(box_min.x, sP.x);
-	box_min.y = std::fminf(box_min.y, sP.y);
-	box_min.z = std::fminf(box_min.z, sP.z);
-
-	box_min.x = std::fminf(box_min.x, eP.x);
-	box_min.y = std::fminf(box_min.y, eP.y);
-	box_min.z = std::fminf(box_min.z, eP.z);
-
-	box_min += Vec3(-r, -r, -r);
-	box_max += Vec3(r, r, r);
-
-	auto walls_in_box = GetWallsInAABB(box_min, box_max);
-	//std::cout << walls_in_box.size() << std::endl;
-	TimeslotC(sphere_cast);
-	for each (auto wall in walls_in_box)
+	auto cell_index = GetCell(sP);
+	if (cell_index >= grid.size())
+		return;
+	auto& cell = grid[cell_index];
+	for (auto wall : cell)
 	{
-		std::shared_ptr<Collision> col = walls[wall].SphereCast(sP, eP, r);
+		std::shared_ptr<Collision> col = wall.SphereCast(sP, eP, r);
 		if (col != nullptr)
 		{
-			col->wall = &walls[wall];
+			col->wall = wall.id;
 			list.push_back(col);
 		}
 	}
@@ -409,37 +365,16 @@ void CollisionMesh::SphereCast(const Vec3& sP, const Vec3& eP, float r, std::vec
 
 void CollisionMesh::DiskCast(const Vec3& sP, const Vec3& eP, float r, std::vector<std::shared_ptr<Collision>>& list)
 {
-	Vec3 box_min = Vec3(INFINITE, INFINITE, INFINITE);
-	Vec3 box_max = -box_min;
-
-	box_max.x = std::fmaxf(box_max.x, sP.x);
-	box_max.y = std::fmaxf(box_max.y, sP.y);
-	box_max.z = std::fmaxf(box_max.z, sP.z);
-
-	box_max.x = std::fmaxf(box_max.x, eP.x);
-	box_max.y = std::fmaxf(box_max.y, eP.y);
-	box_max.z = std::fmaxf(box_max.z, eP.z);
-
-	box_min.x = std::fminf(box_min.x, sP.x);
-	box_min.y = std::fminf(box_min.y, sP.y);
-	box_min.z = std::fminf(box_min.z, sP.z);
-
-	box_min.x = std::fminf(box_min.x, eP.x);
-	box_min.y = std::fminf(box_min.y, eP.y);
-	box_min.z = std::fminf(box_min.z, eP.z);
-
-	box_min += Vec3(-r, -r, -r);
-	box_max += Vec3(r, r, r);
-
-	auto walls_in_box = GetWallsInAABB(box_min, box_max);
-	//std::cout << walls_in_box.size() << std::endl;
-	TimeslotC(disk_cast);
-	for each (auto wall in walls_in_box)
+	auto cell_index = GetCell(sP);
+	if (cell_index >= grid.size())
+		return;
+	auto& cell = grid[cell_index];
+	for (auto wall : cell)
 	{
-		std::shared_ptr<Collision> col = walls[wall].DiskCast(sP, eP, r);
+		std::shared_ptr<Collision> col = wall.DiskCast(sP, eP, r);
 		if (col != nullptr)
 		{
-			col->wall = &walls[wall];
+			col->wall = wall.id;
 			list.push_back(col);
 		}
 	}

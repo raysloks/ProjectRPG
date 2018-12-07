@@ -6,9 +6,13 @@
 
 const AutoSerialFactory<PositionComponent> PositionComponent::_factory("PositionComponent");
 
-PositionComponent::PositionComponent(void) : Serializable(_factory.id) {}
+PositionComponent::PositionComponent(void) : Serializable(_factory.id)
+{
+}
 
-PositionComponent::PositionComponent(const GlobalPosition& position) : Serializable(_factory.id), p(position) {}
+PositionComponent::PositionComponent(const GlobalPosition& position) : Serializable(_factory.id), p(position)
+{
+}
 
 PositionComponent::PositionComponent(instream& is, bool full) : Serializable(_factory.id)
 {
@@ -19,24 +23,24 @@ PositionComponent::~PositionComponent(void) {}
 
 void PositionComponent::connect(NewEntity * pEntity, bool authority)
 {
-	if (authority)
+	/*if (authority)
 		sync = pEntity->ss.allocate([this] (ClientData&) {
 			send = true;
-		}, std::function<bool(ClientData&)>());
+		}, std::function<bool(ClientData&)>());*/
 }
 
 void PositionComponent::disconnect(void)
 {
-	if (entity->world)
+	/*if (entity->world)
 		if (entity->world->authority)
-			entity->ss.deallocate(sync);
+			entity->ss.deallocate(sync);*/
 }
 
 void PositionComponent::writeLog(outstream& os, ClientData& client)
 {
-	if (send)
+	//if (send)
 		os << p;
-	send = false;
+	//send = false;
 }
 
 void PositionComponent::readLog(instream& is)
@@ -61,5 +65,5 @@ void PositionComponent::write_to(outstream& os) const
 
 void PositionComponent::update(void)
 {
-	entity->ss.update(sync);
+	//entity->ss.update(sync);
 }

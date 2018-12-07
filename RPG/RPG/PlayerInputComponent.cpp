@@ -96,6 +96,8 @@ void PlayerInputComponent::post_frame(float dTime)
 
 			if (input.isPressed(Platform::KeyEvent::LMB) || input.ctrl[0].x.pressed)
 				cs.activate("attack");
+			if (input.isPressed(Platform::KeyEvent::RMB) || input.ctrl[0].right_trigger.pressed)
+				cs.activate("dash");
 			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].a.pressed)
 				cs.activate("jump");
 		}
@@ -115,9 +117,11 @@ void PlayerInputComponent::tick(float dTime)
 		float buffer_duration = 0.2f;
 
 		if (cs.consume("attack"))
-			mob->timers["attack"] = buffer_duration;
+			mob->input["attack"] = buffer_duration;
+		if (cs.consume("dash"))
+			mob->input["dash"] = buffer_duration;
 		if (cs.consume("jump"))
-			mob->timers["jump"] = buffer_duration;
+			mob->input["jump"] = buffer_duration;
 	}
 }
 

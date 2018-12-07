@@ -136,7 +136,7 @@ void InventoryComponent::set_display(bool enable)
 							if (p)
 							{
 								rs.addTransform(Matrix4::Translation(Vec3(rs.size * 0.5f)));
-								GlobalPosition text_position = p->p + Vec3(0.0f, 0.0f, 1.75f);
+								GlobalPosition text_position = p->p + Vec3(0.0f, 0.0f, 1.0f);
 								Vec3 screen_pos = Vec3(text_position - entity->world->cam_pos) * rs.view;
 								if (screen_pos.z < 1.0f)
 								{

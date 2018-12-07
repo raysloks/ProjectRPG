@@ -29,7 +29,7 @@ Glyph::Glyph(FT_Face face, unsigned long code, GlyphAtlas * atlas)
 	glBindTexture(GL_TEXTURE_2D, atlas->texture->texid);
 
 	size_t offset_x, offset_y;
-	atlas->insert(bitmap->bitmap.width, bitmap->bitmap.rows, &offset_x, &offset_y);
+	atlas->insert(bitmap->bitmap.width + 1, bitmap->bitmap.rows + 1, &offset_x, &offset_y);
 
 	glTexSubImage2D(GL_TEXTURE_2D, 0, offset_x, offset_y, bitmap->bitmap.width, bitmap->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, bitmap->bitmap.buffer);
 

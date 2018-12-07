@@ -22,6 +22,7 @@ public:
 	void CalcBounds(void);
 	void CalcGrid(void);
 
+	size_t GetCell(Vec3 vP) const;
 	std::vector<size_t> GetCellsInAABB(Vec3 box_min, Vec3 box_max) const;
 	std::vector<size_t> GetWallsInAABB(Vec3 box_min, Vec3 box_max) const;
 
@@ -35,9 +36,10 @@ public:
 	void debug_render(void);
 
 	std::vector<DynamicWall> walls;
-	std::vector<std::vector<size_t>> grid;
+	std::vector<std::vector<DynamicWall>> grid;
 	size_t grid_w, grid_h, grid_d;
-	Vec3 aabb_min, aabb_max;
+	size_t grid_wh;
+	Vec3 aabb_min, aabb_max, dif;
 };
 
 #endif
