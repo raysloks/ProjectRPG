@@ -44,6 +44,7 @@ public:
 	void update(void);
 
 	std::vector<Bone> bones;
+	std::vector<Matrix4> transforms;
 	const Pose * rest;
 };
 

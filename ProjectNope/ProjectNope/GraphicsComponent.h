@@ -51,7 +51,7 @@ public:
 	bool dynamic;
 	uint32_t tag;
 
-	GlobalPosition * p;
+	PositionComponent * p;
 
 	Pose * pose;
 

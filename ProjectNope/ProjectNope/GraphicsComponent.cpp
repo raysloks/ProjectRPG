@@ -68,11 +68,7 @@ void GraphicsComponent::readLog(instream& is)
 void GraphicsComponent::pre_frame(float dTime)
 {
 	if (p == nullptr)
-	{
-		auto pc = entity->getComponent<PositionComponent>();
-		if (pc != nullptr)
-			p = &pc->p;
-	}
+		p = entity->getComponent<PositionComponent>();
 
 	for (auto i = decs.items.begin(); i != decs.items.end(); ++i)
 	{
@@ -119,20 +115,34 @@ void GraphicsComponent::render(RenderSetup& rs)
 	rs.pushTransform();
 
 	GlobalPosition offset = -rs.origin;
-	if (p == nullptr) {
-		PositionComponent * pc = entity->getComponent<PositionComponent>();
-		if (pc != nullptr)
-			p = &pc->p;
-	}
+	if (p == nullptr)
+		p = entity->getComponent<PositionComponent>();
 	if (p != nullptr)
-		offset += *p;
+		offset += p->p;
 	rs.addTransform(Matrix4::Translation(offset));
 
-	for (auto i = decs.items.begin(); i != decs.items.end(); ++i)
+	auto pose = entity->getComponent<PoseComponent>();
+	if (pose)
 	{
-		if (*i != nullptr)
+		if (pose->pose)
 		{
-			(*i)->render(rs);
+			for (auto i = decs.items.begin(); i != decs.items.end(); ++i)
+			{
+				if (*i != nullptr)
+				{
+					(*i)->render(rs, pose->pose.get());
+				}
+			}
+		}
+	}
+	else
+	{
+		for (auto i = decs.items.begin(); i != decs.items.end(); ++i)
+		{
+			if (*i != nullptr)
+			{
+				(*i)->render(rs);
+			}
 		}
 	}
 
@@ -203,10 +213,10 @@ public:
 		instance_animation = Resource::get<SkeletalAnimation>(instance_animation_name);
 
 		rs.applyMods();
-		auto instance_shader = ShaderProgram::Get(Shader::get("data/gfill_skinned_vert.txt", SHADER_VERTEX), rs.current_program->geom, rs.current_program->frag);
+		auto instance_shader = ShaderProgram::Get(Shader::get("data/gfill_skinned_instanced_vert.txt", SHADER_VERTEX), rs.current_program->geom, rs.current_program->frag);
 		if (tag == 1 && rs.pass == 5)
 		{
-			instance_shader = ShaderProgram::Get(Shader::get("data/gfill_skinned_vert.txt", SHADER_VERTEX), rs.current_program->geom, Shader::get("data/gfill_ao_simple_frag.txt", SHADER_FRAGMENT));
+			instance_shader = ShaderProgram::Get(Shader::get("data/gfill_skinned_instanced_vert.txt", SHADER_VERTEX), rs.current_program->geom, Shader::get("data/gfill_ao_simple_frag.txt", SHADER_FRAGMENT));
 		}
 
 		if (instance_shader->IsReady() && instance_animation && instance_mesh)
@@ -280,7 +290,7 @@ void GraphicsComponent::prep(RenderSetup& rs)
 		if (g->decs.items.size())
 		{
 			auto pose = g->entity->getComponent<PoseComponent>();
-			if (pose)
+			if (false)//(pose)
 			{
 				for (auto dec : g->decs.items)
 				{
@@ -300,7 +310,7 @@ void GraphicsComponent::prep(RenderSetup& rs)
 							instanced.insert(std::make_pair(key, ig));
 						}
 						if (g->p)
-							ig->add(dec->local * Matrix4::Translation(*g->p - rs.origin), pose->frame);
+							ig->add(dec->local * Matrix4::Translation(g->p->p - rs.origin), pose->frame);
 					}
 					else
 					{

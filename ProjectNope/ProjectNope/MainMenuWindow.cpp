@@ -44,38 +44,23 @@ MainMenuWindow::MainMenuWindow(World * pWorld, Client * pClient, int px, int py,
 
 	RectangleButtonWindow * exit_game_button = new RectangleButtonWindow(64, 256+128, 256, 32);
 	exit_game_button->onClick = [this] (void) {
-		if (client->con != nullptr)
+		if (client->con)
 		{
 			client->disconnect();
 		}
 		else
 		{
-			if (client->clientData != nullptr)
-			{
-				client->disconnect();
-				for (auto i = client->server->conns.begin(); i != client->server->conns.end(); ++i)
-				{
-					std::shared_ptr<ClientConnection> conn = i->second;
-					if (conn->data != nullptr)
-						client->server->onClientDisconnect(*conn->data);
-				}
-				client->server->conns.clear();
-				client->server->con.reset();
-			}
-			else
-				client->isAlive = false;
+			client->isAlive = false;
 		}
 	};
 	exit_game_button->onRender = [this, exit_game_button] (void) {
-		if (client->con!=0)
+		if (client->con)
 		{
 			exit_game_button->text = "Disconnect";
 		}
 		else
 		{
-			exit_game_button->text = "Exit To Windows";
-			if (client->clientData!=0)
-				exit_game_button->text = "Exit Game";
+			exit_game_button->text = "Exit Game";
 		}
 	};
 

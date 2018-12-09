@@ -33,7 +33,7 @@ MobComponent::MobComponent(void) : Serializable(_factory.id), health(10), stamin
 {
 	up = Vec3(0.0f, 0.0f, 1.0f);
 	speed_mod = 1.0f;
-	r = 0.25f;
+	r = 0.5f;
 	use_base_collision = true;
 	p = nullptr;
 }
@@ -77,6 +77,16 @@ void MobComponent::tick(float dTime)
 			input.erase("switch");
 		}
 
+		if (input["attack"])
+		{
+			bool busy = !acc->has_state("run");
+			if (!busy)
+			{
+				acc->set_state(new SimpleState("attack", 3.0f));
+				input.erase("attack");
+			}
+		}
+
 		if (input["dash"])
 		{
 			v += Vec3(0.0f, 0.0f, 10.0f) * Quaternion(facing.y, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion(-facing.x, Vec3(0.0f, 0.0f, 1.0f));
@@ -108,6 +118,8 @@ void MobComponent::tick(float dTime)
 			if (health.current <= -10.0f || temp_team == 1)
 			{
 				entity->world->SetEntity(entity->id, nullptr);
+				if (weapon)
+					entity->world->SetEntity(weapon->entity->id, nullptr);
 				if (on_death)
 					on_death();
 			}
@@ -244,7 +256,7 @@ void MobComponent::tick(float dTime)
 
 					float disk_radius = 0.75f * r;
 					float offset = 0.0f;
-					float standing_height = (crouch ? 2.0f : 4.0f) * r;
+					float standing_height = (crouch ? 1.0f : 2.0f) * r;
 					float height = standing_height;
 					Vec3 dp_side = dp - up * up.Dot(dp);
 					ColliderComponent::DiskCast(p->p - up * offset + dp, p->p - up * (offset + height) + dp, disk_radius, list);
@@ -353,7 +365,7 @@ void MobComponent::tick(float dTime)
 
 					v += g * dTime * col->t;
 
-					*p = col->poo;
+					p->p = col->poo;
 
 					v -= col->v;
 

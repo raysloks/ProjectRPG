@@ -43,6 +43,8 @@ void AudioComponent::pre_frame(float dTime)
 	auto ent = entity->world->GetEntity(pos_id);
 	if (ent)
 		p = ent->getComponent<PositionComponent>();
+	else
+		p = entity->getComponent<PositionComponent>();
 
 	if (src == nullptr)
 	{

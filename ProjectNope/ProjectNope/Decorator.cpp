@@ -113,3 +113,15 @@ void Decorator::render(RenderSetup& rs)
 		}
 	}
 }
+
+void Decorator::render(RenderSetup& rs, Pose * pose)
+{
+	rs.pushTransform();
+
+	rs.addTransform(local * final);
+
+	if (mesh != 0)
+		mesh->render_skinned(rs, materials, pose);
+
+	rs.popTransform();
+}

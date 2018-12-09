@@ -56,6 +56,8 @@ void SimpleState::tick(float dTime)
 		float length = anim->getLength(name);
 
 		pose->frame = start + length * t;
+
+		pose->pose = anim->getPose(length * t, name);
 	}
 }
 

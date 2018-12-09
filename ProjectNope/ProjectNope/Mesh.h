@@ -90,6 +90,7 @@ public:
 	void toSphere(float radius);
 
 	void render(RenderSetup& rs, MaterialList& mats);//const;?
+	void render_skinned(RenderSetup& rs, MaterialList& mats, Pose * pose);
 	void render_instanced(RenderSetup& rs, MaterialList& mats, unsigned int nInstances);
 
 	void transform(const Matrix4& mtrx, Mesh * mesh);//const;

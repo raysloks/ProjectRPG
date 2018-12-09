@@ -55,7 +55,7 @@ void WeaponComponent::pre_frame(float dTime)
 			if (g && mob_g)
 			{
 				if (g->decs.items.size() && mob_g->decs.items.size())
-					g->decs.items.front()->final = anim->getMatrix(30, mob_pose->frame) * mob_g->decs.items.front()->local;
+					g->decs.items.front()->final = mob_pose->pose->bones[anim->getIndex("ItemHand_R")].total_transform * mob_g->decs.items.front()->local;
 			}
 		}
 

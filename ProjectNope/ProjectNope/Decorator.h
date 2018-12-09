@@ -27,6 +27,7 @@ public:
 	void attach(const Pose& pose);
 	void attach();
 	void render(RenderSetup& rs);
+	void render(RenderSetup& rs, Pose * pose);
 
 	std::string mesh_fname;
 	std::shared_ptr<Mesh> mesh, skin;

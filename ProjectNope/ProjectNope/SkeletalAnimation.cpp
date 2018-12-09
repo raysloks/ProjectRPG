@@ -160,9 +160,11 @@ Pose& Pose::add(const Pose& pose)
 
 void Pose::update(void)
 {
-	for (int i=0;i<bones.size();++i)
+	transforms.resize(bones.size());
+	for (size_t i = 0; i < bones.size(); ++i)
 	{
 		bones[i].total_transform = bones[i].getTransform();
+		transforms[i] = rest->bones[i].total_inverse * bones[i].total_transform;
 	}
 }
 
@@ -421,11 +423,8 @@ std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const Action& act) 
 				pose->bones[i].parent = &(pose->bones[j]);
 		}
 	}
-	for (size_t i = 0; i < pose->bones.size(); i++)
-	{
-		pose->bones[i].total_transform = pose->bones[i].getTransform();
-	}
 	pose->rest = &armature;
+	pose->update();
 	return pose;
 }
 

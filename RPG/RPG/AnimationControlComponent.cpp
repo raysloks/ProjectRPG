@@ -59,61 +59,62 @@ void AnimationControlComponent::tick(float dTime)
 	auto g = entity->getComponent<GraphicsComponent>();
 	auto mob = entity->getComponent<MobComponent>();
 	auto pose = entity->getComponent<PoseComponent>();
+	auto anim = Resource::get<SkeletalAnimation>(pose->anim);
 
 	float prev_frame = pose->frame;
 
-	overtime += dTime;
-	do
-	{
-		if (!state)
-		{
-			auto run_cycle = new RunCycleState("run", 0.3f * 4.0f, "idle", 1.0f);
-			if (entity->world->authority)
-			{
-				auto func = [=]()
-				{
-					NewEntity * sound_ent = new NewEntity();
-					auto audio = new AudioComponent("data/assets/audio/step.wav");
-					audio->gain = scale * 0.25f;
-					audio->pos_id = entity->get_id();
-					sound_ent->addComponent(audio);
-					entity->world->AddEntity(sound_ent);
-				};
-				run_cycle->events.insert(std::make_pair(0.05f, func));
-				run_cycle->events.insert(std::make_pair(0.55f, func));
-			}
-			set_state(run_cycle);
-		}
-
-		float added_time = overtime;
-		overtime = 0.0f;
-		if (state)
-			state->tick(added_time);
-	} while (overtime > 0.0f);
-
-	for (auto s : removed_states)
-		delete s;
-	removed_states.clear();
-
-	transform = Matrix4::Translation(-root - mob->up * 1.0f);
-	transform *= Quaternion(M_PI - mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
-
-	transform *= Matrix4::Scale(Vec3(scale, scale, scale));
-			
-	for (auto dec : g->decs.items)
-	{
-		dec->local = transform;
-	}
-
-	/*if (mob->hit)
-	{
-		mob->hit = false;
-		set_state(new SimpleState("hit", 4.0f));
-	}*/
-
-	auto anim = Resource::get<SkeletalAnimation>(pose->anim);
 	if (anim)
 	{
+		overtime += dTime;
+		do
+		{
+			if (!state)
+			{
+				auto run_cycle = new RunCycleState("run", 0.3f * 4.0f, "idle", 1.0f);
+				if (entity->world->authority)
+				{
+					auto func = [=](int bid)
+					{
+						NewEntity * sound_ent = new NewEntity();
+						auto pos = new PositionComponent(p->p + Vec3() * anim->getMatrix(bid, pose->frame) * g->decs.items.front()->local);
+						auto audio = new AudioComponent("data/assets/audio/step.wav");
+						audio->gain = scale * 0.25f;
+						sound_ent->addComponent(pos);
+						sound_ent->addComponent(audio);
+						entity->world->AddEntity(sound_ent);
+					};
+					run_cycle->events.insert(std::make_pair(0.05f, std::bind(func, anim->getIndex("Foot_R"))));
+					run_cycle->events.insert(std::make_pair(0.55f, std::bind(func, anim->getIndex("Foot_L"))));
+				}
+				set_state(run_cycle);
+			}
+
+			float added_time = overtime;
+			overtime = 0.0f;
+			if (state)
+				state->tick(added_time);
+		} while (overtime > 0.0f);
+
+		for (auto s : removed_states)
+			delete s;
+		removed_states.clear();
+
+		transform = Matrix4::Translation(-root - mob->up * 1.0f);
+		transform *= Quaternion(M_PI - mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
+
+		transform *= Matrix4::Scale(Vec3(scale, scale, scale));
+			
+		for (auto dec : g->decs.items)
+		{
+			dec->local = transform;
+		}
+
+		/*if (mob->hit)
+		{
+			mob->hit = false;
+			set_state(new SimpleState("hit", 4.0f));
+		}*/
+
 		Vec3 root_position = Vec3() * anim->getMatrix(anim->getIndex("root"), pose->frame);
 		Vec3 root_movement = (root_position - root) * Matrix3(transform);
 		root = root_position;

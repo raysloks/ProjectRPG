@@ -139,6 +139,27 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 
 	entity->world->AddEntity(ent);
 
+	if (team == 0)
+	{
+		NewEntity * ent = new NewEntity();
+
+		PositionComponent * p = new PositionComponent();
+		GraphicsComponent * g = new GraphicsComponent();
+		WeaponComponent * w = new WeaponComponent();
+
+		ent->addComponent(p);
+		ent->addComponent(g);
+		ent->addComponent(w);
+
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", Material("data/assets/items/weapons/swords/claymore.tga"), 0)));
+		g->decs.items.back()->local = Matrix4::Scale(0.5f) * Quaternion(M_PI_2, Vec3(0.0f, 1.0f, 0.0f));
+
+		mob->weapon = w;
+		w->mob_id = mob->entity->id;
+
+		entity->world->AddEntity(ent);
+	}
+
 	return mob;
 }
 

@@ -42,6 +42,7 @@ void CameraControlComponent::disconnect(void)
 {
 }
 
+#include "PoseComponent.h"
 #include "GraphicsComponent.h"
 
 void CameraControlComponent::pre_frame(float dTime)
@@ -59,7 +60,16 @@ void CameraControlComponent::pre_frame(float dTime)
 			{
 				entity->world->cam_rot = cam_rot;
 
-				auto offset = up * 0.25f - front * distance;
+				auto offset = up * 0.25f - front * (distance + 0.5f);
+
+				if (distance == 0.0f)
+				{
+					auto g = entity->getComponent<GraphicsComponent>();
+					auto pose = entity->getComponent<PoseComponent>();
+					auto anim = Resource::get<SkeletalAnimation>(pose->anim);
+
+					offset = Vec3(0.0f, 0.25f, -0.225f) * pose->pose->bones[anim->getIndex("Head")].total_transform * g->decs.items.front()->local;
+				}
 
 				auto shakes = entity->world->GetNearestComponents<CameraShakeComponent>(p->p);
 				for (auto shake : shakes)
@@ -68,13 +78,6 @@ void CameraControlComponent::pre_frame(float dTime)
 				}
 
 				entity->world->cam_pos = p->p + offset;
-			}
-
-			auto g = entity->getComponent<GraphicsComponent>();
-			if (g)
-			{
-				if (distance == 0.0f)
-					g->decs.items.clear();
 			}
 		}
 	}

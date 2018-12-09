@@ -9,7 +9,7 @@ class PositionComponent :
 {
 public:
 	PositionComponent(void);
-	PositionComponent(const GlobalPosition& position);
+	explicit PositionComponent(const GlobalPosition& position);
 	PositionComponent(instream& is, bool full);
 	~PositionComponent(void);
 

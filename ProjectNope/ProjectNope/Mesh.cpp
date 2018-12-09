@@ -364,6 +364,41 @@ void Mesh::render(RenderSetup& rs, MaterialList& mats) // maybe should get mats 
 	}
 }
 
+void Mesh::render_skinned(RenderSetup& rs, MaterialList& mats, Pose * pose)
+{
+	TimeslotC(mesh_render);
+
+	if (!vbo_latest)
+		buildVBO();
+
+	for (size_t i = 0; i < sets.size(); i++)
+	{
+		if (i < mats.materials.size())
+		{
+			mats.materials[i].bindTextures();
+
+			TimeslotC(mod_draw);
+
+			rs.pushMod(mats.materials[i].mod);
+
+			rs.applyMods();
+			auto shader = ShaderProgram::Get(Shader::get("data/gfill_skinned_vert.txt", SHADER_VERTEX), rs.current_program->geom, rs.current_program->frag);
+
+			ShaderMod mod(shader, [=](const std::shared_ptr<ShaderProgram>& prog) {
+				prog->UniformMatrix4fv("bone_transform", pose->transforms);
+			});
+
+			rs.pushMod(mod);
+			rs.applyMods();
+
+			vbos[i]->draw(rs);
+
+			rs.popMod();
+			rs.popMod();
+		}
+	}
+}
+
 void Mesh::render_instanced(RenderSetup& rs, MaterialList& mats, unsigned int nInstances)
 {
 	TimeslotC(mesh_render_instanced);
