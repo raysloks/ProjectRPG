@@ -23,7 +23,7 @@ void main()
 	total_transform += bone_transform[int(bone_index.z)] * bone_weight.z;
 	total_transform += bone_transform[int(bone_index.w)] * bone_weight.w;
 
-	norm = normal * normal_transform * mat3(total_transform);
+	norm = normal_transform * mat3(total_transform) * normal;
 	total_transform = transform * total_transform;
 	texco = texCoord0;
 	position = total_transform * pos;

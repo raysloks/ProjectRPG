@@ -1,6 +1,6 @@
 screen_width = 1280;
 screen_height = 720;
-fullscreen = 0;
+fullscreen = 1;
 if (fullscreen == 1)
 {
 	screen_width = 1920;
@@ -22,8 +22,8 @@ shadow_quality = 1;
 
 ao_quality = 1;
 
-supersampling_x = 1;
-supersampling_y = 1;
+supersampling_x = 2;
+supersampling_y = 2;
 supersampling_r = 1;
 
 jitter = 0;
