@@ -109,19 +109,23 @@ void PlayerInputComponent::tick(float dTime)
 	if (mob == nullptr)
 		mob = entity->getComponent<MobComponent>();
 
-	if (mob != nullptr && entity->world->authority)
+	if (mob != nullptr)
 	{
-		mob->move = move;
 		mob->facing = facing;
 
-		float buffer_duration = 0.2f;
+		if (entity->world->authority)
+		{
+			mob->move = move;
 
-		if (cs.consume("attack"))
-			mob->input["attack"] = buffer_duration;
-		if (cs.consume("dash"))
-			mob->input["dash"] = buffer_duration;
-		if (cs.consume("jump"))
-			mob->input["jump"] = buffer_duration;
+			float buffer_duration = 0.2f;
+
+			if (cs.consume("attack"))
+				mob->input["attack"] = buffer_duration;
+			if (cs.consume("dash"))
+				mob->input["dash"] = buffer_duration;
+			if (cs.consume("jump"))
+				mob->input["jump"] = buffer_duration;
+		}
 	}
 }
 

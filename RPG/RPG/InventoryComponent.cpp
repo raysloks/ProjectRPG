@@ -136,25 +136,29 @@ void InventoryComponent::set_display(bool enable)
 							if (p)
 							{
 								rs.addTransform(Matrix4::Translation(Vec3(rs.size * 0.5f)));
-								GlobalPosition text_position = p->p + Vec3(0.0f, 0.0f, 1.0f);
-								Vec3 screen_pos = Vec3(text_position - entity->world->cam_pos) * rs.view;
-								if (screen_pos.z < 1.0f)
+								GlobalPosition text_position = p->p + Vec3(0.0f, 0.0f, 0.75f);
+								Vec3 dif = text_position - entity->world->cam_pos;
+								if (dif.LenPwr() < 500.0f)
 								{
-									rs.addTransform(Matrix4::Translation(screen_pos * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f));
-									float scale = rs.size.y * (1.0f / 256.0f) / Vec3(text_position - entity->world->cam_pos).Len();
-									rs.addTransform(Matrix4::Scale(Vec3(scale, scale, scale)));
-									rs.addTransform(Matrix4::Translation(Vec3(0.0f, 0.0f, 0.0f)));
+									Vec3 screen_pos = dif * rs.view;
+									if (screen_pos.z < 1.0f)
+									{
+										rs.addTransform(Matrix4::Translation(screen_pos * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f));
+										float scale = rs.size.y * (1.0f / 256.0f) / Vec3(text_position - entity->world->cam_pos).Len();
+										rs.addTransform(Matrix4::Scale(Vec3(scale, scale, scale)));
+										rs.addTransform(Matrix4::Translation(Vec3(0.0f, 0.0f, 0.0f)));
 
-									Writing::setOffset(Vec2(-0.5f, 0.0f));
-									Writing::setSize(25);
-									Writing::setColor(0.0f, 0.0f, 0.0f);
-									Writing::render(name, rs);
-									rs.popTransform();
-									rs.addTransform(Matrix4::Translation(Vec3(-2.0f, -2.0f, 0.0f)));
-									Writing::setColor(0.3f, 0.5f, 0.1f);
-									Writing::render(name, rs);
-									Writing::setOffset(Vec2());
-									rs.popTransform();
+										Writing::setOffset(Vec2(-0.5f, 0.0f));
+										Writing::setSize(25);
+										Writing::setColor(0.0f, 0.0f, 0.0f);
+										Writing::render(name, rs);
+										rs.popTransform();
+										rs.addTransform(Matrix4::Translation(Vec3(-2.0f, -2.0f, 0.0f)));
+										Writing::setColor(0.3f, 0.5f, 0.1f);
+										Writing::render(name, rs);
+										Writing::setOffset(Vec2());
+										rs.popTransform();
+									}
 								}
 							}
 							rs.popTransform();

@@ -101,6 +101,16 @@ namespace Platform
 
 			break;
 		}
+		case WM_SETFOCUS:
+		{
+			obj->SetCursorLock(obj->crsLock);
+			return 0;
+		}
+		case WM_KILLFOCUS:
+		{
+			ClipCursor(0);
+			return 0;
+		}
 		default:
 			break;
 		}
@@ -182,17 +192,24 @@ namespace Platform
 
 		DWORD dwExStyle, dwStyle;
 
-		//dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-		dwExStyle = 0;
-		dwStyle = WS_POPUP;
-		//dwStyle = WS_OVERLAPPEDWINDOW;
+		if (isFullScr)
+		{
+			dwExStyle = 0;
+			dwStyle = WS_POPUP;
+		}
+		else
+		{
+			dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+			dwStyle = WS_OVERLAPPEDWINDOW;
+		}
 		
 		SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 
-		mX = monitors[0].rect.left;
-		mY = monitors[0].rect.top;
 		RECT wr = {mX, mY, mX + mW, mY + mH};
-		//AdjustWindowRectEx(&wr, dwStyle, FALSE, dwExStyle);
+		AdjustWindowRectEx(&wr, dwStyle, FALSE, dwExStyle);
+
+		if (isFullScr)
+			wr = monitors[0].rect;
 
 		hWnd = CreateWindowEx(dwExStyle, wc_name, mName.c_str(),
 			dwStyle, wr.left, wr.top,
@@ -248,13 +265,27 @@ namespace Platform
 		}
 	}
 
+	int GUIObject::GetWidth()
+	{
+		RECT rect;
+		GetClientRect(hWnd, &rect);
+		return rect.right - rect.left;
+	}
+
+	int GUIObject::GetHeight()
+	{
+		RECT rect;
+		GetClientRect(hWnd, &rect);
+		return rect.bottom - rect.top;
+	}
+
 	void GUIObject::SetCursorVisible(bool visible) { if (_cvis!=visible) ShowCursor(visible); _cvis = visible; }
 	void GUIObject::SetCursorPosition(int x, int y) { SetCursorPos(x, y); }
 	bool GUIObject::HasCursor(void) {
 		//POINT point;
 		//GetCursorPos(&point);
 		//return point.x>=mX && point.y>=mY && point.x<=mX+mW && point.y<=mY+mH && GetFocus()==hWnd && GetForegroundWindow()==hWnd;
-		return GetForegroundWindow()==hWnd;
+		return GetForegroundWindow() == hWnd;
 	}
 
 	GUIObject::~GUIObject(void)
@@ -269,12 +300,20 @@ namespace Platform
 
 	void GUIObject::SetCursorLock(bool locked)
 	{
-		if (locked)
+		if (HasCursor())
 		{
-			RECT rect = {mX, mY, mX + mW, mY + mH};
-			ClipCursor(&rect);
-		} else if (crsLock) {
-			ClipCursor(0);
+			if (locked)
+			{
+				RECT rect;
+					GetClientRect(hWnd, &rect);
+					ClientToScreen(hWnd, reinterpret_cast<POINT*>(&rect.left));
+					ClientToScreen(hWnd, reinterpret_cast<POINT*>(&rect.right));
+					ClipCursor(&rect);
+			}
+			else
+			{
+				ClipCursor(0);
+			}
 		}
 		crsLock = locked;
 	}

@@ -30,7 +30,11 @@ void RunCycleState::enter(AnimationState * prev)
 
 void RunCycleState::tick(float dTime)
 {
-	if (mob->move == Vec2() && mob->landed)
+	Vec3 rel_v = mob->v - mob->land_v;
+
+	rel_v.z = 0.0f;
+
+	if (rel_v == Vec2() && mob->landed == 1.0f)
 	{
 		idle.tick(dTime);
 		t = 0.5f;
@@ -41,7 +45,7 @@ void RunCycleState::tick(float dTime)
 
 	prev_t = t;
 
-	t += dTime * 2.0f * speed / acc->scale;
+	t += dTime * (rel_v.Len() + 1.0f) * speed / acc->scale;
 
 	if (!mob->landed)
 	{
@@ -72,6 +76,25 @@ void RunCycleState::tick(float dTime)
 		pose->frame = start + length * t;
 
 		pose->pose = anim->getPose(length * t, name);
+		Vec3 forward = Vec3(0.0f, 1.0f, 0.0f) * Quaternion(M_PI - mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
+		float forward_dot = forward.Dot(rel_v.Normalized());
+
+		Vec3 right = Vec3(1.0f, 0.0f, 0.0f) * Quaternion(M_PI - mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
+		float right_dot = right.Dot(rel_v.Normalized());
+
+		right_dot *= fabsf(right_dot);
+
+		auto back_pose = anim->getPose(length * t, "run_back");
+
+		back_pose->interpolate(*anim->getPose(length * t, "run_right"), fmaxf(0.0f, fminf(1.0f, -right_dot)));
+		back_pose->interpolate(*anim->getPose(length * t, "run_left"), fmaxf(0.0f, fminf(1.0f, right_dot)));
+
+		pose->pose->interpolate(*anim->getPose(length * t, "run_right"), fmaxf(0.0f, right_dot));
+		pose->pose->interpolate(*anim->getPose(length * t, "run_left"), fmaxf(0.0f, -right_dot));
+
+		pose->pose->interpolate(*back_pose, fmaxf(0.0f, fminf(1.0f, -forward_dot * 2.0f)));
+
+		pose->pose->interpolate(*anim->getPose(anim->getLength(idle.name), idle.name), fmaxf(0.0f, 1.0f - fmaxf(1.0f - mob->landed, rel_v.Len())));
 	}
 }
 

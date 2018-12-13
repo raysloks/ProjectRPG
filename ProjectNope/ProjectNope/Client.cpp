@@ -50,7 +50,6 @@ Client::Client(World * pWorld)
 	Sound::init();
 
 	platform = new TempPlatform();
-	platform->set_position(0, 0);
 	platform->set_z_depth(0);
 
 	world = pWorld;
@@ -61,7 +60,7 @@ Client::Client(World * pWorld)
 
 	show_entity_list = false;
 
-	light = Vec3(1.0f, 2.0f, M_PI);
+	light = Vec3(sqrtf(2.0f) / 3.0f, M_E / 2.0f, M_PI);
 	light.Normalize();
 
 	Vec3 pole(0.0f, 0.0f, 1.0f);
@@ -1334,8 +1333,8 @@ void Client::render_world(void)
 			win->get()->render(rs);
 			rs.popTransform();
 		}
-		lockCursor = true;
-		//lockCursor = hideCursor; // allow cursor to escape window when visible
+		//lockCursor = true;
+		lockCursor = hideCursor; // allow cursor to escape window when visible
 
 #if TIMESLOT_LEVEL >= 0
 		//if (input.isDown(Platform::KeyEvent::P))

@@ -87,10 +87,11 @@ void MobComponent::tick(float dTime)
 			}
 		}
 
-		if (input["dash"])
+		if (input["dash"] && !input["dash_cooldown"])
 		{
 			v += Vec3(0.0f, 0.0f, 10.0f) * Quaternion(facing.y, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion(-facing.x, Vec3(0.0f, 0.0f, 1.0f));
 			input.erase("dash");
+			//input["dash_cooldown"] = 3.0f;
 		}
 
 		if (stamina.current <= 0)
@@ -110,20 +111,14 @@ void MobComponent::tick(float dTime)
 			}
 		}
 
-		if (health.current <= 0)
+		/*if (health.current <= 0)
 		{
-			move = Vec3();
-			crouch = true;
-			//health.current -= dTime * 1.0f;
-			if (health.current <= -10.0f || temp_team == 1)
-			{
-				entity->world->SetEntity(entity->id, nullptr);
-				if (weapon)
-					entity->world->SetEntity(weapon->entity->id, nullptr);
-				if (on_death)
-					on_death();
-			}
-		}
+			entity->world->SetEntity(entity->id, nullptr);
+			if (weapon)
+				entity->world->SetEntity(weapon->entity->id, nullptr);
+			if (on_death)
+				on_death();
+		}*/
 
 		for (auto i = input.begin(); i != input.end();)
 		{
@@ -139,10 +134,11 @@ void MobComponent::tick(float dTime)
 
 		if (p != nullptr)
 		{
-			if (Vec3(p->p).LenPwr() > 4000000.0f)
+			if (Vec3(p->p).LenPwr() > 4000000.0f || health.current <= 0)
 			{
 				p->p = Vec3();
 				v = Vec3();
+				health.current = health.max;
 				//entity->world->SetEntity(entity->id, nullptr);
 			}
 
@@ -421,7 +417,7 @@ void MobComponent::tick(float dTime)
 									stamina_regen += dTime * 10.0f / 3.0f;
 							}
 
-							float speed = crouch ? 2.0f : run ? 9.0f : recovering ? 2.0f : 5.5f;
+							float speed = crouch ? 2.0f : run ? 9.0f : recovering ? 3.0f : 6.0f;
 
 							speed *= speed_mod;
 
@@ -552,18 +548,18 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 	if (mob != nullptr)
 	{
 		facing.x = bu_angle(mob->facing.x, facing.x, fWeight);
-		facing.y = bu_blend(mob->facing.y, facing.y, fWeight);
+		facing.y = bu_blend(facing.y, mob->facing.y, fWeight);
 		up = bu_sphere(mob->up, up, Vec3(), fWeight);
-		v = mob->v;// v*(1.0f - fWeight) + mob->v*fWeight;
+		v = bu_blend(v, mob->v, fWeight);// v*(1.0f - fWeight) + mob->v*fWeight;
 		land_n = mob->land_n;
 		land_v = mob->land_v;
-		landed = mob->landed;
+		landed = bu_blend(landed, mob->landed, fWeight);
 		health = mob->health;
 		stamina = mob->stamina;
 		mana = mob->mana;
 		run = mob->run;
 		crouch = mob->crouch;
-		move = mob->move;
+		move = bu_blend(move, mob->move, fWeight);
 		input = mob->input;
 		r = mob->r;
 	}

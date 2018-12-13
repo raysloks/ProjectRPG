@@ -70,7 +70,7 @@ void AnimationControlComponent::tick(float dTime)
 		{
 			if (!state)
 			{
-				auto run_cycle = new RunCycleState("run", 0.3f * 4.0f, "idle", 1.0f);
+				auto run_cycle = new RunCycleState("run", 0.3f, "idle", 1.0f);
 				if (entity->world->authority)
 				{
 					auto func = [=](int bid)
@@ -94,6 +94,13 @@ void AnimationControlComponent::tick(float dTime)
 			if (state)
 				state->tick(added_time);
 		} while (overtime > 0.0f);
+
+		if (has_state("run"))
+		{
+			auto prev_pose = pose->pose;
+			pose->pose = anim->getPose(20.0f - mob->facing.y * 20.0f / M_PI, "look_vertical");
+			pose->pose->add(*prev_pose);
+		}
 
 		for (auto s : removed_states)
 			delete s;

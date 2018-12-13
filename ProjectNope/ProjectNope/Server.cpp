@@ -115,6 +115,8 @@ void Server::tick(float dTime)
 			std::shared_ptr<ClientConnection> conn = i->second;
 			if (conn->data != nullptr)
 			{
+				std::vector<std::pair<size_t, NewEntity*>> added_units;
+
 				for (size_t j = 0; j < world->units.size(); j++)
 				{
 					if (conn->data->getUnit(j) == 0xffffffff)
@@ -122,17 +124,23 @@ void Server::tick(float dTime)
 						NewEntity * ent = world->units[j];
 						if (ent != nullptr)
 						{
-							uint32_t client_side_id = conn->data->addKnownUnit(j);
-							MAKE_PACKET;
-							out << (unsigned char)1 << client_side_id << conn->data->unit_uid[client_side_id];
-							ent->write_to(out, *conn->data);
-
-							for (size_t i = 0; i < ent->ss.sync.size(); i++)
-								conn->data->sync[client_side_id].insert(std::make_pair(i, ent->ss.sync[i]));
-
-							SEND_PACKET(conn->endpoint);
+							added_units.push_back(std::make_pair(conn->data->addKnownUnit(j), ent));
 						}
 					}
+				}
+
+				for (auto added_unit : added_units)
+				{
+					uint32_t client_side_id = added_unit.first;
+					NewEntity * ent = added_unit.second;
+					MAKE_PACKET;
+					out << (unsigned char)1 << client_side_id << conn->data->unit_uid[client_side_id];
+					ent->write_to(out, *conn->data);
+
+					for (size_t i = 0; i < ent->ss.sync.size(); i++)
+						conn->data->sync[client_side_id].insert(std::make_pair(i, ent->ss.sync[i]));
+
+					SEND_PACKET(conn->endpoint);
 				}
 
 				for (size_t j = 0; j < conn->data->known_units.size(); j++)

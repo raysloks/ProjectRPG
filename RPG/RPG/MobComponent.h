@@ -80,7 +80,7 @@ public:
 	Vec3 land_n, land_v;
 	Vec3 move;
 	bool run, crouch;
-	bool landed;
+	float landed;
 
 	std::map<std::string, float> input;
 

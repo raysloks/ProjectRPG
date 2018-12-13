@@ -3,6 +3,8 @@
 
 #include "Component.h"
 
+#include "EntityID.h"
+
 class MobComponent;
 
 class WeaponComponent :
@@ -34,7 +36,7 @@ public:
 
 	WeaponComponent * swap(size_t index);
 
-	uint32_t mob_id;
+	EntityID mob_id;
 
 	float recoil;
 };

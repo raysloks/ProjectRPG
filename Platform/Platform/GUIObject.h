@@ -20,11 +20,11 @@ namespace Platform
 	{
 	public:
 		GUIObject(const std::string& name, int x, int y, int w, int h, int depth_depth = 0, bool fullscreen = false);
-		virtual ~GUIObject(void);
+		virtual ~GUIObject();
 
-		void Tick(void);
+		void Tick();
 
-		static void PollControllerState(void);
+		static void PollControllerState();
 		static int pollFrequency;
 		static XINPUT_STATE controllerState[4];
 
@@ -33,19 +33,19 @@ namespace Platform
 
 		void SetCursorLock(bool locked);
 
-		void Destroy(void);
+		void Destroy();
 
-		bool HasCursor(void);
+		bool HasCursor();
 
 		inline HWND getHWnd(){return hWnd;}
 
 		inline std::shared_ptr<RenderContext> getContext(){return pContext;}
 
-		inline int GetX(void){return mX;}
-		inline int GetY(void){return mY;}
-		inline int GetWidth(void){return mW;}
-		inline int GetHeight(void){return mH;}
-		inline bool IsFullscreen(void){return isFullScr;}
+		int GetX(){return mX;}
+		int GetY(){return mY;}
+		int GetWidth();
+		int GetHeight();
+		bool IsFullscreen(){return isFullScr;}
 	protected:
 		std::shared_ptr<RenderContext> pContext;
 	private:

@@ -60,6 +60,8 @@ TempPlatform::TempPlatform(void)
 	ptr = 0;
 	use_fullscreen = false;
 	z_buffer_depth = 0;
+	mX = 32;
+	mY = 32;
 	mW = 640;
 	mH = 480;
 }
@@ -102,12 +104,12 @@ void TempPlatform::resize(int w, int h)
 
 int TempPlatform::get_width(void)
 {
-	return mW;
+	return ptr->GetWidth();
 }
 
 int TempPlatform::get_height(void)
 {
-	return mH;
+	return ptr->GetHeight();
 }
 
 void TempPlatform::input(IEventManager * pEventManager, bool lock_cursor, bool hide_cursor)

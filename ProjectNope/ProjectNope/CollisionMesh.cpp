@@ -194,9 +194,9 @@ void CollisionMesh::CalcBounds(void)
 
 void CollisionMesh::CalcGrid(void)
 {
-	grid_w = max(1, dif.x / 64.0f);
-	grid_h = max(1, dif.y / 64.0f);
-	grid_d = max(1, dif.z / 64.0f);
+	grid_w = max(1, dif.x / 8.0f);
+	grid_h = max(1, dif.y / 8.0f);
+	grid_d = max(1, dif.z / 8.0f);
 
 	grid_wh = grid_w * grid_h;
 

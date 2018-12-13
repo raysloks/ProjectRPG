@@ -35,6 +35,10 @@ void WeaponComponent::disconnect(void)
 
 void WeaponComponent::pre_frame(float dTime)
 {
+}
+
+void WeaponComponent::tick(float dTime)
+{
 	MobComponent * mob = nullptr;
 	auto ent = entity->world->GetEntity(mob_id);
 	if (ent)
@@ -54,7 +58,7 @@ void WeaponComponent::pre_frame(float dTime)
 			auto mob_g = mob->entity->getComponent<GraphicsComponent>();
 			if (g && mob_g)
 			{
-				if (g->decs.items.size() && mob_g->decs.items.size())
+				if (g->decs.items.size() && mob_g->decs.items.size() && mob_pose->pose)
 					g->decs.items.front()->final = mob_pose->pose->bones[anim->getIndex("ItemHand_R")].total_transform * mob_g->decs.items.front()->local;
 			}
 		}
@@ -62,10 +66,6 @@ void WeaponComponent::pre_frame(float dTime)
 		if (entity->world->authority)
 			p->update();
 	}
-}
-
-void WeaponComponent::tick(float dTime)
-{
 }
 
 void WeaponComponent::writeLog(outstream& os, ClientData& client)
@@ -94,7 +94,11 @@ void WeaponComponent::interpolate(Component * pComponent, float fWeight)
 
 void WeaponComponent::write_to(outstream& os, ClientData& client) const
 {
-	os << client.getUnit(mob_id);
+	uint32_t client_side_id = client.getUnit(mob_id.id);
+	if (client_side_id != 0xffffffff)
+		os << EntityID(client_side_id, client.unit_uid[client_side_id]);
+	else
+		os << EntityID();
 }
 
 void WeaponComponent::write_to(outstream& os) const

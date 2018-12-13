@@ -137,6 +137,8 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	cam->client_id = client_id;
 	inv->client_id = client_id;
 
+	mob->p = p;
+
 	entity->world->AddEntity(ent);
 
 	if (team == 0)
@@ -155,7 +157,7 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 		g->decs.items.back()->local = Matrix4::Scale(0.5f) * Quaternion(M_PI_2, Vec3(0.0f, 1.0f, 0.0f));
 
 		mob->weapon = w;
-		w->mob_id = mob->entity->id;
+		w->mob_id = mob->entity->get_id();
 
 		entity->world->AddEntity(ent);
 	}
