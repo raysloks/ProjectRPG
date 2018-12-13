@@ -143,7 +143,7 @@ Mesh::Mesh(void) : vbo_latest(false)
 {
 }
 
-Mesh::Mesh(instream& is) : vbo_latest(false)
+Mesh::Mesh(instream& is, const std::string& path) : vbo_latest(false)
 {
 	bool first_mat = true;
 	int nt = 0;
@@ -254,6 +254,19 @@ Mesh::Mesh(instream& is) : vbo_latest(false)
 				sets.push_back(FaceSet());
 			}
 		}
+		if (prefix == 'M')
+		{
+			std::string tex;
+			is >> tex;
+			tex = path + tex;
+			sets.back().default_material.tex.push_back(tex);
+		}
+		if (prefix == 'o')
+		{
+			std::string option;
+			is >> option;
+			sets.back().default_material.tex.back().options.push_back(option);
+		}
 		if (prefix == 'p') {
 			std::string prop;
 			char type;
@@ -347,20 +360,21 @@ void Mesh::render(RenderSetup& rs, MaterialList& mats) // maybe should get mats 
 
 	for (size_t i = 0; i < sets.size(); i++)
 	{
+		auto& mat = sets[i].default_material;
 		if (i < mats.materials.size())
-		{
-			mats.materials[i].bindTextures();
+			mat = mats.materials[i];
 
-			TimeslotC(mod_draw);
+		mat.bindTextures();
 
-			rs.pushMod(mats.materials[i].mod);
+		TimeslotC(mod_draw);
 
-			rs.applyMods();
+		rs.pushMod(mat.mod);
 
-			vbos[i]->draw(rs);
+		rs.applyMods();
 
-			rs.popMod();
-		}
+		vbos[i]->draw(rs);
+
+		rs.popMod();
 	}
 }
 
@@ -373,29 +387,28 @@ void Mesh::render_skinned(RenderSetup& rs, MaterialList& mats, Pose * pose)
 
 	for (size_t i = 0; i < sets.size(); i++)
 	{
+		auto& mat = sets[i].default_material;
 		if (i < mats.materials.size())
-		{
-			mats.materials[i].bindTextures();
+			mat = mats.materials[i];
 
-			TimeslotC(mod_draw);
+		mat.bindTextures();
 
-			rs.pushMod(mats.materials[i].mod);
+		rs.pushMod(mat.mod);
 
-			rs.applyMods();
-			auto shader = ShaderProgram::Get(Shader::get("data/gfill_skinned_vert.txt", SHADER_VERTEX), rs.current_program->geom, rs.current_program->frag);
+		rs.applyMods();
+		auto shader = ShaderProgram::Get(Shader::get("data/gfill_skinned_vert.txt", SHADER_VERTEX), rs.current_program->geom, rs.current_program->frag);
 
-			ShaderMod mod(shader, [=](const std::shared_ptr<ShaderProgram>& prog) {
-				prog->UniformMatrix4fv("bone_transform", pose->transforms);
-			});
+		ShaderMod mod(shader, [=](const std::shared_ptr<ShaderProgram>& prog) {
+			prog->UniformMatrix4fv("bone_transform", pose->transforms);
+		});
 
-			rs.pushMod(mod);
-			rs.applyMods();
+		rs.pushMod(mod);
+		rs.applyMods();
 
-			vbos[i]->draw(rs);
+		vbos[i]->draw(rs);
 
-			rs.popMod();
-			rs.popMod();
-		}
+		rs.popMod();
+		rs.popMod();
 	}
 }
 
@@ -408,20 +421,19 @@ void Mesh::render_instanced(RenderSetup& rs, MaterialList& mats, unsigned int nI
 
 	for (size_t i = 0; i < sets.size(); i++)
 	{
+		auto& mat = sets[i].default_material;
 		if (i < mats.materials.size())
-		{
-			mats.materials[i].bindTextures();
+			mat = mats.materials[i];
 
-			TimeslotC(mod_draw);
+		mat.bindTextures();
 
-			rs.pushMod(mats.materials[i].mod);
+		rs.pushMod(mat.mod);
 
-			rs.applyMods();
+		rs.applyMods();
 
-			vbos[i]->draw_instanced(rs, nInstances);
+		vbos[i]->draw_instanced(rs, nInstances);
 
-			rs.popMod();
-		}
+		rs.popMod();
 	}
 }
 

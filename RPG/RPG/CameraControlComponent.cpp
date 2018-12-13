@@ -44,6 +44,7 @@ void CameraControlComponent::disconnect(void)
 
 #include "PoseComponent.h"
 #include "GraphicsComponent.h"
+#include "ColliderComponent.h"
 
 void CameraControlComponent::pre_frame(float dTime)
 {
@@ -68,7 +69,13 @@ void CameraControlComponent::pre_frame(float dTime)
 					auto pose = entity->getComponent<PoseComponent>();
 					auto anim = Resource::get<SkeletalAnimation>(pose->anim);
 
-					offset = Vec3(0.0f, 0.25f, -0.225f) * pose->pose->bones[anim->getIndex("Head")].total_transform * g->decs.items.front()->local;
+					if (anim)
+						offset = Vec3(0.0f, 0.25f, -0.225f) * pose->pose->bones[anim->getIndex("Head")].total_transform * g->decs.items.front()->local;
+				}
+				else
+				{
+					std::vector<std::shared_ptr<Collision>> list;
+					ColliderComponent::DiskCast(p->p + up * 0.25f, p->p + up * 0.25f - front * (distance + 0.5f), 0.25f, list);
 				}
 
 				auto shakes = entity->world->GetNearestComponents<CameraShakeComponent>(p->p);
@@ -138,7 +145,7 @@ void CameraControlComponent::post_frame(float dTime)
 
 
 			distance -= input.mouse_dif_z / 256.0f;
-			distance = fmaxf(0.0f, fminf(4.0f, distance));
+			distance = fmaxf(0.0f, fminf(3.0f, distance));
 
 
 			cam_rot = Quaternion();

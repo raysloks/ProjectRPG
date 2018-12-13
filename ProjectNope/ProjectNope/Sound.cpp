@@ -52,7 +52,7 @@ Sound::Sound(void)
 	format = AL_FORMAT_MONO16;
 }
 
-Sound::Sound(instream& is, const std::set<std::string>& options)
+Sound::Sound(instream& is, const std::vector<std::string>& options)
 {
 	buffer = 0;
 
@@ -75,7 +75,7 @@ Sound::Sound(instream& is, const std::set<std::string>& options)
 			if (!strcmp(id, "data"))
 			{
 				is >> data_size;
-				if (options.find("no_buffer")==options.end())
+				if (std::find(options.begin(), options.end(), "no_buffer") == options.end())
 				{
 					data = new char[data_size];
 					is.read((char*)data, data_size);

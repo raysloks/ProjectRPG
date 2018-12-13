@@ -7,9 +7,9 @@
 #include <vector>
 #include <map>
 #include "SkeletalAnimation.h"
+#include "MaterialList.h"
 
 class RenderSetup;
-class MaterialList;
 
 class Vertex
 {
@@ -73,6 +73,7 @@ public:
 	std::vector<Face> vertices;
 	std::vector<Face> uv_points;
 	size_t nTextures;
+	Material default_material;
 };
 
 class Texture;
@@ -82,7 +83,7 @@ class Mesh
 {
 public:
 	Mesh(void);
-	Mesh(instream& is);
+	Mesh(instream& is, const std::string& path);
 	Mesh(const Mesh& mesh);
 	~Mesh(void);
 

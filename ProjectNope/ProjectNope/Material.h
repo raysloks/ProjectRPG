@@ -6,6 +6,7 @@
 
 #include "streams.h"
 #include "ShaderMod.h"
+#include "TextureDescriptor.h"
 
 class Texture;
 class RenderSetup;
@@ -21,7 +22,7 @@ public:
 
 	void setTexture(size_t index, const std::string& fname);
 
-	std::vector<std::string> tex;
+	std::vector<TextureDescriptor> tex;
 	std::vector<std::shared_ptr<Texture>> loaded_tex;
 
 	ShaderMod mod;

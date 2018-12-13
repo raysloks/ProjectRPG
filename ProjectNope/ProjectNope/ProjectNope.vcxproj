@@ -255,6 +255,7 @@
     <ClCompile Include="TempPlatform.cpp" />
     <ClCompile Include="TextBoxWindow.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TextureDescriptor.cpp" />
     <ClCompile Include="TextWindow.cpp" />
     <ClCompile Include="TGA.cpp" />
     <ClCompile Include="VoiceComponent.cpp" />
@@ -351,6 +352,7 @@
     <ClInclude Include="TempPlatform.h" />
     <ClInclude Include="TextBoxWindow.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="TextureDescriptor.h" />
     <ClInclude Include="TextWindow.h" />
     <ClInclude Include="TGA.h" />
     <ClInclude Include="VoiceComponent.h" />

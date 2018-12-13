@@ -2,12 +2,12 @@
 #include <memory>
 #include <iostream>
 
-TGA::TGA(instream& is, std::set<std::string> options)
+TGA::TGA(instream& is, const std::vector<std::string>& options)
 {
-	if (options.find("!sRGB") != options.end())
+	if (std::find(options.begin(), options.end(), "cs_linear") != options.end())
 		sRGB = false;
 
-	linear = options.find("linear") != options.end();
+	linear = std::find(options.begin(), options.end(), "mag_linear") != options.end();
 
 	size_t file_size;
 	is.seekg(0, std::ios::end);

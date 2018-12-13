@@ -9,7 +9,7 @@ Material::Material()
 
 Material::Material(const std::string& fname)
 {
-	tex.push_back(fname);
+	tex.push_back(TextureDescriptor(fname));
 }
 
 Material::~Material()
@@ -23,7 +23,7 @@ void Material::bindTextures()
 	for (size_t i = 0; i < tex.size(); i++)
 	{
 		if (loaded_tex[i] == nullptr)
-			loaded_tex[i] = Resource::get<Texture>(tex[i]);
+			loaded_tex[i] = Resource::get<Texture>(tex[i].name, tex[i].options);
 	}
 	for (size_t i = 0; i < loaded_tex.size(); i++)
 	{
@@ -39,7 +39,7 @@ void Material::setTexture(size_t index, const std::string& fname)
 {
 	if (index >= tex.size())
 		tex.resize(index + 1);
-	tex[index] = fname;
+	tex[index].name = fname;
 }
 
 bool Material::operator==(const Material& rhs) const

@@ -45,7 +45,7 @@ void RunCycleState::tick(float dTime)
 
 	prev_t = t;
 
-	t += dTime * (rel_v.Len() + 1.0f) * speed / acc->scale;
+	t += dTime * (rel_v.Len() + 1.0f - mob->landed) * speed / acc->scale;
 
 	if (!mob->landed)
 	{

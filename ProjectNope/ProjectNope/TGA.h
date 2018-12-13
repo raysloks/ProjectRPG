@@ -7,7 +7,7 @@ class TGA :
 	public Texture
 {
 public:
-	TGA(instream& is, std::set<std::string> options);
+	TGA(instream& is, const std::vector<std::string>& options);
 	~TGA(void);
 
 	GLuint getGLTexID(void);

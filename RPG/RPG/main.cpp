@@ -154,29 +154,7 @@ public:
 			ent->addComponent(c);
 			ent->addComponent(g);
 
-			std::string ao = "data/assets/terrain/textures/tos_ao.tga";
-			Resource::load(ao, { "!sRGB" , "linear" });
-
-			std::string ao_rock = "data/assets/terrain/textures/tos_rock_ao.tga";
-			Resource::load(ao_rock, { "!sRGB" , "linear" });
-
-			std::string ao_gard_rock = "data/assets/terrain/textures/gard_rock_ao.tga";
-			Resource::load(ao_gard_rock, { "!sRGB" , "linear" });
-
-			MaterialList materials;
-			materials.materials.push_back(Material("data/assets/terrain/textures/plank.tga"));
-			materials.materials.push_back(Material("data/assets/terrain/textures/plank.tga"));
-			materials.materials.push_back(Material("data/assets/terrain/textures/ngrass.tga"));
-			materials.materials.push_back(Material("data/assets/terrain/textures/plank.tga"));
-			materials.materials.push_back(Material("data/assets/terrain/textures/plank.tga"));
-			materials.materials.push_back(Material("data/assets/terrain/textures/tos_ground.tga"));
-
-			materials.materials[0].tex.push_back(ao_rock);
-			materials.materials[1].tex.push_back(ao_gard_rock);
-			materials.materials[2].tex.push_back(ao_gard_rock);
-			materials.materials[5].tex.push_back(ao);
-
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/terrain/tos.gmdl", materials, 0)));
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/terrain/tos.gmdl", MaterialList(), 0)));
 
 			world->AddEntity(ent);
 		}

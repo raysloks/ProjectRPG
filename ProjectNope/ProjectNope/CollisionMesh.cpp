@@ -3,6 +3,8 @@
 #include "Resource.h"
 #include "Mesh.h"
 
+#include <set>
+
 #include "Profiler.h"
 
 CollisionMesh::CollisionMesh(void)

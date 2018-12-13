@@ -27,9 +27,11 @@ Resource::~Resource(void)
 {
 }
 
-void _load(std::string name, std::set<std::string> options)
+void _load(std::string name, const std::vector<std::string>& options)
 {
-	bool blocking = options.find("block") != options.end();
+	bool block = std::find(options.begin(), options.end(), "block") != options.end();
+
+	std::string path = name.substr(0, name.find_last_of('/') + 1);
 
 	//try
 	{
@@ -42,7 +44,7 @@ void _load(std::string name, std::set<std::string> options)
 		if (!f)
 		{
 			mutex.lock();
-			if (!blocking)
+			if (!block)
 				loading[name].second = false;
 			resources.insert(std::pair<std::string, std::shared_ptr<Resource>>(name, nullptr));
 			mutex.unlock();
@@ -69,7 +71,7 @@ void _load(std::string name, std::set<std::string> options)
 			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new Sound(instream(is.rdbuf()), options)));
 		}
 		else if (name.find(".gmdl") != std::string::npos) {
-			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new Mesh(instream(is.rdbuf()))));
+			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new Mesh(instream(is.rdbuf()), path)));
 		}
 		else if (name.find(".anim") != std::string::npos) {
 			res = std::pair<std::string, std::shared_ptr<Resource>>(name, std::shared_ptr<Resource>(new SkeletalAnimation(instream(is.rdbuf()))));
@@ -83,7 +85,7 @@ void _load(std::string name, std::set<std::string> options)
 		}
 
 		mutex.lock();
-		if (!blocking)
+		if (!block)
 			loading[name].second = false;
 		resources.insert(res);
 		mutex.unlock();
@@ -112,18 +114,24 @@ void Resource::add(const std::string& name, const std::shared_ptr<Resource>& res
 	mutex.unlock();
 }
 
-std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set<std::string>& options)
+std::shared_ptr<Resource> Resource::load(const std::string& name, const std::vector<std::string>& options)
 {
-	bool blocking = options.find("block") != options.end();
+	bool block = std::find(options.begin(), options.end(), "block") != options.end();
+	bool reload = std::find(options.begin(), options.end(), "reload") != options.end();
 
 	mutex.lock();
-	if (loading.find(name)==loading.cend()) {
+	if (loading.find(name) == loading.cend())
+	{
 
 		auto it = resources.find(name);
-		if (it!=resources.end()) {
-			if (options.find("reload")!=options.end()) {
+		if (it != resources.end())
+		{
+			if (reload)
+			{
 				resources.erase(it);
-			} else {
+			}
+			else
+			{
 				mutex.unlock();
 				std::lock_guard<std::mutex> lock(mutex);
 				if (it->second != nullptr)
@@ -134,7 +142,7 @@ std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set
 		}
 ;
 		mutex.unlock();
-		if (blocking)
+		if (block)
 		{
 			_load(name, options);
 			mutex.lock();
@@ -154,7 +162,7 @@ std::shared_ptr<Resource> Resource::load(const std::string& name, const std::set
 
 	mutex.unlock();
 	std::lock_guard<std::mutex> lock(mutex);
-	if (options.find("block") != options.end())
+	if (block)
 	{
 		loading[name].first.join();
 		return resources[name];

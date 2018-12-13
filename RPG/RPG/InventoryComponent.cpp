@@ -36,10 +36,16 @@ InventoryComponent::~InventoryComponent(void)
 
 void InventoryComponent::connect(NewEntity * pEntity, bool authority)
 {
+	if (authority)
+		sync = pEntity->ss.allocate([this](ClientData&) {
+		send = true;
+	}, std::function<bool(ClientData&)>());
 }
 
 void InventoryComponent::disconnect(void)
 {
+	if (entity->world->authority)
+		entity->ss.deallocate(sync);
 }
 
 void InventoryComponent::pre_frame(float dTime)
@@ -83,7 +89,8 @@ void InventoryComponent::set_display(bool enable)
 							rs.popTransform();
 
 							rs.pushTransform();
-							rs.addTransform(Matrix4::Scale(Vec3(16.0f, mob->health.max * 4.0f, 0.0f)));
+							rs.addTransform(Matrix4::Translation(Vec3(0.0f, (mob->health.max - mob->health.current) * 4.0f, 0.0f)));
+							rs.addTransform(Matrix4::Scale(Vec3(16.0f, mob->health.current * 4.0f, 0.0f)));
 							if (sprite)
 								sprite->render(rs);
 							rs.popTransform();
@@ -101,8 +108,8 @@ void InventoryComponent::set_display(bool enable)
 							rs.popTransform();
 
 							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec2(16.0f, 0.0f)));
-							rs.addTransform(Matrix4::Scale(Vec3(16.0f, mob->stamina.max * 4.0f, 0.0f)));
+							rs.addTransform(Matrix4::Translation(Vec3(16.0f, (mob->stamina.max - mob->stamina.current) * 4.0f, 0.0f)));
+							rs.addTransform(Matrix4::Scale(Vec3(16.0f, mob->stamina.current * 4.0f, 0.0f)));
 							if (sprite)
 								sprite->render(rs);
 							rs.popTransform();
@@ -120,8 +127,8 @@ void InventoryComponent::set_display(bool enable)
 							rs.popTransform();
 
 							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec2(32.0f, 0.0f)));
-							rs.addTransform(Matrix4::Scale(Vec3(16.0f, mob->mana.max * 4.0f, 0.0f)));
+							rs.addTransform(Matrix4::Translation(Vec3(32.0f, (mob->mana.max - mob->mana.current) * 4.0f, 0.0f)));
+							rs.addTransform(Matrix4::Scale(Vec3(16.0f, mob->mana.current * 4.0f, 0.0f)));
 							if (sprite)
 								sprite->render(rs);
 							rs.popTransform();
@@ -181,18 +188,35 @@ void InventoryComponent::set_display(bool enable)
 
 void InventoryComponent::writeLog(outstream& os, ClientData& client)
 {
+	if (send)
+		os << name;
+	send = false;
 }
 
 void InventoryComponent::readLog(instream& is)
 {
+	is >> name;
 }
+
+#include <lmcons.h>
+#include <codecvt>
 
 void InventoryComponent::writeLog(outstream& os)
 {
+	WCHAR * buffer = new WCHAR[UNLEN + 1];
+	DWORD len = UNLEN + 1;
+	GetUserName(buffer, &len); // TODO remove this
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+	std::string converted_name = converter.to_bytes(buffer);
+	if (name != converted_name)
+		os << converted_name;
+	delete[] buffer;
 }
 
 void InventoryComponent::readLog(instream& is, ClientData& client)
 {
+	if (client.client_id == client_id)
+		is >> name;
 }
 
 void InventoryComponent::interpolate(Component * pComponent, float fWeight)

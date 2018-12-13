@@ -17,8 +17,8 @@ shadow_quality = 1;
 
 ao_quality = 1;
 
-supersampling_x = 2;
-supersampling_y = 2;
+supersampling_x = 1;
+supersampling_y = 1;
 supersampling_r = 1;
 
 jitter = 0;

@@ -13,7 +13,7 @@ class Sound
 {
 public:
 	Sound(void);
-	Sound(instream& is, const std::set<std::string>& options = std::set<std::string>());
+	Sound(instream& is, const std::vector<std::string>& options = std::vector<std::string>());
 	~Sound(void);
 
 	static void init(void);
