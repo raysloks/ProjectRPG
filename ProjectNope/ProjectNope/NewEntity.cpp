@@ -26,7 +26,7 @@ NewEntity::NewEntity(instream& is, bool full)
 			is >> sync;
 			component_sync.push_back(sync);
 		}
-		auto factory = Serializable::deserialize(is);
+		auto factory = Component::_registry.deserialize(is);
 		Component * comp;
 		if (factory != nullptr)
 			comp = dynamic_cast<Component*>(factory->create(is, full));
@@ -163,9 +163,15 @@ void NewEntity::writeLog(outstream& os, ClientData& client)
 		for (auto i = conf.begin(); i != conf.end(); ++i)
 		{
 			os << (uint32_t)*i << ss.sync[component_syncref[std::distance(conf.begin(), i)]];
-			Serializable::serialize(os, components[*i]);
-			if (components[*i] != nullptr)
+			if (components[*i])
+			{
+				os << components[*i]->_serial_id;
 				components[*i]->write_to(os, client);
+			}
+			else
+			{
+				os << uint32_t(0);
+			}
 		}
 		conf.clear();
 		os << (uint32_t)0xffffffff;
@@ -183,10 +189,10 @@ void NewEntity::readLog(instream& is)
 		if (index != 0xffffffff)
 		{
 			is >> sync;
-			auto factory = Serializable::deserialize(is);
+			auto factory = Component::_registry.deserialize(is);
 			Component * comp;
 			if (factory != nullptr)
-				comp = dynamic_cast<Component*>(factory->create(is, false));
+				comp = factory->create(is, false);
 			else
 				comp = nullptr;
 			if (components.size() <= index)
@@ -301,7 +307,7 @@ void NewEntity::write_to(outstream& os, ClientData& client) const
 		if (*i != nullptr)
 			if ((*i)->visible(client))
 			{
-				os << (*i)->getSerialID();
+				os << (*i)->_serial_id;
 				(*i)->write_to(os, client);
 			}
 			else
@@ -316,28 +322,28 @@ void NewEntity::write_to(outstream& os) const
 	os << (uint32_t)components.size();
 	for (auto i=components.begin();i!=components.end();++i) {
 		if (*i != nullptr) {
-			os << (*i)->getSerialID();
+			os << (*i)->_serial_id;
 			(*i)->write_to(os);
 		} else
 			os << uint32_t(0);
 	}
 }
 
-Component * NewEntity::getComponent(size_t type) const
+Component * NewEntity::getComponent(uint32_t type) const
 {
 	for (auto i=components.begin();i!=components.end();++i)
 		if (*i != nullptr)
-			if ((*i)->getSerialID()==type)
+			if ((*i)->_serial_id==type)
 				return *i;
 	return nullptr;
 }
 
-std::vector<Component*> NewEntity::getComponents(size_t type) const
+std::vector<Component*> NewEntity::getComponents(uint32_t type) const
 {
 	std::vector<Component*> ret;
 	for (auto i=components.begin();i!=components.end();++i)
 		if (*i != nullptr)
-			if ((*i)->getSerialID()==type)
+			if ((*i)->_serial_id==type)
 				ret.push_back(*i);
 	return ret;
 }

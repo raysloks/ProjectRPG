@@ -1,18 +1,18 @@
 #ifndef COMPONENT_H
 #define COMPONENT_H
 
-#include "Serializable.h"
 #include "AutoSerialFactory.h"
+#include "SerializableRegistry.h"
 
 class NewEntity;
 class ClientData;
 
-class Component :
-	public virtual Serializable
+class Component
 {
+protected:
+	Component(uint32_t id);
+
 public:
-	Component(void);
-	Component(instream& is, bool full);
 	virtual ~Component(void);
 
 	virtual void connect(NewEntity * pEntity, bool authority);
@@ -35,9 +35,12 @@ public:
 
 	virtual bool visible(ClientData& client) const;
 
-	NewEntity * entity;
+	uint32_t _serial_id;
 
-	static const AutoSerialFactory<Component> _factory;
+	static SerializableRegistry<Component> _registry;
+	static SerializableRegistrationQueue<Component> * _getRegistrationQueue();
+
+	NewEntity * entity;
 };
 
 #endif

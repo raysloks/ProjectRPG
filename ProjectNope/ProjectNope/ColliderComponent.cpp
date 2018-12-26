@@ -8,16 +8,16 @@
 #include "PositionComponent.h"
 #include "GraphicsComponent.h"
 
-const AutoSerialFactory<ColliderComponent> ColliderComponent::_factory("ColliderComponent");
+ASF_C(ColliderComponent, Component)
 
 thread_local std::vector<ColliderComponent*> ColliderComponent::all;
 
-ColliderComponent::ColliderComponent(bool d) : Serializable(_factory.id), deform(d)
+ColliderComponent::ColliderComponent(bool d) : Component(_factory.id), deform(d)
 {
 	all.push_back(this);
 }
 
-ColliderComponent::ColliderComponent(instream& is, bool full) : Serializable(_factory.id)
+ColliderComponent::ColliderComponent(instream& is, bool full) : Component(_factory.id)
 {
 	all.push_back(this);
 	is >> deform;

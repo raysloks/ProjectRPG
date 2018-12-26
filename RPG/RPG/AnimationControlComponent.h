@@ -33,7 +33,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	static const AutoSerialFactory<AnimationControlComponent> _factory;
+	ASF_H(AnimationControlComponent, Component)
 
 	void set_state(AnimationState * new_state);
 

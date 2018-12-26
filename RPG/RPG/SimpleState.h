@@ -20,12 +20,12 @@ public:
 
 	void interpolate(AnimationState * other, float fWeight);
 
-	void write_to(outstream& os, bool full) const;
+	void write_to(outstream& os) const;
 
 	float t, prev_t;
 	float speed;
 	std::string name;
 	std::map<float, std::function<void(void)>> events;
 
-	static const AutoSerialFactory<SimpleState> _factory;
+	ASF_H(SimpleState, AnimationState)
 };

@@ -23,13 +23,13 @@ instream& operator >> (instream& is, ChatMessage& msg)
 	return is;
 }
 
-const AutoSerialFactory<ChatComponent> ChatComponent::_factory("ChatComponent");
+ASF_C(ChatComponent, Component)
 
-ChatComponent::ChatComponent(void) : Serializable(_factory.id)
+ChatComponent::ChatComponent(void) : Component(_factory.id)
 {
 }
 
-ChatComponent::ChatComponent(instream& is, bool full) : Serializable(_factory.id)
+ChatComponent::ChatComponent(instream& is, bool full) : Component(_factory.id)
 {
 }
 

@@ -5,13 +5,13 @@
 
 #include "MobComponent.h"
 
-const AutoSerialFactory<TriggerComponent> TriggerComponent::_factory("TriggerComponent");
+ASF_C(TriggerComponent, Component)
 
-TriggerComponent::TriggerComponent(void) : Serializable(_factory.id)
+TriggerComponent::TriggerComponent(void) : Component(_factory.id)
 {
 }
 
-TriggerComponent::TriggerComponent(instream& is, bool full) : Serializable(_factory.id)
+TriggerComponent::TriggerComponent(instream& is, bool full) : Component(_factory.id)
 {
 }
 

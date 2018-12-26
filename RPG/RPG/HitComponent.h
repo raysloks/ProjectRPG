@@ -36,13 +36,14 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	static const AutoSerialFactory<HitComponent> _factory;
+	ASF_H(HitComponent, Component)
 
 	EntityID owner;
 	std::string bone;
 	std::function<void(MobComponent*, const Vec3&)> func;
 	bool active;
 	float radius, prev_r;
+	Vec3 offset;
 	GlobalPosition prev_p;
 	std::set<MobComponent*> hit;
 };

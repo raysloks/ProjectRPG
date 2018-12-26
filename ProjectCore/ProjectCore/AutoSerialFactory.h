@@ -1,29 +1,35 @@
 #ifndef AUTO_SERIAL_FACTORY_H
 #define AUTO_SERIAL_FACTORY_H
 
-#include "Serializable.h"
+#include "SerialFactory.h"
 #include "SerialHash.h"
 #include "TypeIterator.h"
 
 #include <string>
 
-template <class T>
+#define ASF_H(x, y) static AutoSerialFactory<x, y> _factory;
+#define ASF_C(x, y) AutoSerialFactory<x, y> x::_factory(#x);
+
+template <class T, class Base>
 class AutoSerialFactory
 {
 public:
-	AutoSerialFactory(const std::string& class_name) : name(class_name)
+	AutoSerialFactory(const std::string& name)
 	{
 		id = sdbm(name);
-		factory = new SerialFactory<T>();
-		Serializable::Register(name, id, factory);
+		factory = new SerialFactory<T, Base>();
+		auto queue = Base::_getRegistrationQueue();
+		if (queue->registry)
+			Base::_registry.registerFactory(id, factory);
+		else
+			queue->queue.push_back(std::make_pair(id, factory));
 	}
 	~AutoSerialFactory(void)
 	{
 		delete factory;
 	}
 
-	StreamFactory<Serializable> * factory;
-	std::string name;
+	StreamFactory<Base> * factory;
 	uint32_t id;
 };
 

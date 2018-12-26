@@ -50,15 +50,15 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	Component * getComponent(size_t type) const;
-	std::vector<Component*> getComponents(size_t type) const;
+	Component * getComponent(uint32_t type) const;
+	std::vector<Component*> getComponents(uint32_t type) const;
 
 	template <class T>
 	T * getComponent(void)
 	{
 		for (auto i = components.begin(); i != components.end(); ++i)
 			if (*i != nullptr)
-				if ((*i)->getSerialID() == T::_factory.id)
+				if ((*i)->_serial_id == T::_factory.id)
 					return static_cast<T*>(*i);
 		return nullptr;
 	}
@@ -69,7 +69,7 @@ public:
 		std::vector<T*> ret;
 		for (auto i = components.begin(); i != components.end(); ++i)
 			if (*i != 0)
-				if ((*i)->getSerialID() == T::_factory.id)
+				if ((*i)->_serial_id == T::_factory.id)
 					ret.push_back(static_cast<T*>(*i));
 		return ret;
 	}

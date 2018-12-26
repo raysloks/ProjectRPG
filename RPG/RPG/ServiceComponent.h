@@ -31,7 +31,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	static const AutoSerialFactory<ServiceComponent> _factory;
+	ASF_H(ServiceComponent, Component)
 
 	std::function<void(float)> on_tick;
 };

@@ -8,17 +8,17 @@
 
 #include "SkeletalAnimation.h"
 
-const AutoSerialFactory<LightComponent> LightComponent::_factory("LightComponent");
+ASF_C(LightComponent, Component)
 
 std::vector<LightComponent*> LightComponent::all;
 
-LightComponent::LightComponent(void) : Serializable(_factory.id)
+LightComponent::LightComponent(void) : Component(_factory.id)
 {
 	all.push_back(this);
 	pose = nullptr;
 }
 
-LightComponent::LightComponent(instream& is, bool full) : Serializable(_factory.id)
+LightComponent::LightComponent(instream& is, bool full) : Component(_factory.id)
 {
 	all.push_back(this);
 	pose = nullptr;

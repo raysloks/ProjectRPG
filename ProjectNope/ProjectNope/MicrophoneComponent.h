@@ -27,7 +27,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	static const AutoSerialFactory<MicrophoneComponent> _factory;
+	ASF_H(MicrophoneComponent, Component)
 };
 
 #endif

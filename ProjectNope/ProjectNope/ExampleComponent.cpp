@@ -1,12 +1,12 @@
 #include "ExampleComponent.h"
 
-const AutoSerialFactory<ExampleComponent> ExampleComponent::_factory("ExampleComponent");
+ASF_C(ExampleComponent, Component)
 
-ExampleComponent::ExampleComponent(void) : Serializable(_factory.id)
+ExampleComponent::ExampleComponent(void) : Component(_factory.id)
 {
 }
 
-ExampleComponent::ExampleComponent(instream& is, bool full) : Serializable(_factory.id)
+ExampleComponent::ExampleComponent(instream& is, bool full) : Component(_factory.id)
 {
 }
 

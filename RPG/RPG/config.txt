@@ -1,6 +1,6 @@
 screen_width = 1280;
 screen_height = 720;
-fullscreen = 1;
+fullscreen = 0;
 
 vsync = 1;
 force_sync = 0;

@@ -4,17 +4,17 @@
 
 #include "World.h"
 
-const AutoSerialFactory<PositionComponent> PositionComponent::_factory("PositionComponent");
+ASF_C(PositionComponent, Component)
 
-PositionComponent::PositionComponent(void) : Serializable(_factory.id)
+PositionComponent::PositionComponent(void) : Component(_factory.id)
 {
 }
 
-PositionComponent::PositionComponent(const GlobalPosition& position) : Serializable(_factory.id), p(position)
+PositionComponent::PositionComponent(const GlobalPosition& position) : Component(_factory.id), p(position)
 {
 }
 
-PositionComponent::PositionComponent(instream& is, bool full) : Serializable(_factory.id)
+PositionComponent::PositionComponent(instream& is, bool full) : Component(_factory.id)
 {
 	is >> p;
 }

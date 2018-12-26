@@ -163,8 +163,8 @@ void Client::setup(void)
 			float tickrate = 60.0f;
 			int force_sync = -1;
 			int z_depth = 8;
-			int supersampling_x = 1;
-			int supersampling_y = 1;
+			float supersampling_x = 1.0f;
+			float supersampling_y = 1.0f;
 			auto var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("screen_width"));
 			if (var!=0)
 				screen_width = var->f;
@@ -1290,12 +1290,15 @@ void Client::render_world(void)
 
 		RenderSetup rs;
 
-		Matrix4 ortho;
-		ortho.mtrx[0][0] = 2.0f / view_w;
-		ortho.mtrx[1][1] = -2.0f / view_h;
-		ortho.mtrx[2][2] = 2.0f / std::max(view_w, view_h);
+		int gui_w = view_w;
+		int gui_h = view_h;
 
-		rs.size = Vec2(view_w, view_h);
+		Matrix4 ortho;
+		ortho.mtrx[0][0] = 2.0f / gui_w;
+		ortho.mtrx[1][1] = -2.0f / gui_h;
+		ortho.mtrx[2][2] = 2.0f / std::max(gui_w, gui_h);
+
+		rs.size = Vec2(gui_w, gui_h);
 
 		rs.view = proj;
 
@@ -1311,7 +1314,7 @@ void Client::render_world(void)
 		Writing::setFont("data/assets/fonts/NotoSans-SemiBold.ttf");
 		Writing::setSize(12);
 
-		rs.addTransform(Matrix4::Translation(Vec3(-view_w / 2.0f, -view_h / 2.0f, 0.0f)));
+		rs.addTransform(Matrix4::Translation(Vec3(-gui_w / 2.0f, -gui_h / 2.0f, 0.0f)));
 
 		for (auto i = render2D.begin(); i != render2D.end(); ++i)
 		{
@@ -1536,7 +1539,7 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 				{
 					if (*i != nullptr)
 					{
-						copy->components.push_back(dynamic_cast<Component*>(Serializable::getFactory((*i)->getSerialID())->create(*i)));
+						copy->components.push_back(dynamic_cast<Component*>(Component::_registry.getFactory((*i)->_serial_id)->create(*i)));
 						(*i)->connect(unit, false);
 						(*i)->entity = unit;
 						copy->components.back()->connect(copy, false);

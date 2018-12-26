@@ -16,9 +16,9 @@ public:
 
 	void interpolate(AnimationState * other, float fWeight);
 
-	void write_to(outstream& os, bool full) const;
+	void write_to(outstream& os) const;
 
-	static const AutoSerialFactory<RunCycleState> _factory;
+	ASF_H(RunCycleState, AnimationState)
 
 	CycleState idle;
 };

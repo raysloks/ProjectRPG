@@ -27,18 +27,19 @@
 
 #include "SimpleState.h"
 
-const AutoSerialFactory<MobComponent> MobComponent::_factory("MobComponent");
+ASF_C(MobComponent, Component)
 
-MobComponent::MobComponent(void) : Serializable(_factory.id), health(10), stamina(10), mana(10)
+MobComponent::MobComponent(void) : Component(_factory.id), health(10), stamina(10), mana(10)
 {
 	up = Vec3(0.0f, 0.0f, 1.0f);
 	speed_mod = 1.0f;
 	r = 0.5f;
-	use_base_collision = true;
+	use_base_collision = false;
 	p = nullptr;
+	facing.y = M_PI_2;
 }
 
-MobComponent::MobComponent(instream& is, bool full) : Serializable(_factory.id)
+MobComponent::MobComponent(instream& is, bool full) : Component(_factory.id)
 {
 	is >> facing >> up;
 	p = nullptr;
@@ -68,6 +69,11 @@ void MobComponent::tick(float dTime)
 
 	if (entity->world->authority)
 	{
+		int64_t freq, start, end;
+
+		QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+		QueryPerformanceCounter((LARGE_INTEGER*)&start);
+
 		auto acc = entity->getComponent<AnimationControlComponent>();
 
 		if (input["switch"] && weapon)
@@ -136,10 +142,16 @@ void MobComponent::tick(float dTime)
 		{
 			if (Vec3(p->p).LenPwr() > 4000000.0f || health.current <= 0)
 			{
-				p->p = Vec3();
-				v = Vec3();
-				health.current = health.max;
-				//entity->world->SetEntity(entity->id, nullptr);
+				if (temp_team == 0)
+				{
+					p->p = Vec3();
+					v = Vec3();
+					health.current = health.max;
+				}
+				else
+				{
+					entity->world->SetEntity(entity->id, nullptr);
+				}
 			}
 
 			if (use_base_collision)
@@ -509,6 +521,10 @@ void MobComponent::tick(float dTime)
 			if (prev != p->p)
 				p->update();
 		}
+
+		QueryPerformanceCounter((LARGE_INTEGER*)&end);
+
+		Profiler::set("mob", 1.0 / (static_cast<double>(end - start) / freq));
 	}
 }
 

@@ -21,16 +21,16 @@
 #include "CycleState.h"
 #include "RunCycleState.h"
 
-const AutoSerialFactory<AnimationControlComponent> AnimationControlComponent::_factory("AnimationControlComponent");
+ASF_C(AnimationControlComponent, Component)
 
-AnimationControlComponent::AnimationControlComponent(void) : Serializable(_factory.id)
+AnimationControlComponent::AnimationControlComponent(void) : Component(_factory.id)
 {
 	scale = 1.0f;
 	sync = 0;
 	state = nullptr;
 }
 
-AnimationControlComponent::AnimationControlComponent(instream& is, bool full) : Serializable(_factory.id)
+AnimationControlComponent::AnimationControlComponent(instream& is, bool full) : Component(_factory.id)
 {
 	scale = 1.0f;
 	sync = 0;
@@ -95,7 +95,7 @@ void AnimationControlComponent::tick(float dTime)
 				state->tick(added_time);
 		} while (overtime > 0.0f);
 
-		if (has_state("run"))
+		if (has_state("run") && pose->anim == "data/assets/units/player/hoodlum.anim")
 		{
 			auto prev_pose = pose->pose;
 			pose->pose = anim->getPose(20.0f - mob->facing.y * 20.0f / M_PI, "look_vertical");
@@ -106,10 +106,12 @@ void AnimationControlComponent::tick(float dTime)
 			delete s;
 		removed_states.clear();
 
-		transform = Matrix4::Translation(-root - mob->up * 1.0f);
+		transform = Matrix4::Translation(-root - mob->up);
 		transform *= Quaternion(M_PI - mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
 
 		transform *= Matrix4::Scale(Vec3(scale, scale, scale));
+
+		transform *= Matrix4::Translation(mob->up * (mob->r * 2.0f - 1.0f));
 			
 		for (auto dec : g->decs.items)
 		{
@@ -141,12 +143,12 @@ void AnimationControlComponent::writeLog(outstream& os, ClientData& client)
 	os << scale;
 	if (state)
 	{
-		Serializable::serialize(os, state);
-		state->write_to(os, false);
+		AnimationState::_registry.serialize(os, *state);
+		state->write_to(os);
 	}
 	else
 	{
-		os << (uint32_t)0;
+		os << uint32_t(0);
 	}
 	os << sync;
 }
@@ -154,9 +156,9 @@ void AnimationControlComponent::writeLog(outstream& os, ClientData& client)
 void AnimationControlComponent::readLog(instream& is)
 {
 	is >> scale;
-	auto factory = Serializable::deserialize(is);
+	auto factory = AnimationState::_registry.deserialize(is);
 	if (factory)
-		set_state(dynamic_cast<AnimationState*>(factory->create(is, false)));
+		set_state(factory->create(is, false));
 	else
 		set_state(nullptr);
 	is >> sync;
@@ -177,7 +179,7 @@ void AnimationControlComponent::interpolate(Component * pComponent, float fWeigh
 	if (SyncState::is_ordered_strict(sync, other->sync))
 	{
 		if (other->state)
-			set_state(dynamic_cast<AnimationState*>(Serializable::getFactory(other->state->getSerialID())->create(other->state)));
+			set_state(dynamic_cast<AnimationState*>(AnimationState::_registry.getFactory(other->state->_serial_id)->create(other->state)));
 		else
 			set_state(nullptr);
 		sync = other->sync;

@@ -10,13 +10,13 @@
 #include "ColliderComponent.h"
 #include "MobComponent.h"
 
-const AutoSerialFactory<ProjectileComponent> ProjectileComponent::_factory("ProjectileComponent");
+ASF_C(ProjectileComponent, Component)
 
-ProjectileComponent::ProjectileComponent(void) : Serializable(_factory.id)
+ProjectileComponent::ProjectileComponent(void) : Component(_factory.id)
 {
 }
 
-ProjectileComponent::ProjectileComponent(instream& is, bool full) : Serializable(_factory.id)
+ProjectileComponent::ProjectileComponent(instream& is, bool full) : Component(_factory.id)
 {
 }
 

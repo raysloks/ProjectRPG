@@ -5,13 +5,13 @@
 #include "Quaternion.h"
 #include "Matrix4.h"
 
-const AutoSerialFactory<OrbitComponent> OrbitComponent::_factory("OrbitComponent");
+ASF_C(OrbitComponent, Component)
 
-OrbitComponent::OrbitComponent(void) : Serializable(_factory.id), speed(1.0f)
+OrbitComponent::OrbitComponent(void) : Component(_factory.id), speed(1.0f)
 {
 }
 
-OrbitComponent::OrbitComponent(instream& is, bool full) : Serializable(_factory.id)
+OrbitComponent::OrbitComponent(instream& is, bool full) : Component(_factory.id)
 {
 }
 

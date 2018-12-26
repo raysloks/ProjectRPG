@@ -1,12 +1,12 @@
 #include "SpriteComponent.h"
 
-const AutoSerialFactory<SpriteComponent> SpriteComponent::_factory("SpriteComponent");
+ASF_C(SpriteComponent, Component)
 
-SpriteComponent::SpriteComponent(void) : Serializable(_factory.id)
+SpriteComponent::SpriteComponent(void) : Component(_factory.id)
 {
 }
 
-SpriteComponent::SpriteComponent(instream& is, bool full) : Serializable(_factory.id)
+SpriteComponent::SpriteComponent(instream& is, bool full) : Component(_factory.id)
 {
 }
 

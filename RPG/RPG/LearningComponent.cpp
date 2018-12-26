@@ -1,12 +1,12 @@
 #include "LearningComponent.h"
 
-const AutoSerialFactory<LearningComponent> LearningComponent::_factory("LearningComponent");
+ASF_C(LearningComponent, Component)
 
-LearningComponent::LearningComponent(void) : Serializable(_factory.id)
+LearningComponent::LearningComponent(void) : Component(_factory.id)
 {
 }
 
-LearningComponent::LearningComponent(instream& is, bool full) : Serializable(_factory.id)
+LearningComponent::LearningComponent(instream& is, bool full) : Component(_factory.id)
 {
 }
 

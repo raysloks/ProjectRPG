@@ -17,7 +17,6 @@
     <ClCompile Include="HitComponent.cpp">
       <Filter>Components</Filter>
     </ClCompile>
-    <ClCompile Include="ActionData.cpp" />
     <ClCompile Include="SkillNode.cpp" />
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="InventoryComponent.cpp">
@@ -81,6 +80,8 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Tile.cpp" />
     <ClCompile Include="Chunk.cpp" />
+    <ClCompile Include="Ability.cpp" />
+    <ClCompile Include="Aura.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -98,7 +99,6 @@
     <ClInclude Include="HitComponent.h">
       <Filter>Components</Filter>
     </ClInclude>
-    <ClInclude Include="ActionData.h" />
     <ClInclude Include="SkillNode.h" />
     <ClInclude Include="Item.h" />
     <ClInclude Include="InventoryComponent.h">
@@ -162,6 +162,8 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Tile.h" />
     <ClInclude Include="Chunk.h" />
+    <ClInclude Include="Ability.h" />
+    <ClInclude Include="Aura.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

@@ -29,7 +29,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	static const AutoSerialFactory<VoiceComponent> _factory;
+	ASF_H(VoiceComponent, Component)
 
 	std::vector<float> before;
 	std::vector<Vec2> after;

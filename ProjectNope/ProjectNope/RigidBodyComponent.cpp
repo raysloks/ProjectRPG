@@ -4,13 +4,13 @@
 #include "NewEntity.h"
 #include "World.h"
 
-const AutoSerialFactory<RigidBodyComponent> RigidBodyComponent::_factory("RigidBodyComponent");
+ASF_C(RigidBodyComponent, Component)
 
-RigidBodyComponent::RigidBodyComponent(void) : Serializable(_factory.id)
+RigidBodyComponent::RigidBodyComponent(void) : Component(_factory.id)
 {
 }
 
-RigidBodyComponent::RigidBodyComponent(instream& is, bool full) : Serializable(_factory.id)
+RigidBodyComponent::RigidBodyComponent(instream& is, bool full) : Component(_factory.id)
 {
 }
 

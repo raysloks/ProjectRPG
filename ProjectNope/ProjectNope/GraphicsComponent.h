@@ -44,7 +44,7 @@ public:
 
 	void invalidate(void);
 
-	static const AutoSerialFactory<GraphicsComponent> _factory;
+	ASF_H(GraphicsComponent, Component)
 
 	DecoratorContainer decs;
 

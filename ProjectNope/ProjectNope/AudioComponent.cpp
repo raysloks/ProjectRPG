@@ -7,13 +7,13 @@
 
 #include "ClientData.h"
 
-const AutoSerialFactory<AudioComponent> AudioComponent::_factory("AudioComponent");
+ASF_C(AudioComponent, Component)
 
-AudioComponent::AudioComponent(const std::string& sound, float pow) : Serializable(_factory.id), _sound(sound), gain(pow), src(nullptr), offset(0.0f)
+AudioComponent::AudioComponent(const std::string& sound, float pow) : Component(_factory.id), _sound(sound), gain(pow), src(nullptr), offset(0.0f)
 {
 }
 
-AudioComponent::AudioComponent(instream& is, bool full) : Serializable(_factory.id), src(nullptr)
+AudioComponent::AudioComponent(instream& is, bool full) : Component(_factory.id), src(nullptr)
 {
 	is >> _sound >> offset >> gain >> pos_id;
 }

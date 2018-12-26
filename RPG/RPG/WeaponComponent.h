@@ -32,7 +32,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	static const AutoSerialFactory<WeaponComponent> _factory;
+	ASF_H(WeaponComponent, Component)
 
 	WeaponComponent * swap(size_t index);
 

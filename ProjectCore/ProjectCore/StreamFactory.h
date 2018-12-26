@@ -3,18 +3,18 @@
 #ifndef STREAM_FACTORY_H
 #define STREAM_FACTORY_H
 
-template <class T>
+template <class Base>
 class StreamFactory
 {
 public:
-	virtual T * create(instream&, bool) const
+	virtual Base * create(instream&, bool) const
 	{
-		return 0;
+		return nullptr;
 	}
 
-	virtual T * create(const T*) const
+	virtual Base * create(const Base *) const
 	{
-		return 0;
+		return nullptr;
 	}
 };
 

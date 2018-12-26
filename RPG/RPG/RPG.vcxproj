@@ -153,10 +153,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ActionData.cpp" />
+    <ClCompile Include="Ability.cpp" />
     <ClCompile Include="AIComponent.cpp" />
     <ClCompile Include="AnimationControlComponent.cpp" />
     <ClCompile Include="AnimationState.cpp" />
+    <ClCompile Include="Aura.cpp" />
     <ClCompile Include="CameraControlComponent.cpp" />
     <ClCompile Include="CameraShakeComponent.cpp" />
     <ClCompile Include="ChatComponent.cpp" />
@@ -203,10 +204,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ActionData.h" />
+    <ClInclude Include="Ability.h" />
     <ClInclude Include="AIComponent.h" />
     <ClInclude Include="AnimationControlComponent.h" />
     <ClInclude Include="AnimationState.h" />
+    <ClInclude Include="Aura.h" />
     <ClInclude Include="CameraControlComponent.h" />
     <ClInclude Include="CameraShakeComponent.h" />
     <ClInclude Include="ChatComponent.h" />

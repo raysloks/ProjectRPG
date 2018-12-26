@@ -47,7 +47,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	static const AutoSerialFactory<AIComponent> _factory;
+	ASF_H(AIComponent, Component)
 
 	AIWrapper * wrapper;
 };

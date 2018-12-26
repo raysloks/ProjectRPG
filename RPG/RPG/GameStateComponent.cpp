@@ -16,13 +16,13 @@
 #include "MobComponent.h"
 #include "ChatComponent.h"
 
-const AutoSerialFactory<GameStateComponent> GameStateComponent::_factory("GameStateComponent");
+ASF_C(GameStateComponent, Component)
 
-GameStateComponent::GameStateComponent(void) : Serializable(_factory.id)
+GameStateComponent::GameStateComponent(void) : Component(_factory.id)
 {
 }
 
-GameStateComponent::GameStateComponent(instream& is, bool full) : Serializable(_factory.id)
+GameStateComponent::GameStateComponent(instream& is, bool full) : Component(_factory.id)
 {
 }
 
@@ -105,6 +105,7 @@ void GameStateComponent::write_to(outstream& os) const
 #include "ColliderComponent.h"
 #include "AudioComponent.h"
 #include "CameraShakeComponent.h"
+#include "HitComponent.h"
 
 #include "SimpleState.h"
 
@@ -160,6 +161,37 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 		w->mob_id = mob->entity->get_id();
 
 		entity->world->AddEntity(ent);
+	}
+
+	auto func = [=](MobComponent * target, const Vec3& v)
+	{
+		if (target == mob)
+			return;
+		target->do_damage(4, entity->get_id());
+		target->hit = true;
+	};
+
+	for (size_t i = 0; i < 3; ++i)
+	{
+		NewEntity * hit_ent = new NewEntity();
+
+		PositionComponent * p = new PositionComponent();
+		GraphicsComponent * g = new GraphicsComponent();
+		HitComponent * h = new HitComponent();
+
+		hit_ent->addComponent(p);
+		hit_ent->addComponent(g);
+		hit_ent->addComponent(h);
+
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/sphere32_16.gmdl", Material("data/assets/white.tga"), 0)));
+
+		h->owner = ent->get_id();
+		h->bone = "ItemHand_R";
+		h->offset = Vec3(0.0f, 0.5f + 0.25f * i, 0.0f);
+		h->radius = 0.2f;
+		h->func = func;
+
+		entity->world->AddEntity(hit_ent);
 	}
 
 	return mob;

@@ -6,15 +6,17 @@
 
 #include "BlendUtility.h"
 
-const AutoSerialFactory<RunCycleState> RunCycleState::_factory("RunCycleState");
+ASF_C(RunCycleState, AnimationState)
 
-RunCycleState::RunCycleState(const std::string& n, float s, const std::string& in, float is) : CycleState(n, s), idle(in, is), Serializable(_factory.id)
+RunCycleState::RunCycleState(const std::string& n, float s, const std::string& in, float is) : CycleState(n, s), idle(in, is)
 {
+	_serial_id = _factory.id;
 	t = 0.0f;
 }
 
-RunCycleState::RunCycleState(instream& is, bool full) : CycleState(is, full), idle(is, full), Serializable(_factory.id)
+RunCycleState::RunCycleState(instream& is, bool full) : CycleState(is, full), idle(is, full)
 {
+	_serial_id = _factory.id;
 }
 
 RunCycleState::~RunCycleState()
@@ -76,25 +78,29 @@ void RunCycleState::tick(float dTime)
 		pose->frame = start + length * t;
 
 		pose->pose = anim->getPose(length * t, name);
-		Vec3 forward = Vec3(0.0f, 1.0f, 0.0f) * Quaternion(M_PI - mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
-		float forward_dot = forward.Dot(rel_v.Normalized());
 
-		Vec3 right = Vec3(1.0f, 0.0f, 0.0f) * Quaternion(M_PI - mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
-		float right_dot = right.Dot(rel_v.Normalized());
+		if (pose->anim == "data/assets/units/player/hoodlum.anim")
+		{
+			Vec3 forward = Vec3(0.0f, 1.0f, 0.0f) * Quaternion(M_PI - mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
+			float forward_dot = forward.Dot(rel_v.Normalized());
 
-		right_dot *= fabsf(right_dot);
+			Vec3 right = Vec3(1.0f, 0.0f, 0.0f) * Quaternion(M_PI - mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
+			float right_dot = right.Dot(rel_v.Normalized());
 
-		auto back_pose = anim->getPose(length * t, "run_back");
+			right_dot *= fabsf(right_dot);
 
-		back_pose->interpolate(*anim->getPose(length * t, "run_right"), fmaxf(0.0f, fminf(1.0f, -right_dot)));
-		back_pose->interpolate(*anim->getPose(length * t, "run_left"), fmaxf(0.0f, fminf(1.0f, right_dot)));
+			auto back_pose = anim->getPose(length * t, "run_back");
 
-		pose->pose->interpolate(*anim->getPose(length * t, "run_right"), fmaxf(0.0f, right_dot));
-		pose->pose->interpolate(*anim->getPose(length * t, "run_left"), fmaxf(0.0f, -right_dot));
+			back_pose->interpolate(*anim->getPose(length * t, "run_right"), fmaxf(0.0f, fminf(1.0f, -right_dot)));
+			back_pose->interpolate(*anim->getPose(length * t, "run_left"), fmaxf(0.0f, fminf(1.0f, right_dot)));
 
-		pose->pose->interpolate(*back_pose, fmaxf(0.0f, fminf(1.0f, -forward_dot * 2.0f)));
+			pose->pose->interpolate(*anim->getPose(length * t, "run_right"), fmaxf(0.0f, right_dot));
+			pose->pose->interpolate(*anim->getPose(length * t, "run_left"), fmaxf(0.0f, -right_dot));
 
-		pose->pose->interpolate(*anim->getPose(anim->getLength(idle.name), idle.name), fmaxf(0.0f, 1.0f - fmaxf(1.0f - mob->landed, rel_v.Len())));
+			pose->pose->interpolate(*back_pose, fmaxf(0.0f, fminf(1.0f, -forward_dot * 2.0f)));
+
+			pose->pose->interpolate(*anim->getPose(anim->getLength(idle.name), idle.name), fmaxf(0.0f, 1.0f - fmaxf(1.0f - mob->landed, rel_v.Len())));
+		}
 	}
 }
 
@@ -110,8 +116,8 @@ void RunCycleState::interpolate(AnimationState * other, float fWeight)
 	idle.interpolate(&run_cycle->idle, fWeight);
 }
 
-void RunCycleState::write_to(outstream& os, bool full) const
+void RunCycleState::write_to(outstream& os) const
 {
-	CycleState::write_to(os, full);
-	idle.write_to(os, full);
+	CycleState::write_to(os);
+	idle.write_to(os);
 }

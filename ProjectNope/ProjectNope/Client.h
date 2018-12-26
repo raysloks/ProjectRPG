@@ -87,7 +87,7 @@ public:
 	std::shared_ptr<Buffer> depth_buf, normal_buf, light_buf, color_buf, stencil_buf, flat_stencil_buf;
 	std::shared_ptr<FrameBuffer> depth_prepass_fb, normal_fb, light_fb, deferred_fb, color_fb, stencil_fb, flat_stencil_fb;
 
-	int supersample_x, supersample_y;
+	float supersample_x, supersample_y;
 
 	std::shared_ptr<ShaderProgram> depth_fill_prog, shader_program, normal_prog, light_prog, sky_prog, dof_prog, stencil_prog, flat_stencil_prog, fullscreen_stencil_prog, flat_stencil_outer_prog, gui_prog;
 

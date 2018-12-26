@@ -194,7 +194,7 @@ void ScriptCompile::PushVariable(const std::string& name)
 	stack += varData.type.size;
 
 	varData.target.lvalue = false;
-	varData.target.offset = -stack;
+	varData.target.offset = -(uint32_t)stack;
 	varData.target.mod = 0b10;
 	varData.target.rm = 0b101;
 

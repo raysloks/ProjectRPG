@@ -9,17 +9,17 @@
 
 #include "RenderSetup.h"
 
-const AutoSerialFactory<GraphicsComponent> GraphicsComponent::_factory("GraphicsComponent");
+ASF_C(GraphicsComponent, Component)
 
 thread_local std::vector<GraphicsComponent*> GraphicsComponent::all;
 
-GraphicsComponent::GraphicsComponent(bool dynamic, uint32_t tag) : Serializable(_factory.id), p(nullptr), pose(nullptr)
+GraphicsComponent::GraphicsComponent(bool dynamic, uint32_t tag) : Component(_factory.id), p(nullptr), pose(nullptr)
 {
 	this->dynamic = dynamic;
 	this->tag = tag;
 }
 
-GraphicsComponent::GraphicsComponent(instream& is, bool full) : Serializable(_factory.id), p(nullptr), pose(nullptr)
+GraphicsComponent::GraphicsComponent(instream& is, bool full) : Component(_factory.id), p(nullptr), pose(nullptr)
 {
 	all.push_back(this);
 	is >> dynamic >> tag;

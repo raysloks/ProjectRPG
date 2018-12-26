@@ -16,14 +16,14 @@
 
 #include "Decorator.h"
 
-const AutoSerialFactory<InventoryComponent> InventoryComponent::_factory("InventoryComponent");
+ASF_C(InventoryComponent, Component)
 
-InventoryComponent::InventoryComponent(void) : Serializable(_factory.id)
+InventoryComponent::InventoryComponent(void) : Component(_factory.id)
 {
 	name = "Oogabooga";
 }
 
-InventoryComponent::InventoryComponent(instream& is, bool full) : Serializable(_factory.id)
+InventoryComponent::InventoryComponent(instream& is, bool full) : Component(_factory.id)
 {
 	is >> owner >> name;
 }
@@ -216,7 +216,15 @@ void InventoryComponent::writeLog(outstream& os)
 void InventoryComponent::readLog(instream& is, ClientData& client)
 {
 	if (client.client_id == client_id)
-		is >> name;
+	{
+		std::string next_name;
+		is >> next_name;
+		if (next_name != name)
+		{
+			name = next_name;
+			entity->ss.update(sync);
+		}
+	}
 }
 
 void InventoryComponent::interpolate(Component * pComponent, float fWeight)

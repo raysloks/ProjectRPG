@@ -14,14 +14,14 @@
 
 #include "SimpleState.h"
 
-const AutoSerialFactory<AIComponent> AIComponent::_factory("AIComponent");
+ASF_C(AIComponent, Component)
 
-AIComponent::AIComponent(void) : Serializable(_factory.id)
+AIComponent::AIComponent(void) : Component(_factory.id)
 {
 	wrapper = nullptr;
 }
 
-AIComponent::AIComponent(instream& is, bool full) : Serializable(_factory.id)
+AIComponent::AIComponent(instream& is, bool full) : Component(_factory.id)
 {
 	wrapper = nullptr;
 }

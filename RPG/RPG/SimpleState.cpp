@@ -6,16 +6,18 @@
 
 #include "BlendUtility.h"
 
-const AutoSerialFactory<SimpleState> SimpleState::_factory("SimpleState");
+ASF_C(SimpleState, AnimationState)
 
-SimpleState::SimpleState(const std::string& n, float s) : name(n), speed(s), Serializable(_factory.id)
+SimpleState::SimpleState(const std::string& n, float s) : name(n), speed(s), AnimationState(_factory.id)
 {
+	_serial_id = _factory.id;
 	t = 0.0f;
 	prev_t = 0.0f;
 }
 
-SimpleState::SimpleState(instream& is, bool full) : Serializable(_factory.id)
+SimpleState::SimpleState(instream& is, bool full) : AnimationState(_factory.id)
 {
+	_serial_id = _factory.id;
 	is >> t >> speed >> name;
 	prev_t = t;
 }
@@ -71,7 +73,7 @@ void SimpleState::interpolate(AnimationState * other, float fWeight)
 	t = bu_blend(simple->t, t, fWeight);
 }
 
-void SimpleState::write_to(outstream& os, bool full) const
+void SimpleState::write_to(outstream& os) const
 {
 	os << t << speed << name;
 }

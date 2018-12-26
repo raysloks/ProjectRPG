@@ -7,20 +7,20 @@
 
 #include "RenderSetup.h"
 
-const AutoSerialFactory<LineComponent> LineComponent::_factory("LineComponent");
+ASF_C(LineComponent, Component)
 
 std::set<LineComponent*> LineComponent::all;
 
 int LineComponent::mode = 2;
 
-LineComponent::LineComponent(void) : Serializable(_factory.id)
+LineComponent::LineComponent(void) : Component(_factory.id)
 {
 	all.insert(this);
 	col_mat *= 0.5f;
 	p = 0;
 }
 
-LineComponent::LineComponent(instream& is, bool full) : Serializable(_factory.id)
+LineComponent::LineComponent(instream& is, bool full) : Component(_factory.id)
 {
 	all.insert(this);
 	col_mat *= 0.5f;

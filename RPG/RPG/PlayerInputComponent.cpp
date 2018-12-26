@@ -19,13 +19,13 @@
 #include "Matrix4.h"
 #include "Quaternion.h"
 
-const AutoSerialFactory<PlayerInputComponent> PlayerInputComponent::_factory("PlayerInputComponent");
+ASF_C(PlayerInputComponent, Component)
 
-PlayerInputComponent::PlayerInputComponent(void) : Serializable(_factory.id)
+PlayerInputComponent::PlayerInputComponent(void) : Component(_factory.id)
 {
 }
 
-PlayerInputComponent::PlayerInputComponent(instream& is, bool full) : Serializable(_factory.id)
+PlayerInputComponent::PlayerInputComponent(instream& is, bool full) : Component(_factory.id)
 {
 	is >> cs;
 }

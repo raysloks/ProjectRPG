@@ -10,13 +10,13 @@
 
 #include "ClientData.h"
 
-const AutoSerialFactory<WeaponComponent> WeaponComponent::_factory("WeaponComponent");
+ASF_C(WeaponComponent, Component)
 
-WeaponComponent::WeaponComponent(void) : Serializable(_factory.id)
+WeaponComponent::WeaponComponent(void) : Component(_factory.id)
 {
 }
 
-WeaponComponent::WeaponComponent(instream& is, bool full) : Serializable(_factory.id)
+WeaponComponent::WeaponComponent(instream& is, bool full) : Component(_factory.id)
 {
 	is >> mob_id;
 }

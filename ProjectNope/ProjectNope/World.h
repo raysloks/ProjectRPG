@@ -9,7 +9,6 @@
 #include <thread>
 #include <mutex>
 
-#include "Serializable.h"//for SerialID
 #include "GlobalPosition.h"
 #include "Quaternion.h"
 #include "PositionComponent.h"

@@ -11,13 +11,13 @@
 #include "MobComponent.h"
 #include "AnimationControlComponent.h"
 
-const AutoSerialFactory<HitComponent> HitComponent::_factory("HitComponent");
+ASF_C(HitComponent, Component)
 
-HitComponent::HitComponent(void) : Serializable(_factory.id)
+HitComponent::HitComponent(void) : Component(_factory.id)
 {
 }
 
-HitComponent::HitComponent(instream& is, bool full) : Serializable(_factory.id)
+HitComponent::HitComponent(instream& is, bool full) : Component(_factory.id)
 {
 }
 
@@ -58,7 +58,7 @@ void HitComponent::tick(float dTime)
 			auto acc = ent->getComponent<AnimationControlComponent>();
 
 			float prop = anim->getProperty(bone + ".active", pose->frame);
-			GlobalPosition pos = Vec3(mob->p->p) * anim->getMatrix(anim->getIndex(bone), pose->frame) * acc->transform;
+			GlobalPosition pos = mob->p->p + offset * anim->getMatrix(anim->getIndex(bone), pose->frame) * acc->transform;
 			r = radius * acc->scale * prop;
 			p->p = pos;
 			p->update();
@@ -91,7 +91,7 @@ void HitComponent::tick(float dTime)
 					{
 						GlobalPosition target = mob_p->p;
 						GlobalPosition prev_target = target;
-						float r_plus_r = r + 0.5f;
+						float r_plus_r = r + mob->r;
 
 						auto c = Wall::SphereLine(prev_p - prev_target, p->p - target, Vec3(), r_plus_r);
 

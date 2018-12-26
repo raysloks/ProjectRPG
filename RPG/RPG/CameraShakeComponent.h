@@ -31,7 +31,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	static const AutoSerialFactory<CameraShakeComponent> _factory;
+	ASF_H(CameraShakeComponent, Component)
 
 	Vec3 getShake(void) const;
 

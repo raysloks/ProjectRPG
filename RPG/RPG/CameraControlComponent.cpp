@@ -18,13 +18,13 @@
 
 #include "ClientData.h"
 
-const AutoSerialFactory<CameraControlComponent> CameraControlComponent::_factory("CameraControlComponent");
+ASF_C(CameraControlComponent, Component)
 
-CameraControlComponent::CameraControlComponent(void) : Serializable(_factory.id)
+CameraControlComponent::CameraControlComponent(void) : Component(_factory.id)
 {
 }
 
-CameraControlComponent::CameraControlComponent(instream& is, bool full) : Serializable(_factory.id)
+CameraControlComponent::CameraControlComponent(instream& is, bool full) : Component(_factory.id)
 {
 	cam_rot_basic = Vec2(M_PI_4, M_PI_2 + M_PI_4);
 	distance = 0.0f;

@@ -1,8 +1,8 @@
 #include "VoiceComponent.h"
 
-const AutoSerialFactory<VoiceComponent> VoiceComponent::_factory("VoiceComponent");
+ASF_C(VoiceComponent, Component)
 
-VoiceComponent::VoiceComponent(void) : Serializable(_factory.id)
+VoiceComponent::VoiceComponent(void) : Component(_factory.id)
 {
 	before.reserve(2000);
 	for (int i=0;i<2000;++i)
@@ -11,7 +11,7 @@ VoiceComponent::VoiceComponent(void) : Serializable(_factory.id)
 	}
 }
 
-VoiceComponent::VoiceComponent(instream& is, bool full) : Serializable(_factory.id)
+VoiceComponent::VoiceComponent(instream& is, bool full) : Component(_factory.id)
 {
 }
 

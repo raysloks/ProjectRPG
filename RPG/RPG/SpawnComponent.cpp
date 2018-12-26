@@ -13,13 +13,13 @@
 #include "PoseComponent.h"
 #include "HitComponent.h"
 
-const AutoSerialFactory<SpawnComponent> SpawnComponent::_factory("SpawnComponent");
+ASF_C(SpawnComponent, Component)
 
-SpawnComponent::SpawnComponent(void) : Serializable(_factory.id)
+SpawnComponent::SpawnComponent(void) : Component(_factory.id)
 {
 }
 
-SpawnComponent::SpawnComponent(instream& is, bool full) : Serializable(_factory.id)
+SpawnComponent::SpawnComponent(instream& is, bool full) : Component(_factory.id)
 {
 }
 

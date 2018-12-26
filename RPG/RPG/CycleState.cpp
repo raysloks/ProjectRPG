@@ -6,15 +6,17 @@
 
 #include "BlendUtility.h"
 
-const AutoSerialFactory<CycleState> CycleState::_factory("CycleState");
+ASF_C(CycleState, AnimationState)
 
-CycleState::CycleState(const std::string& n, float s) : SimpleState(n, s), Serializable(_factory.id)
+CycleState::CycleState(const std::string& n, float s) : SimpleState(n, s)
 {
+	_serial_id = _factory.id;
 	t = 0.0f;
 }
 
-CycleState::CycleState(instream& is, bool full) : SimpleState(is, full), Serializable(_factory.id)
+CycleState::CycleState(instream& is, bool full) : SimpleState(is, full)
 {
+	_serial_id = _factory.id;
 }
 
 CycleState::~CycleState()
@@ -64,7 +66,7 @@ void CycleState::interpolate(AnimationState * other, float fWeight)
 	t = bu_wrap(cycle->t, t, fWeight);
 }
 
-void CycleState::write_to(outstream& os, bool full) const
+void CycleState::write_to(outstream& os) const
 {
-	SimpleState::write_to(os, full);
+	SimpleState::write_to(os);
 }

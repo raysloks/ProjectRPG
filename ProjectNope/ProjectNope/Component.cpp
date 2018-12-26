@@ -1,10 +1,8 @@
 #include "Component.h"
 
-const AutoSerialFactory<Component> Component::_factory("Component");
+SerializableRegistry<Component> Component::_registry;
 
-Component::Component(void) : Serializable(_factory.id) {}
-
-Component::Component(instream& is, bool full) : Serializable(_factory.id) {}
+Component::Component(uint32_t id) : _serial_id(id) {}
 
 Component::~Component(void) {}
 
@@ -33,3 +31,9 @@ void Component::write_to(outstream& os, ClientData& client) const {}
 void Component::write_to(outstream& os) const {}
 
 bool Component::visible(ClientData& client) const { return true; }
+
+SerializableRegistrationQueue<Component> * Component::_getRegistrationQueue()
+{
+	static SerializableRegistrationQueue<Component> * rq = new SerializableRegistrationQueue<Component>();
+	return rq;
+}

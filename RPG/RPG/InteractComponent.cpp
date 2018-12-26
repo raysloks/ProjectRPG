@@ -1,12 +1,12 @@
 #include "InteractComponent.h"
 
-const AutoSerialFactory<InteractComponent> InteractComponent::_factory("InteractComponent");
+ASF_C(InteractComponent, Component)
 
-InteractComponent::InteractComponent(void) : Serializable(_factory.id)
+InteractComponent::InteractComponent(void) : Component(_factory.id)
 {
 }
 
-InteractComponent::InteractComponent(instream& is, bool full) : Serializable(_factory.id)
+InteractComponent::InteractComponent(instream& is, bool full) : Component(_factory.id)
 {
 	is >> name >> action_name;
 }

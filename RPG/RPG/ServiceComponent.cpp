@@ -1,12 +1,12 @@
 #include "ServiceComponent.h"
 
-const AutoSerialFactory<ServiceComponent> ServiceComponent::_factory("ServiceComponent");
+ASF_C(ServiceComponent, Component)
 
-ServiceComponent::ServiceComponent(void) : Serializable(_factory.id)
+ServiceComponent::ServiceComponent(void) : Component(_factory.id)
 {
 }
 
-ServiceComponent::ServiceComponent(instream& is, bool full) : Serializable(_factory.id)
+ServiceComponent::ServiceComponent(instream& is, bool full) : Component(_factory.id)
 {
 }
 

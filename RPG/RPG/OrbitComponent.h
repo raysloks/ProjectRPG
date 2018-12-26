@@ -30,7 +30,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	static const AutoSerialFactory<OrbitComponent> _factory;
+	ASF_H(OrbitComponent, Component)
 
 	GlobalPosition center;
 	Vec3 angle, offset;

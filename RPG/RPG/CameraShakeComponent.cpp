@@ -3,14 +3,14 @@
 #include "NewEntity.h"
 #include "World.h"
 
-const AutoSerialFactory<CameraShakeComponent> CameraShakeComponent::_factory("CameraShakeComponent");
+ASF_C(CameraShakeComponent, Component)
 
-CameraShakeComponent::CameraShakeComponent(void) : Serializable(_factory.id)
+CameraShakeComponent::CameraShakeComponent(void) : Component(_factory.id)
 {
 	t = 0.0f;
 }
 
-CameraShakeComponent::CameraShakeComponent(instream& is, bool full) : Serializable(_factory.id)
+CameraShakeComponent::CameraShakeComponent(instream& is, bool full) : Component(_factory.id)
 {
 	t = 0.0f;
 }

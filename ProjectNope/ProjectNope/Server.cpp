@@ -173,6 +173,11 @@ void Server::tick(float dTime)
 
 		if (snapshotTimer <= 0)
 		{
+			int64_t freq, start, end;
+
+			QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
+			QueryPerformanceCounter((LARGE_INTEGER*)&start);
+
 			snapshotTimer += snapshotRate;
 			for (auto i = conns.begin(); i != conns.end(); ++i)
 			{
@@ -227,6 +232,10 @@ void Server::tick(float dTime)
 				if (ent != nullptr)
 					ent->ss.conf.clear();
 			}
+
+			QueryPerformanceCounter((LARGE_INTEGER*)&end);
+
+			Profiler::set("snapshot", 1.0 / (static_cast<double>(end - start) / freq));
 		}
 	}
 

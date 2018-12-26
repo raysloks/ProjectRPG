@@ -1,12 +1,12 @@
 #include "PoseComponent.h"
 
-const AutoSerialFactory<PoseComponent> PoseComponent::_factory("PoseComponent");
+ASF_C(PoseComponent, Component)
 
-PoseComponent::PoseComponent(void) : Serializable(_factory.id)
+PoseComponent::PoseComponent(void) : Component(_factory.id)
 {
 }
 
-PoseComponent::PoseComponent(instream& is, bool full) : Serializable(_factory.id)
+PoseComponent::PoseComponent(instream& is, bool full) : Component(_factory.id)
 {
 	is >> anim;
 }

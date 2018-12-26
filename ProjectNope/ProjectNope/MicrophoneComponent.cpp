@@ -1,12 +1,12 @@
 #include "MicrophoneComponent.h"
 
-const AutoSerialFactory<MicrophoneComponent> MicrophoneComponent::_factory("MicrophoneComponent");
+ASF_C(MicrophoneComponent, Component)
 
-MicrophoneComponent::MicrophoneComponent(void) : Serializable(_factory.id)
+MicrophoneComponent::MicrophoneComponent(void) : Component(_factory.id)
 {
 }
 
-MicrophoneComponent::MicrophoneComponent(instream& is, bool full) : Serializable(_factory.id)
+MicrophoneComponent::MicrophoneComponent(instream& is, bool full) : Component(_factory.id)
 {
 }
 

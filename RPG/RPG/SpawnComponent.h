@@ -37,7 +37,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	static const AutoSerialFactory<SpawnComponent> _factory;
+	ASF_H(SpawnComponent, Component)
 
 	MobComponent * spawn();
 	MobComponent * spawn(const Vec3& v);

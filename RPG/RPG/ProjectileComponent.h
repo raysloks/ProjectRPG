@@ -34,7 +34,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	static const AutoSerialFactory<ProjectileComponent> _factory;
+	ASF_H(ProjectileComponent, Component)
 
 	Vec3 v;
 	float drag;

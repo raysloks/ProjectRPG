@@ -374,6 +374,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="cpp.hint" />
     <None Include="data\deferred_frag.txt" />
     <None Include="data\deferred_vert.txt" />
     <None Include="data\dfill_frag.txt" />
