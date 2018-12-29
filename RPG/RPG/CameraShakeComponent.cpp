@@ -3,7 +3,7 @@
 #include "NewEntity.h"
 #include "World.h"
 
-ASF_C(CameraShakeComponent, Component)
+AutoSerialFactory<CameraShakeComponent, Component> CameraShakeComponent::_factory("CameraShakeComponent");
 
 CameraShakeComponent::CameraShakeComponent(void) : Component(_factory.id)
 {

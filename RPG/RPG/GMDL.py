@@ -66,18 +66,19 @@ def write_gmdl(self, context, filepath):
                     mat_data = mesh.materials[mat[0].material_index]
                     for tex in mat_data.texture_slots:
                         if tex is not None:
-                            f.write(struct.pack('c', str.encode('M')))
-                            texture_filepath = tex.texture.image.filepath
-                            texture_abs_filepath = bpy.path.abspath(texture_filepath)
-                            texture_filepath = bpy.path.relpath(texture_abs_filepath, abs_filepath)
-                            texture_filepath = texture_filepath.replace("\\", "/");
-                            texture_filepath = texture_filepath[5:]
-                            f.write(struct.pack('<i', len(texture_filepath)))
-                            f.write(str.encode(texture_filepath))
-                            if tex.texture.use_interpolation:
-                                f.write(struct.pack('c', str.encode('o')))
-                                f.write(struct.pack('<i', len("mag_linear")))
-                                f.write(str.encode("mag_linear"))
+                            if hasattr(tex.texture, 'image'):
+                                f.write(struct.pack('c', str.encode('M')))
+                                texture_filepath = tex.texture.image.filepath
+                                texture_abs_filepath = bpy.path.abspath(texture_filepath)
+                                texture_filepath = bpy.path.relpath(texture_abs_filepath, abs_filepath)
+                                texture_filepath = texture_filepath.replace("\\", "/");
+                                texture_filepath = texture_filepath[5:]
+                                f.write(struct.pack('<i', len(texture_filepath)))
+                                f.write(str.encode(texture_filepath))
+                                if tex.texture.use_interpolation:
+                                    f.write(struct.pack('c', str.encode('o')))
+                                    f.write(struct.pack('<i', len("mag_linear")))
+                                    f.write(str.encode("mag_linear"))
                 for face in mat:
                     f.write(struct.pack('c',str.encode('F')))
                     f.write(struct.pack('<3I',face.vertices[0] + vertex_index_offset,face.vertices[1] + vertex_index_offset,face.vertices[2] + vertex_index_offset))

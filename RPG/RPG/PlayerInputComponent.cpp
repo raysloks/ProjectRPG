@@ -19,7 +19,7 @@
 #include "Matrix4.h"
 #include "Quaternion.h"
 
-ASF_C(PlayerInputComponent, Component)
+AutoSerialFactory<PlayerInputComponent, Component> PlayerInputComponent::_factory("PlayerInputComponent");
 
 PlayerInputComponent::PlayerInputComponent(void) : Component(_factory.id)
 {
@@ -111,7 +111,9 @@ void PlayerInputComponent::tick(float dTime)
 
 	if (mob != nullptr)
 	{
-		mob->facing = facing;
+		auto acc = entity->getComponent<AnimationControlComponent>();
+		if (!acc->has_state("roll"))
+			mob->facing = facing;
 
 		if (entity->world->authority)
 		{
@@ -122,7 +124,7 @@ void PlayerInputComponent::tick(float dTime)
 			if (cs.consume("attack"))
 				mob->input["attack"] = buffer_duration;
 			if (cs.consume("dash"))
-				mob->input["dash"] = buffer_duration;
+				mob->input["roll"] = buffer_duration;
 			if (cs.consume("jump"))
 				mob->input["jump"] = buffer_duration;
 		}

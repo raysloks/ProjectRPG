@@ -8,7 +8,7 @@
 
 #include "SkeletalAnimation.h"
 
-ASF_C(LightComponent, Component)
+AutoSerialFactory<LightComponent, Component> LightComponent::_factory("LightComponent");
 
 std::vector<LightComponent*> LightComponent::all;
 

@@ -18,7 +18,7 @@
 
 #include "ClientData.h"
 
-ASF_C(CameraControlComponent, Component)
+AutoSerialFactory<CameraControlComponent, Component> CameraControlComponent::_factory("CameraControlComponent");
 
 CameraControlComponent::CameraControlComponent(void) : Component(_factory.id)
 {

@@ -35,7 +35,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	ASF_H(TriggerComponent, Component)
+	static AutoSerialFactory<TriggerComponent, Component> _factory;
 
 	bool inside_area(const GlobalPosition& p) const;
 

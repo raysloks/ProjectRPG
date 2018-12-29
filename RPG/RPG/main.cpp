@@ -541,9 +541,9 @@ void start_engine_instance(std::string address, uint16_t port, uint64_t lobby_id
 	}
 }
 
-INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-	PSTR lpCmdLine, INT nCmdShow)
-//int main()
+//INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+//	PSTR lpCmdLine, INT nCmdShow)
+int main()
 {
 	if (false)
 	{
@@ -636,7 +636,7 @@ INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	std::cout << "starting game..." << std::endl;
 
-	std::cmatch match_server;
+	/*std::cmatch match_server;
 	std::regex reg_server("\\+server (.*)");
 	if (std::regex_match(lpCmdLine, match_server, reg_server))
 	{
@@ -655,7 +655,7 @@ INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
 	std::cmatch match_connect_lobby;
 	std::regex reg_connect_lobby("\\+connect_lobby (.*)");
-	std::regex_match(lpCmdLine, match_connect_lobby, reg_connect_lobby);
+	std::regex_match(lpCmdLine, match_connect_lobby, reg_connect_lobby);*/
 
 	//std::shared_ptr<ISteamWrapper> steam(ISteamWrapper::make());
 	

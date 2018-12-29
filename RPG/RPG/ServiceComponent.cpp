@@ -1,6 +1,6 @@
 #include "ServiceComponent.h"
 
-ASF_C(ServiceComponent, Component)
+AutoSerialFactory<ServiceComponent, Component> ServiceComponent::_factory("ServiceComponent");
 
 ServiceComponent::ServiceComponent(void) : Component(_factory.id)
 {

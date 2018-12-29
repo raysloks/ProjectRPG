@@ -37,7 +37,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	ASF_H(LineComponent, Component)
+	static AutoSerialFactory<LineComponent, Component> _factory;
 
 	std::vector<std::pair<Vec3, Vec3>> lines;
 	std::vector<std::pair<Vec3, Vec3>> color;

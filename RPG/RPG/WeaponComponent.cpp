@@ -10,7 +10,7 @@
 
 #include "ClientData.h"
 
-ASF_C(WeaponComponent, Component)
+AutoSerialFactory<WeaponComponent, Component> WeaponComponent::_factory("WeaponComponent");
 
 WeaponComponent::WeaponComponent(void) : Component(_factory.id)
 {

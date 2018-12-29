@@ -1,6 +1,6 @@
 #include "SpriteComponent.h"
 
-ASF_C(SpriteComponent, Component)
+AutoSerialFactory<SpriteComponent, Component> SpriteComponent::_factory("SpriteComponent");
 
 SpriteComponent::SpriteComponent(void) : Component(_factory.id)
 {

@@ -42,7 +42,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	ASF_H(MobComponent, Component)
+	static AutoSerialFactory<MobComponent, Component> _factory;
 
 	void do_damage(size_t damage, EntityID source);
 	void do_heal(size_t heal, EntityID source);

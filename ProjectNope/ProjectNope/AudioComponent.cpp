@@ -7,7 +7,7 @@
 
 #include "ClientData.h"
 
-ASF_C(AudioComponent, Component)
+AutoSerialFactory<AudioComponent, Component> AudioComponent::_factory("AudioComponent");
 
 AudioComponent::AudioComponent(const std::string& sound, float pow) : Component(_factory.id), _sound(sound), gain(pow), src(nullptr), offset(0.0f)
 {

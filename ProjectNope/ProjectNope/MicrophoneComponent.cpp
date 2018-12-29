@@ -1,6 +1,6 @@
 #include "MicrophoneComponent.h"
 
-ASF_C(MicrophoneComponent, Component)
+AutoSerialFactory<MicrophoneComponent, Component> MicrophoneComponent::_factory("MicrophoneComponent");
 
 MicrophoneComponent::MicrophoneComponent(void) : Component(_factory.id)
 {

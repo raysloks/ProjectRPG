@@ -39,7 +39,7 @@ public:
 
 	bool visible(ClientData& client) const;
 
-	ASF_H(InventoryComponent, Component)
+	static AutoSerialFactory<InventoryComponent, Component> _factory;
 
 	void set_display(bool enable);
 

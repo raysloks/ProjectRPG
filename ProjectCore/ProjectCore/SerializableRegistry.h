@@ -12,7 +12,7 @@ public:
 	SerializableRegistry()
 	{
 		registerFactory(0, new StreamFactory<Base>());
-		auto queue = Base::_getRegistrationQueue();
+		auto queue = _getRegistrationQueue();
 		queue->registry = this;
 		for (auto factory : queue->queue)
 		{
@@ -42,6 +42,12 @@ public:
 	StreamFactory<Base> * getFactory(uint32_t id)
 	{
 		return reg[id];
+	}
+
+	static SerializableRegistrationQueue<Base> * _getRegistrationQueue()
+	{
+		static SerializableRegistrationQueue<Base> * rq = new SerializableRegistrationQueue<Base>();
+		return rq;
 	}
 
 	std::unordered_map<uint32_t, StreamFactory<Base>*> reg;

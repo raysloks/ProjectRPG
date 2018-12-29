@@ -1,6 +1,6 @@
 #include "InteractComponent.h"
 
-ASF_C(InteractComponent, Component)
+AutoSerialFactory<InteractComponent, Component> InteractComponent::_factory("InteractComponent");
 
 InteractComponent::InteractComponent(void) : Component(_factory.id)
 {

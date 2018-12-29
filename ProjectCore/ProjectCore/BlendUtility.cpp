@@ -138,8 +138,8 @@ float bu_angle(float current, float target, float a)
 	if (isnan(target))
 		return current;
 
-	target = fmodf(target+M_PI, M_PI*2.0f)-M_PI;
-	current = fmodf(current+M_PI, M_PI*2.0f)-M_PI;
+	target = target - M_PI * 2.0f * floor(target / (M_PI * 2.0f));
+	current = current - M_PI * 2.0f * floor(current / (M_PI * 2.0f));
 
 	float c = current-target;
 	if (c > M_PI)
@@ -147,7 +147,7 @@ float bu_angle(float current, float target, float a)
 	if (c < -M_PI)
 		c += M_PI*2.0f;
 	c *= a;
-	return fmodf(target + c + M_PI, M_PI*2.0f)-M_PI;
+	return target + c - M_PI * 2.0f * floor((target + c) / (M_PI * 2.0f));
 }
 
 float bu_wrap(float current, float target, float a, float b, float dTime)

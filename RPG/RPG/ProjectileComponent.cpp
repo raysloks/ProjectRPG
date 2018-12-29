@@ -10,7 +10,7 @@
 #include "ColliderComponent.h"
 #include "MobComponent.h"
 
-ASF_C(ProjectileComponent, Component)
+AutoSerialFactory<ProjectileComponent, Component> ProjectileComponent::_factory("ProjectileComponent");
 
 ProjectileComponent::ProjectileComponent(void) : Component(_factory.id)
 {

@@ -1,6 +1,6 @@
 #include "PoseComponent.h"
 
-ASF_C(PoseComponent, Component)
+AutoSerialFactory<PoseComponent, Component> PoseComponent::_factory("PoseComponent");
 
 PoseComponent::PoseComponent(void) : Component(_factory.id)
 {

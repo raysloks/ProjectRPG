@@ -38,7 +38,6 @@ public:
 	uint32_t _serial_id;
 
 	static SerializableRegistry<Component> _registry;
-	static SerializableRegistrationQueue<Component> * _getRegistrationQueue();
 
 	NewEntity * entity;
 };

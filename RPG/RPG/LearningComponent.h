@@ -29,7 +29,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	ASF_H(LearningComponent, Component)
+	static AutoSerialFactory<LearningComponent, Component> _factory;
 };
 
 #endif

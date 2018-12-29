@@ -14,7 +14,7 @@
 
 #include "SimpleState.h"
 
-ASF_C(AIComponent, Component)
+AutoSerialFactory<AIComponent, Component> AIComponent::_factory("AIComponent");
 
 AIComponent::AIComponent(void) : Component(_factory.id)
 {

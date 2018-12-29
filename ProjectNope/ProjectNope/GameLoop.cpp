@@ -105,15 +105,16 @@ void GameLoop::init(void)
 
 void GameLoop::tick(void)
 {
+	float time_scale = 1.0f;
 	if (client)
 	{
-		client->pre_frame(fullInSeconds);
+		client->pre_frame(fullInSeconds * time_scale);
 		client->render();
 		client->input.clear();
 		client->platform->input(gpEventManager, client->lockCursor, client->hideCursor);
 		gpEventManager->Tick();
 		client->input.update();
-		client->post_frame(fullInSeconds);
+		client->post_frame(fullInSeconds * time_scale);
 
 		client->platform->set_vsync(useVSync);
 		client->platform->swap();
@@ -125,7 +126,7 @@ void GameLoop::tick(void)
 		}
 	}
 
-	server->tick(secondsPerStep);
+	server->tick(secondsPerStep * time_scale);
 	world->clean();
 
 	QueryPerformanceCounter((LARGE_INTEGER*)&end);

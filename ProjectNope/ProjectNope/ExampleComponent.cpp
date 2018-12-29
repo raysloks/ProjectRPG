@@ -1,6 +1,6 @@
 #include "ExampleComponent.h"
 
-ASF_C(ExampleComponent, Component)
+AutoSerialFactory<ExampleComponent, Component> ExampleComponent::_factory("ExampleComponent");
 
 ExampleComponent::ExampleComponent(void) : Component(_factory.id)
 {

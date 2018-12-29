@@ -40,7 +40,7 @@ public:
 
 	int bone_id;
 
-	ASF_H(LightComponent, Component)
+	static AutoSerialFactory<LightComponent, Component> _factory;
 
 	static std::vector<LightComponent*> all;
 };

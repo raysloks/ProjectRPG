@@ -1,6 +1,8 @@
 #include "Aura.h"
 
-Aura::Aura()
+SerializableRegistry<Aura> Aura::_registry;
+
+Aura::Aura(uint32_t id) : _serial_id(id)
 {
 }
 

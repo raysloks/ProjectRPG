@@ -13,7 +13,7 @@
 #include "PoseComponent.h"
 #include "HitComponent.h"
 
-ASF_C(SpawnComponent, Component)
+AutoSerialFactory<SpawnComponent, Component> SpawnComponent::_factory("SpawnComponent");
 
 SpawnComponent::SpawnComponent(void) : Component(_factory.id)
 {

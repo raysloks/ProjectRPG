@@ -8,7 +8,7 @@
 #include "PositionComponent.h"
 #include "GraphicsComponent.h"
 
-ASF_C(ColliderComponent, Component)
+AutoSerialFactory<ColliderComponent, Component> ColliderComponent::_factory("ColliderComponent");
 
 thread_local std::vector<ColliderComponent*> ColliderComponent::all;
 

@@ -26,7 +26,7 @@ public:
 
 	void update(void);
 
-	ASF_H(PositionComponent, Component)
+	static AutoSerialFactory<PositionComponent, Component> _factory;
 
 	GlobalPosition p;
 

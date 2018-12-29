@@ -11,7 +11,7 @@
 #include "MobComponent.h"
 #include "AnimationControlComponent.h"
 
-ASF_C(HitComponent, Component)
+AutoSerialFactory<HitComponent, Component> HitComponent::_factory("HitComponent");
 
 HitComponent::HitComponent(void) : Component(_factory.id)
 {

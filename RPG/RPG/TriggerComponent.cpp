@@ -5,7 +5,7 @@
 
 #include "MobComponent.h"
 
-ASF_C(TriggerComponent, Component)
+AutoSerialFactory<TriggerComponent, Component> TriggerComponent::_factory("TriggerComponent");
 
 TriggerComponent::TriggerComponent(void) : Component(_factory.id)
 {

@@ -24,7 +24,6 @@ public:
 	uint32_t _serial_id;
 
 	static SerializableRegistry<AnimationState> _registry;
-	static SerializableRegistrationQueue<AnimationState> * _getRegistrationQueue();
 
 	AnimationControlComponent * acc;
 	PoseComponent * pose;

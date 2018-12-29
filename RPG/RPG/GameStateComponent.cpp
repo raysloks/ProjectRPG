@@ -16,7 +16,7 @@
 #include "MobComponent.h"
 #include "ChatComponent.h"
 
-ASF_C(GameStateComponent, Component)
+AutoSerialFactory<GameStateComponent, Component> GameStateComponent::_factory("GameStateComponent");
 
 GameStateComponent::GameStateComponent(void) : Component(_factory.id)
 {

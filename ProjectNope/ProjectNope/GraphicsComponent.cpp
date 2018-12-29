@@ -9,7 +9,7 @@
 
 #include "RenderSetup.h"
 
-ASF_C(GraphicsComponent, Component)
+AutoSerialFactory<GraphicsComponent, Component> GraphicsComponent::_factory("GraphicsComponent");
 
 thread_local std::vector<GraphicsComponent*> GraphicsComponent::all;
 

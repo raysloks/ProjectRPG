@@ -5,7 +5,7 @@
 #include "Quaternion.h"
 #include "Matrix4.h"
 
-ASF_C(OrbitComponent, Component)
+AutoSerialFactory<OrbitComponent, Component> OrbitComponent::_factory("OrbitComponent");
 
 OrbitComponent::OrbitComponent(void) : Component(_factory.id), speed(1.0f)
 {

@@ -6,7 +6,7 @@
 
 #include "BlendUtility.h"
 
-ASF_C(RunCycleState, AnimationState)
+AutoSerialFactory<RunCycleState, AnimationState> RunCycleState::_factory("RunCycleState");
 
 RunCycleState::RunCycleState(const std::string& n, float s, const std::string& in, float is) : CycleState(n, s), idle(in, is)
 {
@@ -51,12 +51,10 @@ void RunCycleState::tick(float dTime)
 
 	if (!mob->landed)
 	{
-		if (prev_t <= 0.5f && t > 0.5f)
-			t = 0.5f;
-		if (prev_t <= 1.0f && t > 1.0f)
-			t = 1.0f;
-		if (prev_t <= 0.0f && t > 0.0f)
-			t = 0.0f;
+		if (prev_t <= 0.4f && t > 0.4f)
+			t = 0.4f;
+		if (prev_t <= 0.9f && t > 0.9f)
+			t = 0.9f;
 	}
 
 	for (auto e : events)

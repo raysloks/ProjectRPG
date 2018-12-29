@@ -16,7 +16,7 @@
 
 #include "Decorator.h"
 
-ASF_C(InventoryComponent, Component)
+AutoSerialFactory<InventoryComponent, Component> InventoryComponent::_factory("InventoryComponent");
 
 InventoryComponent::InventoryComponent(void) : Component(_factory.id)
 {
@@ -78,9 +78,11 @@ void InventoryComponent::set_display(bool enable)
 						{
 							auto sprite = Resource::get<Texture>("data/assets/white.tga");
 
+							Writing::setOffset(Vec2(-0.5f, 0.0f));
+
 							// health
 							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec2(0.0f, rs.size.y)));
+							rs.addTransform(Matrix4::Translation(Vec2(rs.size.x * 0.25f, rs.size.y)));
 							rs.addTransform(Matrix4::Translation(Vec3(10.0f, -10.0f, 0.0f)));
 							Writing::setSize(25);
 							Writing::setColor(0.75f, 0.25f, 0.25f);
@@ -101,9 +103,7 @@ void InventoryComponent::set_display(bool enable)
 							rs.addTransform(Matrix4::Translation(Vec3(0.0f, -10.0f, 0.0f)));
 							Writing::setSize(25);
 							Writing::setColor(0.25f, 0.75f, 0.25f);
-							Writing::setOffset(Vec2(-0.5f, 0.0f));
 							Writing::render(std::to_string((int)std::floorf(mob->stamina.current)) + " / " + std::to_string((int)std::floorf(mob->stamina.max)), rs);
-							Writing::setOffset(Vec2(0.0f, 0.0f));
 							rs.popTransform();
 							rs.popTransform();
 
@@ -116,11 +116,10 @@ void InventoryComponent::set_display(bool enable)
 
 							// mana
 							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec2(rs.size.x, rs.size.y)));
+							rs.addTransform(Matrix4::Translation(Vec2(rs.size.x * 0.75f, rs.size.y)));
 							rs.addTransform(Matrix4::Translation(Vec3(-10.0f, -10.0f, 0.0f)));
 							Writing::setSize(25);
 							Writing::setColor(0.25f, 0.25f, 0.75f);
-							Writing::setOffset(Vec2(-1.0f, 0.0f));
 							Writing::render(std::to_string((int)std::floorf(mob->mana.current)) + " / " + std::to_string((int)std::floorf(mob->mana.max)), rs);
 							Writing::setOffset(Vec2());
 							rs.popTransform();
@@ -132,6 +131,8 @@ void InventoryComponent::set_display(bool enable)
 							if (sprite)
 								sprite->render(rs);
 							rs.popTransform();
+
+							Writing::setOffset(Vec2(0.0f, 0.0f));
 
 						}));
 					}

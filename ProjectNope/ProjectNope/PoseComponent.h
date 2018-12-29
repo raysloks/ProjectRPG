@@ -30,7 +30,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	ASF_H(PoseComponent, Component)
+	static AutoSerialFactory<PoseComponent, Component> _factory;
 
 	float frame;
 	std::shared_ptr<Pose> pose;

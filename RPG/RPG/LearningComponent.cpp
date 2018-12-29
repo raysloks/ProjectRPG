@@ -1,6 +1,6 @@
 #include "LearningComponent.h"
 
-ASF_C(LearningComponent, Component)
+AutoSerialFactory<LearningComponent, Component> LearningComponent::_factory("LearningComponent");
 
 LearningComponent::LearningComponent(void) : Component(_factory.id)
 {

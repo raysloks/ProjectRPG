@@ -70,7 +70,7 @@ Client::Client(World * pWorld)
 
 	windows.push_back(std::shared_ptr<Window>(new MainMenuWindow(world, this, 0, 0, 0, 0)));
 
-	interpol_delay = 2.0f/60.0f;
+	interpol_delay = 2.0f/32.0f;
 
 	packet_loss_sim = 0.0f;
 
@@ -217,6 +217,7 @@ void Client::setup(void)
 				force_cap = bvar->b;
 
 			secondsPerStep = 1.0/((double)tickrate);
+			interpol_delay = 2.0f * secondsPerStep;
 			fpsCap = 1.0/((double)framerate_cap);
 			forceCap = force_cap;
 			forceFrameSync = force_sync;

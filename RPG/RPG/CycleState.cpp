@@ -6,7 +6,7 @@
 
 #include "BlendUtility.h"
 
-ASF_C(CycleState, AnimationState)
+AutoSerialFactory<CycleState, AnimationState> CycleState::_factory("CycleState");
 
 CycleState::CycleState(const std::string& n, float s) : SimpleState(n, s)
 {

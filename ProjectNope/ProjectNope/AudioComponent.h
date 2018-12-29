@@ -34,7 +34,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 	
-	ASF_H(AudioComponent, Component)
+	static AutoSerialFactory<AudioComponent, Component> _factory;
 
 	std::string _sound;
 	AudioSource * src;

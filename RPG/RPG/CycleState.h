@@ -18,5 +18,5 @@ public:
 
 	void write_to(outstream& os) const;
 
-	ASF_H(CycleState, AnimationState)
+	static AutoSerialFactory<CycleState, AnimationState> _factory;
 };

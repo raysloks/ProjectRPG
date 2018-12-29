@@ -4,7 +4,7 @@
 
 #include "World.h"
 
-ASF_C(PositionComponent, Component)
+AutoSerialFactory<PositionComponent, Component> PositionComponent::_factory("PositionComponent");
 
 PositionComponent::PositionComponent(void) : Component(_factory.id)
 {

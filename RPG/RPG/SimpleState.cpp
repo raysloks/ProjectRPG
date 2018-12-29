@@ -6,7 +6,7 @@
 
 #include "BlendUtility.h"
 
-ASF_C(SimpleState, AnimationState)
+AutoSerialFactory<SimpleState, AnimationState> SimpleState::_factory("SimpleState");
 
 SimpleState::SimpleState(const std::string& n, float s) : name(n), speed(s), AnimationState(_factory.id)
 {

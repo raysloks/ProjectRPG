@@ -44,7 +44,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	ASF_H(ChatComponent, Component)
+	static AutoSerialFactory<ChatComponent, Component> _factory;
 
 	void set_display(bool enable);
 

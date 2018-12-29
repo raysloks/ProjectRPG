@@ -27,7 +27,7 @@
 
 #include "SimpleState.h"
 
-ASF_C(MobComponent, Component)
+AutoSerialFactory<MobComponent, Component> MobComponent::_factory("MobComponent");
 
 MobComponent::MobComponent(void) : Component(_factory.id), health(10), stamina(10), mana(10)
 {
@@ -76,6 +76,16 @@ void MobComponent::tick(float dTime)
 
 		auto acc = entity->getComponent<AnimationControlComponent>();
 
+		bool recovering = input.find("recover") != input.end();
+		bool rolling = acc->has_state("roll") || acc->has_state("hit");
+		bool busy = !acc->has_state("run");
+
+		if (acc->has_state("roll"))
+		{
+			Vec3 vd = land_v - v;
+			facing.x = atan2(vd.x, vd.y);
+		}
+
 		if (input["switch"] && weapon)
 		{
 			weapon = weapon->swap(1 - weapon_index);
@@ -86,10 +96,15 @@ void MobComponent::tick(float dTime)
 		if (input["attack"])
 		{
 			bool busy = !acc->has_state("run");
-			if (!busy)
+			if (!busy && !recovering)
 			{
-				acc->set_state(new SimpleState("attack", 3.0f));
-				input.erase("attack");
+				size_t stamina_cost = 1;
+				if (stamina.current >= stamina_cost)
+				{
+					stamina.current -= stamina_cost;
+					acc->set_state(new SimpleState("attack", 3.0f));
+					input.erase("attack");
+				}
 			}
 		}
 
@@ -98,6 +113,18 @@ void MobComponent::tick(float dTime)
 			v += Vec3(0.0f, 0.0f, 10.0f) * Quaternion(facing.y, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion(-facing.x, Vec3(0.0f, 0.0f, 1.0f));
 			input.erase("dash");
 			//input["dash_cooldown"] = 3.0f;
+		}
+
+		if (!busy)
+			stamina_regen += 4.0f * dTime;
+
+		int32_t stamina_regen_integer = stamina_regen;
+		stamina_regen -= stamina_regen_integer;
+		stamina.current += stamina_regen_integer;
+
+		if (stamina.current >= stamina.max)
+		{
+			stamina_regen = std::fminf(stamina_regen, 0.0f);
 		}
 
 		if (stamina.current <= 0)
@@ -414,19 +441,13 @@ void MobComponent::tick(float dTime)
 							target = land_n.Cross(target_right);
 							target.Normalize();
 
-							bool recovering = input.find("recover") != input.end();
-							bool rolling = acc->has_state("roll") || acc->has_state("hit");
-							bool busy = !acc->has_state("run");
-
 							if (recovering)
 								run = false;
 
-							if (!rolling)
+							if (!busy)
 							{
 								if (target != Vec3() && run)
-									stamina_regen -= dTime * 1.0f;
-								else
-									stamina_regen += dTime * 10.0f / 3.0f;
+									stamina_regen -= dTime * 5.0f;
 							}
 
 							float speed = crouch ? 2.0f : run ? 9.0f : recovering ? 3.0f : 6.0f;
@@ -438,13 +459,13 @@ void MobComponent::tick(float dTime)
 
 							target *= move.Len() * speed;
 
-							if (!rolling)
 							{
 								v -= land_v;
 								float nv = v.Dot(land_n);
 								v -= land_n * nv;
 
-								v = bu_blend(v, target, -0.5f, -40.0f, dTime);
+								if (!rolling)
+									v = bu_blend(v, target, -0.5f, -40.0f, dTime);
 
 								v += land_n * nv;
 								v += land_v;
@@ -452,18 +473,18 @@ void MobComponent::tick(float dTime)
 
 							if (!recovering && !busy)
 							{
-								if (input.find("roll") != input.end() && target != Vec3())
+								if (input.find("roll") != input.end() && target != Vec3() && stamina.current >= 1)
 								{
-									acc->set_state(new SimpleState("roll", 1.5f));
+									acc->set_state(new SimpleState("roll", 2.0f));
 
-									v = target.Normalized() * 12.5f + land_v;
+									v = target.Normalized() * 10.0f + land_v;
 
 									stamina.current -= 1;
 
 									input.erase("roll");
 								}
 
-								if (input.find("jump") != input.end())
+								if (input.find("jump") != input.end() && stamina.current >= 2)
 								{
 									v -= land_v;
 									if (up.Dot(v) < 0.0f)
@@ -471,19 +492,10 @@ void MobComponent::tick(float dTime)
 									v += land_v;
 									v += up * 4.0f;
 
-									stamina.current -= 1;
+									stamina.current -= 2;
 
 									input.erase("jump");
 								}
-							}
-
-							int32_t stamina_regen_integer = stamina_regen;
-							stamina_regen -= stamina_regen_integer;
-							stamina.current += stamina_regen_integer;
-
-							if (stamina.current >= stamina.max)
-							{
-								stamina_regen = std::fminf(stamina_regen, 0.0f);
 							}
 						}
 					}

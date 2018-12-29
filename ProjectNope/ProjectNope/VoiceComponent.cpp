@@ -1,6 +1,6 @@
 #include "VoiceComponent.h"
 
-ASF_C(VoiceComponent, Component)
+AutoSerialFactory<VoiceComponent, Component> VoiceComponent::_factory("VoiceComponent");
 
 VoiceComponent::VoiceComponent(void) : Component(_factory.id)
 {

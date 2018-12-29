@@ -4,7 +4,7 @@
 #include "NewEntity.h"
 #include "World.h"
 
-ASF_C(RigidBodyComponent, Component)
+AutoSerialFactory<RigidBodyComponent, Component> RigidBodyComponent::_factory("RigidBodyComponent");
 
 RigidBodyComponent::RigidBodyComponent(void) : Component(_factory.id)
 {

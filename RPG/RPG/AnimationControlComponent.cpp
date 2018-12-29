@@ -21,7 +21,7 @@
 #include "CycleState.h"
 #include "RunCycleState.h"
 
-ASF_C(AnimationControlComponent, Component)
+AutoSerialFactory<AnimationControlComponent, Component> AnimationControlComponent::_factory("AnimationControlComponent");
 
 AnimationControlComponent::AnimationControlComponent(void) : Component(_factory.id)
 {

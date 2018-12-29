@@ -37,7 +37,7 @@ public:
 
 	bool visible(ClientData& client) const;
 
-	ASF_H(CameraControlComponent, Component)
+	static AutoSerialFactory<CameraControlComponent, Component> _factory;
 
 	uint32_t client_id;
 

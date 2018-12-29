@@ -39,7 +39,7 @@ public:
 
 	bool visible(ClientData& client) const;
 
-	ASF_H(PlayerInputComponent, Component)
+	static AutoSerialFactory<PlayerInputComponent, Component> _factory;
 
 	uint32_t client_id;
 

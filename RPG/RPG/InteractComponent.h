@@ -32,7 +32,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	ASF_H(InteractComponent, Component)
+	static AutoSerialFactory<InteractComponent, Component> _factory;
 
 	std::function<void(MobComponent*)> func;
 

@@ -31,9 +31,3 @@ void Component::write_to(outstream& os, ClientData& client) const {}
 void Component::write_to(outstream& os) const {}
 
 bool Component::visible(ClientData& client) const { return true; }
-
-SerializableRegistrationQueue<Component> * Component::_getRegistrationQueue()
-{
-	static SerializableRegistrationQueue<Component> * rq = new SerializableRegistrationQueue<Component>();
-	return rq;
-}

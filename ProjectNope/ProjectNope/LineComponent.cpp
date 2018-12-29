@@ -7,7 +7,7 @@
 
 #include "RenderSetup.h"
 
-ASF_C(LineComponent, Component)
+AutoSerialFactory<LineComponent, Component> LineComponent::_factory("LineComponent");
 
 std::set<LineComponent*> LineComponent::all;
 

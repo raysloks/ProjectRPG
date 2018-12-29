@@ -36,7 +36,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	ASF_H(HitComponent, Component)
+	static AutoSerialFactory<HitComponent, Component> _factory;
 
 	EntityID owner;
 	std::string bone;

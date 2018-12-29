@@ -17,13 +17,13 @@ outstream& operator<<(outstream& os, const ChatMessage& msg)
 	return os;
 }
 
-instream& operator >> (instream& is, ChatMessage& msg)
+instream& operator>>(instream& is, ChatMessage& msg)
 {
 	is >> msg.timeout >> msg.message;
 	return is;
 }
 
-ASF_C(ChatComponent, Component)
+AutoSerialFactory<ChatComponent, Component> ChatComponent::_factory("ChatComponent");
 
 ChatComponent::ChatComponent(void) : Component(_factory.id)
 {

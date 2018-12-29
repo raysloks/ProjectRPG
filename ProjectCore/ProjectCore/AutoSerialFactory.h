@@ -7,9 +7,6 @@
 
 #include <string>
 
-#define ASF_H(x, y) static AutoSerialFactory<x, y> _factory;
-#define ASF_C(x, y) AutoSerialFactory<x, y> x::_factory(#x);
-
 template <class T, class Base>
 class AutoSerialFactory
 {
@@ -18,7 +15,7 @@ public:
 	{
 		id = sdbm(name);
 		factory = new SerialFactory<T, Base>();
-		auto queue = Base::_getRegistrationQueue();
+		auto queue = Base::_registry._getRegistrationQueue();
 		if (queue->registry)
 			Base::_registry.registerFactory(id, factory);
 		else

@@ -32,7 +32,7 @@ public:
 	void write_to(outstream& os, ClientData& client) const;
 	void write_to(outstream& os) const;
 
-	ASF_H(RigidBodyComponent, Component)
+	static AutoSerialFactory<RigidBodyComponent, Component> _factory;
 
 	GlobalPosition * p;
 	Vec3 v, move, w, rot;

@@ -27,5 +27,5 @@ public:
 	std::string name;
 	std::map<float, std::function<void(void)>> events;
 
-	ASF_H(SimpleState, AnimationState)
+	static AutoSerialFactory<SimpleState, AnimationState> _factory;
 };

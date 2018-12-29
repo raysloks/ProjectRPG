@@ -1,12 +1,12 @@
 screen_width = 1280;
 screen_height = 720;
-fullscreen = 0;
+fullscreen = 1;
 
 vsync = 1;
 force_sync = 0;
 force_cap = 0;
 framerate_cap = 0;
-tickrate = 60;
+tickrate = 64;
 
 anisotropic_filtering = 16;
 
