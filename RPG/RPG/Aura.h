@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AutoSerialFactory.h"
 #include "SerializableRegistry.h"
 
 class MobComponent;

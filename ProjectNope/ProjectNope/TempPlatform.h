@@ -15,7 +15,7 @@ public:
 	void apply(void);
 
 	void set_z_depth(int depth);
-	void set_fullscreen(bool fullscreen);
+	void set_fullscreen(bool fullscreen, int monitor);
 	void set_position(int x, int y);
 	void resize(int w, int h);
 
@@ -35,6 +35,7 @@ private:
 
 	int mX, mY, mW, mH, z_buffer_depth;
 	bool use_fullscreen, use_vsync;
+	int fullscreen_monitor;
 };
 
 #endif

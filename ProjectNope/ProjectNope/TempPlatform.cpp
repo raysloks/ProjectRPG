@@ -5,8 +5,8 @@ class TPWindow :
 	public Platform::GUIObject
 {
 public:
-	TPWindow(const std::string& name, int x, int y, int w, int h, int z_depth, bool fullscreen, TempPlatform * pP) : 
-	  GUIObject(name, x, y, w, h, z_depth, fullscreen), platform(pP) {
+	TPWindow(const std::string& name, int x, int y, int w, int h, int z_depth, bool fullscreen, int fullscreen_monitor, TempPlatform * pP) : 
+	  GUIObject(name, x, y, w, h, z_depth, fullscreen, fullscreen_monitor), platform(pP) {
 	  }
 
 	  IEventManager * pCallback;
@@ -76,7 +76,7 @@ void TempPlatform::apply(void)
 		ptr->Destroy();
 		delete ptr;
 	}
-	ptr = new TPWindow("RPG", mX, mY, mW, mH, z_buffer_depth, use_fullscreen, this);
+	ptr = new TPWindow("RPG", mX, mY, mW, mH, z_buffer_depth, use_fullscreen, fullscreen_monitor, this);
 	ptr->getContext()->SetVSync(use_vsync);
 }
 
@@ -85,9 +85,10 @@ void TempPlatform::set_z_depth(int depth)
 	z_buffer_depth = depth;
 }
 
-void TempPlatform::set_fullscreen(bool fullscreen)
+void TempPlatform::set_fullscreen(bool fullscreen, int monitor)
 {
 	use_fullscreen = fullscreen;
+	fullscreen_monitor = monitor;
 }
 
 void TempPlatform::set_position(int x, int y)

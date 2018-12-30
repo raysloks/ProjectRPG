@@ -154,6 +154,8 @@ namespace Platform
 	{
 		if (!isInit)
 		{
+			SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+
 			hInstance = GetModuleHandle( 0 );
 
 			ZeroMemory(&wcMold, sizeof(WNDCLASSEX));
@@ -202,14 +204,15 @@ namespace Platform
 			dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 			dwStyle = WS_OVERLAPPEDWINDOW;
 		}
-		
-		SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 
 		RECT wr = {mX, mY, mX + mW, mY + mH};
 		AdjustWindowRectEx(&wr, dwStyle, FALSE, dwExStyle);
 
+		if (monitor >= monitors.size())
+			monitor = 0;
+
 		if (isFullScr)
-			wr = monitors[0].rect;
+			wr = monitors[monitor].rect;
 
 		hWnd = CreateWindowEx(dwExStyle, wc_name, mName.c_str(),
 			dwStyle, wr.left, wr.top,
@@ -223,7 +226,7 @@ namespace Platform
 		pContext = std::shared_ptr<RenderContext>(new RenderContext(hWnd, z_depth));
 	}
 
-	GUIObject::GUIObject(const std::string& name, int x, int y, int w, int h, int depth_depth, bool fullscreen)
+	GUIObject::GUIObject(const std::string& name, int x, int y, int w, int h, int depth_depth, bool fullscreen, int fullscreen_monitor)
 	{
 		mName = name;
 		mX = x;
@@ -232,6 +235,7 @@ namespace Platform
 		mH = h;
 		z_depth = depth_depth;
 		isFullScr = fullscreen;
+		monitor = fullscreen_monitor;
 		crsLock = false;
 		_InitWnd();
 	}

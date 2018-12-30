@@ -176,6 +176,7 @@
     <ClCompile Include="RunCycleState.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="ShadowSpawnUnit.cpp" />
+    <ClCompile Include="ShieldAura.cpp" />
     <ClCompile Include="SimpleState.cpp" />
     <ClCompile Include="OrbitComponent.cpp" />
     <ClCompile Include="PlayerInputComponent.cpp" />
@@ -226,6 +227,7 @@
     <ClInclude Include="RunCycleState.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ShadowSpawnUnit.h" />
+    <ClInclude Include="ShieldAura.h" />
     <ClInclude Include="SimpleState.h" />
     <ClInclude Include="OrbitComponent.h" />
     <ClInclude Include="PlayerInputComponent.h" />

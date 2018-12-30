@@ -19,7 +19,7 @@ namespace Platform
 	class GUIObject
 	{
 	public:
-		GUIObject(const std::string& name, int x, int y, int w, int h, int depth_depth = 0, bool fullscreen = false);
+		GUIObject(const std::string& name, int x, int y, int w, int h, int depth_depth = 0, bool fullscreen = false, int fullscreen_monitor = 0);
 		virtual ~GUIObject();
 
 		void Tick();
@@ -61,6 +61,7 @@ namespace Platform
 		HWND hWnd;
 		std::string mName;
 		int mX, mY, mW, mH, z_depth;
+		int monitor;
 		void _InitWnd(void);
 		static LRESULT CALLBACK WinProc(HWND hWnd,
 			UINT Msg,

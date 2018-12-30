@@ -82,6 +82,7 @@
     <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="Ability.cpp" />
     <ClCompile Include="Aura.cpp" />
+    <ClCompile Include="ShieldAura.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -164,6 +165,7 @@
     <ClInclude Include="Chunk.h" />
     <ClInclude Include="Ability.h" />
     <ClInclude Include="Aura.h" />
+    <ClInclude Include="ShieldAura.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

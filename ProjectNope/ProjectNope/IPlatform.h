@@ -9,7 +9,7 @@ public:
 	virtual void apply(void) = 0;
 
 	virtual void set_z_depth(int depth) = 0;
-	virtual void set_fullscreen(bool fullscreen) = 0;
+	virtual void set_fullscreen(bool fullscreen, int monitor = 0) = 0;
 	virtual void set_position(int x, int y) = 0;
 	virtual void resize(int w, int h) = 0;
 

@@ -155,6 +155,7 @@ void Client::setup(void)
 			}
 			int screen_width = 640;
 			int screen_height = 480;
+			int monitor = 0;
 			float anisotropic_filtering = 1.0f;
 			bool fullscreen = false;
 			bool vsync = false;
@@ -171,6 +172,9 @@ void Client::setup(void)
 			var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("screen_height"));
 			if (var!=0)
 				screen_height = var->f;
+			var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("monitor"));
+			if (var != 0)
+				monitor = var->f;
 			var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("fullscreen"));
 			if (var!=0)
 				fullscreen = var->f;
@@ -228,7 +232,7 @@ void Client::setup(void)
 
 			platform->resize(screen_width, screen_height);
 			platform->set_z_depth(z_depth);
-			platform->set_fullscreen(fullscreen);
+			platform->set_fullscreen(fullscreen, monitor);
 			platform->set_vsync(vsync);
 
 			platform->apply();
