@@ -1,6 +1,6 @@
 #version 440
 
-uniform sampler2D alpha;
+uniform sampler2D diffuse; // alpha
 uniform vec4 color;
 
 in vec2 texco;
@@ -11,7 +11,7 @@ void main()
 {
 	vec4 temp_color = color;
 
-	float tex_alpha = texture(alpha, texco).r;
+	float tex_alpha = texture(diffuse, texco).r;
 
 	tex_alpha = (tex_alpha - 0.5) / min(1.0, (fwidth(texco.x) + fwidth(texco.y)) * 1024.0) + 0.5;
 

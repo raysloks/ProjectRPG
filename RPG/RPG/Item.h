@@ -9,7 +9,7 @@ public:
 	Item();
 	~Item();
 
-	std::string name;
+	std::string name, desc, icon;
 	std::shared_ptr<Decorator> dec;
 };
 

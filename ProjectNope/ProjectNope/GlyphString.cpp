@@ -24,8 +24,6 @@ GlyphString::~GlyphString(void)
 
 void GlyphString::render(RenderSetup& rs)
 {
-	rs.pushTransform();
-
 	TimeslotC(string_render);
 
 	VBO vbo;

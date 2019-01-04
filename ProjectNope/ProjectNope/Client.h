@@ -89,6 +89,8 @@ public:
 
 	float supersample_x, supersample_y;
 
+	float gui_scale;
+
 	std::shared_ptr<ShaderProgram> depth_fill_prog, shader_program, normal_prog, light_prog, sky_prog, dof_prog, stencil_prog, flat_stencil_prog, fullscreen_stencil_prog, flat_stencil_outer_prog, gui_prog;
 
 	std::shared_ptr<ScriptMemory> mem;

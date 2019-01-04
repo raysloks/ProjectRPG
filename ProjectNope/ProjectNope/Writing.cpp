@@ -9,6 +9,7 @@
 std::string font;
 float r, g, b, a;
 size_t x_size, y_size;
+float scale;
 Vec2 offset;
 
 void Writing::setFont(const std::string& name)
@@ -34,6 +35,11 @@ void Writing::setSize(size_t xs, size_t ys)
 {
 	x_size = xs;
 	y_size = ys;
+}
+
+void Writing::setScale(float s)
+{
+	scale = s;
 }
 
 void Writing::setOffset(const Vec2& off)
@@ -143,16 +149,21 @@ void Writing::render(const std::string& text, RenderSetup& rs)
 		prog->Uniform("color", Vec4(r, g, b, a));
 	});
 
+	rs.pushTransform();
+	rs.addTransform(Matrix4::Scale(Vec2(1.0f / scale)));
+
 	rs.pushMod(mod);
 
 	GlyphString gs(text);
 	gs.font = font;
-	gs.x_size = x_size;
-	gs.y_size = y_size;
+	gs.x_size = x_size * scale;
+	gs.y_size = y_size * scale;
 	gs.offset = offset;
 	gs.render(rs);
 
 	rs.popMod();
+
+	rs.addTransform(Matrix4::Scale(Vec2(scale)));
 
 	/*auto font = Resource::get<FontResource>("data/assets/fonts/Lora-Regular.ttf");
 	if (font!=0)

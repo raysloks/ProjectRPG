@@ -26,6 +26,8 @@ InventoryComponent::InventoryComponent(void) : Component(_factory.id)
 InventoryComponent::InventoryComponent(instream& is, bool full) : Component(_factory.id)
 {
 	is >> owner >> name;
+	items.items.push_back(std::make_shared<Item>());
+	items.items.push_back(std::make_shared<Item>());
 }
 
 InventoryComponent::~InventoryComponent(void)
@@ -38,8 +40,8 @@ void InventoryComponent::connect(NewEntity * pEntity, bool authority)
 {
 	if (authority)
 		sync = pEntity->ss.allocate([this](ClientData&) {
-		send = true;
-	}, std::function<bool(ClientData&)>());
+			send = true;
+		}, std::function<bool(ClientData&)>());
 }
 
 void InventoryComponent::disconnect(void)
@@ -134,6 +136,41 @@ void InventoryComponent::set_display(bool enable)
 
 							Writing::setOffset(Vec2(0.0f, 0.0f));
 
+							ShaderMod mod(ShaderProgram::Get("data/gui_vert.txt", "data/gui_frag.txt"), [](const std::shared_ptr<ShaderProgram>& prog)
+							{
+								prog->Uniform("color", Vec4(1.0f));
+							});
+							rs.pushTransform();
+							rs.addTransform(Matrix4::Translation(Vec2(rs.size.x * 0.25f, rs.size.y * 0.25f)));
+							for (auto item : items.items)
+							{
+								if (item)
+								{
+									auto icon = Resource::get<Texture>(item->icon);
+									if (icon)
+									{
+										rs.pushMod(mod);
+										icon->render(rs, Vec2(64.0f));
+										rs.popMod();
+									}
+									rs.pushTransform();
+									rs.addTransform(Matrix4::Translation(Vec2(80.0f, 24.0f)));
+									Writing::setSize(25);
+									Writing::setColor(1.0f, 1.0f, 1.0f);
+									Writing::render(item->name, rs);
+									rs.popTransform();
+									rs.popTransform();
+									rs.pushTransform();
+									rs.addTransform(Matrix4::Translation(Vec2(80.0f, 40.0f)));
+									Writing::setSize(15);
+									Writing::setColor(1.0f, 1.0f, 1.0f, 0.8f);
+									Writing::render(item->desc, rs);
+									rs.popTransform();
+									rs.popTransform();
+									rs.addTransform(Matrix4::Translation(Vec3(0.0f, 64.0f, 0.0f)));
+								}
+							}
+							rs.popTransform();
 						}));
 					}
 					else

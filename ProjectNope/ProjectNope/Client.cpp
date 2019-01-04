@@ -164,8 +164,9 @@ void Client::setup(void)
 			float tickrate = 60.0f;
 			int force_sync = -1;
 			int z_depth = 8;
-			float supersampling_x = 1.0f;
-			float supersampling_y = 1.0f;
+			supersample_x = 1.0f;
+			supersample_y = 1.0f;
+			gui_scale = 1.0f;
 			auto var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("screen_width"));
 			if (var!=0)
 				screen_width = var->f;
@@ -206,10 +207,13 @@ void Client::setup(void)
 				z_depth = var->f;
 			var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("supersampling_x"));
 			if (var!=0)
-				supersampling_x = var->f;
+				supersample_x = var->f;
 			var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("supersampling_y"));
 			if (var!=0)
-				supersampling_y = var->f;
+				supersample_y = var->f;
+			var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("gui_scale"));
+			if (var != 0)
+				gui_scale = var->f;
 			auto bvar = std::dynamic_pointer_cast<BooleanVar>(mem->getVariable("fullscreen"));
 			if (bvar!=0)
 				fullscreen = bvar->b;
@@ -226,9 +230,6 @@ void Client::setup(void)
 			forceCap = force_cap;
 			forceFrameSync = force_sync;
 			useVSync = vsync;
-
-			supersample_x = supersampling_x;
-			supersample_y = supersampling_y;
 
 			platform->resize(screen_width, screen_height);
 			platform->set_z_depth(z_depth);
@@ -1295,8 +1296,11 @@ void Client::render_world(void)
 
 		RenderSetup rs;
 
-		int gui_w = view_w;
-		int gui_h = view_h;
+		float gui_w = view_w;
+		float gui_h = view_h;
+
+		gui_w /= gui_scale;
+		gui_h /= gui_scale;
 
 		Matrix4 ortho;
 		ortho.mtrx[0][0] = 2.0f / gui_w;
@@ -1308,7 +1312,7 @@ void Client::render_world(void)
 		rs.view = proj;
 
 		ShaderMod mod(gui_prog, [this, ortho, &rs](const std::shared_ptr<ShaderProgram>& prog) {
-			prog->Uniform("alpha", 0); // texture unit 0
+			prog->Uniform("diffuse", 0); // texture unit 0
 			prog->UniformMatrix4f("transform", (rs.transform*ortho).data);
 			prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
 		});
@@ -1318,6 +1322,7 @@ void Client::render_world(void)
 		Writing::setColor(0.0f, 0.0f, 0.0f);
 		Writing::setFont("data/assets/fonts/NotoSans-SemiBold.ttf");
 		Writing::setSize(12);
+		Writing::setScale(gui_scale);
 
 		rs.addTransform(Matrix4::Translation(Vec3(-gui_w / 2.0f, -gui_h / 2.0f, 0.0f)));
 

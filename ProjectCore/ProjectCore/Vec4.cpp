@@ -8,6 +8,10 @@ Vec4::Vec4(void) : x(0.0f), y(0.0f), z(0.0f), w(0.0f)
 {
 }
 
+Vec4::Vec4(float a) : x(a), y(a), z(a), w(a)
+{
+}
+
 Vec4::Vec4(float a, float b, float c, float d) : x(a), y(b), z(c), w(d)
 {
 }

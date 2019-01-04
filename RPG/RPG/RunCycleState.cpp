@@ -39,9 +39,9 @@ void RunCycleState::tick(float dTime)
 	if (rel_v == Vec2() && mob->landed == 1.0f)
 	{
 		idle.tick(dTime);
-		t = 0.5f;
-		if (prev_t > 0.25f && prev_t <= 0.75f)
-			t = 0.0f;
+		t = 0.4f;
+		if (prev_t > 0.15f && prev_t <= 0.65f)
+			t = 0.9f;
 		return;
 	}
 

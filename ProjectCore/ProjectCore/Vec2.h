@@ -11,6 +11,7 @@ public:
 	float x, y;
 
 	Vec2(void);
+	Vec2(float a);
 	Vec2(float a, float b);
 	Vec2(instream& is);
 	~Vec2(void);

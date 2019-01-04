@@ -2,6 +2,7 @@
 #include "GUIObject.h"
 #include "streams.h"
 #include "RenderSetup.h"
+#include "Vec2.h"
 
 #ifndef Texture_H
 #define Texture_H
@@ -20,6 +21,7 @@ public:
 	virtual GLuint getGLTexID(void);
 
 	void render(RenderSetup& rs);
+	void render(RenderSetup& rs, const Vec2& size);
 
 	bool sRGB;
 	float fAnisotropicFiltering;
