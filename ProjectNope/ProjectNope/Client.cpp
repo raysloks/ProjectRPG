@@ -775,7 +775,7 @@ void Client::render_world(void)
 
 
 		// raytracing shadows setup
-		if (shadow_quality == 3)
+		if (shadow_quality == 2)
 		{
 			// calculate noise shadow sample distribution
 			if (input.isDown(Platform::KeyEvent::N))
@@ -799,7 +799,7 @@ void Client::render_world(void)
 			}
 
 			// calculate hexagon grid shadow sample distribution
-			if (input.isDown(Platform::KeyEvent::H))
+			if (input.isDown(Platform::KeyEvent::H) || light_samples.empty())
 			{
 				std::vector<Vec2> points;
 				std::set<std::pair<int, int>> visited;
@@ -844,7 +844,7 @@ void Client::render_world(void)
 			}
 
 			// calculate rings shadow sample distribution
-			if (input.isDown(Platform::KeyEvent::B) || light_samples.empty())
+			if (input.isDown(Platform::KeyEvent::B))
 			{
 				std::vector<Vec2> points;
 				int ring = 1;
@@ -1030,7 +1030,7 @@ void Client::render_world(void)
 				glDisable(GL_STENCIL_TEST);
 			}
 
-			if (shadow_quality == 3)
+			if (shadow_quality == 2)
 			{
 				// render raytracing stencil
 				{
@@ -1192,9 +1192,12 @@ void Client::render_world(void)
 			Vec3 fog_add(0.0001f, 0.000125f, 0.0002f);
 
 			{
-				glEnable(GL_STENCIL_TEST);
-				glStencilFunc(GL_EQUAL, 0, 0xff);
-				glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+				if (shadow_quality > 0)
+				{
+					glEnable(GL_STENCIL_TEST);
+					glStencilFunc(GL_EQUAL, 0, 0xff);
+					glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+				}
 
 				ShaderMod mod(shader_program, [=, &rs](const std::shared_ptr<ShaderProgram>& prog) {
 					prog->Uniform("light", light);
@@ -1207,6 +1210,7 @@ void Client::render_world(void)
 					prog->UniformMatrix4f("proj", proj.data);
 					prog->UniformMatrix4f("proj_inv", proj_inv.data);
 					prog->Uniform3fv("light_samples", light_samples);
+					prog->Uniform("shadow_quality", shadow_quality);
 				});
 
 				glActiveTexture(GL_TEXTURE3);
@@ -1221,6 +1225,7 @@ void Client::render_world(void)
 				glDisable(GL_STENCIL_TEST);
 			}
 
+			if (shadow_quality > 0)
 			{
 				glEnable(GL_STENCIL_TEST);
 				glStencilFunc(GL_NOTEQUAL, 0, 0xff);
@@ -1234,6 +1239,7 @@ void Client::render_world(void)
 					prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
 					prog->UniformMatrix4f("proj", proj.data);
 					prog->UniformMatrix4f("proj_inv", proj_inv.data);
+					prog->Uniform("shadow_quality", 0);
 				});
 
 				rs.pushMod(mod);
@@ -1307,14 +1313,18 @@ void Client::render_world(void)
 		ortho.mtrx[1][1] = -2.0f / gui_h;
 		ortho.mtrx[2][2] = 2.0f / std::max(gui_w, gui_h);
 
+		Matrix4 ortho_inv = ortho.Inverse();
+
 		rs.size = Vec2(gui_w, gui_h);
 
 		rs.view = proj;
 
-		ShaderMod mod(gui_prog, [this, ortho, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+		ShaderMod mod(gui_prog, [=, &rs](const std::shared_ptr<ShaderProgram>& prog) {
 			prog->Uniform("diffuse", 0); // texture unit 0
 			prog->UniformMatrix4f("transform", (rs.transform*ortho).data);
 			prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
+			prog->UniformMatrix4f("proj", ortho.data);
+			prog->UniformMatrix4f("proj_inv", ortho_inv.data);
 		});
 
 		rs.pushMod(mod);

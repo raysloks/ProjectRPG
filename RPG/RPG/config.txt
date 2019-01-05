@@ -6,9 +6,7 @@ monitor = 0;
 gui_scale = 1.0;
 
 vsync = 1;
-force_sync = 0;
-force_cap = 0;
-framerate_cap = 0;
+
 tickrate = 64;
 
 anisotropic_filtering = 16;
@@ -16,12 +14,12 @@ anisotropic_filtering = 16;
 shadow_res = 1024;
 shadow_splits = 1;
 
-shadow_quality = 1;
+shadow_quality = 2;
 
 ao_quality = 1;
 
-supersampling_x = 1;
-supersampling_y = 1;
+supersampling_x = 2;
+supersampling_y = 2;
 supersampling_r = 1;
 
 jitter = 0;

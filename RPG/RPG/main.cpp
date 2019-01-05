@@ -159,7 +159,7 @@ public:
 			world->AddEntity(ent);
 		}
 
-		GolemUnit::spawn(Vec3(0.0f, -350.0f, 0.0f), world);
+		GolemUnit::spawn(Vec3(-50.0f, -300.0f, 0.0f), world);
 
 		return;
 

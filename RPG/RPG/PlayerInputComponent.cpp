@@ -100,6 +100,8 @@ void PlayerInputComponent::post_frame(float dTime)
 				cs.activate("dash");
 			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].a.pressed)
 				cs.activate("jump");
+			if (input.isPressed(Platform::KeyEvent::F17))
+				cs.activate("fly");
 		}
 	}
 }
@@ -127,6 +129,8 @@ void PlayerInputComponent::tick(float dTime)
 				mob->input["roll"] = buffer_duration;
 			if (cs.consume("jump"))
 				mob->input["jump"] = buffer_duration;
+			if (cs.consume("fly"))
+				mob->input["dash"] = buffer_duration;
 		}
 	}
 }

@@ -52,7 +52,7 @@ public:
 
 	SyncContainer<Item> items;
 
-	float rot;
+	bool open;
 
 	uint32_t sync;
 	bool send;

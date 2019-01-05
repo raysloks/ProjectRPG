@@ -28,7 +28,7 @@ void main()
 
 	vec3 n = normalize(cross(real[1] - real[0], real[2] - real[0]));
 
-	float facing = step(dot(n, cd), 0.0) * 2.0 - 1.0;
+	float facing = step(dot(n, cd), sin(atan(lsize))) * 2.0 - 1.0;
 
 	vec3 sides[3];
 	sides[0] = normalize(real[1] - real[0]);
