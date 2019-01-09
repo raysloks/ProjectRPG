@@ -141,18 +141,19 @@ void ChatComponent::set_display(bool enable)
 			if (!func)
 			{
 				func.reset(new std::function<void(RenderSetup&)>([this](RenderSetup& rs) {
-					size_t stack_reset = rs.transform_stack.size();
 					rs.pushTransform();
 
-					rs.addTransform(Matrix4::Translation(Vec3(20.0f, 200.0f, 0.0f)));
-					Writing::setSize(15);
+					rs.addTransform(Matrix4::Translation(Vec2(20.0f, rs.size.y - 20.0f)));
+					Writing::setSize(16);
 					Writing::setColor(1.0f, 1.0f, 1.0f);
 					for (size_t i = 0; i < messages.size(); i++)
 					{
 						Writing::render(messages[i].message, rs);
+						rs.popTransform();
+						rs.addTransform(Matrix4::Translation(Vec2(0.0f, -20.0f)));
 					}
 
-					rs.transform_stack.resize(stack_reset);
+					rs.popTransform();
 				}));
 				client->render2D.push_back(func);
 			}

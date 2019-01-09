@@ -31,3 +31,8 @@ void Component::write_to(outstream& os, ClientData& client) const {}
 void Component::write_to(outstream& os) const {}
 
 bool Component::visible(ClientData& client) const { return true; }
+
+uint32_t Component::getSerial() const
+{
+	return _serial_id;
+}

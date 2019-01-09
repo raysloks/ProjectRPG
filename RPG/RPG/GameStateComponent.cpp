@@ -167,7 +167,7 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	{
 		if (target == mob)
 			return;
-		target->do_damage(4, entity->get_id());
+		target->do_damage(HitData(2, entity->get_id()));
 		target->hit = true;
 	};
 

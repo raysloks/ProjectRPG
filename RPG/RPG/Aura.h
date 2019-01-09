@@ -3,20 +3,27 @@
 #include "AutoSerialFactory.h"
 #include "SerializableRegistry.h"
 
-class MobComponent;
+#include "MobComponent.h"
 
 class Aura
 {
 protected:
-	Aura(uint32_t id);
+	Aura();
+	Aura(float duration);
 
 public:
 	virtual ~Aura();
 
 	virtual void attach(MobComponent * mob);
-	virtual void detach(MobComponent * mob);
 
-	uint32_t _serial_id;
+	virtual void readLog(instream& is);
+	virtual void writeLog(outstream& os);
+
+	virtual void write_to(outstream& os);
+
+	virtual uint32_t getSerial() const;
 
 	static SerializableRegistry<Aura> _registry;
+
+	float duration;
 };

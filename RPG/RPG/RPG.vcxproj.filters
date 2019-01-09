@@ -83,6 +83,10 @@
     <ClCompile Include="Ability.cpp" />
     <ClCompile Include="Aura.cpp" />
     <ClCompile Include="ShieldAura.cpp" />
+    <ClCompile Include="DamageTypeData.cpp" />
+    <ClCompile Include="HitData.cpp" />
+    <ClCompile Include="DamageData.cpp" />
+    <ClCompile Include="BlendState.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -166,6 +170,10 @@
     <ClInclude Include="Ability.h" />
     <ClInclude Include="Aura.h" />
     <ClInclude Include="ShieldAura.h" />
+    <ClInclude Include="DamageTypeData.h" />
+    <ClInclude Include="HitData.h" />
+    <ClInclude Include="DamageData.h" />
+    <ClInclude Include="BlendState.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

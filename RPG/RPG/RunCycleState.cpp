@@ -10,13 +10,11 @@ AutoSerialFactory<RunCycleState, AnimationState> RunCycleState::_factory("RunCyc
 
 RunCycleState::RunCycleState(const std::string& n, float s, const std::string& in, float is) : CycleState(n, s), idle(in, is)
 {
-	_serial_id = _factory.id;
 	t = 0.0f;
 }
 
 RunCycleState::RunCycleState(instream& is, bool full) : CycleState(is, full), idle(is, full)
 {
-	_serial_id = _factory.id;
 }
 
 RunCycleState::~RunCycleState()
@@ -118,4 +116,9 @@ void RunCycleState::write_to(outstream& os) const
 {
 	CycleState::write_to(os);
 	idle.write_to(os);
+}
+
+uint32_t RunCycleState::getSerial() const
+{
+	return _factory.id;
 }

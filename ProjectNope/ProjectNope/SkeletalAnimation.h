@@ -59,7 +59,9 @@ public:
 
 	Matrix4 getTransform(void)const;
 
-	Matrix4 transform;
+	Vec3 position, scale;
+	Quaternion rotation;
+	Matrix4 local;
 	Matrix4 total_transform;
 	Matrix4 total_inverse;
 	Bone* parent;

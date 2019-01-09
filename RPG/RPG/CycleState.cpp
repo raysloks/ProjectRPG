@@ -10,13 +10,11 @@ AutoSerialFactory<CycleState, AnimationState> CycleState::_factory("CycleState")
 
 CycleState::CycleState(const std::string& n, float s) : SimpleState(n, s)
 {
-	_serial_id = _factory.id;
 	t = 0.0f;
 }
 
 CycleState::CycleState(instream& is, bool full) : SimpleState(is, full)
 {
-	_serial_id = _factory.id;
 }
 
 CycleState::~CycleState()
@@ -69,4 +67,9 @@ void CycleState::interpolate(AnimationState * other, float fWeight)
 void CycleState::write_to(outstream& os) const
 {
 	SimpleState::write_to(os);
+}
+
+uint32_t CycleState::getSerial() const
+{
+	return _factory.id;
 }

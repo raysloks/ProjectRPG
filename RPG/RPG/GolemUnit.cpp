@@ -11,6 +11,7 @@
 #include "PoseComponent.h"
 #include "HitComponent.h"
 #include "ProjectileComponent.h"
+#include "ChatComponent.h"
 
 #include "SimpleState.h"
 
@@ -27,6 +28,8 @@ public:
 	PositionComponent * p;
 	MobComponent * mob;
 	AnimationControlComponent * acc;
+
+	std::shared_ptr<std::function<void(HitData&)>> on_death;
 
 	EntityID target;
 	float delay;
@@ -79,17 +82,31 @@ MobComponent * GolemUnit::spawn(const GlobalPosition& pos, World * world)
 	wrapper->p = p;
 	wrapper->mob = mob;
 	wrapper->acc = acc;
+	wrapper->on_death.reset(new std::function<void(HitData&)>([entity](HitData& hit)
+	{
+		auto chats = entity->world->GetComponents<ChatComponent>();
+		if (chats.size())
+		{
+			ChatMessage message;
+			message.message = "The Golem has been defeated!";
+			message.timeout = 10.0f;
+			chats.front()->messages.push_back(message);
+		}
+	}));
 	ai->wrapper = wrapper;
+
+	mob->on_death.add(0, wrapper->on_death);
 
 	auto func = [=](MobComponent * target, const Vec3& v)
 	{
 		if (target == mob)
 			return;
-		target->do_damage(4, entity->get_id());
+		target->do_damage(HitData(4, entity->get_id()));
 		target->hit = true;
 		target->v += v * 0.2f;
 	};
 
+	auto add_hitbox = [=](const std::string& bone)
 	{
 		NewEntity * ent = new NewEntity();
 
@@ -104,33 +121,17 @@ MobComponent * GolemUnit::spawn(const GlobalPosition& pos, World * world)
 		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/sphere32_16.gmdl", Material("data/assets/white.tga"), 0)));
 
 		h->owner = entity->get_id();
-		h->bone = "Hand_R";
+		h->bone = bone;
 		h->radius = 0.2f;
 		h->func = func;
 
 		world->AddEntity(ent);
-	}
+	};
 
-	{
-		NewEntity * ent = new NewEntity();
-
-		PositionComponent * p = new PositionComponent();
-		GraphicsComponent * g = new GraphicsComponent();
-		HitComponent * h = new HitComponent();
-
-		ent->addComponent(p);
-		ent->addComponent(g);
-		ent->addComponent(h);
-
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/sphere32_16.gmdl", Material("data/assets/white.tga"), 0)));
-
-		h->owner = entity->get_id();
-		h->bone = "Hand_L";
-		h->radius = 0.2f;
-		h->func = func;
-
-		world->AddEntity(ent);
-	}
+	add_hitbox("Hand_R");
+	add_hitbox("Hand_L");
+	add_hitbox("Foot_R");
+	add_hitbox("Foot_L");
 
 	return mob;
 }
@@ -155,15 +156,40 @@ void GolemAI::tick(float dTime)
 			Vec3 facing_vector = Vec3(0.0f, 0.0f, 1.0f) * Quaternion(mob->facing.y, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion(-mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
 			mob->move = facing_vector;
 			float facing_dot_dir = facing_vector.Dot(dir);
+			if (distance < 3.0f && facing_dot_dir > 0.0f  && acc->has_state("run") && delay > 0.4f)
+			{
+				auto stomp = new SimpleState("attack_stomp", 1.0f);
+				stomp->events.insert(std::make_pair(0.7f, [=]()
+				{
+					auto mobs = mob->entity->world->GetNearestComponents<MobComponent>(mob->p->p, 4.0f);
+					for (auto m : mobs)
+					{
+						if (m.second->landed && m.second != mob)
+						{
+							m.second->v += Vec3(0.0f, 0.0f, 10.0f);
+							m.second->do_damage(HitData(4, mob->entity->get_id()));
+						}
+					}
+				}));
+				acc->set_state(stomp);
+				mob->stamina.current -= 1;
+				delay = 0.0f;
+			}
 			if (distance < 3.0f && facing_dot_dir > 0.8f && acc->has_state("run") && delay > 0.2f)
 			{
 				acc->set_state(new SimpleState("attack_down", 1.0f));
 				mob->stamina.current -= 1;
 				delay = 0.0f;
 			}
-			if (distance < 5.0f && facing_dot_dir > 0.8f && acc->has_state("run") && delay > 0.4f)
+			if (distance < 4.0f && facing_dot_dir > 0.5f && acc->has_state("run") && delay > 0.4f)
 			{
 				acc->set_state(new SimpleState("attack_sweep", 0.8f));
+				mob->stamina.current -= 1;
+				delay = 0.0f;
+			}
+			if (distance < 5.0f && facing_dot_dir > 0.5f && acc->has_state("run") && delay > 0.4f)
+			{
+				acc->set_state(new SimpleState("attack_sweep_low", 0.8f));
 				mob->stamina.current -= 1;
 				delay = 0.0f;
 			}
@@ -203,7 +229,7 @@ void GolemAI::tick(float dTime)
 						{
 							if (target->temp_team != mob->temp_team)
 							{
-								target->do_damage(power, mob->entity->get_id());
+								target->do_damage(HitData(power, mob->entity->get_id()));
 								target->hit = true;
 							}
 						}

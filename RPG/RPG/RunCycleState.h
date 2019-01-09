@@ -18,6 +18,8 @@ public:
 
 	void write_to(outstream& os) const;
 
+	uint32_t getSerial() const;
+
 	static AutoSerialFactory<RunCycleState, AnimationState> _factory;
 
 	CycleState idle;

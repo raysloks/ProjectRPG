@@ -143,7 +143,7 @@ void AnimationControlComponent::writeLog(outstream& os, ClientData& client)
 	os << scale;
 	if (state)
 	{
-		AnimationState::_registry.serialize(os, *state);
+		AnimationState::_registry.serialize(os, state);
 		state->write_to(os);
 	}
 	else
@@ -179,7 +179,7 @@ void AnimationControlComponent::interpolate(Component * pComponent, float fWeigh
 	if (SyncState::is_ordered_strict(sync, other->sync))
 	{
 		if (other->state)
-			set_state(dynamic_cast<AnimationState*>(AnimationState::_registry.getFactory(other->state->_serial_id)->create(other->state)));
+			set_state(dynamic_cast<AnimationState*>(AnimationState::_registry.getFactory(other->state->getSerial())->create(other->state)));
 		else
 			set_state(nullptr);
 		sync = other->sync;

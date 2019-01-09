@@ -17,6 +17,22 @@ void Writing::setFont(const std::string& name)
 	font = name;
 }
 
+void Writing::setColor(const Vec3& c)
+{
+	r = c.x;
+	g = c.y;
+	b = c.z;
+	a = 1.0f;
+}
+
+void Writing::setColor(const Vec4& c)
+{
+	r = c.x;
+	g = c.y;
+	b = c.z;
+	a = c.w;
+}
+
 void Writing::setColor(float nr, float ng, float nb, float na)
 {
 	r = nr;

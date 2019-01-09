@@ -58,13 +58,13 @@ void HitComponent::tick(float dTime)
 			auto acc = ent->getComponent<AnimationControlComponent>();
 
 			float prop = anim->getProperty(bone + ".active", pose->frame);
-			GlobalPosition pos = mob->p->p + offset * anim->getMatrix(anim->getIndex(bone), pose->frame) * acc->transform;
+			GlobalPosition pos = mob->p->p + offset * pose->pose->bones[anim->getIndex(bone)].total_transform * acc->transform;
 			r = radius * acc->scale * prop;
 			p->p = pos;
 			p->update();
 			if (g)
 			{
-				g->decs.items.front()->local = Matrix4::Scale(Vec3(r, r, r));
+				g->decs.items.front()->local = Matrix4::Scale(Vec3(r));
 				g->decs.update(0);
 			}
 			active = prop > 0.5f;

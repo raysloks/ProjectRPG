@@ -11,11 +11,16 @@
 
 #include "ResourceBar.h"
 
+#include "FunctionList.h"
+
+#include "HitData.h"
+
 #include <memory>
 #include <map>
 #include <functional>
 
 class PositionComponent;
+class Aura;
 class WeaponComponent;
 
 class MobComponent :
@@ -44,15 +49,25 @@ public:
 
 	static AutoSerialFactory<MobComponent, Component> _factory;
 
-	void do_damage(size_t damage, EntityID source);
+	void do_damage(HitData& damage);
 	void do_heal(size_t heal, EntityID source);
+
+	void add_aura(Aura * aura);
+	void remove_aura(Aura * aura);
 
 	PositionComponent * p;
 
 	//stats
-	ResourceBar health;
-	ResourceBar stamina;
-	ResourceBar mana;
+	union
+	{
+		struct
+		{
+			ResourceBar health;
+			ResourceBar stamina;
+			ResourceBar mana;
+		};
+		ResourceBar resource[3];
+	};
 
 	float stamina_regen;
 
@@ -63,8 +78,9 @@ public:
 	WeaponComponent * weapon;
 	size_t weapon_index;
 
-	std::function<void(void)> on_death;
-	std::function<void(float)> on_tick;
+	FunctionList<HitData&> on_hit_taken, on_fatal_hit_taken, on_death;
+
+	std::vector<Aura*> auras;
 
 	//facing
 	Vec2 facing;

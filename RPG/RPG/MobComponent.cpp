@@ -26,10 +26,15 @@
 #include "BlendUtility.h"
 
 #include "SimpleState.h"
+#include "BlendState.h"
+
+#include "ShieldAura.h"
+
+#include "Aura.h"
 
 AutoSerialFactory<MobComponent, Component> MobComponent::_factory("MobComponent");
 
-MobComponent::MobComponent(void) : Component(_factory.id), health(10), stamina(10), mana(10)
+MobComponent::MobComponent(void) : Component(_factory.id), health(20), stamina(12), mana(4)
 {
 	up = Vec3(0.0f, 0.0f, 1.0f);
 	speed_mod = 1.0f;
@@ -74,6 +79,18 @@ void MobComponent::tick(float dTime)
 		QueryPerformanceFrequency((LARGE_INTEGER*)&freq);
 		QueryPerformanceCounter((LARGE_INTEGER*)&start);
 
+		for (auto& aura : auras)
+		{
+			if (aura)
+			{
+				if ((aura->duration -= dTime) <= 0.0f)
+				{
+					delete aura;
+					aura = nullptr;
+				}
+			}
+		}
+
 		auto acc = entity->getComponent<AnimationControlComponent>();
 
 		bool recovering = input.find("recover") != input.end();
@@ -102,21 +119,50 @@ void MobComponent::tick(float dTime)
 				if (stamina.current >= stamina_cost)
 				{
 					stamina.current -= stamina_cost;
-					acc->set_state(new SimpleState("attack", 3.0f));
+					acc->set_state(new BlendState("attack", "attack_up", 1.0f - facing.y * 2.0f / M_PI, 3.0f));
 					input.erase("attack");
 				}
 			}
 		}
 
-		if (input["dash"] && !input["dash_cooldown"])
+		if (input["dash"])
 		{
-			v += Vec3(0.0f, 0.0f, 10.0f) * Quaternion(facing.y, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion(-facing.x, Vec3(0.0f, 0.0f, 1.0f));
+			v += Vec3(0.0f, 0.0f, 40.0f) * Quaternion(facing.y, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion(-facing.x, Vec3(0.0f, 0.0f, 1.0f));
 			input.erase("dash");
-			//input["dash_cooldown"] = 3.0f;
+
+			add_aura(new ShieldAura(40, 3.0f));
+		}
+
+		if (input["heal"])
+		{
+			bool busy = !acc->has_state("run");
+			if (!busy)
+			{
+				size_t mana_cost = 1;
+				if (mana.current >= mana_cost)
+				{
+					auto quaff = new SimpleState("quaff", 1.0f);
+					quaff->events.insert(std::make_pair(0.85f, [=]()
+					{
+						if (mana.current >= mana_cost)
+						{
+							mana.current -= mana_cost;
+							do_heal(8, entity->get_id());
+						}
+					}));
+					acc->set_state(quaff);
+					input.erase("heal");
+				}
+			}
 		}
 
 		if (!busy)
-			stamina_regen += 4.0f * dTime;
+		{
+			if (landed)
+				stamina_regen += 4.0f * dTime;
+			else
+				stamina_regen += 0.5f * dTime;
+		}
 
 		int32_t stamina_regen_integer = stamina_regen;
 		stamina_regen -= stamina_regen_integer;
@@ -167,13 +213,14 @@ void MobComponent::tick(float dTime)
 
 		if (p != nullptr)
 		{
-			if (Vec3(p->p).LenPwr() > 4000000.0f || health.current <= 0)
+			if (Vec3(p->p).LenPwr() > 4000000.0f)
 			{
 				if (temp_team == 0)
 				{
 					p->p = Vec3();
 					v = Vec3();
-					health.current = health.max;
+					for (auto& r : resource)
+						r.current = r.max;
 				}
 				else
 				{
@@ -413,7 +460,7 @@ void MobComponent::tick(float dTime)
 						if (fall_damage > 0)
 						{
 							hit = true;
-							do_damage(fall_damage, EntityID());
+							do_damage(HitData(fall_damage));
 						}
 					}
 
@@ -484,7 +531,7 @@ void MobComponent::tick(float dTime)
 									input.erase("roll");
 								}
 
-								if (input.find("jump") != input.end() && stamina.current >= 2)
+								if (input.find("jump") != input.end() && stamina.current >= 1)
 								{
 									v -= land_v;
 									if (up.Dot(v) < 0.0f)
@@ -492,7 +539,7 @@ void MobComponent::tick(float dTime)
 									v += land_v;
 									v += up * 4.0f;
 
-									stamina.current -= 2;
+									stamina.current -= 1;
 
 									input.erase("jump");
 								}
@@ -526,9 +573,6 @@ void MobComponent::tick(float dTime)
 
 			dp = Vec3();
 			external_dp = Vec3();
-
-			if (on_tick)
-				on_tick(dTime);
 
 			if (prev != p->p)
 				p->update();
@@ -602,34 +646,50 @@ void MobComponent::write_to(outstream& os) const
 {
 }
 
-void MobComponent::do_damage(size_t damage, EntityID source)
+void MobComponent::do_damage(HitData& hit)
 {
-	if (damage == 0)
-		return;
+	if (hit.source.id != 0xffffffff)
+		last_hit = hit.source;
 
-	if (source.id != 0xffffffff)
-		last_hit = source;
-	if (health.current > 0)
+	auto source_entity = entity->world->GetEntity(last_hit);
+	if (source_entity)
+	{
+		auto source_mob = source_entity->getComponent<MobComponent>();
+		if (source_mob)
+		{
+		}
+	}
+
+	on_hit_taken.call(hit);
+
+	uint32_t damage = hit.getTotal();
+
+	if (damage > 0)
 	{
 		health.current -= damage;
 		if (health.current <= 0)
 		{
-			auto source_entity = entity->world->GetEntity(last_hit);
-			if (source_entity)
+			on_fatal_hit_taken.call(hit);
+
+			damage = hit.getTotal();
+
+			if (damage > 0)
 			{
-				auto source_mob = source_entity->getComponent<MobComponent>();
-				if (source_mob)
+				on_death.call(hit);
+
+				if (temp_team == 0)
 				{
-					source_mob->mana.current += 1;
-					if (source_mob->mana.current > source_mob->mana.max)
-						source_mob->mana.current = source_mob->mana.max;
+					p->p = Vec3();
+					v = Vec3();
+					for (auto& r : resource)
+						r.current = r.max;
+				}
+				else
+				{
+					entity->world->SetEntity(entity->id, nullptr);
 				}
 			}
 		}
-	}
-	else
-	{
-		health.current -= damage;
 	}
 
 	if (entity->world->authority)
@@ -659,4 +719,21 @@ void MobComponent::do_heal(size_t heal, EntityID source)
 	health.current += heal;
 	if (health.current > health.max)
 		health.current = health.max;
+}
+
+void MobComponent::add_aura(Aura * aura)
+{
+	auto i = std::find(auras.begin(), auras.end(), nullptr);
+	if (i != auras.end())
+		*i = aura;
+	else
+		auras.push_back(aura);
+	aura->attach(this);
+}
+
+void MobComponent::remove_aura(Aura * aura)
+{
+	auto i = std::find(auras.begin(), auras.end(), aura);
+	delete *i;
+	*i = nullptr;
 }

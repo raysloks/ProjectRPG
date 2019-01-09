@@ -88,72 +88,103 @@ void InventoryComponent::set_display(bool enable)
 					{
 						func.reset(new std::function<void(RenderSetup&)>([this, mob](RenderSetup& rs)
 						{
+							Vec4 color(1.0f);
+							ShaderMod mod(ShaderProgram::Get("data/gui_vert.txt", "data/gui_frag.txt"), [&color](const std::shared_ptr<ShaderProgram>& prog)
+							{
+								prog->Uniform("color", color);
+							});
+
 							auto sprite = Resource::get<Texture>("data/assets/white.tga");
 
-							Writing::setOffset(Vec2(-0.5f, 0.0f));
+							float bar_width = 32.0f;
+							float bar_margin = 0.0f;
 
-							// health
-							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec2(rs.size.x * 0.25f, rs.size.y)));
-							rs.addTransform(Matrix4::Translation(Vec3(10.0f, -10.0f, 0.0f)));
-							Writing::setSize(25);
-							Writing::setColor(0.75f, 0.25f, 0.25f);
-							Writing::render(std::to_string((int)std::floorf(mob->health.current)) + " / " + std::to_string((int)std::floorf(mob->health.max)), rs);
-							rs.popTransform();
-							rs.popTransform();
+							Vec2 offset[3];
+							Vec2 size[3];
+							Vec4 bar_color[3] = {
+								Vec4(0.6f, 0.1f, 0.1f, 0.8f),
+								Vec4(0.1f, 0.6f, 0.1f, 0.8f),
+								Vec4(0.1f, 0.1f, 0.6f, 0.8f)
+							};
+							Vec2 bg_offset[3];
+							Vec2 bg_size[3];
+							Vec2 text_offset[3];
+							Vec4 text_color[3] = {
+								Vec4(1.0f, 0.9f, 0.9f, 1.0f),
+								Vec4(0.9f, 1.0f, 0.9f, 1.0f),
+								Vec4(0.9f, 0.9f, 1.0f, 1.0f)
+							};
 
-							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec3(0.0f, (mob->health.max - mob->health.current) * 4.0f, 0.0f)));
-							rs.addTransform(Matrix4::Scale(Vec3(16.0f, mob->health.current * 4.0f, 0.0f)));
-							if (sprite)
-								sprite->render(rs);
-							rs.popTransform();
+							for (int i = 0; i < 3; ++i)
+							{
+								float length_divider = sqrt(mob->resource[i].max) + 8.0f;
+								length_divider *= length_divider;
 
-							// stamina
-							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec2(rs.size.x * 0.5f, rs.size.y)));
-							rs.addTransform(Matrix4::Translation(Vec3(0.0f, -10.0f, 0.0f)));
-							Writing::setSize(25);
-							Writing::setColor(0.25f, 0.75f, 0.25f);
-							Writing::render(std::to_string((int)std::floorf(mob->stamina.current)) + " / " + std::to_string((int)std::floorf(mob->stamina.max)), rs);
-							rs.popTransform();
-							rs.popTransform();
+								float bar_length = rs.size.x * 0.5f * mob->resource[i].max / length_divider + 64.0f;
 
-							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec3(16.0f, (mob->stamina.max - mob->stamina.current) * 4.0f, 0.0f)));
-							rs.addTransform(Matrix4::Scale(Vec3(16.0f, mob->stamina.current * 4.0f, 0.0f)));
-							if (sprite)
-								sprite->render(rs);
-							rs.popTransform();
+								offset[i] = Vec2(rs.size.x * 0.5f - bar_length * 0.5f, rs.size.y * 0.75f + (bar_width + bar_margin) * i);
+								size[i] = Vec2(mob->resource[i].current * bar_length / mob->resource[i].max, bar_width);
+								bg_offset[i] = Vec2(rs.size.x * 0.5f - bar_length * 0.5f, rs.size.y * 0.75f + (bar_width + bar_margin) * i);
+								bg_size[i] = Vec2(bar_length, bar_width);
+								text_offset[i] = Vec2(rs.size.x * 0.5f, rs.size.y * 0.75f + (bar_width + bar_margin) * i + 24.0f);
+							}
 
-							// mana
-							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec2(rs.size.x * 0.75f, rs.size.y)));
-							rs.addTransform(Matrix4::Translation(Vec3(-10.0f, -10.0f, 0.0f)));
-							Writing::setSize(25);
-							Writing::setColor(0.25f, 0.25f, 0.75f);
-							Writing::render(std::to_string((int)std::floorf(mob->mana.current)) + " / " + std::to_string((int)std::floorf(mob->mana.max)), rs);
-							Writing::setOffset(Vec2());
-							rs.popTransform();
-							rs.popTransform();
+							rs.pushMod(mod);
 
-							rs.pushTransform();
-							rs.addTransform(Matrix4::Translation(Vec3(32.0f, (mob->mana.max - mob->mana.current) * 4.0f, 0.0f)));
-							rs.addTransform(Matrix4::Scale(Vec3(16.0f, mob->mana.current * 4.0f, 0.0f)));
-							if (sprite)
-								sprite->render(rs);
-							rs.popTransform();
+							float fade_multiplier = 1.0f;
+
+							for (int i = 0; i < 3; ++i)
+							{
+								color = Vec4(0.0f, 0.0f, 0.0f, 0.5f);
+								if (mob->resource[i].current == mob->resource[i].max)
+									color.w *= fade_multiplier;
+								rs.pushTransform();
+								rs.addTransform(Matrix4::Translation(bg_offset[i]));
+								if (sprite)
+									sprite->render(rs, bg_size[i]);
+								rs.popTransform();
+							}
+
+							for (int i = 0; i < 3; ++i)
+							{
+								color = bar_color[i];
+								if (mob->resource[i].current == mob->resource[i].max)
+									color.w *= fade_multiplier;
+								rs.pushTransform();
+								rs.addTransform(Matrix4::Translation(offset[i]));
+								if (sprite)
+									sprite->render(rs, size[i]);
+								rs.popTransform();
+							}
+
+							rs.popMod();
+							
+							int font_size = 24;
+							Writing::setSize(font_size);
+
+							for (int i = 0; i < 3; ++i)
+							{
+								rs.pushTransform();
+								rs.addTransform(Matrix4::Translation(text_offset[i]));
+								if (mob->resource[i].current == mob->resource[i].max)
+									text_color[i].w *= fade_multiplier;
+								Writing::setColor(text_color[i]);
+								Writing::setOffset(Vec2(-0.5f, 0.0f));
+								Writing::render("/", rs);
+								rs.popTransform();
+								Writing::setOffset(Vec2(-1.0f, 0.0f));
+								Writing::render(std::to_string((int)std::floorf(mob->resource[i].current)) + "  ", rs);
+								rs.popTransform();
+								Writing::setOffset(Vec2(0.0f, 0.0f));
+								Writing::render("  " + std::to_string((int)std::floorf(mob->resource[i].max)), rs);
+								rs.popTransform();
+								rs.popTransform();
+							}
 
 							Writing::setOffset(Vec2(0.0f, 0.0f));
 
 							if (open)
 							{
-								Vec4 color(1.0f);
-								ShaderMod mod(ShaderProgram::Get("data/gui_vert.txt", "data/gui_frag.txt"), [&color](const std::shared_ptr<ShaderProgram>& prog)
-								{
-									prog->Uniform("color", color);
-								});
-
 								ShaderMod mod3d(ShaderProgram::Get("data/gfill_vert.txt", "data/gfill_frag.txt"), [&color](const std::shared_ptr<ShaderProgram>& prog)
 								{
 									prog->Uniform("color", color);

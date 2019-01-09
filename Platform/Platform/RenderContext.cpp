@@ -144,7 +144,7 @@ namespace Platform
 		uWglPfmtAttributeName = WGL_ALPHA_BITS_ARB;
 		wglGetPixelFormatAttribiv(hDC, index, 0, 1, &uWglPfmtAttributeName,
 			&alphaBits);
-		printf("pixelformat chosen, index %d red bits: %d alpha bits: %d",
+		printf("pixelformat chosen, index %d red bits: %d alpha bits: %d\n",
 			index, redBits, alphaBits);
 
 		PIXELFORMATDESCRIPTOR pfd = { 0 };
@@ -157,6 +157,12 @@ namespace Platform
 
 		hRC = wglCreateContext(hDC);
 		wglMakeCurrent(hDC, hRC);
+
+		const GLubyte* vendor = glGetString(GL_VENDOR);
+		const GLubyte* renderer = glGetString(GL_RENDERER);
+
+		std::cout << vendor << std::endl;
+		std::cout << renderer << std::endl;
 	}
 
 	RenderContext::~RenderContext(void)

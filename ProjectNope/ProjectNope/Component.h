@@ -35,6 +35,8 @@ public:
 
 	virtual bool visible(ClientData& client) const;
 
+	virtual uint32_t getSerial() const;
+
 	uint32_t _serial_id;
 
 	static SerializableRegistry<Component> _registry;

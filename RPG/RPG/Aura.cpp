@@ -2,7 +2,11 @@
 
 SerializableRegistry<Aura> Aura::_registry;
 
-Aura::Aura(uint32_t id) : _serial_id(id)
+Aura::Aura() : duration(std::numeric_limits<float>::infinity())
+{
+}
+
+Aura::Aura(float d) : duration(d)
 {
 }
 
@@ -14,6 +18,19 @@ void Aura::attach(MobComponent * mob)
 {
 }
 
-void Aura::detach(MobComponent * mob)
+void Aura::readLog(instream& is)
 {
+}
+
+void Aura::writeLog(outstream& os)
+{
+}
+
+void Aura::write_to(outstream& os)
+{
+}
+
+uint32_t Aura::getSerial() const
+{
+	return 0;
 }

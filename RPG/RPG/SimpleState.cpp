@@ -8,16 +8,14 @@
 
 AutoSerialFactory<SimpleState, AnimationState> SimpleState::_factory("SimpleState");
 
-SimpleState::SimpleState(const std::string& n, float s) : name(n), speed(s), AnimationState(_factory.id)
+SimpleState::SimpleState(const std::string& n, float s) : name(n), speed(s)
 {
-	_serial_id = _factory.id;
 	t = 0.0f;
 	prev_t = 0.0f;
 }
 
-SimpleState::SimpleState(instream& is, bool full) : AnimationState(_factory.id)
+SimpleState::SimpleState(instream& is, bool full)
 {
-	_serial_id = _factory.id;
 	is >> t >> speed >> name;
 	prev_t = t;
 }
@@ -76,4 +74,9 @@ void SimpleState::interpolate(AnimationState * other, float fWeight)
 void SimpleState::write_to(outstream& os) const
 {
 	os << t << speed << name;
+}
+
+uint32_t SimpleState::getSerial() const
+{
+	return _factory.id;
 }

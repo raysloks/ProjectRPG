@@ -107,7 +107,7 @@ void Pose::debug_render(void) const
 	glEnable(GL_LIGHTING);
 }
 
-#include <iostream>
+#include "BlendUtility.h"
 
 Pose& Pose::interpolate(const Pose& pose, float fWeight)
 {
@@ -116,16 +116,9 @@ Pose& Pose::interpolate(const Pose& pose, float fWeight)
 	{
 		for (int i=0;i<bones.size();++i)
 		{
-			bones[i].transform = bones[i].transform*(1.0f-fWeight)+pose.bones[i].transform*fWeight;
-			for (int k=0;k<3;++k)
-			{
-				l = 0.0f;
-				for (int j=0;j<3;++j)
-					l += bones[i].transform.mtrx[j][k]*bones[i].transform.mtrx[j][k];
-				l = sqrt(l);
-				for (int j=0;j<3;++j)
-					bones[i].transform.mtrx[j][k] /= l;
-			}
+			bones[i].position = bones[i].position * (1.0f - fWeight) + pose.bones[i].position * fWeight;
+			bones[i].scale = bones[i].scale * (1.0f - fWeight) + pose.bones[i].scale * fWeight;
+			bones[i].rotation = bu_slerp(bones[i].rotation, pose.bones[i].rotation, fWeight);
 		}
 		update();
 	}
@@ -136,22 +129,11 @@ Pose& Pose::add(const Pose& pose)
 {
 	if (bones.size()==pose.bones.size())
 	{
-		Matrix3 trot3;
-		Matrix4 trot4;
 		for (int i=0;i<bones.size();++i)
 		{
-			for (int x=0;x<3;++x) {
-				for (int y=0;y<3;++y) {
-					trot3.mtrx[y][x] = rest->bones[i].transform.mtrx[y][x];
-				}
-			}
-			trot3 = trot3.Inverse();
-			for (int x=0;x<3;++x) {
-				for (int y=0;y<3;++y) {
-					trot4.mtrx[y][x] = trot3.mtrx[y][x];
-				}
-			}
-			bones[i].transform = bones[i].transform*Matrix4::Translation(Vec3(-rest->bones[i].transform.data[12], -rest->bones[i].transform.data[13], -rest->bones[i].transform.data[14]))*trot4*pose.bones[i].transform;
+			bones[i].position += pose.bones[i].position;
+			bones[i].scale *= pose.bones[i].scale;
+			bones[i].rotation = pose.bones[i].rotation * bones[i].rotation;
 		}
 		update();
 	}
@@ -173,7 +155,7 @@ outstream& operator<<(outstream& os, const Pose& pose)
 	os << (uint32_t)pose.bones.size();
 	for (int i=0;i<pose.bones.size();++i)
 	{
-		os << pose.bones[i].transform;
+		os << pose.bones[i].position << pose.bones[i].scale << pose.bones[i].rotation;
 		int parent = -1;
 		for (int j=0;j<pose.bones.size();++j)
 		{
@@ -195,7 +177,7 @@ instream& operator>>(instream& is, Pose& pose)
 	for (int i=0;i<size;++i)
 	{
 		int parent;
-		is >> pose.bones[i].transform >> parent;
+		is >> pose.bones[i].position >> pose.bones[i].scale >> pose.bones[i].rotation >> parent;
 		if (parent>=0)
 			pose.bones[i].parent = &pose.bones[parent];
 		else
@@ -216,10 +198,11 @@ Bone::~Bone(void)
 
 Matrix4 Bone::getTransform(void)const
 {
-	if (parent != nullptr)
-		return transform*parent->getTransform();
+	Matrix4 transform = Matrix4(rotation) * Matrix4::Translation(position);
+	if (parent)
+		return transform * local * parent->getTransform();
 	else
-		return transform;
+		return transform * local;
 }
 
 SkeletalAnimation::SkeletalAnimation(instream& is)
@@ -271,14 +254,14 @@ SkeletalAnimation::SkeletalAnimation(instream& is)
 			for (int x=0;x<3;++x)
 				for (int y=0;y<3;++y)
 					m4.mtrx[x][y] = m3.mtrx[x][y];
-			armature.bones[o].transform = locals[o]*Matrix4::Translation(-Vec3(m4.data[12], m4.data[13], m4.data[14]));
+			armature.bones[o].local = locals[o]*Matrix4::Translation(-Vec3(m4.data[12], m4.data[13], m4.data[14]));
 			m4.data[12] = 0.0f;
 			m4.data[13] = 0.0f;
 			m4.data[14] = 0.0f;
-			armature.bones[o].transform *= m4;
+			armature.bones[o].local *= m4;
 		} else {
 			armature.bones[o].parent = 0;
-			armature.bones[o].transform = locals[o];
+			armature.bones[o].local = locals[o];
 		}
 	}
 
@@ -377,42 +360,18 @@ std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const Action& act) 
 				}
 			}
 		}
-		Matrix4 rot;
-		Matrix4 pos;
-		Matrix4 scl;
 		if (values.size()>0)
 		{
-			Quaternion q(values[3], values[4], values[5], values[6]);
-			q.Normalize();
-			rot = Matrix4(q);//*armature.bones[i].transform;
-			rot.data[3] = 0.0f;
-			rot.data[7] = 0.0f;
-			rot.data[11] = 0.0f;
-			rot.data[12] = 0.0f;
-			rot.data[13] = 0.0f;
-			rot.data[14] = 0.0f;
-			Matrix3 trot3;
-			Matrix4 trot4;
-			for (int x=0;x<3;++x) {
-				for (int y=0;y<3;++y) {
-					trot3.mtrx[y][x] = armature.bones[i].transform.mtrx[y][x];
-				}
-			}
-			trot3 = trot3.Inverse();
-			for (int x=0;x<3;++x) {
-				for (int y=0;y<3;++y) {
-					trot4.mtrx[y][x] = trot3.mtrx[y][x];
-				}
-			}
-			pos = Matrix4::Translation(Vec3(values[0], values[1], values[2]));
-			scl = Matrix4::Scale(Vec3(values[7], values[8], values[9]));
+			pose->bones[i].position = Vec3(values[0], values[1], values[2]);
+			pose->bones[i].rotation = Quaternion(values[3], values[4], values[5], values[6]);
+			pose->bones[i].rotation.Normalize();
+			pose->bones[i].scale = Vec3(values[7], values[8], values[9]);
 			auto it = act.props[i].begin();
 			for (size_t j = 10; j < values.size() && it != act.props[i].end(); ++it, ++j)
 			{
 				pose->bones[i].props.insert(std::make_pair(*it, values[j]));
 			}
 		}
-		pose->bones[i].transform = rot*pos*armature.bones[i].transform;
 	}
 	for (size_t i = 0; i < pose->bones.size(); i++)
 	{

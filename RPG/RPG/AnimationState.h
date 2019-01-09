@@ -9,8 +9,10 @@ class MobComponent;
 
 class AnimationState
 {
+protected:
+	AnimationState();
+
 public:
-	AnimationState(uint32_t id);
 	virtual ~AnimationState() = 0;
 
 	virtual void enter(AnimationState * prev) = 0;
@@ -21,7 +23,7 @@ public:
 
 	virtual void write_to(outstream& os) const = 0;
 
-	uint32_t _serial_id;
+	virtual uint32_t getSerial() const = 0;
 
 	static SerializableRegistry<AnimationState> _registry;
 

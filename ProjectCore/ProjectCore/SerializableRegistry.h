@@ -27,9 +27,9 @@ public:
 		reg[id] = factory;
 	}
 
-	void serialize(outstream& os, const Base& instance)
+	void serialize(outstream& os, Base * instance)
 	{
-		os << instance._serial_id;
+		os << instance->getSerial();
 	}
 
 	StreamFactory<Base> * deserialize(instream& is)

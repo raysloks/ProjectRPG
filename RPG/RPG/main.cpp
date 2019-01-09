@@ -163,15 +163,12 @@ public:
 
 		return;
 
-		ShadowSpawnUnit::spawn(Vec3(0.0f, 30.0f, 0.0f), world);
-		ShadowSpawnUnit::spawn(Vec3(-5.0f, 50.0f, 0.0f), world);
-		ShadowSpawnUnit::spawn(Vec3(5.0f, 60.0f, 0.0f), world);
-
 		// create wibbly wobbly wall
+		for (int j = 0; j < 2; ++j)
 		{
 			NewEntity * ent = new NewEntity();
 
-			PositionComponent * p = new PositionComponent(Vec3(-13.0f, 7.0f, 1.0f));
+			PositionComponent * p = new PositionComponent(Vec3(-21.0f + j * 42.0f, 0.0f, 0.75f));
 			ColliderComponent * c = new ColliderComponent();
 			GraphicsComponent * g = new GraphicsComponent(false, 2);
 			InteractComponent * i = new InteractComponent();
@@ -181,15 +178,16 @@ public:
 			ent->addComponent(g);
 			ent->addComponent(i);
 
-			std::string wibbly = "data/assets/wibbly.tga";
-			Resource::load(wibbly, { "!sRGB" , "linear" });
+			Material wibbly = "data/assets/wibbly.tga";
+			wibbly.tex[0].options = { "cs_linear", "mag_linear" };
 
 			MaterialList materials;
-			materials.materials.push_back(Material(wibbly));
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/plane.gmdl", materials, 0)));
+			materials.materials.push_back(wibbly);
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/plane_ds.gmdl", materials, 0)));
 			g->decs.items.front()->local *= 2.0f;
 			g->decs.items.front()->local.mtrx[3][3] = 1.0f;
 			g->decs.items.front()->local *= Quaternion(Vec3(M_PI / 2.0f, 0.0f, 0.0f));
+			g->decs.items.front()->local *= Quaternion(Vec3(0.0f, 0.0f, M_PI / 2.0f));
 			g->decs.items.front()->final = g->decs.items.front()->local;
 
 			i->name = "Shadow Wall";
@@ -197,6 +195,10 @@ public:
 
 			world->AddEntity(ent);
 		}
+
+		ShadowSpawnUnit::spawn(Vec3(0.0f, 30.0f, 0.0f), world);
+		ShadowSpawnUnit::spawn(Vec3(-5.0f, 50.0f, 0.0f), world);
+		ShadowSpawnUnit::spawn(Vec3(5.0f, 60.0f, 0.0f), world);
 
 		// create grass
 		{
