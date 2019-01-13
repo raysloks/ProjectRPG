@@ -108,16 +108,23 @@ void GameLoop::tick(void)
 	float time_scale = 1.0f;
 	if (client)
 	{
-		client->pre_frame(fullInSeconds * time_scale);
+		client->pre_frame(fullInSeconds / client->subframes * time_scale);
 		client->render();
 		client->input.clear();
 		client->platform->input(gpEventManager, client->lockCursor, client->hideCursor);
 		gpEventManager->Tick();
 		client->input.update();
-		client->post_frame(fullInSeconds * time_scale);
+		client->post_frame(fullInSeconds / client->subframes * time_scale);
 
 		client->platform->set_vsync(useVSync);
-		client->platform->swap();
+		if (client->subframe == 0)
+		{
+			client->platform->swap();
+
+			QueryPerformanceCounter((LARGE_INTEGER*)&end);
+			fullInSeconds = static_cast<double>(end - start) / freq;
+			start = end;
+		}
 
 		if (gRenderContext)
 		{
@@ -129,16 +136,16 @@ void GameLoop::tick(void)
 	server->tick(secondsPerStep * time_scale);
 	world->clean();
 
-	QueryPerformanceCounter((LARGE_INTEGER*)&end);
-	fullInSeconds = static_cast<double>(end - start) / freq;
-	start = end;
-
 	if (!client)
 	{
 		QueryPerformanceCounter((LARGE_INTEGER*)&end_busy);
 		busyInSeconds = static_cast<double>(end_busy - start_busy) / freq;
 		Sleep(std::fmaxf(secondsPerStep - busyInSeconds, 0.0) * 1000);
 		QueryPerformanceCounter((LARGE_INTEGER*)&start_busy);
+
+		QueryPerformanceCounter((LARGE_INTEGER*)&end);
+		fullInSeconds = static_cast<double>(end - start) / freq;
+		start = end;
 	}
 
 	if (client)

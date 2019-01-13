@@ -54,8 +54,8 @@ public:
 
 	void writeLog(outstream& os)
 	{
-		if (conf.empty())
-			return;
+		//if (conf.empty())
+		//	return;
 		os << (uint32_t)conf.size();
 		for (auto i = conf.begin(); i != conf.end(); ++i)
 		{

@@ -76,6 +76,11 @@ void CameraControlComponent::pre_frame(float dTime)
 				{
 					std::vector<std::shared_ptr<Collision>> list;
 					ColliderComponent::DiskCast(p->p + up * 0.25f, p->p + up * 0.25f - front * (distance + 0.5f), 0.25f, list);
+					std::sort(list.begin(), list.end(), [](const std::shared_ptr<Collision>& a, const std::shared_ptr<Collision>& b) { return a->t < b->t; });
+					if (!list.empty())
+					{
+						offset = up * 0.25f - front * (distance + 0.5f) * list.front()->t;
+					}
 				}
 
 				auto shakes = entity->world->GetNearestComponents<CameraShakeComponent>(p->p);
@@ -85,6 +90,8 @@ void CameraControlComponent::pre_frame(float dTime)
 				}
 
 				entity->world->cam_pos = p->p + offset;
+				if (Vec3(entity->world->cam_pos).z < -249.0f)
+					entity->world->cam_pos += Vec3(0.0f, 0.0f, -249.0f - Vec3(entity->world->cam_pos).z);
 			}
 		}
 	}

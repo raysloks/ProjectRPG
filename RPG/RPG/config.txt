@@ -9,9 +9,11 @@ vsync = 1;
 
 tickrate = 64;
 
+subframes = inf;
+
 anisotropic_filtering = 16;
 
-shadow_quality = 1;
+shadow_mode = 1;
 
 ao_quality = 1;
 

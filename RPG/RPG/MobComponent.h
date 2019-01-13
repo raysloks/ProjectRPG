@@ -93,7 +93,7 @@ public:
 	Vec3 v;
 	Vec3 dp;
 	Vec3 external_dp;
-	Vec3 land_n, land_v;
+	Vec3 land_n, land_v, takeoff_v;
 	Vec3 move;
 	bool run, crouch;
 	float landed;

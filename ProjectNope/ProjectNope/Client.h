@@ -64,6 +64,8 @@ public:
 
 	IPlatform * platform;
 
+	size_t subframe, subframes;
+
 	std::vector<NewEntity*> interpol_targets;
 	std::vector<float> interpol_elapsed;
 

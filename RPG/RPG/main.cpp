@@ -29,6 +29,8 @@
 #include "ServiceComponent.h"
 #include "InteractComponent.h"
 
+#include "Item.h"
+
 #include "ShadowSpawnUnit.h"
 #include "GolemUnit.h"
 
@@ -160,15 +162,34 @@ public:
 		}
 
 		GolemUnit::spawn(Vec3(-50.0f, -300.0f, 0.0f), world);
+		GolemUnit::spawn(Vec3(0.0f, 30.0f, -40.0f), world);
+		GolemUnit::spawn(Vec3(50.0f, 90.0f, 20.0f), world);
 
-		return;
-
-		// create wibbly wobbly wall
-		for (int j = 0; j < 2; ++j)
 		{
 			NewEntity * ent = new NewEntity();
 
-			PositionComponent * p = new PositionComponent(Vec3(-21.0f + j * 42.0f, 0.0f, 0.75f));
+			PositionComponent * p = new PositionComponent(Vec3(0.0f, 0.0f, -250.0f));
+			GraphicsComponent * g = new GraphicsComponent(false, 4);
+
+			ent->addComponent(p);
+			ent->addComponent(g);
+
+			Material water = "data/assets/water.tga";
+			water.tex[0].options = { "mag_linear" };
+
+			MaterialList materials;
+			materials.materials.push_back(water);
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/water.gmdl", materials, 0)));
+
+			world->AddEntity(ent);
+		}
+
+		// create wibbly wobbly wall
+		//for (int j = 0; j < 2; ++j)
+		{
+			NewEntity * ent = new NewEntity();
+
+			PositionComponent * p = new PositionComponent(Vec3(-2.5f, 63.5f, -24.5f));
 			ColliderComponent * c = new ColliderComponent();
 			GraphicsComponent * g = new GraphicsComponent(false, 2);
 			InteractComponent * i = new InteractComponent();
@@ -184,17 +205,59 @@ public:
 			MaterialList materials;
 			materials.materials.push_back(wibbly);
 			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/plane_ds.gmdl", materials, 0)));
-			g->decs.items.front()->local *= 2.0f;
+			g->decs.items.front()->local *= 3.0f;
 			g->decs.items.front()->local.mtrx[3][3] = 1.0f;
 			g->decs.items.front()->local *= Quaternion(Vec3(M_PI / 2.0f, 0.0f, 0.0f));
-			g->decs.items.front()->local *= Quaternion(Vec3(0.0f, 0.0f, M_PI / 2.0f));
 			g->decs.items.front()->final = g->decs.items.front()->local;
 
 			i->name = "Shadow Wall";
-			i->action_name = "Open";
+			i->action_name = "Pass Through";
+
+			i->func = [](MobComponent * user)
+			{
+				user->p->p += Vec3(0.0f, 1.0f, 0.0f);
+			};
 
 			world->AddEntity(ent);
 		}
+
+		{
+			NewEntity * ent = new NewEntity();
+
+			PositionComponent * p = new PositionComponent(Vec3(0.0f, -2.5f, -0.5f));
+			GraphicsComponent * g = new GraphicsComponent(false);
+			InteractComponent * i = new InteractComponent();
+
+			ent->addComponent(p);
+			ent->addComponent(g);
+			ent->addComponent(i);
+
+			Material wibbly = "data/assets/white.tga";
+
+			MaterialList materials;
+			materials.materials.push_back(wibbly);
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube_bevel.gmdl", materials, 0)));
+			g->decs.items.front()->local *= 0.1f;
+			g->decs.items.front()->local.mtrx[3][3] = 1.0f;
+			g->decs.items.front()->final = g->decs.items.front()->local;
+
+			i->name = "Item";
+			i->action_name = "Pick Up";
+
+			i->func = [=](MobComponent * user)
+			{
+				auto inv = user->entity->getComponent<InventoryComponent>();
+				if (inv)
+				{
+					inv->items.add(std::make_shared<Item>());
+					world->SetEntity(ent->id, nullptr);
+				}
+			};
+
+			world->AddEntity(ent);
+		}
+
+		return;
 
 		ShadowSpawnUnit::spawn(Vec3(0.0f, 30.0f, 0.0f), world);
 		ShadowSpawnUnit::spawn(Vec3(-5.0f, 50.0f, 0.0f), world);

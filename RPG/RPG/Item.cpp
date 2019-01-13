@@ -10,3 +10,13 @@ Item::Item()
 Item::~Item()
 {
 }
+
+void Item::writeLog(outstream& os) const
+{
+	os << name << desc << icon;
+}
+
+void Item::readLog(instream& is)
+{
+	is >> name >> desc >> icon;
+}

@@ -1,8 +1,6 @@
 import bpy
 import struct
 
-texverts = []
-
 def write_gmdl(self, context, filepath):
     print("running write_gmdl...")
     f = open(filepath, 'wb')
@@ -11,6 +9,17 @@ def write_gmdl(self, context, filepath):
     scene = context.scene
     
     abs_filepath = bpy.path.abspath(filepath)
+    
+    texverts = []
+
+    def clogVT(co,f):
+        if co not in texverts:
+            texverts.append(co)
+            f.write(struct.pack('c',str.encode('u')))
+            f.write(struct.pack('<2f',co[0],co[1]))
+        f.write(struct.pack('c',str.encode('T')))
+        vt = texverts.index(co)
+        f.write(struct.pack('<I',vt))
     
     vertex_index_offset = 0
     for ob in bpy.context.scene.objects:
@@ -98,15 +107,6 @@ def write_gmdl(self, context, filepath):
     f.close()
 
     return {'FINISHED'}
-
-def clogVT(co,f):
-    if co not in texverts:
-        texverts.append(co)
-        f.write(struct.pack('c',str.encode('u')))
-        f.write(struct.pack('<2f',co[0],co[1]))
-    f.write(struct.pack('c',str.encode('T')))
-    vt = texverts.index(co)
-    f.write(struct.pack('<I',vt))
 
 # ExportHelper is a helper class, defines filename and
 # invoke() function which calls the file selector.

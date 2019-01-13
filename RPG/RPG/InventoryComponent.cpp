@@ -26,8 +26,6 @@ InventoryComponent::InventoryComponent(void) : Component(_factory.id)
 InventoryComponent::InventoryComponent(instream& is, bool full) : Component(_factory.id)
 {
 	is >> owner >> name;
-	items.items.push_back(std::make_shared<Item>());
-	items.items.push_back(std::make_shared<Item>());
 }
 
 InventoryComponent::~InventoryComponent(void)
@@ -39,15 +37,15 @@ InventoryComponent::~InventoryComponent(void)
 void InventoryComponent::connect(NewEntity * pEntity, bool authority)
 {
 	if (authority)
-		sync = pEntity->ss.allocate([this](ClientData&) {
-			send = true;
-		}, std::function<bool(ClientData&)>());
+	{
+		items.setSyncState(&pEntity->ss);
+		items.add(std::make_shared<Item>());
+		items.add(std::make_shared<Item>());
+	}
 }
 
 void InventoryComponent::disconnect(void)
 {
-	if (entity->world->authority)
-		entity->ss.deallocate(sync);
 }
 
 void InventoryComponent::pre_frame(float dTime)
@@ -63,11 +61,43 @@ void InventoryComponent::pre_frame(float dTime)
 		{
 			open = !open;
 		}
+
+		if (input.isPressed(Platform::KeyEvent::E))
+		{
+			interact.queue.emplace_back(current_interact);
+		}
 	}
 }
 
 void InventoryComponent::tick(float dTime)
 {
+	if (entity->world->authority)
+	{
+		auto mob = entity->getComponent<MobComponent>();
+		if (mob)
+		{
+			for (auto i : interact.queue)
+			{
+				auto ent = entity->world->GetEntity(i);
+				if (ent)
+				{
+					auto p = ent->getComponent<PositionComponent>();
+					auto ic = ent->getComponent<InteractComponent>();
+					if (p && ic)
+					{
+						if (Vec3(p->p - mob->p->p).LenPwr() <= 5.29f)
+						{
+							if (ic->func)
+							{
+								ic->func(mob);
+							}
+						}
+					}
+				}
+			}
+			interact.queue.clear();
+		}
+	}
 }
 
 void InventoryComponent::set_display(bool enable)
@@ -93,6 +123,30 @@ void InventoryComponent::set_display(bool enable)
 							{
 								prog->Uniform("color", color);
 							});
+
+							current_interact = EntityID();
+							auto p = entity->getComponent<PositionComponent>();
+							auto interacts = entity->world->GetNearestComponents<InteractComponent>(p->p + Vec3(0.0f, 0.0f, 1.0f) * Quaternion(mob->facing.y, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion(-mob->facing.x, Vec3(0.0f, 0.0f, 1.0f)), 1.0f);
+							if (!interacts.empty())
+							{
+								current_interact = interacts.begin()->second->entity->get_id();
+								auto other_p = interacts.begin()->second->entity->getComponent<PositionComponent>();
+								rs.pushTransform();
+								rs.addTransform(Matrix4::Translation(Vec3(rs.size * 0.5f)));
+								rs.addTransform(Matrix4::Translation(Vec3(Vec3(other_p->p - entity->world->cam_pos) * rs.view * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f)));
+								rs.pushTransform();
+								rs.addTransform(Matrix4::Translation(Vec3(20.0f, 0.0f, 0.0f)));
+								Writing::setSize(24);
+								Writing::setColor(1.0f, 1.0f, 1.0f);
+								Writing::render(interacts.begin()->second->action_name, rs);
+								rs.popTransform();
+								rs.popTransform();
+								rs.addTransform(Matrix4::Translation(Vec3(-32.0f, -32.0f, 0.0f)));
+								auto crosshair = Resource::get<Texture>("data/assets/interact.tga");
+								if (crosshair)
+									crosshair->render(rs);
+								rs.popTransform();
+							}
 
 							auto sprite = Resource::get<Texture>("data/assets/white.tga");
 
@@ -129,9 +183,9 @@ void InventoryComponent::set_display(bool enable)
 								text_offset[i] = Vec2(rs.size.x * 0.5f, rs.size.y * 0.75f + (bar_width + bar_margin) * i + 24.0f);
 							}
 
-							rs.pushMod(mod);
-
 							float fade_multiplier = 1.0f;
+
+							rs.pushMod(mod);
 
 							for (int i = 0; i < 3; ++i)
 							{
@@ -308,14 +362,14 @@ void InventoryComponent::set_display(bool enable)
 
 void InventoryComponent::writeLog(outstream& os, ClientData& client)
 {
-	if (send)
-		os << name;
-	send = false;
+	interact.writeLog(os, client);
+	items.writeLog(os);
 }
 
 void InventoryComponent::readLog(instream& is)
 {
-	is >> name;
+	interact.readLog(is);
+	items.readLog(is);
 }
 
 #include <lmcons.h>
@@ -323,32 +377,52 @@ void InventoryComponent::readLog(instream& is)
 
 void InventoryComponent::writeLog(outstream& os)
 {
-	WCHAR * buffer = new WCHAR[UNLEN + 1];
-	DWORD len = UNLEN + 1;
-	GetUserName(buffer, &len); // TODO remove this
-	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-	std::string converted_name = converter.to_bytes(buffer);
-	if (name != converted_name)
-		os << converted_name;
-	delete[] buffer;
+	interact.writeLog(os);
 }
 
 void InventoryComponent::readLog(instream& is, ClientData& client)
 {
 	if (client.client_id == client_id)
 	{
-		std::string next_name;
-		is >> next_name;
-		if (next_name != name)
+		uint32_t next_sync, next_size;
+		is >> next_sync >> next_size;
+		std::vector<EntityID> next(next_size);
+		for (size_t i = 0; i < next_size; ++i)
 		{
-			name = next_name;
-			entity->ss.update(sync);
+			is >> next[i];
+			if (next[i].id < client.unit_uid.size())
+			{
+				if (next[i].uid == client.unit_uid[next[i].id])
+				{
+					next[i].id = client.getRealID(next[i].id);
+					if (next[i].id < entity->world->uid.size())
+					{
+						next[i].uid = entity->world->uid[next[i].id];
+					}
+					else
+					{
+						next[i] = EntityID();
+					}
+				}
+				else
+				{
+					next[i] = EntityID();
+				}
+			}
+			else
+			{
+				next[i] = EntityID();
+			}
 		}
+		interact.update(next_sync, next);
 	}
 }
 
 void InventoryComponent::interpolate(Component * pComponent, float fWeight)
 {
+	auto other = reinterpret_cast<InventoryComponent*>(pComponent);
+	interact.update(other->interact.sync);
+	items = other->items;
 }
 
 void InventoryComponent::write_to(outstream& os, ClientData& client) const

@@ -339,6 +339,7 @@
     <ClInclude Include="PlatformEvents.h" />
     <ClInclude Include="StringResource.h" />
     <ClInclude Include="SyncContainer.h" />
+    <ClInclude Include="SyncQueue.h" />
     <ClInclude Include="SyncState.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="HashedString.h" />

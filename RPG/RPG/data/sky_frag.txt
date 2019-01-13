@@ -13,7 +13,7 @@ void main()
 {
 	vec3 n = normalize((proj_inv * vec4(texCoord * 2.0 - 1.0, 0.0, 1.0)).xyz);
 
-	vec3 color = horizon*(1.0-abs(n.z))+zenith*abs(n.z);
+	vec3 color = horizon*(1.0-abs(n.z + 0.1))+zenith*abs(n.z + 0.1);
 
 	float intensity;
 	float angle = acos(dot(light, n));
@@ -28,7 +28,7 @@ void main()
 
 	color += vec3(intensity);
 
-	intensity = clamp(1.0-angle*0.3, 0.0, 1.0)*(1.0-abs(n.z));
+	intensity = clamp(1.0-angle*0.3, 0.0, 1.0)*(1.0-abs(n.z + 0.1));
 	intensity *= intensity;
 
 	color += vec3(1.0, 1.0, 0.1) * intensity;

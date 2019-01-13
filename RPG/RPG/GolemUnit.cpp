@@ -88,7 +88,7 @@ MobComponent * GolemUnit::spawn(const GlobalPosition& pos, World * world)
 		if (chats.size())
 		{
 			ChatMessage message;
-			message.message = "The Golem has been defeated!";
+			message.message = "A Golem has been defeated!";
 			message.timeout = 10.0f;
 			chats.front()->messages.push_back(message);
 		}
@@ -103,7 +103,8 @@ MobComponent * GolemUnit::spawn(const GlobalPosition& pos, World * world)
 			return;
 		target->do_damage(HitData(4, entity->get_id()));
 		target->hit = true;
-		target->v += v * 0.2f;
+		target->v += v * 0.25f;
+		target->takeoff_v += v * 0.2f;
 	};
 
 	auto add_hitbox = [=](const std::string& bone)
@@ -275,7 +276,7 @@ void GolemAI::tick(float dTime)
 	else
 	{
 		mob->move = Vec3();
-		auto nearby = world->GetNearestComponents<MobComponent>(p->p, 30.0f);
+		auto nearby = world->GetNearestComponents<MobComponent>(p->p, 10.0f);
 		for (auto other : nearby)
 		{
 			if (other.second->temp_team != mob->temp_team)

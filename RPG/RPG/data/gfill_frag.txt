@@ -22,6 +22,12 @@ out vec4 final_color;
 
 void main()
 {
+	vec3 world = vec3(proj_inv * position);
+
+	float wl = length(world);
+	if (wl > 7000.0)
+		discard;
+
 	vec3 n = normalize(norm);
 	float intensity = dot(light, n);
 	intensity = max(0.0, intensity);
@@ -43,9 +49,7 @@ void main()
 
 	vec4 color = texture(diffuse, texco);
 
-	vec3 world = vec3(proj_inv * position);
-
 	vec3 pre_color = color.rgb * (light_color * intensity + vec3(0.1, 0.1, 0.2) * (1.0 + dot(normalize(world), n) * 0.5));
-	pre_color += fog_add * length(world);
+	pre_color += fog_add * wl;
 	final_color = vec4(pre_color, color.a);
 }

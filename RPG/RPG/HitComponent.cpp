@@ -52,22 +52,25 @@ void HitComponent::tick(float dTime)
 	{
 		auto pose = ent->getComponent<PoseComponent>();
 		auto anim = Resource::get<SkeletalAnimation>(pose->anim);
-		if (anim)
+		if (anim && pose)
 		{
 			auto mob = ent->getComponent<MobComponent>();
 			auto acc = ent->getComponent<AnimationControlComponent>();
 
-			float prop = anim->getProperty(bone + ".active", pose->frame);
-			GlobalPosition pos = mob->p->p + offset * pose->pose->bones[anim->getIndex(bone)].total_transform * acc->transform;
-			r = radius * acc->scale * prop;
-			p->p = pos;
-			p->update();
-			if (g)
+			if (mob && acc && pose->pose)
 			{
-				g->decs.items.front()->local = Matrix4::Scale(Vec3(r));
-				g->decs.update(0);
+				float prop = anim->getProperty(bone + ".active", pose->frame);
+				GlobalPosition pos = mob->p->p + offset * pose->pose->bones[anim->getIndex(bone)].total_transform * acc->transform;
+				r = radius * acc->scale * prop;
+				p->p = pos;
+				p->update();
+				if (g)
+				{
+					g->decs.items.front()->local = Matrix4::Scale(Vec3(r));
+					g->decs.update(0);
+				}
+				active = prop > 0.5f;
 			}
-			active = prop > 0.5f;
 		}
 	}
 	else

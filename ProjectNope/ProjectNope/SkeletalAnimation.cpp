@@ -14,6 +14,14 @@ Action::~Action(void)
 {
 }
 
+void Action::fill_cache()
+{
+	for (size_t i = 0; i < length; ++i)
+	{
+		cache.push_back(*anim->getPose(i, *this));
+	}
+}
+
 Pose::Pose(void)
 {
 }
@@ -510,6 +518,8 @@ void SkeletalAnimation::compileActions(float resolution)
 			}
 		}
 		action.second.compiled_end = total_t - resolution * 0.5f;
+		
+		action.second.fill_cache();
 	}
 }
 

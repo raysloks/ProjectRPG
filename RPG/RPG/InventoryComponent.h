@@ -4,6 +4,9 @@
 #include "Component.h"
 
 #include "SyncContainer.h"
+#include "SyncQueue.h"
+
+#include "EntityID.h"
 
 #include <memory>
 #include <functional>
@@ -52,10 +55,10 @@ public:
 
 	SyncContainer<Item> items;
 
-	bool open;
+	SyncQueue<EntityID> interact;
+	EntityID current_interact;
 
-	uint32_t sync;
-	bool send;
+	bool open;
 };
 
 #endif

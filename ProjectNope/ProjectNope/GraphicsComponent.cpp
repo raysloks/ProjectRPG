@@ -508,6 +508,11 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 			}));
 			shader = true;
 		}
+		if (g->tag == 4)
+		{
+			if (rs.pass == 3 || rs.pass == 4)
+				continue;
+		}
 
 		g->render(rs);
 

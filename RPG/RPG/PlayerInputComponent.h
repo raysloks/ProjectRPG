@@ -8,7 +8,7 @@
 #include "Vec2.h"
 #include "GlobalPosition.h"
 
-#include "ControlState.h"
+#include "SyncQueue.h"
 
 class MobComponent;
 
@@ -46,7 +46,7 @@ public:
 	MobComponent * mob = nullptr;
 
 	Vec2 move, facing;
-	ControlState cs;
+	SyncQueue<std::string> sc;
 };
 
 #endif

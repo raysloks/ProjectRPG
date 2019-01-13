@@ -27,7 +27,7 @@ PlayerInputComponent::PlayerInputComponent(void) : Component(_factory.id)
 
 PlayerInputComponent::PlayerInputComponent(instream& is, bool full) : Component(_factory.id)
 {
-	is >> cs;
+	is >> sc.sync;
 }
 
 PlayerInputComponent::~PlayerInputComponent(void)
@@ -95,15 +95,15 @@ void PlayerInputComponent::post_frame(float dTime)
 			move *= l;
 
 			if (input.isPressed(Platform::KeyEvent::LMB) || input.ctrl[0].x.pressed)
-				cs.activate("attack");
+				sc.queue.emplace_back("attack");
 			if (input.isPressed(Platform::KeyEvent::RMB) || input.ctrl[0].right_trigger.pressed)
-				cs.activate("dash");
+				sc.queue.emplace_back("dash");
 			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].a.pressed)
-				cs.activate("jump");
+				sc.queue.emplace_back("jump");
 			if (input.isPressed(Platform::KeyEvent::Q) || input.ctrl[0].y.pressed)
-				cs.activate("heal");
+				sc.queue.emplace_back("heal");
 			if (input.isPressed(Platform::KeyEvent::F17))
-				cs.activate("fly");
+				sc.queue.emplace_back("fly");
 		}
 	}
 }
@@ -125,15 +125,15 @@ void PlayerInputComponent::tick(float dTime)
 
 			float buffer_duration = 0.2f;
 
-			if (cs.consume("attack"))
+			if (sc.consume("attack"))
 				mob->input["attack"] = buffer_duration;
-			if (cs.consume("dash"))
+			if (sc.consume("dash"))
 				mob->input["roll"] = buffer_duration;
-			if (cs.consume("jump"))
+			if (sc.consume("jump"))
 				mob->input["jump"] = buffer_duration;
-			if (cs.consume("fly"))
+			if (sc.consume("fly"))
 				mob->input["dash"] = buffer_duration;
-			if (cs.consume("heal"))
+			if (sc.consume("heal"))
 				mob->input["heal"] = buffer_duration;
 		}
 	}
@@ -141,34 +141,38 @@ void PlayerInputComponent::tick(float dTime)
 
 void PlayerInputComponent::writeLog(outstream& os, ClientData& client)
 {
+	sc.writeLog(os, client);
 }
 
 void PlayerInputComponent::readLog(instream& is)
 {
+	sc.readLog(is);
 }
 
 void PlayerInputComponent::writeLog(outstream& os)
 {
-	os << move << facing << cs;
+	os << move << facing;
+	sc.writeLog(os);
 }
 
 void PlayerInputComponent::readLog(instream& is, ClientData& client)
 {
 	if (client.client_id == client_id)
 	{
-		ControlState ncs;
-		is >> move >> facing >> ncs;
-		ncs.update(cs);
+		is >> move >> facing;
+		sc.readLog(is, client);
 	}
 }
 
 void PlayerInputComponent::interpolate(Component * pComponent, float fWeight)
 {
+	auto other = reinterpret_cast<PlayerInputComponent*>(pComponent);
+	sc.update(other->sc.sync);
 }
 
 void PlayerInputComponent::write_to(outstream& os, ClientData& client) const
 {
-	os << cs;
+	os << sc.sync;
 }
 
 void PlayerInputComponent::write_to(outstream& os) const

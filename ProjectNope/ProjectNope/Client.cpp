@@ -167,6 +167,7 @@ void Client::setup(void)
 			supersample_x = 1.0f;
 			supersample_y = 1.0f;
 			gui_scale = 1.0f;
+			subframes = 1;
 			auto var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("screen_width"));
 			if (var!=0)
 				screen_width = var->f;
@@ -214,6 +215,9 @@ void Client::setup(void)
 			var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("gui_scale"));
 			if (var != 0)
 				gui_scale = var->f;
+			var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("subframes"));
+			if (var != 0)
+				subframes = std::max(size_t(1), size_t(fmaxf(var->f, 0.0f)));
 			auto bvar = std::dynamic_pointer_cast<BooleanVar>(mem->getVariable("fullscreen"));
 			if (bvar!=0)
 				fullscreen = bvar->b;
@@ -372,6 +376,10 @@ void Client::render(void)
 		view[1] = 0;
 		view[2] = platform->get_width();
 		view[3] = platform->get_height();
+
+		if (subframe == 0)
+			subframe = subframes;
+		--subframe;
 
 		/*if (pre_frame==0) {
 			std::vector<GLenum> gbuf;
@@ -540,7 +548,7 @@ void Client::render_world(void)
 
 	float jitter = 0.0f;
 
-	int shadow_quality = 1;
+	int shadow_mode = 1;
 	int ao_quality = 1;
 
 	if (mem!=0)
@@ -560,9 +568,9 @@ void Client::render_world(void)
 		var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("supersampling_r"));
 		if (var != 0)
 			supersample_r = var->f;
-		var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("shadow_quality"));
+		var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("shadow_mode"));
 		if (var != 0)
-			shadow_quality = var->f;
+			shadow_mode = var->f;
 		var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("ao_quality"));
 		if (var != 0)
 			ao_quality = var->f;
@@ -775,7 +783,7 @@ void Client::render_world(void)
 
 
 		// raytracing shadows setup
-		if (shadow_quality == 2)
+		if (shadow_mode == 2)
 		{
 			// calculate noise shadow sample distribution
 			if (input.isDown(Platform::KeyEvent::N))
@@ -952,7 +960,7 @@ void Client::render_world(void)
 		}
 
 		// stencils
-		if (stencil_prog->IsReady() && flat_stencil_prog->IsReady() && shadow_quality != 0)
+		if (stencil_prog->IsReady() && flat_stencil_prog->IsReady() && shadow_mode != 0)
 		{
 			// render flat stencil
 			{
@@ -992,7 +1000,7 @@ void Client::render_world(void)
 
 						prog->Uniform("light", light, 0.0f);
 
-						prog->Uniform("lsize", shadow_quality == 1 ? 0.0f : light_size);
+						prog->Uniform("lsize", shadow_mode == 1 ? 0.0f : light_size);
 					});
 
 					rs.pushMod(mod);
@@ -1016,7 +1024,7 @@ void Client::render_world(void)
 
 						prog->Uniform("light", light, 0.0f);
 
-						prog->Uniform("lsize", shadow_quality == 1 ? 0.0f : light_size);
+						prog->Uniform("lsize", shadow_mode == 1 ? 0.0f : light_size);
 					});
 
 					rs.pushMod(mod);
@@ -1030,7 +1038,7 @@ void Client::render_world(void)
 				glDisable(GL_STENCIL_TEST);
 			}
 
-			if (shadow_quality == 2)
+			if (shadow_mode == 2)
 			{
 				// render raytracing stencil
 				{
@@ -1192,7 +1200,7 @@ void Client::render_world(void)
 			Vec3 fog_add(0.0001f, 0.000125f, 0.0002f);
 
 			{
-				if (shadow_quality > 0)
+				if (shadow_mode > 0)
 				{
 					glEnable(GL_STENCIL_TEST);
 					glStencilFunc(GL_EQUAL, 0, 0xff);
@@ -1210,7 +1218,7 @@ void Client::render_world(void)
 					prog->UniformMatrix4f("proj", proj.data);
 					prog->UniformMatrix4f("proj_inv", proj_inv.data);
 					prog->Uniform3fv("light_samples", light_samples);
-					prog->Uniform("shadow_quality", shadow_quality);
+					prog->Uniform("shadow_mode", shadow_mode);
 				});
 
 				glActiveTexture(GL_TEXTURE3);
@@ -1225,7 +1233,7 @@ void Client::render_world(void)
 				glDisable(GL_STENCIL_TEST);
 			}
 
-			if (shadow_quality > 0)
+			if (shadow_mode > 0)
 			{
 				glEnable(GL_STENCIL_TEST);
 				glStencilFunc(GL_NOTEQUAL, 0, 0xff);
@@ -1239,7 +1247,7 @@ void Client::render_world(void)
 					prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
 					prog->UniformMatrix4f("proj", proj.data);
 					prog->UniformMatrix4f("proj_inv", proj_inv.data);
-					prog->Uniform("shadow_quality", 0);
+					prog->Uniform("shadow_mode", 0);
 				});
 
 				rs.pushMod(mod);
@@ -1423,10 +1431,15 @@ void Client::render_world(void)
 		dof_prog->Uniform("x_size", 1.0f / supersample_r / supersample_x);
 		dof_prog->Uniform("y_size", 1.0f / supersample_r / supersample_y);
 
-		std::uniform_real_distribution<float> noise_dist(-1000.0f, 1000.0f);
-		dof_prog->Uniform("noise_r", noise_dist(random), noise_dist(random));
-		dof_prog->Uniform("noise_g", noise_dist(random), noise_dist(random));
-		dof_prog->Uniform("noise_b", noise_dist(random), noise_dist(random));
+		if (subframe == subframes - 1)
+		{
+			std::uniform_real_distribution<float> noise_dist(-1000.0f, 1000.0f);
+			dof_prog->Uniform("noise_r", noise_dist(random), noise_dist(random));
+			dof_prog->Uniform("noise_g", noise_dist(random), noise_dist(random));
+			dof_prog->Uniform("noise_b", noise_dist(random), noise_dist(random));
+		}
+
+		dof_prog->Uniform("alpha", 1.0f / (subframes - subframe));
 
 		glActiveTexture(GL_TEXTURE0);
 		dof_prog->Uniform("diffuse", 0);

@@ -127,7 +127,9 @@ void MobComponent::tick(float dTime)
 
 		if (input["dash"])
 		{
-			v += Vec3(0.0f, 0.0f, 40.0f) * Quaternion(facing.y, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion(-facing.x, Vec3(0.0f, 0.0f, 1.0f));
+			Vec3 impulse = Vec3(0.0f, 0.0f, 40.0f) * Quaternion(facing.y, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion(-facing.x, Vec3(0.0f, 0.0f, 1.0f));
+			v += impulse;
+			takeoff_v += impulse;
 			input.erase("dash");
 
 			add_aura(new ShieldAura(40, 3.0f));
@@ -213,7 +215,7 @@ void MobComponent::tick(float dTime)
 
 		if (p != nullptr)
 		{
-			if (Vec3(p->p).LenPwr() > 4000000.0f)
+			if (Vec3(p->p).z < -250.0f)
 			{
 				if (temp_team == 0)
 				{
@@ -547,6 +549,8 @@ void MobComponent::tick(float dTime)
 						}
 					}
 
+					takeoff_v = v * 0.8f;
+
 					float edp_dot_n = external_dp.Dot(col->n);
 					if (edp_dot_n < 0.0f)
 						external_dp -= col->n * edp_dot_n;
@@ -569,6 +573,19 @@ void MobComponent::tick(float dTime)
 					v += g * dTime*t;
 					break;
 				}
+			}
+
+			if (!done_landing)
+			{
+				v -= takeoff_v;
+				float z = v.z;
+				v.z -= z;
+
+				if (!rolling)
+					v = bu_blend(v, move * 6.0f * 0.2f, -0.5f, -10.0f, dTime);
+
+				v.z += z;
+				v += takeoff_v;
 			}
 
 			dp = Vec3();

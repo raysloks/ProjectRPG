@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 
+class Pose;
 class Bone;
 class SkeletalAnimation;
 
@@ -19,9 +20,13 @@ public:
 	Action(float length);
 	~Action(void);
 
+	void fill_cache();
+
 	std::vector<std::vector<std::map<float, float>>> keys;
 	std::vector<std::vector<std::string>> props;
 	float length;
+
+	std::vector<Pose> cache;
 
 	float compiled_start, compiled_end;
 	SkeletalAnimation * anim;
