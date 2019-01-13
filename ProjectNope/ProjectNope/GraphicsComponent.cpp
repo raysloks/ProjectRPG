@@ -57,7 +57,8 @@ void GraphicsComponent::disconnect(void)
 
 void GraphicsComponent::writeLog(outstream& os, ClientData& client)
 {
-	decs.writeLog(os);
+	if (decs.conf.size())
+		decs.writeLog(os);
 }
 
 void GraphicsComponent::readLog(instream& is)

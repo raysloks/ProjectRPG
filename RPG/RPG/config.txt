@@ -9,7 +9,7 @@ vsync = 1;
 
 tickrate = 64;
 
-subframes = inf;
+subframes = 2;
 
 anisotropic_filtering = 16;
 

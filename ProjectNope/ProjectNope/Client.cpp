@@ -542,7 +542,7 @@ void Client::render_world(void)
 
 	float far_z = 5000.0f;
 	float near_z = 1.0f;
-	size_t depth_partitions = 2;
+	size_t depth_partitions = 1;
 
 	float supersample_r = 1.0f;
 

@@ -151,6 +151,7 @@ void GameLoop::tick(void)
 	if (client)
 	{
 		Profiler::set("fps", 1.0 / fullInSeconds);
+		Profiler::set("sfps", client->subframes / fullInSeconds);
 	}
 	else
 	{
