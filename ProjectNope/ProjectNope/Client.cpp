@@ -679,20 +679,6 @@ void Client::render_world(void)
 
 	Matrix4 light_alignment = Matrix3(acos(light.Dot(Vec3(0.0f, 0.0f, 1.0f))), -light.Cross(Vec3(0.0f, 0.0f, 1.0f)));
 
-	// render background
-	if (sky_prog->Use())
-	{
-		color_fb->bind();
-		glViewport(0, 0, buffer_w, buffer_h);
-
-		sky_prog->Uniform("horizon", horizon);
-		sky_prog->Uniform("zenith", zenith);
-		sky_prog->Uniform("light", light);
-		sky_prog->UniformMatrix4f("proj_inv", proj_inv.data);
-
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-	}
-
 	float o_near_z = near_z;
 	float o_far_z = far_z;
 
@@ -1259,6 +1245,17 @@ void Client::render_world(void)
 				glDisable(GL_STENCIL_TEST);
 			}
 		}
+	}
+
+	// render background
+	if (sky_prog->Use())
+	{
+		sky_prog->Uniform("horizon", horizon);
+		sky_prog->Uniform("zenith", zenith);
+		sky_prog->Uniform("light", light);
+		sky_prog->UniformMatrix4f("proj_inv", proj_inv.data);
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
 
 

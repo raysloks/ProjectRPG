@@ -465,6 +465,7 @@ void GraphicsComponent::prep(RenderSetup& rs)
 std::shared_ptr<ShaderProgram> ao_shader;
 std::shared_ptr<ShaderProgram> swing_shader;
 std::shared_ptr<ShaderProgram> grass_shader;
+std::shared_ptr<ShaderProgram> water_shader;
 
 Vec3 angle(0.0f, 0.0f, 0.0f);
 
@@ -476,6 +477,8 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 		swing_shader = std::make_shared<ShaderProgram>("data/gfill_vert.txt", "data/swing_frag.txt");
 	if (!grass_shader)
 		grass_shader = std::make_shared<ShaderProgram>("data/grass_vert.txt", "data/grass_frag.txt");
+	if (!water_shader)
+		water_shader = std::make_shared<ShaderProgram>("data/gfill_vert.txt", "data/water_frag.txt");
 
 	for each (auto g in standard)
 	{
@@ -513,6 +516,10 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 		{
 			if (rs.pass == 3 || rs.pass == 4)
 				continue;
+			rs.pushMod(ShaderMod(water_shader, [](const std::shared_ptr<ShaderProgram>& prog)
+			{
+			}));
+			shader = true;
 		}
 
 		g->render(rs);

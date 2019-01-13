@@ -25,6 +25,8 @@ void main()
 	vec3 world = vec3(proj_inv * position);
 
 	float wl = length(world);
+	if (wl > 5000.0)
+		discard;
 
 	vec3 n = normalize(norm);
 	float intensity = dot(light, n);
