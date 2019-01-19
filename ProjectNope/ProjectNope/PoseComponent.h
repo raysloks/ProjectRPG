@@ -33,7 +33,7 @@ public:
 	static AutoSerialFactory<PoseComponent, Component> _factory;
 
 	float frame;
-	std::shared_ptr<Pose> pose;
+	Pose pose;
 	std::string anim;
 };
 

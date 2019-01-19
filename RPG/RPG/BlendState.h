@@ -10,9 +10,7 @@ public:
 	BlendState(instream& is, bool full);
 	~BlendState();
 
-	void enter(AnimationState * prev);
 	void tick(float dTime);
-	void leave(AnimationState * next);
 
 	void write_to(outstream& os) const;
 

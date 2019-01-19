@@ -6,6 +6,7 @@
 #include "EntityID.h"
 
 class MobComponent;
+class WeaponData;
 
 class WeaponComponent :
 	public Component
@@ -36,9 +37,13 @@ public:
 
 	WeaponComponent * swap(size_t index);
 
+	void updateHitbox();
+
 	EntityID mob_id;
 
-	float recoil;
+	std::shared_ptr<WeaponData> wd;
+
+	std::vector<EntityID> hcids;
 };
 
 #endif

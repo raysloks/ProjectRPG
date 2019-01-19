@@ -2,6 +2,8 @@
 
 #include "AnimationState.h"
 
+#include "SkeletalAnimation.h"
+
 #include <string>
 #include <map>
 #include <functional>
@@ -26,6 +28,8 @@ public:
 
 	static AutoSerialFactory<SimpleState, AnimationState> _factory;
 
+	Pose prev_pose;
+	float blend_t;
 	float t, prev_t;
 	float speed;
 	std::string name;

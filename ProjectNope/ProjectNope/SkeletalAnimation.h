@@ -85,8 +85,12 @@ public:
 	SkeletalAnimation(instream& is);
 	~SkeletalAnimation(void);
 
-	std::shared_ptr<Pose> getPose(float time, const Action& action) const;
-	std::shared_ptr<Pose> getPose(float time, const std::string& action) const;
+	void getPose(float time, const Action& action, Pose& pose) const;
+	void getPose(float time, const std::string& action, Pose& pose) const;
+	Pose getPose(float time, const Action& action) const;
+	Pose getPose(float time, const std::string& action) const;
+	std::shared_ptr<Pose> getPoseRaw(float time, const Action& action) const;
+	std::shared_ptr<Pose> getPoseRaw(float time, const std::string& action) const;
 
 	float getStart(const std::string& action) const;
 	float getEnd(const std::string& action) const;

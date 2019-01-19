@@ -70,7 +70,7 @@ void CameraControlComponent::pre_frame(float dTime)
 					auto anim = Resource::get<SkeletalAnimation>(pose->anim);
 
 					if (anim)
-						offset = Vec3(0.0f, 0.25f, -0.225f) * pose->pose->bones[anim->getIndex("Head")].total_transform * g->decs.items.front()->local;
+						offset = Vec3(0.0f, 0.25f, -0.225f) * pose->pose.bones[anim->getIndex("Head")].total_transform * g->decs.items.front()->local;
 				}
 				else
 				{

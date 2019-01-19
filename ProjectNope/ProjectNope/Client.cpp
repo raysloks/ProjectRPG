@@ -250,12 +250,8 @@ void Client::setup(void)
 	}
 }
 
-extern Vec3 angle;
-
 void Client::pre_frame(float dTime)
 {
-	angle += Vec3(1.0f, M_PI / 10.0f, M_E) * dTime;
-
 	isActive = true;
 	ActiveEvent * ae = new ActiveEvent();
 	for (std::vector<std::shared_ptr<Window>>::reverse_iterator win=windows.rbegin();win!=windows.rend();++win)
@@ -1247,6 +1243,7 @@ void Client::render_world(void)
 		}
 	}
 
+
 	// render background
 	if (sky_prog->Use())
 	{
@@ -1257,35 +1254,6 @@ void Client::render_world(void)
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
-
-
-	//{
-	//	RenderSetup rs;
-
-	//	glUseProgram(0);
-
-	//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	//	//set matrix to camera for editor
-	//	glMatrixMode(GL_PROJECTION);
-	//	glLoadIdentity();
-	//	glMultMatrixf(proj.data);
-	//	glMatrixMode(GL_MODELVIEW);
-	//	glLoadIdentity();
-
-	//	if (LineComponent::mode != 0)
-	//		glEnable(GL_DEPTH_TEST);
-	//	LineComponent::render_all(rs);
-
-	//	if (LineComponent::mode == 2)
-	//	{
-	//		rs.pass = 3;
-	//		glDepthFunc(GL_NOTEQUAL);
-	//		LineComponent::render_all(rs);
-	//	}
-
-	//	glLoadIdentity();
-	//}
 
 
 	// render GUI

@@ -26,6 +26,9 @@ void RunCycleState::enter(AnimationState * prev)
 	idle.acc = acc;
 	idle.pose = pose;
 	idle.mob = mob;
+
+	prev_pose = pose->pose;
+	idle.prev_pose = prev_pose;
 }
 
 void RunCycleState::tick(float dTime)
@@ -33,6 +36,9 @@ void RunCycleState::tick(float dTime)
 	Vec3 rel_v = mob->v - mob->land_v;
 
 	rel_v.z = 0.0f;
+
+	idle.blend_t = blend_t;
+	blend_t += dTime * 10.0f;
 
 	if (rel_v == Vec2() && mob->landed == 1.0f)
 	{
@@ -73,7 +79,7 @@ void RunCycleState::tick(float dTime)
 
 		pose->frame = start + length * t;
 
-		pose->pose = anim->getPose(length * t, name);
+		anim->getPose(length * t, name, pose->pose);
 
 		if (pose->anim == "data/assets/units/player/hoodlum.anim")
 		{
@@ -87,16 +93,19 @@ void RunCycleState::tick(float dTime)
 
 			auto back_pose = anim->getPose(length * t, "run_back");
 
-			back_pose->interpolate(*anim->getPose(length * t, "run_right"), fmaxf(0.0f, fminf(1.0f, -right_dot)));
-			back_pose->interpolate(*anim->getPose(length * t, "run_left"), fmaxf(0.0f, fminf(1.0f, right_dot)));
+			back_pose.interpolate(anim->getPose(length * t, "run_right"), fmaxf(0.0f, fminf(1.0f, -right_dot)));
+			back_pose.interpolate(anim->getPose(length * t, "run_left"), fmaxf(0.0f, fminf(1.0f, right_dot)));
 
-			pose->pose->interpolate(*anim->getPose(length * t, "run_right"), fmaxf(0.0f, right_dot));
-			pose->pose->interpolate(*anim->getPose(length * t, "run_left"), fmaxf(0.0f, -right_dot));
+			pose->pose.interpolate(anim->getPose(length * t, "run_right"), fmaxf(0.0f, right_dot));
+			pose->pose.interpolate(anim->getPose(length * t, "run_left"), fmaxf(0.0f, -right_dot));
 
-			pose->pose->interpolate(*back_pose, fmaxf(0.0f, fminf(1.0f, -forward_dot * 2.0f)));
+			pose->pose.interpolate(back_pose, fmaxf(0.0f, fminf(1.0f, -forward_dot * 2.0f)));
 
-			pose->pose->interpolate(*anim->getPose(anim->getLength(idle.name), idle.name), fmaxf(0.0f, 1.0f - fmaxf(1.0f - mob->landed, rel_v.Len())));
+			pose->pose.interpolate(anim->getPose(anim->getLength(idle.name), idle.name), fmaxf(0.0f, 1.0f - fmaxf(1.0f - mob->landed, rel_v.Len())));
 		}
+
+		if (blend_t < 1.0f)
+			pose->pose.interpolate(prev_pose, 1.0f - blend_t);
 	}
 }
 

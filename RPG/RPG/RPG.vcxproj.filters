@@ -87,6 +87,8 @@
     <ClCompile Include="HitData.cpp" />
     <ClCompile Include="DamageData.cpp" />
     <ClCompile Include="BlendState.cpp" />
+    <ClCompile Include="WeaponData.cpp" />
+    <ClCompile Include="HitboxData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -174,6 +176,8 @@
     <ClInclude Include="HitData.h" />
     <ClInclude Include="DamageData.h" />
     <ClInclude Include="BlendState.h" />
+    <ClInclude Include="WeaponData.h" />
+    <ClInclude Include="HitboxData.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

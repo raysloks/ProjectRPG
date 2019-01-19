@@ -24,10 +24,6 @@ BlendState::~BlendState()
 {
 }
 
-void BlendState::enter(AnimationState * prev)
-{
-}
-
 void BlendState::tick(float dTime)
 {
 	if (!authority)
@@ -58,13 +54,14 @@ void BlendState::tick(float dTime)
 
 		pose->frame = start + length * t;
 
-		pose->pose = anim->getPose(length * t, name);
-		pose->pose->interpolate(*anim->getPose(second_length * t, second_name), weight);
-	}
-}
+		anim->getPose(length * t, name, pose->pose);
+		pose->pose.interpolate(anim->getPose(second_length * t, second_name), weight);
 
-void BlendState::leave(AnimationState * next)
-{
+		blend_t += dTime * 10.0f;
+
+		if (blend_t < 1.0f)
+			pose->pose.interpolate(prev_pose, 1.0f - blend_t);
+	}
 }
 
 void BlendState::write_to(outstream& os) const

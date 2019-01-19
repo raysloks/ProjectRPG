@@ -18,7 +18,7 @@ void Action::fill_cache()
 {
 	for (size_t i = 0; i < length; ++i)
 	{
-		cache.push_back(*anim->getPose(i, *this));
+		cache.push_back(*anim->getPoseRaw(i, *this));
 	}
 }
 
@@ -208,7 +208,7 @@ Matrix4 Bone::getTransform(void)const
 {
 	Matrix4 transform = Matrix4(rotation) * Matrix4::Translation(position);
 	if (parent)
-		return transform * local * parent->getTransform();
+		return transform * local * parent->total_transform;
 	else
 		return transform * local;
 }
@@ -328,7 +328,51 @@ SkeletalAnimation::SkeletalAnimation(instream& is)
 	compileActions(1.0f);
 }
 
-std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const Action& act) const
+void SkeletalAnimation::getPose(float time, const Action& action, Pose& pose) const
+{
+	int time_int = floorf(time);
+	float time_frac = time - time_int;
+
+	if (time_int < 0)
+	{
+		pose = action.cache.front();
+		return;
+	}
+
+	if (time_int + 1 >= action.cache.size())
+	{
+		pose = action.cache.back();
+		return;
+	}
+
+	pose = action.cache[time_int];
+	pose.interpolate(action.cache[time_int + 1], time_frac);
+}
+
+void SkeletalAnimation::getPose(float time, const std::string& action, Pose& pose) const
+{
+	auto i = actions.find(action);
+	if (i != actions.cend())
+	{
+		getPose(time, i->second, pose);
+	}
+}
+
+Pose SkeletalAnimation::getPose(float time, const Action& action) const
+{
+	Pose pose;
+	getPose(time, action, pose);
+	return pose;
+}
+
+Pose SkeletalAnimation::getPose(float time, const std::string& action) const
+{
+	Pose pose;
+	getPose(time, action, pose);
+	return pose;
+}
+
+std::shared_ptr<Pose> SkeletalAnimation::getPoseRaw(float time, const Action& act) const
 {
 	std::shared_ptr<Pose> pose(new Pose());
 	pose->bones = std::vector<Bone>(armature.bones);
@@ -395,12 +439,12 @@ std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const Action& act) 
 	return pose;
 }
 
-std::shared_ptr<Pose> SkeletalAnimation::getPose(float time, const std::string& action) const
+std::shared_ptr<Pose> SkeletalAnimation::getPoseRaw(float time, const std::string& action) const
 {
 	auto i = actions.find(action);
 	if (i != actions.cend())
 	{
-		std::shared_ptr<Pose> pose = getPose(time, i->second);
+		std::shared_ptr<Pose> pose = getPoseRaw(time, i->second);
 		return pose;
 	}
 	return nullptr;
@@ -502,7 +546,7 @@ void SkeletalAnimation::compileActions(float resolution)
 		{
 			total_t += resolution;
 			++frame_count;
-			auto pose = getPose(t, action.second);
+			auto pose = getPoseRaw(t, action.second);
 			for (size_t i = 0; i < pose->bones.size(); ++i)
 			{
 				compiled_actions.push_back(pose->rest->bones[i].total_inverse * pose->bones[i].total_transform);

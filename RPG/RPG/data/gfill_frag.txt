@@ -3,7 +3,7 @@
 uniform sampler2D diffuse;
 uniform usampler2D shadow;
 
-uniform vec3 light_samples[128];
+//uniform vec3 light_samples[128];
 
 uniform int shadow_quality;
 

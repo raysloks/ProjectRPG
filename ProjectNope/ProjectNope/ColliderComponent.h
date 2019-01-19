@@ -45,9 +45,9 @@ public:
 
 	thread_local static std::vector<ColliderComponent*> all;
 
-	void update(const GlobalPosition& next_position, float dTime);
+	void update(const GlobalPosition& next, float dTime);
 
-	GlobalPosition p, next;
+	GlobalPosition p, prev;
 	Vec3 v;
 
 	bool deform;

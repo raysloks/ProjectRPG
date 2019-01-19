@@ -173,8 +173,8 @@ void CollisionMesh::CalcBounds(void)
 		aabb_min.z = std::fminf(aabb_min.z, wall.p3.z);
 	}
 
-	aabb_max += Vec3(1.0f, 1.0f, 1.0f);
-	aabb_min -= Vec3(1.0f, 1.0f, 1.0f);
+	aabb_max += Vec3(4.0f);
+	aabb_min -= Vec3(4.0f);
 
 	dif = aabb_max - aabb_min;
 	/*float f;

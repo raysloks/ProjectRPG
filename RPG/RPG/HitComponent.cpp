@@ -15,6 +15,7 @@ AutoSerialFactory<HitComponent, Component> HitComponent::_factory("HitComponent"
 
 HitComponent::HitComponent(void) : Component(_factory.id)
 {
+	activation = "active";
 }
 
 HitComponent::HitComponent(instream& is, bool full) : Component(_factory.id)
@@ -57,16 +58,18 @@ void HitComponent::tick(float dTime)
 			auto mob = ent->getComponent<MobComponent>();
 			auto acc = ent->getComponent<AnimationControlComponent>();
 
-			if (mob && acc && pose->pose)
+			if (mob && acc && pose->pose.bones.size())
 			{
-				float prop = anim->getProperty(bone + ".active", pose->frame);
-				GlobalPosition pos = mob->p->p + offset * pose->pose->bones[anim->getIndex(bone)].total_transform * acc->transform;
+				float prop = 1.0f;
+				if (activation.size())
+					prop = anim->getProperty(bone + "." + activation, pose->frame);
+				GlobalPosition pos = mob->p->p + offset * pose->pose.bones[anim->getIndex(bone)].total_transform * acc->transform;
 				r = radius * acc->scale * prop;
 				p->p = pos;
 				p->update();
 				if (g)
 				{
-					g->decs.items.front()->local = Matrix4::Scale(Vec3(r));
+					g->decs.items.front()->local = Matrix4::Scale(Vec3(0.0f));
 					g->decs.update(0);
 				}
 				active = prop > 0.5f;

@@ -12,12 +12,14 @@ SimpleState::SimpleState(const std::string& n, float s) : name(n), speed(s)
 {
 	t = 0.0f;
 	prev_t = 0.0f;
+	blend_t = 0.0f;
 }
 
 SimpleState::SimpleState(instream& is, bool full)
 {
 	is >> t >> speed >> name;
 	prev_t = t;
+	blend_t = 0.0f;
 }
 
 SimpleState::~SimpleState()
@@ -26,6 +28,7 @@ SimpleState::~SimpleState()
 
 void SimpleState::enter(AnimationState * prev)
 {
+	prev_pose = pose->pose;
 }
 
 void SimpleState::tick(float dTime)
@@ -57,7 +60,12 @@ void SimpleState::tick(float dTime)
 
 		pose->frame = start + length * t;
 
-		pose->pose = anim->getPose(length * t, name);
+		anim->getPose(length * t, name, pose->pose);
+
+		blend_t += dTime * 10.0f;
+
+		if (blend_t < 1.0f)
+			pose->pose.interpolate(prev_pose, 1.0f - blend_t);
 	}
 }
 
@@ -68,7 +76,7 @@ void SimpleState::leave(AnimationState * next)
 void SimpleState::interpolate(AnimationState * other, float fWeight)
 {
 	SimpleState * simple = reinterpret_cast<SimpleState*>(other);
-	t = bu_blend(simple->t, t, fWeight);
+	t = bu_blend(t, simple->t, fWeight);
 }
 
 void SimpleState::write_to(outstream& os) const

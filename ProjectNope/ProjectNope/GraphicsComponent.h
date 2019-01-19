@@ -53,6 +53,8 @@ public:
 
 	PositionComponent * p;
 
+	Vec3 angle; // temp
+
 	Pose * pose;
 
 	void render(RenderSetup& rs);

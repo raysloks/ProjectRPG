@@ -91,7 +91,7 @@ bool APLSource::tick(float dTime, Pose * out_pose)
 			}
 		}
 	}
-	*out_pose = *action->anim->getPose(time, *action);
+	*out_pose = action->anim->getPose(time, *action);
 	return true;
 }
 

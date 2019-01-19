@@ -39,7 +39,7 @@ public:
 	static AutoSerialFactory<HitComponent, Component> _factory;
 
 	EntityID owner;
-	std::string bone;
+	std::string bone, activation;
 	std::function<void(MobComponent*, const Vec3&)> func;
 	bool active;
 	float radius, prev_r;

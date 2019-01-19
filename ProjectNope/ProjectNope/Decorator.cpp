@@ -114,7 +114,7 @@ void Decorator::render(RenderSetup& rs)
 	}
 }
 
-void Decorator::render(RenderSetup& rs, Pose * pose)
+void Decorator::render(RenderSetup& rs, const Pose& pose)
 {
 	rs.pushTransform();
 

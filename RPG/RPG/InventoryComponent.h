@@ -54,9 +54,12 @@ public:
 	std::string name;
 
 	SyncContainer<Item> items;
+	SyncQueue<std::string> notifications;
 
 	SyncQueue<EntityID> interact;
 	EntityID current_interact;
+
+	std::vector<std::pair<float, std::string>> notifications_display;
 
 	bool open;
 };

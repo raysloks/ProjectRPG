@@ -39,8 +39,6 @@ void InventoryComponent::connect(NewEntity * pEntity, bool authority)
 	if (authority)
 	{
 		items.setSyncState(&pEntity->ss);
-		items.add(std::make_shared<Item>());
-		items.add(std::make_shared<Item>());
 	}
 }
 
@@ -51,6 +49,31 @@ void InventoryComponent::disconnect(void)
 void InventoryComponent::pre_frame(float dTime)
 {
 	set_display(true);
+
+	if (notifications.queue.size())
+	{
+		if (notifications_display.empty())
+		{
+			notifications_display.push_back(std::make_pair(0.0f, notifications.queue.front()));
+			notifications.queue.erase(notifications.queue.begin());
+		}
+		else
+		{
+			float dif = notifications_display.back().first - 1.25f;
+			if (dif >= 0.0f)
+			{
+				notifications_display.push_back(std::make_pair(dif, notifications.queue.front()));
+				notifications.queue.erase(notifications.queue.begin());
+			}
+		}
+	}
+
+	for (auto& i : notifications_display)
+	{
+		i.first += dTime;
+	}
+	notifications_display.erase(std::remove_if(notifications_display.begin(), notifications_display.end(),
+		[](const std::pair<float, std::string>& i) { return i.first > 1.5f; }), notifications_display.end());
 
 	Client * client = entity->world->client;
 	if (client)
@@ -119,10 +142,18 @@ void InventoryComponent::set_display(bool enable)
 						func.reset(new std::function<void(RenderSetup&)>([this, mob](RenderSetup& rs)
 						{
 							Vec4 color(1.0f);
+
 							ShaderMod mod(ShaderProgram::Get("data/gui_vert.txt", "data/gui_frag.txt"), [&color](const std::shared_ptr<ShaderProgram>& prog)
 							{
 								prog->Uniform("color", color);
 							});
+
+							ShaderMod mod3d(ShaderProgram::Get("data/gfill_vert.txt", "data/gfill_frag.txt"), [&color](const std::shared_ptr<ShaderProgram>& prog)
+							{
+								prog->Uniform("color", color);
+								prog->Uniform("light", Vec3(1.0f, -1.0f, 1.0f).Normalize());
+							});
+
 
 							current_interact = EntityID();
 							auto p = entity->getComponent<PositionComponent>();
@@ -147,6 +178,39 @@ void InventoryComponent::set_display(bool enable)
 									crosshair->render(rs);
 								rs.popTransform();
 							}
+
+
+							Writing::setOffset(Vec2(-0.5f, 0.0f));
+							for (auto i : notifications_display)
+							{
+								rs.pushTransform();
+								float a = fminf(1.0f, fminf(i.first * 4.0f, 6.0f - i.first * 4.0f));
+								a = sqrt(a);
+								rs.addTransform(Matrix4::Translation(rs.size * 0.5f + Vec2(0.0f, rs.size.y - a * rs.size.y)));
+
+								auto item = Item();
+								if (item.dec)
+								{
+									glEnable(GL_DEPTH_TEST);
+									glDepthMask(GL_TRUE);
+									rs.pushTransform();
+									rs.addTransform(Quaternion(1.0f, Vec3(-1.0f, -1.0f, 0.0f).Normalize()));
+									rs.addTransform(Matrix4::Scale(Vec3(128.0f)));
+									rs.pushMod(mod3d);
+									item.dec->render(rs);
+									rs.popMod();
+									rs.popTransform();
+									glDepthMask(GL_FALSE);
+									glDisable(GL_DEPTH_TEST);
+								}
+
+								Writing::setColor(Vec4(1.0f));
+								Writing::setSize(32);
+								Writing::render(i.second, rs);
+								rs.popTransform();
+								rs.popTransform();
+							}
+
 
 							auto sprite = Resource::get<Texture>("data/assets/white.tga");
 
@@ -239,12 +303,6 @@ void InventoryComponent::set_display(bool enable)
 
 							if (open)
 							{
-								ShaderMod mod3d(ShaderProgram::Get("data/gfill_vert.txt", "data/gfill_frag.txt"), [&color](const std::shared_ptr<ShaderProgram>& prog)
-								{
-									prog->Uniform("color", color);
-									prog->Uniform("light", Vec3(1.0f, -1.0f, 1.0f).Normalize());
-								});
-
 								if (sprite)
 								{
 									rs.pushTransform();
@@ -364,12 +422,14 @@ void InventoryComponent::writeLog(outstream& os, ClientData& client)
 {
 	interact.writeLog(os, client);
 	items.writeLog(os);
+	notifications.writeLog(os);
 }
 
 void InventoryComponent::readLog(instream& is)
 {
 	interact.readLog(is);
 	items.readLog(is);
+	notifications.readLog(is, ClientData());
 }
 
 #include <lmcons.h>
@@ -378,6 +438,7 @@ void InventoryComponent::readLog(instream& is)
 void InventoryComponent::writeLog(outstream& os)
 {
 	interact.writeLog(os);
+	notifications.writeLog(os, ClientData());
 }
 
 void InventoryComponent::readLog(instream& is, ClientData& client)
@@ -415,14 +476,22 @@ void InventoryComponent::readLog(instream& is, ClientData& client)
 			}
 		}
 		interact.update(next_sync, next);
+
+		is >> next_sync;
+		notifications.update(next_sync);
 	}
 }
 
 void InventoryComponent::interpolate(Component * pComponent, float fWeight)
 {
 	auto other = reinterpret_cast<InventoryComponent*>(pComponent);
+
 	interact.update(other->interact.sync);
+
 	items = other->items;
+
+	notifications.update(other->notifications.sync, other->notifications.queue);
+	other->notifications.queue.clear();
 }
 
 void InventoryComponent::write_to(outstream& os, ClientData& client) const

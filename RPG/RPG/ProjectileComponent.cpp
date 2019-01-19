@@ -91,7 +91,7 @@ void ProjectileComponent::tick(float dTime)
 
 		v *= exp(-drag * v.Len() * dTime);
 
-		if (pc->p.z < -10)
+		if (pc->p.z < -250.0f)
 			entity->world->SetEntity(entity->id, nullptr);
 
 		pc->update();

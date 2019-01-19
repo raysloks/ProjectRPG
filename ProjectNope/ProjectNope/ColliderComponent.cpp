@@ -39,8 +39,10 @@ void ColliderComponent::disconnect(void)
 void ColliderComponent::tick(float dTime)
 {
 	auto pc = entity->getComponent<PositionComponent>();
-	if (pc!=0)
+	if (pc)
+	{
 		update(pc->p, dTime);
+	}
 	if (mesh.walls.size()==0 || deform)
 	{
 		auto gc = entity->getComponent<GraphicsComponent>();
@@ -88,11 +90,11 @@ void ColliderComponent::write_to(outstream& os) const
 	os << deform;
 }
 
-void ColliderComponent::update(const GlobalPosition& next_position, float dTime)
+void ColliderComponent::update(const GlobalPosition& next, float dTime)
 {
+	prev = p;
 	p = next;
-	next = next_position;
-	v = Vec3(next-p)/dTime;
+	v = Vec3(p - prev)/dTime;
 }
 
 #include "Profiler.h"
@@ -105,7 +107,7 @@ void ColliderComponent::LineCheck(const GlobalPosition& sP, const GlobalPosition
 	for (auto i = all.begin(); i != all.end(); ++i) {
 		if (*i) {
 			int j = list.size();
-			(*i)->mesh.LineCheck(sP - (*i)->p, eP - (*i)->p, list);
+			(*i)->mesh.LineCheck(sP - (*i)->prev, eP - (*i)->p, list);
 			for (; j<list.size(); ++j) {
 				list[j]->comp = *i;
 				list[j]->poc += (*i)->p;
@@ -123,11 +125,11 @@ void ColliderComponent::SphereCheck(const GlobalPosition& vP, float r, std::vect
 	for (auto i = all.begin(); i != all.end(); ++i) {
 		if (*i) {
 			int j = list.size();
-			(*i)->mesh.SphereCheck(vP - (*i)->p/*-v*dTime*/, r, list);
+			(*i)->mesh.SphereCheck(vP - (*i)->prev/*-v*dTime*/, r, list);
 			for (; j<list.size(); ++j) {
 				list[j]->comp = *i;
-				list[j]->poc += (*i)->p;
-				list[j]->poo += (*i)->p;
+				list[j]->poc += (*i)->prev;
+				list[j]->poo += (*i)->prev;
 				list[j]->v += (*i)->v;
 			}
 		}
@@ -141,11 +143,12 @@ void ColliderComponent::SphereCast(const GlobalPosition& sP, const GlobalPositio
 	for (auto i=all.begin();i!=all.end();++i) {
 		if (*i) {
 			int j = list.size();
-			(*i)->mesh.SphereCast(sP-(*i)->p, eP-(*i)->p/*-v*dTime*/, r, list);
+			(*i)->mesh.SphereCast(sP-(*i)->prev, eP-(*i)->p/*-v*dTime*/, r, list);
+			Vec3 dif = (*i)->p - (*i)->prev;
 			for (;j<list.size();++j) {
 				list[j]->comp = *i;
-				list[j]->poc += (*i)->p;
-				list[j]->poo += (*i)->p;
+				list[j]->poc += (*i)->prev + dif * list[j]->t;
+				list[j]->poo += (*i)->prev + dif * list[j]->t;;
 				list[j]->v += (*i)->v;
 			}
 		}
@@ -159,11 +162,11 @@ void ColliderComponent::DiskCast(const GlobalPosition& sP, const GlobalPosition&
 	for (auto i = all.begin(); i != all.end(); ++i) {
 		if (*i) {
 			int j = list.size();
-			(*i)->mesh.DiskCast(sP - (*i)->p, eP - (*i)->p, r, list);
+			(*i)->mesh.DiskCast(sP - (*i)->prev, eP - (*i)->prev, r, list);
 			for (; j<list.size(); ++j) {
 				list[j]->comp = *i;
-				list[j]->poc += (*i)->p;
-				list[j]->poo += (*i)->p;
+				list[j]->poc += (*i)->prev;
+				list[j]->poo += (*i)->prev;
 				list[j]->v += (*i)->v;
 			}
 		}

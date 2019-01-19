@@ -98,8 +98,8 @@ void AnimationControlComponent::tick(float dTime)
 		if (has_state("run") && pose->anim == "data/assets/units/player/hoodlum.anim")
 		{
 			auto prev_pose = pose->pose;
-			pose->pose = anim->getPose(20.0f - mob->facing.y * 20.0f / M_PI, "look_vertical");
-			pose->pose->add(*prev_pose);
+			anim->getPose(20.0f - mob->facing.y * 20.0f / M_PI, "look_vertical", pose->pose);
+			pose->pose.add(prev_pose);
 		}
 
 		for (auto s : removed_states)

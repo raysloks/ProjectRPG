@@ -4,6 +4,7 @@
 #include "PositionComponent.h"
 #include "Quaternion.h"
 #include "Matrix4.h"
+#include "World.h"
 
 AutoSerialFactory<OrbitComponent, Component> OrbitComponent::_factory("OrbitComponent");
 
@@ -33,13 +34,17 @@ void OrbitComponent::pre_frame(float dTime)
 
 void OrbitComponent::tick(float dTime)
 {
-	auto pc = entity->getComponent<PositionComponent>();
-	if (pc != nullptr)
+	if (entity->world->authority)
 	{
-		GlobalPosition off = offset * Quaternion(t * M_PI * 2.0f / period, angle);
-		pc->p = center + off;
+		auto p = entity->getComponent<PositionComponent>();
+		if (p != nullptr)
+		{
+			GlobalPosition off = offset * Quaternion(t * M_PI * 2.0f / period, angle);
+			p->p = center + off;
+			p->update();
+		}
+		t += dTime * speed;
 	}
-	t += dTime * speed;
 }
 
 void OrbitComponent::writeLog(outstream& os, ClientData& client)

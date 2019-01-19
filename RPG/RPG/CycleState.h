@@ -10,9 +10,7 @@ public:
 	CycleState(instream& is, bool full);
 	~CycleState();
 
-	void enter(AnimationState * prev);
 	void tick(float dTime);
-	void leave(AnimationState * next);
 
 	void interpolate(AnimationState * other, float fWeight);
 

@@ -68,6 +68,8 @@ void GraphicsComponent::readLog(instream& is)
 
 void GraphicsComponent::pre_frame(float dTime)
 {
+	angle += Vec3(1.0f, M_PI / 10.0f, M_E) * dTime;
+
 	if (p == nullptr)
 		p = entity->getComponent<PositionComponent>();
 
@@ -125,13 +127,13 @@ void GraphicsComponent::render(RenderSetup& rs)
 	auto pose = entity->getComponent<PoseComponent>();
 	if (pose)
 	{
-		if (pose->pose)
+		if (pose->pose.bones.size())
 		{
 			for (auto i = decs.items.begin(); i != decs.items.end(); ++i)
 			{
 				if (*i != nullptr)
 				{
-					(*i)->render(rs, pose->pose.get());
+					(*i)->render(rs, pose->pose);
 				}
 			}
 		}
@@ -467,8 +469,6 @@ std::shared_ptr<ShaderProgram> swing_shader;
 std::shared_ptr<ShaderProgram> grass_shader;
 std::shared_ptr<ShaderProgram> water_shader;
 
-Vec3 angle(0.0f, 0.0f, 0.0f);
-
 void GraphicsComponent::render_all(RenderSetup& rs)
 {
 	if (!ao_shader)
@@ -485,7 +485,7 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 		bool shader = false;
 		if (g->tag == 1 && rs.pass != 3 && rs.pass != 4)
 		{
-			rs.pushMod(ShaderMod(ao_shader, [](const std::shared_ptr<ShaderProgram>& prog)
+			rs.pushMod(ShaderMod(ao_shader, [=](const std::shared_ptr<ShaderProgram>& prog)
 			{
 				prog->Uniform("ao", 1);
 			}));
@@ -495,9 +495,9 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 		{
 			if (rs.pass == 3 || rs.pass == 4)
 				continue;
-			rs.pushMod(ShaderMod(swing_shader, [](const std::shared_ptr<ShaderProgram>& prog)
+			rs.pushMod(ShaderMod(swing_shader, [=](const std::shared_ptr<ShaderProgram>& prog)
 			{
-				prog->Uniform("angle", angle);
+				prog->Uniform("angle", g->angle);
 				prog->Uniform("limit", -1.0f);// fmaxf(-1.0, fminf(1.0f, sinf(angle.x / 20.0f) * 5.0f)));
 			}));
 			shader = true;
@@ -506,9 +506,9 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 		{
 			if (rs.pass == 3 || rs.pass == 4)
 				continue;
-			rs.pushMod(ShaderMod(grass_shader, [](const std::shared_ptr<ShaderProgram>& prog)
+			rs.pushMod(ShaderMod(grass_shader, [=](const std::shared_ptr<ShaderProgram>& prog)
 			{
-				prog->Uniform("angle", angle);
+				prog->Uniform("angle", g->angle);
 			}));
 			shader = true;
 		}
@@ -516,8 +516,10 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 		{
 			if (rs.pass == 3 || rs.pass == 4)
 				continue;
-			rs.pushMod(ShaderMod(water_shader, [](const std::shared_ptr<ShaderProgram>& prog)
+			rs.pushMod(ShaderMod(water_shader, [=](const std::shared_ptr<ShaderProgram>& prog)
 			{
+				prog->Uniform("normal", 1);
+				prog->Uniform("angle", g->angle);
 			}));
 			shader = true;
 		}

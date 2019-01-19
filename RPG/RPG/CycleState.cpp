@@ -21,10 +21,6 @@ CycleState::~CycleState()
 {
 }
 
-void CycleState::enter(AnimationState * prev)
-{
-}
-
 void CycleState::tick(float dTime)
 {
 	if (!authority)
@@ -50,12 +46,13 @@ void CycleState::tick(float dTime)
 
 		pose->frame = start + length * t;
 
-		pose->pose = anim->getPose(length * t, name);
-	}
-}
+		anim->getPose(length * t, name, pose->pose);
 
-void CycleState::leave(AnimationState * next)
-{
+		blend_t += dTime * 10.0f;
+
+		if (blend_t < 1.0f)
+			pose->pose.interpolate(prev_pose, 1.0f - blend_t);
+	}
 }
 
 void CycleState::interpolate(AnimationState * other, float fWeight)

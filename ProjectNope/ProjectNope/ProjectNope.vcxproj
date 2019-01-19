@@ -284,9 +284,13 @@
     <ClInclude Include="GlyphAtlas.h" />
     <ClInclude Include="IComponentIterator.h" />
     <ClInclude Include="LightComponent.h" />
+    <ClInclude Include="Manager.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PoseComponent.h" />
+    <ClInclude Include="Reference.h" />
+    <ClInclude Include="ReferenceCounter.h" />
+    <ClInclude Include="resource1.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="SpriteComponent.h" />
@@ -387,6 +391,9 @@
     <None Include="data\sky_frag.txt" />
     <None Include="data\sky_vert.txt" />
     <None Include="data\vert.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ProjectNope.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

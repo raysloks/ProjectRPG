@@ -12,6 +12,11 @@ EntityID::EntityID(uint32_t a, uint32_t b)
 	uid = b;
 }
 
+bool EntityID::operator==(const EntityID& rhs) const
+{
+	return id == rhs.id && uid == rhs.uid;
+}
+
 outstream& operator<<(outstream& os, const EntityID& id)
 {
 	os << id.id << id.uid;

@@ -343,7 +343,7 @@ void MobComponent::tick(float dTime)
 					float standing_height = (crouch ? 1.0f : 2.0f) * r;
 					float height = standing_height;
 					Vec3 dp_side = dp - up * up.Dot(dp);
-					ColliderComponent::DiskCast(p->p - up * offset + dp, p->p - up * (offset + height) + dp, disk_radius, list);
+					ColliderComponent::DiskCast(p->p - up * offset, p->p - up * (offset + height), disk_radius, list);
 					if (!list.empty())
 					{
 						/*list.erase(std::remove_if(list.begin(), list.end(), [=](const std::shared_ptr<Collision>& col)
@@ -366,6 +366,7 @@ void MobComponent::tick(float dTime)
 
 							Vec3 n = list.front()->n;
 							float tdt = list.front()->t;
+							Vec3 v = list.front()->v;
 							list.clear();
 
 							if (line != 0)
@@ -392,17 +393,19 @@ void MobComponent::tick(float dTime)
 								if (pivot == center)
 								{
 									std::shared_ptr<Collision> col(new Collision());
-									col->t = 1.0f;
+									col->t = 0.0f;
 									col->n = n;
 									col->poo = center + up * (standing_height + height_mod);
+									col->v = v;
 									list.push_back(col);
 								}
 								else
 								{
 									std::shared_ptr<Collision> col(new Collision());
-									col->t = 1.0f;
+									col->t = 0.0f;
 									col->n = n;
 									col->poo = center + up * (standing_height + height_mod);
+									col->v = v;
 									list.push_back(col);
 								}
 							}
@@ -549,7 +552,7 @@ void MobComponent::tick(float dTime)
 						}
 					}
 
-					takeoff_v = v * 0.8f;
+					takeoff_v = (v - land_v) * 0.8f + land_v;
 
 					float edp_dot_n = external_dp.Dot(col->n);
 					if (edp_dot_n < 0.0f)
@@ -559,7 +562,7 @@ void MobComponent::tick(float dTime)
 
 					bool should_break = false;
 					for (auto i = previous.begin(); i != previous.end(); ++i)
-						if (i->Dot(dp) <= 0.0f)
+						if (i->Dot(dp) < 0.0f)
 							should_break = true;
 
 					if (should_break)
@@ -640,8 +643,8 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 		facing.y = bu_blend(facing.y, mob->facing.y, fWeight);
 		up = bu_sphere(mob->up, up, Vec3(), fWeight);
 		v = bu_blend(v, mob->v, fWeight);// v*(1.0f - fWeight) + mob->v*fWeight;
-		land_n = mob->land_n;
-		land_v = mob->land_v;
+		land_n = bu_blend(land_n, mob->land_n, fWeight);
+		land_v = bu_blend(land_v, mob->land_v, fWeight);
 		landed = bu_blend(landed, mob->landed, fWeight);
 		health = mob->health;
 		stamina = mob->stamina;

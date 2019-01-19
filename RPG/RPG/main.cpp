@@ -164,6 +164,7 @@ public:
 		GolemUnit::spawn(Vec3(-50.0f, -300.0f, 0.0f), world);
 		GolemUnit::spawn(Vec3(0.0f, 30.0f, -40.0f), world);
 		GolemUnit::spawn(Vec3(50.0f, 90.0f, 20.0f), world);
+		GolemUnit::spawn(Vec3(50.0f, -2115.0f, -215.0f + 0.5f), world);
 
 		{
 			NewEntity * ent = new NewEntity();
@@ -176,6 +177,8 @@ public:
 
 			Material water = "data/assets/water.tga";
 			water.tex[0].options = { "mag_linear" };
+			water.tex.push_back(TextureDescriptor("data/assets/water_normal.tga"));
+			water.tex[1].options = { "cs_linear", "mag_linear" };
 
 			MaterialList materials;
 			materials.materials.push_back(water);
@@ -221,10 +224,11 @@ public:
 			world->AddEntity(ent);
 		}
 
+		for (size_t j = 0; j < 5; ++j)
 		{
 			NewEntity * ent = new NewEntity();
 
-			PositionComponent * p = new PositionComponent(Vec3(0.0f, -2.5f, -0.5f));
+			PositionComponent * p = new PositionComponent(Vec3(j, -2.5f, -0.5f));
 			GraphicsComponent * g = new GraphicsComponent(false);
 			InteractComponent * i = new InteractComponent();
 
@@ -250,9 +254,41 @@ public:
 				if (inv)
 				{
 					inv->items.add(std::make_shared<Item>());
+					inv->notifications.queue.push_back("Claymore");
 					world->SetEntity(ent->id, nullptr);
 				}
 			};
+
+			world->AddEntity(ent);
+		}
+
+		{
+			NewEntity * ent = new NewEntity();
+
+			PositionComponent * p = new PositionComponent();
+			OrbitComponent * o = new OrbitComponent();
+			ColliderComponent * c = new ColliderComponent();
+			GraphicsComponent * g = new GraphicsComponent(false);
+
+			o->center = Vec3(50.0f, -1115.0f, -235.0f);
+			o->period = 200.0f;
+			o->angle = Vec3(0.0f, 0.0f, 1.0f);
+			o->offset = Vec3(0.0f, 1000.0f, 0.0f);
+			o->t = -100.0f;
+
+			ent->addComponent(p);
+			ent->addComponent(o);
+			ent->addComponent(c);
+			ent->addComponent(g);
+
+			Material wibbly = "data/assets/terrain/textures/RockPlate.tga";
+
+			MaterialList materials;
+			materials.materials.push_back(wibbly);
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube.gmdl", materials, 0)));
+			g->decs.items.front()->local *= 20.0f;
+			g->decs.items.front()->local.mtrx[3][3] = 1.0f;
+			g->decs.items.front()->final = g->decs.items.front()->local;
 
 			world->AddEntity(ent);
 		}

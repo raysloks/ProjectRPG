@@ -10,6 +10,8 @@ public:
 	EntityID(uint32_t id, uint32_t uid);
 
 	uint32_t id, uid;
+
+	bool operator==(const EntityID& rhs) const;
 };
 
 outstream& operator<<(outstream& os, const EntityID& id);
