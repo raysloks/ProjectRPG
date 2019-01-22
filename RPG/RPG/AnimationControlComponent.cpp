@@ -95,10 +95,12 @@ void AnimationControlComponent::tick(float dTime)
 				state->tick(added_time);
 		} while (overtime > 0.0f);
 
+		auto simple_state = reinterpret_cast<SimpleState*>(state);
+
 		if (has_state("run") && pose->anim == "data/assets/units/player/hoodlum.anim")
 		{
 			auto prev_pose = pose->pose;
-			anim->getPose(20.0f - mob->facing.y * 20.0f / M_PI, "look_vertical", pose->pose);
+			anim->getPose((20.0f - mob->facing.y * 20.0f / M_PI) * simple_state->blend_t + 10.0f * (1.0f - simple_state->blend_t), "look_vertical", pose->pose);
 			pose->pose.add(prev_pose);
 		}
 
@@ -106,7 +108,7 @@ void AnimationControlComponent::tick(float dTime)
 			delete s;
 		removed_states.clear();
 
-		transform = Matrix4::Translation(-root - mob->up);
+		transform = Matrix4::Translation(-root - mob->up - prev_root * (1.0f - simple_state->blend_t));
 		transform *= Quaternion(M_PI - mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
 
 		transform *= Matrix4::Scale(Vec3(scale, scale, scale));
@@ -124,7 +126,7 @@ void AnimationControlComponent::tick(float dTime)
 			set_state(new SimpleState("hit", 4.0f));
 		}*/
 
-		Vec3 root_position = Vec3() * anim->getMatrix(anim->getIndex("root"), pose->frame);
+		Vec3 root_position = Vec3() * pose->pose.transforms[anim->getIndex("root")] - prev_root * (1.0f - simple_state->blend_t);
 		Vec3 root_movement = (root_position - root) * Matrix3(transform);
 		root = root_position;
 		if (entity->world->authority)
@@ -204,7 +206,12 @@ void AnimationControlComponent::write_to(outstream& os) const
 void AnimationControlComponent::set_state(AnimationState * new_state)
 {
 	++sync;
-	root = Vec3();
+	auto simple_state = reinterpret_cast<SimpleState*>(state);
+	if (simple_state)
+	{
+		prev_root = root + prev_root * (1.0f - simple_state->blend_t);
+		root = Vec3();
+	}
 	if (new_state)
 	{
 		auto pose = entity->getComponent<PoseComponent>();

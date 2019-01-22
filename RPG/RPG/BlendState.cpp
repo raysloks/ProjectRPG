@@ -58,6 +58,7 @@ void BlendState::tick(float dTime)
 		pose->pose.interpolate(anim->getPose(second_length * t, second_name), weight);
 
 		blend_t += dTime * 10.0f;
+		blend_t = fminf(1.0f, blend_t);
 
 		if (blend_t < 1.0f)
 			pose->pose.interpolate(prev_pose, 1.0f - blend_t);

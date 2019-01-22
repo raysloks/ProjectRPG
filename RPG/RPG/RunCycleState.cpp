@@ -39,6 +39,7 @@ void RunCycleState::tick(float dTime)
 
 	idle.blend_t = blend_t;
 	blend_t += dTime * 10.0f;
+	blend_t = fminf(1.0f, blend_t);
 
 	if (rel_v == Vec2() && mob->landed == 1.0f)
 	{
@@ -53,7 +54,7 @@ void RunCycleState::tick(float dTime)
 
 	t += dTime * (rel_v.Len() + 1.0f - mob->landed) * speed / acc->scale;
 
-	if (!mob->landed)
+	if (mob->landed < 0.5f)
 	{
 		if (prev_t <= 0.4f && t > 0.4f)
 			t = 0.4f;

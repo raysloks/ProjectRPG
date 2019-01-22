@@ -49,6 +49,7 @@ void CycleState::tick(float dTime)
 		anim->getPose(length * t, name, pose->pose);
 
 		blend_t += dTime * 10.0f;
+		blend_t = fminf(1.0f, blend_t);
 
 		if (blend_t < 1.0f)
 			pose->pose.interpolate(prev_pose, 1.0f - blend_t);

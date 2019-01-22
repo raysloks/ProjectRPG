@@ -39,7 +39,7 @@ public:
 
 	bool has_state(const std::string& name);
 
-	Vec3 root;
+	Vec3 root, prev_root;
 	uint32_t sync;
 	AnimationState * state;
 	float overtime;
