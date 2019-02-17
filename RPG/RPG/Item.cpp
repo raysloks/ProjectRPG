@@ -2,9 +2,7 @@
 
 Item::Item()
 {
-	name = "Claymore";
-	desc = "A big sword.";
-	dec.reset(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", Material("data/assets/items/weapons/swords/claymore.tga"), 0));
+	type = 0;
 }
 
 Item::~Item()
@@ -13,12 +11,22 @@ Item::~Item()
 
 void Item::writeLog(outstream& os) const
 {
-	os << name << desc << icon;
-	dec->writeLog(os);
+	os << type;
 }
 
 void Item::readLog(instream& is)
 {
-	is >> name >> desc >> icon;
-	dec->readLog(is);
+	is >> type;
+}
+
+outstream& operator<<(outstream& os, const Item& item)
+{
+	item.writeLog(os);
+	return os;
+}
+
+instream& operator>>(instream& is, Item& item)
+{
+	item.readLog(is);
+	return is;
 }

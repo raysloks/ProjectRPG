@@ -1123,15 +1123,15 @@ void Client::render_world(void)
 
 
 		// render lights
-		if (light_prog->Use() && false)
+		if (ao_quality == 2) // TODO proper separation of light and ao
 		{
-			light_fb->bind();
-			glViewport(0, 0, buffer_w, buffer_h);
-			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT); // TODO proper light quality options
-
-			if (ao_quality == 2) // TODO proper separation of light and ao
+			if (light_prog->Use())
 			{
+				light_fb->bind();
+				glViewport(0, 0, buffer_w, buffer_h);
+				glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+				glClear(GL_COLOR_BUFFER_BIT); // TODO proper light quality options
+
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 
@@ -1194,7 +1194,7 @@ void Client::render_world(void)
 					prog->Uniform("light_color", light_color);
 					prog->Uniform("fog_add", fog_add);
 					prog->Uniform("diffuse", 0); // texture unit 0
-					prog->Uniform("shadow", 3); // texture unit 2
+					prog->Uniform("shadow", 3); // texture unit 3
 					prog->UniformMatrix4f("transform", (rs.transform*proj).data);
 					prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
 					prog->UniformMatrix4f("proj", proj.data);
@@ -1255,6 +1255,46 @@ void Client::render_world(void)
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
 
+	// render transparent objects
+	/*if (shader_program->IsReady())
+	{
+		glEnable(GL_BLEND);
+		glDisable(GL_ALPHA_TEST);
+
+		deferred_fb->bind();
+		glViewport(0, 0, buffer_w, buffer_h);
+
+		RenderSetup rs;
+		rs.view = proj;
+		rs.pass = 6;
+
+		Vec3 light_color(1.0f, 0.95f, 0.8f);
+		Vec3 fog_add(0.0001f, 0.000125f, 0.0002f);
+
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, depth_buf->gl_texture_id);
+		glActiveTexture(GL_TEXTURE0);
+
+		ShaderMod mod(shader_program, [=, &rs](const std::shared_ptr<ShaderProgram>& prog) {
+			prog->Uniform("light", light);
+			prog->Uniform("light_color", light_color);
+			prog->Uniform("fog_add", fog_add);
+			prog->Uniform("diffuse", 0); // texture unit 0
+			prog->Uniform("shadow", 3); // texture unit 3
+			prog->UniformMatrix4f("transform", (rs.transform*proj).data);
+			prog->UniformMatrix3f("normal_transform", Matrix3(rs.transform).data);
+			prog->UniformMatrix4f("proj", proj.data);
+			prog->UniformMatrix4f("proj_inv", proj_inv.data);
+			prog->Uniform3fv("light_samples", light_samples);
+			prog->Uniform("shadow_mode", shadow_mode);
+		});
+
+		rs.pushMod(mod);
+
+		world->render(rs);
+
+		rs.popMod();
+	}*/
 
 	// render GUI
 	if (gui_prog->IsReady())
@@ -1267,6 +1307,7 @@ void Client::render_world(void)
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+		glEnable(GL_ALPHA_TEST);
 		glAlphaFunc(GL_GREATER, 0.0f);
 
 		deferred_fb->bind();
@@ -1423,6 +1464,22 @@ bool Client::HandleEvent(IEvent * pEvent)
 		PlatformDestroyEvent * ev = (PlatformDestroyEvent*)pEvent;
 		isAlive = false;
 		return false;
+	}
+
+	if (pEvent->GetType() == KeyDownEvent::event_type) {
+		KeyDownEvent * ev = (KeyDownEvent*)pEvent;
+		ev->p /= gui_scale;
+	}
+
+	if (pEvent->GetType() == KeyUpEvent::event_type) {
+		KeyUpEvent * ev = (KeyUpEvent*)pEvent;
+		ev->p /= gui_scale;
+	}
+
+	if (pEvent->GetType() == MouseMoveEvent::event_type) {
+		MouseMoveEvent * ev = (MouseMoveEvent*)pEvent;
+		if (!ev->relative)
+			ev->p /= gui_scale;
 	}
 
 	for (std::vector<std::shared_ptr<Window>>::reverse_iterator win = windows.rbegin(); win != windows.rend(); ++win)

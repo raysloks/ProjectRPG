@@ -318,6 +318,9 @@
     <ClCompile Include="TextureDescriptor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="KeybindCollection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IPlatform.h">
@@ -618,6 +621,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ReferenceCounter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KeybindCollection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

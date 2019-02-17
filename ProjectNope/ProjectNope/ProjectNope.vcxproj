@@ -193,6 +193,7 @@
     <ClCompile Include="GameLoop.cpp" />
     <ClCompile Include="GlyphAtlas.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="KeybindCollection.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LineComponent.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -283,6 +284,7 @@
     <ClInclude Include="ExampleComponent.h" />
     <ClInclude Include="GlyphAtlas.h" />
     <ClInclude Include="IComponentIterator.h" />
+    <ClInclude Include="KeybindCollection.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Manager.h" />
     <ClInclude Include="Material.h" />

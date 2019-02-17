@@ -10,6 +10,7 @@
 #include "Writing.h"
 
 #include "Item.h"
+#include "ItemType.h"
 
 #include "MobComponent.h"
 #include "InteractComponent.h"
@@ -73,7 +74,7 @@ void InventoryComponent::pre_frame(float dTime)
 		i.first += dTime;
 	}
 	notifications_display.erase(std::remove_if(notifications_display.begin(), notifications_display.end(),
-		[](const std::pair<float, std::string>& i) { return i.first > 1.5f; }), notifications_display.end());
+		[](const std::pair<float, Item>& i) { return i.first > 1.5f; }), notifications_display.end());
 
 	Client * client = entity->world->client;
 	if (client)
@@ -157,19 +158,26 @@ void InventoryComponent::set_display(bool enable)
 
 							current_interact = EntityID();
 							auto p = entity->getComponent<PositionComponent>();
-							auto interacts = entity->world->GetNearestComponents<InteractComponent>(p->p + Vec3(0.0f, 0.0f, 1.0f) * Quaternion(mob->facing.y, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion(-mob->facing.x, Vec3(0.0f, 0.0f, 1.0f)), 1.0f);
+							GlobalPosition interact_sphere_pos = p->p + Vec3(0.0f, 0.0f, 1.0f) * Quaternion(mob->facing.y, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion(-mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
+							auto interacts = entity->world->GetNearestComponents<InteractComponent>(interact_sphere_pos, 1.0f);
 							if (!interacts.empty())
 							{
 								current_interact = interacts.begin()->second->entity->get_id();
 								auto other_p = interacts.begin()->second->entity->getComponent<PositionComponent>();
 								rs.pushTransform();
 								rs.addTransform(Matrix4::Translation(Vec3(rs.size * 0.5f)));
-								rs.addTransform(Matrix4::Translation(Vec3(Vec3(other_p->p - entity->world->cam_pos) * rs.view * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f)));
+								Vec3 world_pos = Vec3(other_p->p - entity->world->cam_pos) * 0.5f + Vec3(interact_sphere_pos - entity->world->cam_pos) * 0.5f;
+								rs.addTransform(Matrix4::Translation(Vec3(world_pos * rs.view * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f)));
 								rs.pushTransform();
 								rs.addTransform(Matrix4::Translation(Vec3(20.0f, 0.0f, 0.0f)));
 								Writing::setSize(24);
 								Writing::setColor(1.0f, 1.0f, 1.0f);
 								Writing::render(interacts.begin()->second->action_name, rs);
+								rs.popTransform();
+								rs.addTransform(Matrix4::Translation(Vec3(-40.0f, -32.0f, 0.0f)));
+								Writing::setSize(16);
+								Writing::setColor(1.0f, 1.0f, 1.0f);
+								Writing::render(interacts.begin()->second->name, rs);
 								rs.popTransform();
 								rs.popTransform();
 								rs.addTransform(Matrix4::Translation(Vec3(-32.0f, -32.0f, 0.0f)));
@@ -188,26 +196,30 @@ void InventoryComponent::set_display(bool enable)
 								a = sqrt(a);
 								rs.addTransform(Matrix4::Translation(rs.size * 0.5f + Vec2(0.0f, rs.size.y - a * rs.size.y)));
 
-								auto item = Item();
-								if (item.dec)
+								auto type = ItemType::get(i.second.type);
+								if (type)
 								{
-									glEnable(GL_DEPTH_TEST);
-									glDepthMask(GL_TRUE);
-									rs.pushTransform();
-									rs.addTransform(Quaternion(1.0f, Vec3(-1.0f, -1.0f, 0.0f).Normalize()));
-									rs.addTransform(Matrix4::Scale(Vec3(128.0f)));
-									rs.pushMod(mod3d);
-									item.dec->render(rs);
-									rs.popMod();
+									if (type->dec)
+									{
+										glEnable(GL_DEPTH_TEST);
+										glDepthMask(GL_TRUE);
+										rs.pushTransform();
+										rs.addTransform(Quaternion(1.0f, Vec3(-1.0f, -1.0f, 0.0f).Normalize()));
+										rs.addTransform(Matrix4::Scale(Vec3(128.0f)));
+										rs.pushMod(mod3d);
+										type->dec->render(rs);
+										rs.popMod();
+										rs.popTransform();
+										glDepthMask(GL_FALSE);
+										glDisable(GL_DEPTH_TEST);
+									}
+
+									Writing::setColor(Vec4(1.0f));
+									Writing::setSize(32);
+									Writing::render(type->name, rs);
 									rs.popTransform();
-									glDepthMask(GL_FALSE);
-									glDisable(GL_DEPTH_TEST);
 								}
 
-								Writing::setColor(Vec4(1.0f));
-								Writing::setSize(32);
-								Writing::render(i.second, rs);
-								rs.popTransform();
 								rs.popTransform();
 							}
 
@@ -324,43 +336,47 @@ void InventoryComponent::set_display(bool enable)
 								{
 									if (item)
 									{
-										if (item->dec)
+										auto type = ItemType::get(item->type);
+										if (type)
 										{
-											glEnable(GL_DEPTH_TEST);
-											glDepthMask(GL_TRUE);
+											if (type->dec)
+											{
+												glEnable(GL_DEPTH_TEST);
+												glDepthMask(GL_TRUE);
+												rs.pushTransform();
+												rs.addTransform(Matrix4::Translation(Vec2(32.0f)));
+												rs.addTransform(Quaternion(1.0f, Vec3(-1.0f, -1.0f, 0.0f).Normalize()));
+												rs.addTransform(Matrix4::Scale(Vec3(64.0f)));
+												rs.pushMod(mod3d);
+												type->dec->render(rs);
+												rs.popMod();
+												rs.popTransform();
+												glDepthMask(GL_FALSE);
+												glDisable(GL_DEPTH_TEST);
+											}
+											auto icon = Resource::get<Texture>(type->icon);
+											if (icon)
+											{
+												rs.pushMod(mod);
+												icon->render(rs, Vec2(64.0f));
+												rs.popMod();
+											}
 											rs.pushTransform();
-											rs.addTransform(Matrix4::Translation(Vec2(32.0f)));
-											rs.addTransform(Quaternion(1.0f, Vec3(-1.0f, -1.0f, 0.0f).Normalize()));
-											rs.addTransform(Matrix4::Scale(Vec3(64.0f)));
-											rs.pushMod(mod3d);
-											item->dec->render(rs);
-											rs.popMod();
+											rs.addTransform(Matrix4::Translation(Vec2(80.0f, 24.0f)));
+											Writing::setSize(25);
+											Writing::setColor(1.0f, 1.0f, 1.0f);
+											Writing::render(type->name, rs);
 											rs.popTransform();
-											glDepthMask(GL_FALSE);
-											glDisable(GL_DEPTH_TEST);
+											rs.popTransform();
+											rs.pushTransform();
+											rs.addTransform(Matrix4::Translation(Vec2(80.0f, 40.0f)));
+											Writing::setSize(15);
+											Writing::setColor(1.0f, 1.0f, 1.0f, 0.8f);
+											Writing::render(type->desc, rs);
+											rs.popTransform();
+											rs.popTransform();
+											rs.addTransform(Matrix4::Translation(Vec3(0.0f, 64.0f, 0.0f)));
 										}
-										auto icon = Resource::get<Texture>(item->icon);
-										if (icon)
-										{
-											rs.pushMod(mod);
-											icon->render(rs, Vec2(64.0f));
-											rs.popMod();
-										}
-										rs.pushTransform();
-										rs.addTransform(Matrix4::Translation(Vec2(80.0f, 24.0f)));
-										Writing::setSize(25);
-										Writing::setColor(1.0f, 1.0f, 1.0f);
-										Writing::render(item->name, rs);
-										rs.popTransform();
-										rs.popTransform();
-										rs.pushTransform();
-										rs.addTransform(Matrix4::Translation(Vec2(80.0f, 40.0f)));
-										Writing::setSize(15);
-										Writing::setColor(1.0f, 1.0f, 1.0f, 0.8f);
-										Writing::render(item->desc, rs);
-										rs.popTransform();
-										rs.popTransform();
-										rs.addTransform(Matrix4::Translation(Vec3(0.0f, 64.0f, 0.0f)));
 									}
 								}
 								rs.popTransform();

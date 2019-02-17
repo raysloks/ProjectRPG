@@ -518,7 +518,7 @@ void GraphicsComponent::render_all(RenderSetup& rs)
 				continue;
 			rs.pushMod(ShaderMod(water_shader, [=](const std::shared_ptr<ShaderProgram>& prog)
 			{
-				prog->Uniform("normal", 1);
+				prog->Uniform("depth", 4);
 				prog->Uniform("angle", g->angle);
 			}));
 			shader = true;

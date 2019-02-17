@@ -253,9 +253,39 @@ public:
 				auto inv = user->entity->getComponent<InventoryComponent>();
 				if (inv)
 				{
-					inv->items.add(std::make_shared<Item>());
-					inv->notifications.queue.push_back("Claymore");
+					auto item = std::make_shared<Item>();
+					inv->items.add(item);
+					inv->notifications.queue.push_back(*item);
 					world->SetEntity(ent->id, nullptr);
+				}
+			};
+
+			world->AddEntity(ent);
+		}
+
+		{
+			NewEntity * ent = new NewEntity();
+
+			PositionComponent * p = new PositionComponent(Vec3(0.0f, 0.0f, -1.0f));
+			ColliderComponent * c = new ColliderComponent();
+			GraphicsComponent * g = new GraphicsComponent(false);
+			InteractComponent * i = new InteractComponent();
+
+			ent->addComponent(p);
+			ent->addComponent(c);
+			ent->addComponent(g);
+			ent->addComponent(i);
+
+			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/props/fountain.gmdl", MaterialList(), 0)));
+
+			i->name = "Healing Fountain";
+			i->action_name = "Drink";
+
+			i->func = [=](MobComponent * user)
+			{
+				for (auto& res : user->resource)
+				{
+					res.current = res.max;
 				}
 			};
 
@@ -642,6 +672,8 @@ void start_engine_instance(std::string address, uint16_t port, uint64_t lobby_id
 	}
 }
 
+#include "ItemType.h"
+
 //INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 //	PSTR lpCmdLine, INT nCmdShow)
 int main()
@@ -760,6 +792,8 @@ int main()
 
 	//std::shared_ptr<ISteamWrapper> steam(ISteamWrapper::make());
 	
+	ItemType::init();
+
 	std::atomic<bool> running = true;
 	if (option == 'h')
 	{
@@ -775,5 +809,8 @@ int main()
 	{
 		start_engine_instance(address, port, lobby_id, option, running);
 	}
+
+	ItemType::release();
+
 	Resource::unload();
 }

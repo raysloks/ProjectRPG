@@ -128,24 +128,25 @@ namespace Platform
 		};
 		UINT nMatchingFormats;
 		int index = 0;
-		if (!wglChoosePixelFormat(hDC, attribsDesired, NULL, 1, &index, &nMatchingFormats)) {
-			printf("ERROR: wglChoosePixelFormat failed!\n");
+		if (!wglChoosePixelFormat(hDC, attribsDesired, NULL, 1, &index, &nMatchingFormats))
+		{
+			std::cout << "wglChoosePixelFormat failed!" << std::endl;
 		}
-		if (nMatchingFormats == 0) {
-			printf("ERROR: No 10bpc WGL_ARB_pixel_formats found!\n");
+		if (nMatchingFormats == 0)
+		{
+			std::cout << "No pixel formats found." << std::endl;
 		}
 
-		// Double-check that the format is really 10bpc
-		int redBits;
-		int alphaBits;
-		int uWglPfmtAttributeName = WGL_RED_BITS_ARB;
-		wglGetPixelFormatAttribiv(hDC, index, 0, 1, &uWglPfmtAttributeName,
-			&redBits);
-		uWglPfmtAttributeName = WGL_ALPHA_BITS_ARB;
-		wglGetPixelFormatAttribiv(hDC, index, 0, 1, &uWglPfmtAttributeName,
-			&alphaBits);
-		printf("pixelformat chosen, index %d red bits: %d alpha bits: %d\n",
-			index, redBits, alphaBits);
+		int attrib_name[4] = { WGL_RED_BITS_ARB, WGL_BLUE_BITS_ARB, WGL_GREEN_BITS_ARB, WGL_ALPHA_BITS_ARB };
+		int attrib_value[4];
+		wglGetPixelFormatAttribiv(hDC, index, 0, 4, attrib_name,
+			attrib_value);
+		std::cout << "Pixel format chosen: "
+			<< "r" << attrib_value[0]
+			<< "g" << attrib_value[1]
+			<< "b" << attrib_value[2]
+			<< "a" << attrib_value[3]
+			<< std::endl;
 
 		PIXELFORMATDESCRIPTOR pfd = { 0 };
 		pfd.nSize = sizeof(pfd);

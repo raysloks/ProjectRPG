@@ -20,7 +20,7 @@ IEventManager * gpEventManager;
 
 FT_Library ftLibrary;
 
-double secondsPerStep = 1.0/60.0;
+double secondsPerStep = 1.0 / 60.0;
 double fpsCap = 1.0/60.0;
 float time_scale = 1.0f;
 bool forceCap = true;
@@ -125,6 +125,16 @@ void GameLoop::tick(void)
 			fullInSeconds = static_cast<double>(end - start) / freq;
 			start = end;
 		}
+		else
+		{
+			double limit = std::min(fpsCap, fullInSeconds) * (client->subframes - client->subframe) / client->subframes;
+			double elapsed;
+			do
+			{
+				QueryPerformanceCounter((LARGE_INTEGER*)&end);
+				elapsed = static_cast<double>(end - start) / freq;
+			} while (elapsed < limit);
+		}
 
 		if (gRenderContext)
 		{
@@ -140,7 +150,7 @@ void GameLoop::tick(void)
 	{
 		QueryPerformanceCounter((LARGE_INTEGER*)&end_busy);
 		busyInSeconds = static_cast<double>(end_busy - start_busy) / freq;
-		Sleep(std::fmaxf(secondsPerStep - busyInSeconds, 0.0) * 1000);
+		Sleep(std::max(secondsPerStep - busyInSeconds, 0.0) * 1000);
 		QueryPerformanceCounter((LARGE_INTEGER*)&start_busy);
 
 		QueryPerformanceCounter((LARGE_INTEGER*)&end);

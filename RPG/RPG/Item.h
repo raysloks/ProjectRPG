@@ -1,5 +1,4 @@
-#ifndef ITEM_H
-#define ITEM_H
+#pragma once
 
 #include "Decorator.h"
 
@@ -12,8 +11,8 @@ public:
 	void writeLog(outstream& os) const;
 	void readLog(instream& is);
 
-	std::string name, desc, icon;
-	std::shared_ptr<Decorator> dec;
+	uint32_t type;
 };
 
-#endif
+outstream& operator<<(outstream& os, const Item& item);
+instream& operator>>(instream& is, Item& item);

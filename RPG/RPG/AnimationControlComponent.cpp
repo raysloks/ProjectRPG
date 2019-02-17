@@ -111,10 +111,10 @@ void AnimationControlComponent::tick(float dTime)
 		transform = Matrix4::Translation(-root - mob->up - prev_root * (1.0f - simple_state->blend_t));
 		transform *= Quaternion(M_PI - mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
 
-		transform *= Matrix4::Scale(Vec3(scale, scale, scale));
+		transform *= Matrix4::Scale(Vec3(scale));
 
 		transform *= Matrix4::Translation(mob->up * (mob->r * 2.0f - 1.0f));
-			
+		
 		for (auto dec : g->decs.items)
 		{
 			dec->local = transform;

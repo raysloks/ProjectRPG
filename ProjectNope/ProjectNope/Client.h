@@ -13,6 +13,7 @@
 #include "Texture.h"
 
 #include "Input.h"
+#include "KeybindCollection.h"
 
 class World;
 class Server;
@@ -80,6 +81,8 @@ public:
 	ClientData * clientData;
 
 	Input input;
+
+	KeybindCollection keybinds;
 
 	std::vector<std::shared_ptr<Window>> windows;
 	std::shared_ptr<StandardHUD> hud;

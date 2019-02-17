@@ -1,7 +1,8 @@
-#include "IEvent.h"
-
 #ifndef PLATFORM_EVENTS_H
 #define PLATFORM_EVENTS_H
+
+#include "IEvent.h"
+#include "Vec2.h"
 
 class KeyDownEvent :
 	public IEvent
@@ -9,7 +10,14 @@ class KeyDownEvent :
 public:
 	int key;
 	std::string chr;
-	int x, y;
+	union
+	{
+		Vec2 p;
+		struct 
+		{
+			float x, y;
+		};
+	};
 
 	KeyDownEvent(int key_code, const std::string& c);
 	~KeyDownEvent(void);
@@ -25,7 +33,14 @@ class KeyUpEvent :
 public:
 	int key;
 	std::string chr;
-	int x, y;
+	union
+	{
+		Vec2 p;
+		struct
+		{
+			float x, y;
+		};
+	};
 
 	KeyUpEvent(int key_code, const std::string& c);
 	~KeyUpEvent(void);
@@ -39,7 +54,14 @@ class MouseMoveEvent :
 	public IEvent
 {
 public:
-	int x, y;
+	union
+	{
+		Vec2 p;
+		struct
+		{
+			float x, y;
+		};
+	};
 	bool relative;
 
 	MouseMoveEvent(int a, int b, bool c);
