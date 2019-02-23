@@ -745,7 +745,7 @@ int main()
 						void *** vftable_ptr = (void***)t;
 						*vftable_ptr = vftable;
 
-						for (int i = 0; i < 1000; ++i)
+						for (int i = 0; i < 10; ++i)
 							std::cout << t->func(i) << std::endl;
 
 						delete t;

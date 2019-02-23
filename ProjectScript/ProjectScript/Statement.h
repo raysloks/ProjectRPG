@@ -13,6 +13,7 @@ class Statement
 public:
 	Statement(std::vector<std::shared_ptr<Statement>>& tokens, bool expression = false);
 	Statement(std::shared_ptr<Statement> lhs, const Token& token, std::shared_ptr<Statement> rhs);
+	Statement(int key);
 	~Statement(void);
 
 	void compile(ScriptCompile& comp);

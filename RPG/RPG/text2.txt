@@ -1,5 +1,13 @@
 dynamic class Main : TestClass
 {
+	void Main()
+	{
+	};
+
+	void ~Main()
+	{
+	};
+
 	uint main(uint x)
 	{
 		a = a + x;

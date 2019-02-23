@@ -475,6 +475,10 @@ Statement::Statement(std::shared_ptr<Statement> l, const Token& o, std::shared_p
 {
 }
 
+Statement::Statement(int key) : keyword(key)
+{
+}
+
 Statement::~Statement(void)
 {
 }
@@ -505,7 +509,7 @@ void Statement::compile(ScriptCompile& comp)
 
 		if (lhs != nullptr)
 		{
-			if (comp.proto->ret.size == 0)
+			if (comp.proto->ret.GetSize() == 0)
 				throw std::runtime_error("Return type is 'void'.");
 			if (comp.proto->ret != lhs->getType(comp))
 				throw std::runtime_error("Return type mismatch.");
@@ -529,11 +533,6 @@ void Statement::compile(ScriptCompile& comp)
 
 		if (comp.stack > 0)
 		{
-			//// add esp, comp.stack
-			//po = 0x81;
-			//o = 0b11000100;
-			//dat32 = comp.stack;
-
 			// leave
 			po = 0xc9;
 		}
@@ -618,7 +617,12 @@ void Statement::compile(ScriptCompile& comp)
 				has_return |= i->hasReturn();
 			}
 			if (!has_return)
-				throw std::runtime_error("Not all control paths return.");
+			{
+				if (comp.proto->ret.GetSize() == 0)
+					Statement(1).compile(comp);
+				else
+					throw std::runtime_error("Not all control paths return a value.");
+			}
 			comp.EndScope();
 		}
 	}
@@ -1655,6 +1659,13 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 							return typeData;
 						}
 					}
+				}
+				if (token.lexeme.compare("void") == 0)
+				{
+					ScriptTypeData typeData;
+					typeData.size = 0;
+					typeData.type = ST_VOID;
+					return typeData;
 				}
 				auto varData = comp.GetVariable(token.lexeme);
 				return varData.type;
