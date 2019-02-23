@@ -14,7 +14,7 @@ ScriptTypeData::~ScriptTypeData()
 size_t ScriptTypeData::GetSize() const
 {
 	if (indirection != 0)
-		return 4;
+		return 8;
 	return size;
 }
 

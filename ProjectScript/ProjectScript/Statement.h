@@ -26,7 +26,7 @@ public:
 
 	std::shared_ptr<Statement> lhs, rhs;
 	Token token;
-	int keyword; //unsigned char?
+	int keyword;
 	std::shared_ptr<ScriptCode> code;
 };
 

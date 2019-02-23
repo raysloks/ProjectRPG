@@ -13,9 +13,9 @@ public:
 
 	bool lvalue;
 
-	uint8_t mod, rm;
+	uint8_t mode, regm;
 
-	uint32_t offset;
+	int32_t offset;
 
 	bool operator==(const ScriptCompileMemoryTarget& rhs) const;
 	bool operator!=(const ScriptCompileMemoryTarget& rhs) const;

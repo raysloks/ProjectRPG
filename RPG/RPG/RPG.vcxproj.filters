@@ -90,6 +90,8 @@
     <ClCompile Include="WeaponData.cpp" />
     <ClCompile Include="HitboxData.cpp" />
     <ClCompile Include="ItemType.cpp" />
+    <ClCompile Include="NPC.cpp" />
+    <ClCompile Include="Alias.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -180,6 +182,8 @@
     <ClInclude Include="WeaponData.h" />
     <ClInclude Include="HitboxData.h" />
     <ClInclude Include="ItemType.h" />
+    <ClInclude Include="NPC.h" />
+    <ClInclude Include="Alias.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

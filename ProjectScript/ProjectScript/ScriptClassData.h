@@ -15,6 +15,8 @@ public:
 
 	void SetParent(const std::shared_ptr<ScriptClassData>& ptr);
 
+	void AddVirtualFunctionTable();
+
 	void AddMember(const std::string& name, const ScriptTypeData& type);
 	void AddFunction(const std::string& name, const ScriptFunctionPrototype& prototype, void * pointer);
 	void AddVirtualFunction(const std::string& name, const ScriptFunctionPrototype& prototype);

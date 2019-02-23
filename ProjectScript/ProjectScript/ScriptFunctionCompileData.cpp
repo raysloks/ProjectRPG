@@ -26,9 +26,18 @@ void ScriptFunctionCompileData::compile(ScriptCompile& comp)
 	comp.BeginScope();
 
 	size_t offset = 8;
+	std::vector<uint8_t> free_regs = { 0b1001, 0b1000, 0b10 };
+	std::vector<uint8_t> busy_regs;
 	for (size_t i = 0; i < prototype.params.size(); ++i)
 	{
-		comp.AddParameter(parameter_names[i], prototype.params[i], offset);
+		if (prototype.params[i].GetSize() <= 8 && !free_regs.empty())
+		{
+			comp.AddParameterRegister(parameter_names[i], prototype.params[i], free_regs.back());
+			busy_regs.push_back(free_regs.back());
+			free_regs.pop_back();
+			continue;
+		}
+		comp.AddParameterStack(parameter_names[i], prototype.params[i], offset);
 		offset += prototype.params[i].size;
 	}
 
@@ -36,9 +45,11 @@ void ScriptFunctionCompileData::compile(ScriptCompile& comp)
 
 	comp.BeginFunction();
 
-	if (prototype.cc == CC_THISCALL)
+	//if (prototype.cc == CC_THISCALL)
 	{
 		comp.SetBusy(0b001);
+		for (auto reg : busy_regs)
+			comp.SetBusy(reg);
 
 		ScriptTypeData type_data;
 		type_data.type = ST_CLASS;
@@ -47,8 +58,8 @@ void ScriptFunctionCompileData::compile(ScriptCompile& comp)
 		type_data.indirection = 1;
 
 		ScriptCompileMemoryTarget target;
-		target.mod = 0b11;
-		target.rm = 0b001;
+		target.mode = 0b11;
+		target.regm = 0b001;
 
 		ScriptVariableData variable_data;
 		variable_data.type = type_data;
@@ -59,12 +70,16 @@ void ScriptFunctionCompileData::compile(ScriptCompile& comp)
 
 	code->compile(comp);
 
-	if (prototype.cc == CC_THISCALL)
+	//if (prototype.cc == CC_THISCALL)
 	{
 		comp.SetFree(0b001);
+		for (auto reg : busy_regs)
+			comp.SetFree(reg);
 	}
 
-	comp.EndScope();
+	comp.EndFunction();
 
 	comp.proto.reset();
+
+	comp.EndScope();
 }

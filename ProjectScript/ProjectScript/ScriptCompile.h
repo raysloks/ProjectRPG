@@ -21,11 +21,12 @@ public:
 	~ScriptCompile();
 
 	void BeginFunction();
+	void EndFunction();
 
 	void BeginScope();
 	void EndScope();
 
-	void GenerateCode();
+	void Compile();
 	void Link();
 
 	template <typename T>
@@ -54,9 +55,10 @@ public:
 	void PushVariable(const std::string& name);
 	void PushVariable(const std::string& name, ScriptTypeData type);
 	void PushVariable(const std::string& name, ScriptTypeData type, ScriptCompileMemoryTarget target);
-	void PushVariable(const std::string& name, ScriptTypeData type, uint32_t value);
+	void PushVariable(const std::string& name, ScriptTypeData type, int32_t value);
 
-	void AddParameter(const std::string& name, ScriptTypeData type, size_t offset);
+	void AddParameterStack(const std::string& name, ScriptTypeData type, int32_t offset);
+	void AddParameterRegister(const std::string& name, ScriptTypeData type, uint8_t reg);
 
 	ScriptVariableData GetVariable(const std::string& name);
 
@@ -79,7 +81,7 @@ public:
 	ScriptAssemblyHelper sasm;
 
 	std::vector<ScriptScope> scope;
-	size_t stack;
+	size_t stack, max_stack, stack_allocation;
 
 	ScriptCompileMemoryTarget target;
 

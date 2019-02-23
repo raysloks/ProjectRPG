@@ -1,16 +1,8 @@
-class Main
+dynamic class Main : TestClass
 {
-	uint dummy;
-	uint mina;
-
-	uint main(uint a)
+	uint main(uint x)
 	{
-		mina = mina + a;
-		return mult(mina, a);
-	};
-
-	uint mult(uint a, uint b)
-	{
-		return a * b;
+		a = a + x;
+		return a;
 	};
 };

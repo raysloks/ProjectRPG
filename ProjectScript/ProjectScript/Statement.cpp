@@ -510,7 +510,7 @@ void Statement::compile(ScriptCompile& comp)
 			if (comp.proto->ret != lhs->getType(comp))
 				throw std::runtime_error("Return type mismatch.");
 
-			if (comp.proto->ret.size <= 4)
+			if (comp.proto->ret.size <= 8)
 			{
 				comp.target = ScriptCompileMemoryTarget();
 
@@ -518,7 +518,7 @@ void Statement::compile(ScriptCompile& comp)
 			}
 			else
 			{
-				throw std::runtime_error("Return types larger than 32 bits are not supported yet.");
+				throw std::runtime_error("Return types larger than 64 bits are not supported yet.");
 			}
 		}
 		else
@@ -541,7 +541,7 @@ void Statement::compile(ScriptCompile& comp)
 		{
 			// pop ebp
 			ScriptCompileMemoryTarget ebp;
-			ebp.rm = 0b101;
+			ebp.regm = 0b101;
 			sasm.Pop(ebp);
 		}
 
@@ -674,7 +674,7 @@ void Statement::compile(ScriptCompile& comp)
 					throw std::runtime_error("Function found outside class.");
 
 				ScriptFunctionPrototype prototype;
-				prototype.cc = CC_THISCALL;
+				prototype.cc = CC_MICROSOFT_X64;
 				prototype.ret = lhs->getType(comp);
 
 				std::vector<std::string> parameter_names;
@@ -724,38 +724,61 @@ void Statement::compile(ScriptCompile& comp)
 		}
 		if (lhs->keyword == 7)
 		{
-			if (lhs->lhs->token.lexeme.compare("class") == 0)
+			std::vector<std::string> tokens;
+			std::function<void(const std::shared_ptr<Statement>&)> add_token;
+			add_token = [&tokens, &add_token](const std::shared_ptr<Statement>& v)
 			{
+				if (v->keyword == 7)
+				{
+					add_token(v->rhs);
+					add_token(v->lhs);
+				}
+				else
+				{
+					tokens.push_back(v->token.lexeme);
+				}
+			};
+			add_token(lhs);
+
+			bool dynamic = false;
+
+			if (tokens.back().compare("dynamic") == 0)
+			{
+				dynamic = true;
+				tokens.pop_back();
+			}
+
+			if (tokens.back().compare("class") == 0)
+			{
+				tokens.pop_back();
+
 				if (comp.proto)
 					throw std::runtime_error("'class' found inside function.");
 				if (comp.current_class)
 					throw std::runtime_error("'class' found inside class.");
 
-				comp.SetClass(lhs->rhs->token.lexeme);
-				rhs->compile(comp);
-				comp.current_class.reset();
-				return;
-			}
+				comp.SetClass(tokens.back());
+				tokens.pop_back();
 
-			if (lhs->lhs->keyword == 7)
-			{
-				if (lhs->lhs->lhs->token.lexeme.compare("class") == 0)
+				if (!tokens.empty())
 				{
-					if (comp.proto)
-						throw std::runtime_error("'class' found inside function.");
-					if (comp.current_class)
-						throw std::runtime_error("'class' found inside class.");
-
-					comp.SetClass(lhs->lhs->rhs->token.lexeme);
-					std::string parent_name = lhs->rhs->token.lexeme;
-					auto parent = comp.classes.find(parent_name);
-					if (parent == comp.classes.end())
-						throw std::runtime_error("Cannot find class '" + parent_name + "'.");
-					comp.current_class->SetParent(parent->second);
-					rhs->compile(comp);
-					comp.current_class.reset();
-					return;
+					if (tokens.back().front() == ':')
+					{
+						auto parent = comp.classes.find(tokens.back().substr(1));
+						if (parent == comp.classes.end())
+							throw std::runtime_error("Cannot find class '" + tokens.back().substr(1) + "'.");
+						comp.current_class->SetParent(parent->second);
+					}
 				}
+
+				if (dynamic)
+					comp.current_class->AddVirtualFunctionTable();
+
+				rhs->compile(comp);
+
+				comp.current_class.reset();
+
+				return;
 			}
 		}
 		if (comp.proto)
@@ -965,7 +988,7 @@ void Statement::compile(ScriptCompile& comp)
 
 							if (!target.lvalue)
 							{
-								if (target.mod != 0b11)
+								if (target.mode != 0b11)
 								{
 									auto tmp_target = sasm.FindRegister({ target, comp.target });
 									sasm.Move(0x8b, tmp_target, comp.target);
@@ -988,12 +1011,9 @@ void Statement::compile(ScriptCompile& comp)
 			{
 				if (lhs->keyword == 7)
 				{
-					auto rhs_target = sasm.FindRegister();
-					comp.target = rhs_target;
+					comp.PushVariable(lhs->rhs->token.lexeme, lhs_type);
 
 					rhs->compile(comp);
-
-					comp.PushVariable(lhs->rhs->token.lexeme, lhs_type, rhs_target);
 				}
 				else
 				{
@@ -1005,20 +1025,13 @@ void Statement::compile(ScriptCompile& comp)
 			break;
 			case '+':
 			{
-				auto rhs_target = sasm.FindRegister(target);
-				comp.target = rhs_target;
+				lhs->compile(comp);
+
+				comp.target.lvalue = true;
 
 				rhs->compile(comp);
 
-				sasm.Push(rhs_target);
-
-				comp.target = target;
-
-				lhs->compile(comp);
-
-				sasm.Pop(rhs_target);
-
-				sasm.Move(0x01, target, rhs_target);
+				sasm.Move(0x01, target, comp.target);
 			}
 			break;
 			case '-':
@@ -1054,7 +1067,7 @@ void Statement::compile(ScriptCompile& comp)
 
 				sasm.Pop(rhs_target);
 
-				if (target.mod == 0b11)
+				if (target.mode == 0b11)
 				{
 					// imul target, rhs_target
 					p = 0x0f;
@@ -1103,7 +1116,7 @@ void Statement::compile(ScriptCompile& comp)
 				po = 0xf7;
 				o = divisor_target.GetModRegRM(7);
 
-				if (target.mod != 0b11 || target.rm != 0b000)
+				if (target.mode != 0b11 || target.regm != 0b000)
 					sasm.Move(0x89, target, eax_target);
 			}
 			break;
@@ -1122,7 +1135,7 @@ void Statement::compile(ScriptCompile& comp)
 				comp.target.lvalue = true;
 				lhs->compile(comp);
 
-				if (target.mod == 0b11)
+				if (target.mode == 0b11)
 				{
 					// lea target, comp.target
 					sasm.Move(0x8d, comp.target, target);
@@ -1148,7 +1161,7 @@ void Statement::compile(ScriptCompile& comp)
 					comp.target = eax_target;
 					lhs->compile(comp);
 
-					comp.target.mod = 0b01;
+					comp.target.mode = 0b01;
 				}
 				else
 				{
@@ -1157,9 +1170,9 @@ void Statement::compile(ScriptCompile& comp)
 					comp.target = eax_target;
 					lhs->compile(comp);
 
-					comp.target.mod = 0b01;
+					comp.target.mode = 0b01;
 
-					if (target.mod == 0b11)
+					if (target.mode == 0b11)
 					{
 						// mov target, comp.target
 						sasm.Move(0x8b, target, comp.target);
@@ -1197,19 +1210,32 @@ void Statement::compile(ScriptCompile& comp)
 			{
 				{
 					std::istringstream ss(token.lexeme);
-					uint32_t ui;
+					uint64_t ui;
 					ss >> ui;
 					if (!ss.fail())
 					{
-						if (target.mod == 0b11)
+						if (target.lvalue)
 						{
-							po = 0xb8 + target.rm;
-							dat32 = ui;
+							comp.target = sasm.FindRegister();
+							uint8_t rex = 0b01001000;
+							if (comp.target.regm > 7)
+								rex |= 0b100;
+							p = rex;
+							po = 0xb8 + (comp.target.regm & 0b111);
+							dat64 = ui;
 						}
 						else
 						{
-							sasm.Move(0xc7, 0, target);
-							dat32 = ui;
+							if (target.mode == 0b11)
+							{
+								po = 0xb8 + target.regm;
+								dat32 = ui;
+							}
+							else
+							{
+								sasm.Move(0xc7, 0, target);
+								dat32 = ui;
+							}
 						}
 						return;
 					}
@@ -1241,16 +1267,17 @@ void Statement::compile(ScriptCompile& comp)
 					if (target == var_target)
 					{
 						// do anything here?
+						// no?
 					}
 					else
 					{
-						if (target.mod == 0b11)
+						if (target.mode == 0b11)
 						{
 							sasm.Move(0x8b, target, var_target);
 						}
 						else
 						{
-							if (var_target.mod == 0b11)
+							if (var_target.mode == 0b11)
 							{
 								sasm.Move(0x89, target, var_target);
 							}
@@ -1473,14 +1500,14 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 		if (token.lexeme.compare("int") == 0)
 		{
 			ScriptTypeData typeData;
-			typeData.size = 4;
+			typeData.size = 8;
 			typeData.type = ST_INT;
 			return typeData;
 		}
 		if (token.lexeme.compare("uint") == 0)
 		{
 			ScriptTypeData typeData;
-			typeData.size = 4;
+			typeData.size = 8;
 			typeData.type = ST_UINT;
 			return typeData;
 		}
@@ -1526,7 +1553,7 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 						if (rhs->token.lexeme.compare(func.first) == 0)
 						{
 							ScriptTypeData typeData;
-							typeData.size = 4;
+							typeData.size = 8;
 							typeData.type = ST_FUNCTION;
 							typeData.function_prototype.reset(new ScriptFunctionPrototype(func.second.first));
 							return typeData;
@@ -1592,7 +1619,7 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 					if (!ss.fail() && token.lexeme.find('.') == std::string::npos)
 					{
 						ScriptTypeData typeData;
-						typeData.size = 4;
+						typeData.size = 8;
 						typeData.type = ST_UINT;
 						return typeData;
 					}
@@ -1604,7 +1631,7 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 					if (!ss.fail())
 					{
 						ScriptTypeData typeData;
-						typeData.size = 4;
+						typeData.size = 8;
 						typeData.type = ST_FLOAT;
 						return typeData;
 					}
@@ -1612,7 +1639,7 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 				if (token.lexeme.front() == '"' || token.lexeme.front() == '\'')
 				{
 					ScriptTypeData typeData;
-					typeData.size = 4;
+					typeData.size = 8;
 					return typeData;
 				}
 				if (comp.current_class)
@@ -1622,7 +1649,7 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 						if (token.lexeme.compare(func.first) == 0)
 						{
 							ScriptTypeData typeData;
-							typeData.size = 4;
+							typeData.size = 8;
 							typeData.type = ST_FUNCTION;
 							typeData.function_prototype.reset(new ScriptFunctionPrototype(func.second.first));
 							return typeData;

@@ -15,6 +15,17 @@ void ScriptClassData::SetParent(const std::shared_ptr<ScriptClassData>& ptr)
 	size = parent->size;
 }
 
+void ScriptClassData::AddVirtualFunctionTable()
+{
+	if (members.find("_vfptr") == members.end())
+	{
+		ScriptTypeData type;
+		type.type = ST_VOID;
+		type.indirection = 2;
+		AddMember("_vfptr", type);
+	}
+}
+
 void ScriptClassData::AddMember(const std::string& name, const ScriptTypeData& type)
 {
 	ScriptVariableData member_data;
@@ -22,14 +33,16 @@ void ScriptClassData::AddMember(const std::string& name, const ScriptTypeData& t
 	
 	member_data.target.lvalue = false; // shouldn't really matter, should it?
 	member_data.target.offset = size;
-	member_data.target.mod = 0b10; // 0b01 for one byte signed offset, could be optimized elsewhere
-	member_data.target.rm = 0b001; // ecx
+	member_data.target.mode = 0b01;
+	if (member_data.target.offset > 127)
+		member_data.target.mode = 0b10;
+	member_data.target.regm = 0b001; // rcx
 
 	members.insert(std::make_pair(name, member_data));
 	size_t member_size = type.GetSize();
 	size += member_size;
-	if (member_size % 4 != 0)
-		size += 4 - member_size % 4;
+	if (member_size % 8 != 0)
+		size += 8 - member_size % 8;
 }
 
 void ScriptClassData::AddFunction(const std::string& name, const ScriptFunctionPrototype& prototype, void * pointer)
@@ -47,34 +60,11 @@ void ScriptClassData::AddFunction(const std::string& name, const ScriptFunctionP
 
 void ScriptClassData::AddVirtualFunction(const std::string& name, const ScriptFunctionPrototype& prototype)
 {
-	size_t count = GetVirtualFunctionCount();
-	if (count == 0)
-	{
-		for (auto& member : members)
-		{
-			member.second.target.offset += 4;
-		}
-
-		ScriptVariableData member_data;
-		member_data.type.type = ST_VOID;
-		member_data.type.indirection = 2;
-
-		member_data.target.lvalue = false; // shouldn't really matter, should it?
-		if (parent)
-			member_data.target.offset = parent->size;
-		else
-			member_data.target.offset = 0;
-		member_data.target.mod = 0b10; // 0b01 for one byte signed offset, could be optimized elsewhere
-		member_data.target.rm = 0b001; // ecx
-
-		members.insert(std::make_pair("vftable", member_data));
-
-		size += 4;
-	}
-
+	if (members.find("_vfptr") == members.end())
+		throw std::runtime_error("Cannot find virtual function table.");
 	ScriptVirtualFunctionData func;
 	func.name = name;
-	func.offset = count * 4;
+	func.offset = GetVirtualFunctionCount() * 8;
 	func.prototype = prototype;
 	virtual_functions.push_back(func);
 }

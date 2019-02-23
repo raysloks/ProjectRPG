@@ -24,23 +24,23 @@ ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister()
 		throw std::runtime_error("Unable to find free register.");
 	}
 	if (!ebx)
-		ret.rm = 0b011;
+		ret.regm = 0b011;
 	if (!edx)
-		ret.rm = 0b010;
+		ret.regm = 0b010;
 	if (!ecx)
-		ret.rm = 0b001;
+		ret.regm = 0b001;
 	if (!eax)
-		ret.rm = 0b000;
+		ret.regm = 0b000;
 	return ret;
 }
 
 ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister(ScriptCompileMemoryTarget& target)
 {
-	if (comp.IsFree(target.rm))
+	if (comp.IsFree(target.regm))
 	{
-		comp.SetBusy(target.rm);
+		comp.SetBusy(target.regm);
 		auto ret = FindRegister();
-		comp.SetFree(target.rm);
+		comp.SetFree(target.regm);
 		return ret;
 	}
 	else
@@ -53,8 +53,8 @@ ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister(const std::vector<S
 {
 	std::vector<uint8_t> free_targets;
 	for each (auto target in targets)
-		if (comp.IsFree(target.rm))
-			free_targets.push_back(target.rm);
+		if (comp.IsFree(target.regm))
+			free_targets.push_back(target.regm);
 	for each (auto target in free_targets)
 		comp.SetBusy(target);
 	auto ret = FindRegister();
@@ -73,33 +73,47 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, ScriptCompileMemoryTarget& desti
 	StreamAssignee<uint32_t> dat32(comp);
 	StreamAssignee<uint64_t> dat64(comp);
 
-	bool d_bit = opcode & 0b00000010;
-
-	if (d_bit && destination.mod != 0b11)
+	if (destination.mode != 0b11 && source.mode != 0b11)
 	{
-		throw std::runtime_error("Destination is not a register.");
+		throw std::runtime_error("Cannot operate from memory to memory.");
 	}
 
-	if (!d_bit && source.mod != 0b11)
-	{
-		throw std::runtime_error("Source is not a register.");
-	}
+	bool d_bit = destination.mode == 0b11;
 
-	po = opcode;
+	opcode &= 0b11111101;
+	if (d_bit)
+		opcode |= 0b00000010;
+
+	uint8_t rex = 0b01001000;
+
 	if (d_bit)
 	{
-		o = source.GetModRegRM(destination.rm);
-		if (source.mod == 0b01)
+		if (destination.regm > 7)
+			rex |= 0b100;
+		if (source.regm > 7)
+			rex |= 0b001;
+
+		p = rex;
+		po = opcode;
+		o = source.GetModRegRM(destination.regm);
+		if (source.mode == 0b01)
 			dat8 = source.offset;
-		if (source.mod == 0b10)
+		if (source.mode == 0b10)
 			dat32 = source.offset;
 	}
 	else
 	{
-		o = destination.GetModRegRM(source.rm);
-		if (destination.mod == 0b01)
+		if (source.regm > 7)
+			rex |= 0b100;
+		if (destination.regm > 7)
+			rex |= 0b001;
+
+		p = rex;
+		po = opcode;
+		o = destination.GetModRegRM(source.regm);
+		if (destination.mode == 0b01)
 			dat8 = destination.offset;
-		if (destination.mod == 0b10)
+		if (destination.mode == 0b10)
 			dat32 = destination.offset;
 	}
 }
@@ -116,9 +130,9 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, uint8_t opcode_extension, Script
 
 	po = opcode;
 	o = operand.GetModRegRM(opcode_extension);
-	if (operand.mod == 0b01)
+	if (operand.mode == 0b01)
 		dat8 = operand.offset;
-	if (operand.mod == 0b10)
+	if (operand.mode == 0b10)
 		dat32 = operand.offset;
 }
 
@@ -138,9 +152,9 @@ void ScriptAssemblyHelper::Push(ScriptCompileMemoryTarget& source)
 		dat32 = source.offset;
 		return;
 	}*/
-	if (source.mod == 0b11)
+	if (source.mode == 0b11)
 	{
-		po = 0x50 + source.rm;
+		po = 0x50 + source.regm;
 	}
 }
 
@@ -154,8 +168,8 @@ void ScriptAssemblyHelper::Pop(ScriptCompileMemoryTarget& destination)
 	StreamAssignee<uint32_t> dat32(comp);
 	StreamAssignee<uint64_t> dat64(comp);
 
-	if (destination.mod == 0b11)
+	if (destination.mode == 0b11)
 	{
-		po = 0x58 + destination.rm;
+		po = 0x58 + destination.regm;
 	}
 }

@@ -9,7 +9,8 @@ enum CallingConvention
 {
 	CC_CDECL,
 	CC_STDCALL,
-	CC_THISCALL
+	CC_THISCALL,
+	CC_MICROSOFT_X64
 };
 
 class ScriptFunctionPrototype

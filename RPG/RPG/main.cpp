@@ -599,9 +599,9 @@ class TestClass
 public:
 	virtual ~TestClass() {}
 
-	virtual unsigned int func(unsigned int x) = 0;
+	virtual uint64_t func(uint64_t x) = 0;
 
-	unsigned int a;
+	uint64_t a;
 };
 
 class TestClassTwo :
@@ -611,9 +611,9 @@ public:
 	TestClassTwo() { a = 1; b = 1; }
 	~TestClassTwo() {}
 
-	unsigned int func(unsigned int x) { return a * 2; }
+	uint64_t func(uint64_t x) { return a * 2; }
 
-	unsigned int b;
+	uint64_t b;
 };
 
 void start_engine_instance(std::string address, uint16_t port, uint64_t lobby_id, char option, std::atomic<bool>& running)
@@ -678,14 +678,14 @@ void start_engine_instance(std::string address, uint16_t port, uint64_t lobby_id
 //	PSTR lpCmdLine, INT nCmdShow)
 int main()
 {
-	if (false)
+	if (true)
 	{
 		size_t max_mem_size = 65536;
 		void * mem = VirtualAlloc(nullptr, max_mem_size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
 		while (true)
 		{
-			try
+			//try
 			{
 				char buffer[4096];
 
@@ -701,15 +701,16 @@ int main()
 
 				std::shared_ptr<ScriptClassData> test_class_data(new ScriptClassData());
 				test_class_data->class_name = "TestClass";
+				test_class_data->AddVirtualFunctionTable();
 				ScriptTypeData a_data;
 				a_data.type = ST_UINT;
-				a_data.size = 4;
+				a_data.size = 8;
 				test_class_data->AddMember("a", a_data);
 				ScriptFunctionPrototype destructor_data;
-				destructor_data.cc = CC_THISCALL;
+				destructor_data.cc = CC_MICROSOFT_X64;
 				test_class_data->AddVirtualFunction("~TestClass", destructor_data);
 				ScriptFunctionPrototype func_data;
-				func_data.cc = CC_THISCALL;
+				func_data.cc = CC_MICROSOFT_X64;
 				func_data.ret = a_data;
 				func_data.params.push_back(a_data);
 				test_class_data->AddVirtualFunction("func", func_data);
@@ -722,7 +723,7 @@ int main()
 					i->compile(comp);
 				}
 
-				comp.GenerateCode();
+				comp.Compile();
 				comp.Link();
 
 				size_t mem_size = comp.ss.tellp();
@@ -753,10 +754,10 @@ int main()
 				}
 
 			}
-			catch (std::runtime_error& e)
+			/*catch (std::runtime_error& e)
 			{
 				std::cout << e.what() << std::endl;
-			}
+			}*/
 		}
 
 		VirtualFree(mem, max_mem_size, MEM_RELEASE);

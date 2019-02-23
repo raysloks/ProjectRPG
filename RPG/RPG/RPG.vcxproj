@@ -21,14 +21,14 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9E6D5461-EFE7-4B60-B143-B29DA5EB8E9F}</ProjectGuid>
     <RootNamespace>RPG</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -42,14 +42,14 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -69,35 +69,19 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(BOOST_ROOT);$(IncludePath)</IncludePath>
-    <LibraryPath>$(BOOST_ROOT)\lib32-msvc-14.0;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(BOOST_ROOT);$(IncludePath)</IncludePath>
-    <LibraryPath>$(BOOST_ROOT)\lib32-msvc-14.0;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(BOOST_ROOT);$(IncludePath)</IncludePath>
-    <LibraryPath>$(BOOST_ROOT)\lib64-msvc-14.0;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(BOOST_ROOT);$(IncludePath)</IncludePath>
-    <LibraryPath>$(BOOST_ROOT)\lib64-msvc-14.0;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\ProjectScript\ProjectScript;$(SolutionDir)..\ProjectCore\ProjectCore;$(SolutionDir)..\Platform\Platform;$(SolutionDir)..\ProjectNope\ProjectNope;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Emil\Documents\Libraries\boost_1_69_0;C:\Users\Emil\Documents\Libraries\boost_1_69_0;$(SolutionDir)..\ProjectScript\ProjectScript;$(SolutionDir)..\ProjectCore\ProjectCore;$(SolutionDir)..\Platform\Platform;$(SolutionDir)..\ProjectNope\ProjectNope;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_USE_MATH_DEFINES;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32;C:\Users\Emil\Documents\freetype-2.7\Win32\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>openal32.lib;xinput9_1_0.lib;freetyped.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\Emil\Documents\Libraries\boost_1_69_0\stage\lib;C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32;C:\Users\Emil\Documents\Libraries\freetype-2.9.1\objs\Win32\Debug Static;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>openal32.lib;xinput9_1_0.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -105,13 +89,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\ProjectScript\ProjectScript;$(SolutionDir)..\ProjectCore\ProjectCore;$(SolutionDir)..\Platform\Platform;$(SolutionDir)..\ProjectNope\ProjectNope;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Emil\Documents\Libraries\boost_1_69_0;$(SolutionDir)..\ProjectScript\ProjectScript;$(SolutionDir)..\ProjectCore\ProjectCore;$(SolutionDir)..\Platform\Platform;$(SolutionDir)..\ProjectNope\ProjectNope;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_USE_MATH_DEFINES;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>openal32.lib;xinput9_1_0.lib;freetyped.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64;C:\Users\Emil\Documents\freetype-2.7\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>openal32.lib;xinput9_1_0.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\Emil\Documents\Libraries\boost_1_69_0\stage\lib;C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64;C:\Users\Emil\Documents\Libraries\freetype-2.9.1\objs\x64\Debug Static;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -121,7 +105,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\ProjectScript\ProjectScript;$(SolutionDir)..\ProjectCore\ProjectCore;$(SolutionDir)..\Platform\Platform;$(SolutionDir)..\ProjectNope\ProjectNope;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Emil\Documents\Libraries\boost_1_69_0;C:\Users\Emil\Documents\Libraries\boost_1_69_0;$(SolutionDir)..\ProjectScript\ProjectScript;$(SolutionDir)..\ProjectCore\ProjectCore;$(SolutionDir)..\Platform\Platform;$(SolutionDir)..\ProjectNope\ProjectNope;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_USE_MATH_DEFINES;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <ShowIncludes>false</ShowIncludes>
@@ -130,7 +114,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32;C:\Users\Emil\Documents\freetype-2.7\Win32\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\Emil\Documents\Libraries\boost_1_69_0\stage\lib;C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win32;C:\Users\Emil\Documents\Libraries\freetype-2.9.1\objs\Win32\Release Static;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>openal32.lib;xinput9_1_0.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -141,7 +125,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\ProjectScript\ProjectScript;$(SolutionDir)..\ProjectCore\ProjectCore;$(SolutionDir)..\Platform\Platform;$(SolutionDir)..\ProjectNope\ProjectNope;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Emil\Documents\Libraries\boost_1_69_0;$(SolutionDir)..\ProjectScript\ProjectScript;$(SolutionDir)..\ProjectCore\ProjectCore;$(SolutionDir)..\Platform\Platform;$(SolutionDir)..\ProjectNope\ProjectNope;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_USE_MATH_DEFINES;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -149,12 +133,13 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>openal32.lib;xinput9_1_0.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64;C:\Users\Emil\Documents\freetype-2.7\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\Emil\Documents\Libraries\boost_1_69_0\stage\lib;C:\Program Files %28x86%29\OpenAL 1.1 SDK\libs\Win64;C:\Users\Emil\Documents\Libraries\freetype-2.9.1\objs\x64\Release Static;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Ability.cpp" />
     <ClCompile Include="AIComponent.cpp" />
+    <ClCompile Include="Alias.cpp" />
     <ClCompile Include="AnimationControlComponent.cpp" />
     <ClCompile Include="AnimationState.cpp" />
     <ClCompile Include="Aura.cpp" />
@@ -179,6 +164,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mob.cpp" />
     <ClCompile Include="MobComponent.cpp" />
+    <ClCompile Include="NPC.cpp" />
     <ClCompile Include="RunCycleState.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="ShadowSpawnUnit.cpp" />
@@ -214,6 +200,7 @@
   <ItemGroup>
     <ClInclude Include="Ability.h" />
     <ClInclude Include="AIComponent.h" />
+    <ClInclude Include="Alias.h" />
     <ClInclude Include="AnimationControlComponent.h" />
     <ClInclude Include="AnimationState.h" />
     <ClInclude Include="Aura.h" />
@@ -237,6 +224,7 @@
     <ClInclude Include="LearningComponent.h" />
     <ClInclude Include="Mob.h" />
     <ClInclude Include="MobComponent.h" />
+    <ClInclude Include="NPC.h" />
     <ClInclude Include="RunCycleState.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ShadowSpawnUnit.h" />
