@@ -10,6 +10,7 @@
 
 #include "StreamAssignee.h"
 #include "ScriptAssemblyHelper.h"
+#include "ScriptRegisterGuard.h"
 
 #include <sstream>
 
@@ -531,44 +532,31 @@ void Statement::compile(ScriptCompile& comp)
 				throw std::runtime_error("Function needs to return a value.");
 		}
 
-		if (comp.stack > 0)
-		{
-			// leave
-			po = 0xc9;
-		}
-		else
-		{
-			// pop ebp
-			ScriptCompileMemoryTarget ebp;
-			ebp.regm = 0b101;
-			sasm.Pop(ebp);
-		}
+		// add rsp, 0
+		p = 0b01001000;
+		po = 0x81;
+		o = 0b11000100;
+		comp.AddStackDependant();
+		dat32 = 0;
 
-		if (comp.proto->cc == CC_THISCALL)
-		{
-			// rets comp.proto->getParamsSize()
-			po = 0xc2;
-			dat16 = comp.proto->getParamsSize();
-		}
-		else
-		{
-			// rets
-			po = 0xc3;
-		}
+		sasm.Pop(ScriptCompileMemoryTarget(13));
+
+		// rets
+		po = 0xc3;
 	}
 	return;
 	case 2://if
 	{
-		comp.target = ScriptCompileMemoryTarget();
+		comp.target.lvalue = true;
 		lhs->compile(comp);
 
 		// cmp
-		po = 0x3d;
+		sasm.Move(0x81, 7, comp.target);
 		dat32 = 0;
 
-		// jz
+		// jnz
 		p = 0x0f;
-		po = 0x84;
+		po = 0x85;
 		rel32 = 0;
 
 		comp.BeginScope();
@@ -711,6 +699,11 @@ void Statement::compile(ScriptCompile& comp)
 				std::string func_name = lhs->token.lexeme;
 				if (lhs->rhs)
 					func_name = lhs->rhs->token.lexeme;
+
+				if (func_name.compare(comp.current_class->class_name) == 0)
+				{
+					// TODO constructor and destructor
+				}
 
 				ScriptFunctionCompileData function_comp;
 				function_comp.class_ptr = comp.current_class;
@@ -902,12 +895,27 @@ void Statement::compile(ScriptCompile& comp)
 				}
 				else*/
 				{
-					for (auto i = params.rbegin(); i != params.rend(); ++i)
+					for (size_t i = 0; i < params.size(); ++i)
 					{
-						ScriptCompileMemoryTarget eax_target;
-						comp.target = eax_target;
-						(*i)->compile(comp);
-						sasm.Push(eax_target);
+						ScriptCompileMemoryTarget param_target;
+						switch (i)
+						{
+						case 0:
+							param_target.regm = 0b010;
+							break;
+						case 1:
+							param_target.regm = 8;
+							break;
+						case 2:
+							param_target.regm = 9;
+							break;
+						default:
+							// TODO
+							break;
+						}
+
+						comp.target = param_target;
+						params[i]->compile(comp);
 					}
 				}
 			}
@@ -924,14 +932,6 @@ void Statement::compile(ScriptCompile& comp)
 			comp.links.push_back(link);
 
 			dat32 = (char*)function_pointer - ((char*)comp.base_pointer + ss.tellp() + 4);
-
-			if (callee_proto.cc != CC_THISCALL)
-			{
-				// add esp, params.size() * 4
-				po = 0x81;
-				o = 0b11000100;
-				dat32 = params.size() * 4;
-			}
 
 			ScriptCompileMemoryTarget eax_target;
 			if (target != eax_target)
@@ -961,13 +961,18 @@ void Statement::compile(ScriptCompile& comp)
 			auto rhs_type = lhs->getType(comp);
 			if (lhs_type != rhs_type)
 				throw std::runtime_error("Type mismatch.");
+			/*if (target.lvalue)
+			{
+				comp.target = sasm.FindRegister();
+				target = comp.target;
+			}*/
 			switch (token.lexeme.front())
 			{
 			case '.':
 			{
 				auto lhs_type = lhs->getType(comp);
 				if (lhs_type.type != ST_CLASS)
-					throw std::runtime_error("'.' must be preceded by a class.");
+					throw std::runtime_error("'.' must be preceded by an instance of a class.");
 				if (lhs_type.class_data)
 				{
 					for (auto func : lhs_type.class_data->functions)
@@ -975,7 +980,7 @@ void Statement::compile(ScriptCompile& comp)
 						if (rhs->token.lexeme.compare(func.first) == 0)
 						{
 							auto prototype = func.second.first;
-							// TODO: implement thiscall
+
 							return;
 						}
 					}
@@ -983,7 +988,6 @@ void Statement::compile(ScriptCompile& comp)
 					{
 						if (rhs->token.lexeme.compare(member.first) == 0)
 						{
-							comp.target = ScriptCompileMemoryTarget();
 							comp.target.lvalue = true;
 							
 							lhs->compile(comp);
@@ -1007,7 +1011,7 @@ void Statement::compile(ScriptCompile& comp)
 							return;
 						}
 					}
-					throw std::runtime_error("No member '" + rhs->token.lexeme + "' could be found in class '" + lhs->token.lexeme + "'."); // todo: change to class name probs
+					throw std::runtime_error("No member '" + rhs->token.lexeme + "' could be found in class '" + lhs_type.class_data->class_name + "'.");
 				}
 				throw std::runtime_error("Class of '" + lhs->token.lexeme + "' could not be determined.");
 			}
@@ -1030,61 +1034,63 @@ void Statement::compile(ScriptCompile& comp)
 			case '+':
 			{
 				lhs->compile(comp);
+				if (target.lvalue)
+					target = comp.target;
+				ScriptRegisterGuard guard(&comp);
 
 				comp.target.lvalue = true;
-
 				rhs->compile(comp);
 
 				sasm.Move(0x01, target, comp.target);
+				comp.target = target;
 			}
 			break;
 			case '-':
 			{
-				auto rhs_target = sasm.FindRegister(target);
-				comp.target = rhs_target;
+				lhs->compile(comp);
+				if (target.lvalue)
+					target = comp.target;
+				ScriptRegisterGuard guard(&comp);
 
+				comp.target.lvalue = true;
 				rhs->compile(comp);
 
-				sasm.Push(rhs_target);
-
+				sasm.Move(0x29, target, comp.target);
 				comp.target = target;
-
-				lhs->compile(comp);
-
-				sasm.Pop(rhs_target);
-
-				sasm.Move(0x29, target, rhs_target);
 			}
 			break;
 			case '*':
 			{
-				auto rhs_target = sasm.FindRegister(target);
-				comp.target = rhs_target;
+				auto rax_target = ScriptCompileMemoryTarget();
+				bool rax_busy = comp.IsBusy(rax_target.regm);
+				if (rax_busy)
+					sasm.Push(rax_target);
 
+				comp.target = rax_target;
+				lhs->compile(comp);
+				ScriptRegisterGuard guard(&comp);
+
+				comp.target.lvalue = true;
 				rhs->compile(comp);
 
-				sasm.Push(rhs_target);
+				sasm.Move(0xF7, 4, comp.target);
 
-				comp.target = target;
-
-				lhs->compile(comp);
-
-				sasm.Pop(rhs_target);
-
-				if (target.mode == 0b11)
+				if (rax_busy)
 				{
-					// imul target, rhs_target
-					p = 0x0f;
-					sasm.Move(0xaf, target, rhs_target);
+					if (target.lvalue)
+					{
+						comp.target = sasm.FindRegister();
+						sasm.Move(0x89, comp.target, rax_target);
+					}
+					sasm.Pop(rax_target);
 				}
 				else
 				{
-					// imul rhs_target, target
-					p = 0x0f;
-					sasm.Move(0xaf, rhs_target, target);
-
-					// mov target, rhs_target
-					sasm.Move(0x89, target, rhs_target);
+					if (target.lvalue)
+						comp.target = rax_target;
+					else
+						if (target != rax_target)
+							sasm.Move(0x89, target, rax_target);
 				}
 			}
 			break;
@@ -1223,7 +1229,7 @@ void Statement::compile(ScriptCompile& comp)
 							comp.target = sasm.FindRegister();
 							uint8_t rex = 0b01001000;
 							if (comp.target.regm > 7)
-								rex |= 0b100;
+								rex |= 0b001;
 							p = rex;
 							po = 0xb8 + (comp.target.regm & 0b111);
 							dat64 = ui;
@@ -1232,13 +1238,24 @@ void Statement::compile(ScriptCompile& comp)
 						{
 							if (target.mode == 0b11)
 							{
-								po = 0xb8 + target.regm;
-								dat32 = ui;
+								uint8_t rex = 0b01001000;
+								if (target.regm > 7)
+									rex |= 0b001;
+								p = rex;
+								po = 0xb8 + (target.regm & 0b111);
+								dat64 = ui;
 							}
 							else
 							{
-								sasm.Move(0xc7, 0, target);
-								dat32 = ui;
+								auto tmp_target = sasm.FindRegister({ target });
+								uint8_t rex = 0b01001000;
+								if (tmp_target.regm > 7)
+									rex |= 0b001;
+								p = rex;
+								po = 0xb8 + (tmp_target.regm & 0b111);
+								dat64 = ui;
+
+								sasm.Move(0x89, target, tmp_target);
 							}
 						}
 						return;
@@ -1549,7 +1566,7 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 			{
 				auto lhs_type = lhs->getType(comp);
 				if (lhs_type.type != ST_CLASS)
-					throw std::runtime_error("'.' must be preceded by a class.");
+					throw std::runtime_error("'.' must be preceded by an instance of a class.");
 				if (lhs_type.class_data)
 				{
 					for (auto func : lhs_type.class_data->functions)
@@ -1570,7 +1587,7 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 							return member.second.type;
 						}
 					}
-					throw std::runtime_error("No member '" + rhs->token.lexeme + "' could be found in class '" + lhs->token.lexeme + "'."); // todo: change to class name probs
+					throw std::runtime_error("No member '" + rhs->token.lexeme + "' could be found in class '" + lhs_type.class_data->class_name + "'.");
 				}
 				throw std::runtime_error("Class of '" + lhs->token.lexeme + "' could not be determined.");
 			}

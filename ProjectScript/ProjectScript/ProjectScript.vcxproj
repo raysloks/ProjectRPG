@@ -128,6 +128,7 @@
     <ClCompile Include="ScriptFunction.cpp" />
     <ClCompile Include="ScriptFunctionCompileData.cpp" />
     <ClCompile Include="ScriptFunctionPrototype.cpp" />
+    <ClCompile Include="ScriptRegisterGuard.cpp" />
     <ClCompile Include="ScriptVirtualFunctionData.cpp" />
     <ClCompile Include="ScriptLinkData.cpp" />
     <ClCompile Include="ScriptMemory.cpp" />
@@ -164,6 +165,7 @@
     <ClInclude Include="ScriptFunctionPrototypeOld.h" />
     <ClInclude Include="ScriptFunctionWrapper.h" />
     <ClInclude Include="ScriptFunctionWrapperBase.h" />
+    <ClInclude Include="ScriptRegisterGuard.h" />
     <ClInclude Include="ScriptVirtualFunctionData.h" />
     <ClInclude Include="ScriptLinkData.h" />
     <ClInclude Include="ScriptMemory.h" />

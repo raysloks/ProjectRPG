@@ -15,7 +15,7 @@ ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister()
 {
 	ScriptCompileMemoryTarget ret;
 
-	std::vector<uint8_t> regs = { 0b000, 0b001, 0b010, 8, 9, 10, 11 };
+	std::vector<uint8_t> regs = { 11, 10, 9, 8, 0b010, 0b001, 0b000 };
 
 	for (auto reg : regs)
 	{
@@ -70,7 +70,9 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, ScriptCompileMemoryTarget& desti
 
 	if (destination.mode != 0b11 && source.mode != 0b11)
 	{
-		throw std::runtime_error("Cannot operate from memory to memory.");
+		auto intermediary = FindRegister({ destination, source });
+		Move(0x8b, intermediary, source); // maybe set destination as busy here?
+		//throw std::runtime_error("Cannot operate from memory to memory.");
 	}
 
 	bool d_bit = destination.mode == 0b11;
@@ -91,6 +93,8 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, ScriptCompileMemoryTarget& desti
 		p = rex;
 		po = opcode;
 		o = source.GetModRegRM(destination.regm);
+		if (source.regm == 13)
+			comp.AddStackDependant();
 		if (source.mode == 0b01)
 			dat8 = source.offset;
 		if (source.mode == 0b10)
@@ -106,6 +110,8 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, ScriptCompileMemoryTarget& desti
 		p = rex;
 		po = opcode;
 		o = destination.GetModRegRM(source.regm);
+		if (destination.regm == 13)
+			comp.AddStackDependant();
 		if (destination.mode == 0b01)
 			dat8 = destination.offset;
 		if (destination.mode == 0b10)
@@ -123,8 +129,14 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, uint8_t opcode_extension, Script
 	StreamAssignee<uint32_t> dat32(comp);
 	StreamAssignee<uint64_t> dat64(comp);
 
+	uint8_t rex = 0b01001000;
+	if (operand.regm > 7)
+		rex |= 0b001;
+	p = rex;
 	po = opcode;
 	o = operand.GetModRegRM(opcode_extension);
+	if (operand.regm == 13)
+		comp.AddStackDependant();
 	if (operand.mode == 0b01)
 		dat8 = operand.offset;
 	if (operand.mode == 0b10)
@@ -149,7 +161,19 @@ void ScriptAssemblyHelper::Push(ScriptCompileMemoryTarget& source)
 	}*/
 	if (source.mode == 0b11)
 	{
-		po = 0x50 + source.regm;
+		if (source.regm > 7)
+		{
+			p = 0b01000001;
+			po = 0x50 + (source.regm & 0b111);
+		}
+		else
+		{
+			po = 0x50 + source.regm;
+		}
+	}
+	else
+	{
+		throw std::runtime_error("Cannot push from memory yet.");
 	}
 }
 
@@ -165,6 +189,18 @@ void ScriptAssemblyHelper::Pop(ScriptCompileMemoryTarget& destination)
 
 	if (destination.mode == 0b11)
 	{
-		po = 0x58 + destination.regm;
+		if (destination.regm > 7)
+		{
+			p = 0b01000001;
+			po = 0x58 + (destination.regm & 0b111);
+		}
+		else
+		{
+			po = 0x58 + destination.regm;
+		}
+	}
+	else
+	{
+		throw std::runtime_error("Cannot pop to memory yet.");
 	}
 }

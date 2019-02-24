@@ -1,7 +1,11 @@
 dynamic class Main : TestClass
 {
+	uint test;
+
 	void Main()
 	{
+		a = 20;
+		test = 0;
 	};
 
 	void ~Main()
@@ -10,7 +14,15 @@ dynamic class Main : TestClass
 
 	uint main(uint x)
 	{
-		a = a + x;
-		return a;
+		test = test + 1;
+		uint c = x + 2;
+		if (x - 5)
+			test = 0;
+		return test + c;
+	};
+
+	uint mult(uint a, uint b)
+	{
+		return a * b;
 	};
 };

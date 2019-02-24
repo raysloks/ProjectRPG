@@ -18,6 +18,7 @@ void ScriptCompile::BeginFunction()
 	StreamAssignee<uint8_t> p(*this);
 	StreamAssignee<uint8_t> po(*this);
 	StreamAssignee<uint8_t> o(*this);
+	StreamAssignee<uint8_t> sib(*this);
 	StreamAssignee<uint8_t> dat8(*this);
 	StreamAssignee<uint16_t> dat16(*this);
 	StreamAssignee<uint32_t> dat32(*this);
@@ -25,20 +26,21 @@ void ScriptCompile::BeginFunction()
 	StreamAssigneeRelative<int8_t> rel8(*this);
 	StreamAssigneeRelative<int32_t> rel32(*this);
 
-	// push rbp
-	po = 0x55;
-
-	// mov rbp, rsp
-	p = 0b01001000;
-	po = 0x89;
-	o = 0b11100101;
+	sasm.Push(ScriptCompileMemoryTarget(13));
 
 	// sub rsp, 0
 	p = 0b01001000;
 	po = 0x81;
 	o = 0b11101100;
-	stack_allocation = ss.str().size();
+	AddStackDependant();
 	dat32 = 0;
+
+	// lea r13, rsp+128
+	p = 0b01001100;
+	po = 0x8d;
+	o = 0b10101100;
+	sib = 0b10100100;
+	dat32 = 128;
 
 	max_stack = 0;
 	stack = 0;
@@ -46,7 +48,10 @@ void ScriptCompile::BeginFunction()
 
 void ScriptCompile::EndFunction()
 {
-	SetAt<int32_t>(stack_allocation, max_stack);
+	max_stack = std::max(max_stack, stack);
+	for (auto offset : stack_dependants)
+		SetAt<int32_t>(offset, GetAt<int32_t>(offset) + max_stack);
+	stack_dependants.clear();
 }
 
 void ScriptCompile::BeginScope()
@@ -144,6 +149,11 @@ void ScriptCompile::Link()
 	}
 }
 
+void ScriptCompile::AddStackDependant()
+{
+	stack_dependants.push_back(ss.str().size());
+}
+
 void ScriptCompile::Cut(size_t start, size_t size)
 {
 	size_t end = ss.tellp();
@@ -211,11 +221,9 @@ void ScriptCompile::PushVariable(const std::string& name)
 	stack += varData.type.size;
 
 	varData.target.lvalue = false;
-	varData.target.offset = -stack;
-	varData.target.mode = 0b01;
-	if (varData.target.offset < -128)
-		varData.target.mode = 0b10;
-	varData.target.regm = 0b101;
+	varData.target.offset = -stack - 128;
+	varData.target.mode = 0b10;
+	varData.target.regm = 13;
 
 	if (scope.back().vars.find(name) != scope.back().vars.end())
 		throw std::runtime_error("Redefinition of variable '" + name + "'.");
@@ -245,11 +253,9 @@ void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type)
 	stack += var_size;
 
 	varData.target.lvalue = false;
-	varData.target.offset = -stack;
-	varData.target.mode = 0b01;
-	if (varData.target.offset < -128)
-		varData.target.mode = 0b10;
-	varData.target.regm = 0b101;
+	varData.target.offset = -stack - 128;
+	varData.target.mode = 0b10;
+	varData.target.regm = 13;
 
 	if (scope.back().vars.find(name) != scope.back().vars.end())
 		throw std::runtime_error("Redefinition of variable '" + name + "'.");
@@ -289,11 +295,9 @@ void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type, S
 	stack += var_size;
 	
 	varData.target.lvalue = false;
-	varData.target.offset = -stack;
-	varData.target.mode = 0b01;
-	if (varData.target.offset < -128)
-		varData.target.mode = 0b10;
-	varData.target.regm = 0b101;
+	varData.target.offset = -stack - 128;
+	varData.target.mode = 0b10;
+	varData.target.regm = 13;
 
 	if (scope.back().vars.find(name) != scope.back().vars.end())
 		throw std::runtime_error("Redefinition of variable '" + name + "'.");
@@ -331,11 +335,9 @@ void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type, i
 	stack += type.size;
 
 	varData.target.lvalue = false;
-	varData.target.offset = -stack;
-	varData.target.mode = 0b01;
-	if (varData.target.offset < -128)
-		varData.target.mode = 0b10;
-	varData.target.regm = 0b101;
+	varData.target.offset = -stack - 128;
+	varData.target.mode = 0b10;
+	varData.target.regm = 13;
 
 	if (scope.back().vars.find(name) != scope.back().vars.end())
 		throw std::runtime_error("Redefinition of variable '" + name + "'.");
@@ -372,11 +374,9 @@ void ScriptCompile::AddParameterStack(const std::string& name, ScriptTypeData ty
 	varData.type = type;
 
 	varData.target.lvalue = false;
-	varData.target.offset = offset;
-	varData.target.mode = 0b01;
-	if (varData.target.offset < -128)
-		varData.target.mode = 0b10;
-	varData.target.regm = 0b101;
+	varData.target.offset = offset - 128;
+	varData.target.mode = 0b10;
+	varData.target.regm = 13;
 
 	if (scope.back().vars.find(name) != scope.back().vars.end())
 		throw std::runtime_error("Redefinition of parameter '" + name + "'.");

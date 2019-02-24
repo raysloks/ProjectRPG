@@ -735,22 +735,35 @@ int main()
 				auto found_class = comp.classes.find("Main");
 				if (found_class != comp.classes.end())
 				{
+					TestClass * t = (TestClass*)malloc(found_class->second->size);
+					auto found_constructor = found_class->second->functions.find("Main");
+					if (found_constructor != found_class->second->functions.end())
+					{
+						void (*func)(TestClass*) = (void(*)(TestClass*))found_constructor->second.second;
+						func(t);
+					}
+
+					void ** vftable = new void*[2];
+					void *** vftable_ptr = (void***)t;
+					*vftable_ptr = vftable;
+
+					auto found_destructor = found_class->second->functions.find("~Main");
+					if (found_destructor != found_class->second->functions.end())
+					{
+						vftable[0] = found_destructor->second.second;
+					}
+					
 					auto found_func = found_class->second->functions.find("main");
 					if (found_func != found_class->second->functions.end())
 					{
-						TestClass * t = new TestClassTwo();
-						void ** vftable = new void*[2];
-						vftable[0] = (*(void***)t)[0];
 						vftable[1] = found_func->second.second;
-						void *** vftable_ptr = (void***)t;
-						*vftable_ptr = vftable;
 
 						for (int i = 0; i < 10; ++i)
 							std::cout << t->func(i) << std::endl;
-
-						delete t;
-						delete[] vftable;
 					}
+
+					delete[] vftable;
+					free(t);
 				}
 
 			}

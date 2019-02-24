@@ -29,6 +29,8 @@ public:
 	void Compile();
 	void Link();
 
+	void AddStackDependant();
+
 	template <typename T>
 	T GetAt(size_t position)
 	{
@@ -81,7 +83,8 @@ public:
 	ScriptAssemblyHelper sasm;
 
 	std::vector<ScriptScope> scope;
-	size_t stack, max_stack, stack_allocation;
+	size_t stack, max_stack;
+	std::vector<size_t> stack_dependants;
 
 	ScriptCompileMemoryTarget target;
 

@@ -102,6 +102,9 @@
     <ClCompile Include="ScriptVirtualFunctionData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ScriptRegisterGuard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FloatVar.h">
@@ -207,6 +210,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ScriptVirtualFunctionData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptRegisterGuard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -7,6 +7,7 @@ class ScriptCompileMemoryTarget
 {
 public:
 	ScriptCompileMemoryTarget();
+	ScriptCompileMemoryTarget(uint8_t reg);
 	~ScriptCompileMemoryTarget();
 
 	uint8_t GetModRegRM(uint8_t reg);
