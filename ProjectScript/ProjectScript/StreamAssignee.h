@@ -11,8 +11,8 @@ public:
 
 	StreamAssignee<T>& operator=(const T& rhs)
 	{
-		if (!c.proto)
-			throw std::runtime_error("Attempting to generate code outside a function.");
+		/*if (!c.proto)
+			throw std::runtime_error("Attempting to generate code outside a function.");*/
 		stream.write((char*)&rhs, sizeof(T));
 		return *this;
 	}
@@ -32,8 +32,8 @@ public:
 
 	StreamAssigneeRelative<int8_t>& operator=(const int8_t& rhs)
 	{
-		if (!c.proto)
-			throw std::runtime_error("Attempting to generate code outside a function.");
+		/*if (!c.proto)
+			throw std::runtime_error("Attempting to generate code outside a function.");*/
 		c.rel8.push_back(stream.tellp());
 		stream.write((char*)&rhs, sizeof(int8_t));
 		return *this;
@@ -51,8 +51,8 @@ public:
 
 	StreamAssigneeRelative<int32_t>& operator=(const int32_t& rhs)
 	{
-		if (!c.proto)
-			throw std::runtime_error("Attempting to generate code outside a function.");
+		/*if (!c.proto)
+			throw std::runtime_error("Attempting to generate code outside a function.");*/
 		c.rel32.push_back(stream.tellp());
 		stream.write((char*)&rhs, sizeof(int32_t));
 		return *this;

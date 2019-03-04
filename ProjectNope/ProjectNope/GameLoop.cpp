@@ -127,7 +127,7 @@ void GameLoop::tick(void)
 		}
 		else
 		{
-			double limit = std::min(fpsCap, fullInSeconds) * (client->subframes - client->subframe) / client->subframes;
+			double limit = std::min(1.0 / 12.0, fullInSeconds) * (client->subframes - client->subframe) / client->subframes;
 			double elapsed;
 			do
 			{

@@ -591,6 +591,7 @@ public:
 #include "SteamWrapper.h"
 
 #include "ScriptCode.h"
+#include "ScriptVariableTypeData.h"
 
 #include "StringResource.h"
 
@@ -599,21 +600,19 @@ class TestClass
 public:
 	virtual ~TestClass() {}
 
-	virtual uint64_t func(uint64_t x) = 0;
+	virtual uint64_t func(uint64_t x) { return 0; };
+
+	void print(uint64_t rdx, uint64_t r8, uint64_t r9, uint64_t stack1, uint64_t stack2)
+	{
+		std::cout << "a: " << a << std::endl;
+		std::cout << "rdx: " << rdx << std::endl;
+		std::cout << "r8: " << r8 << std::endl;
+		std::cout << "r9: " << r9 << std::endl;
+		std::cout << "stack1: " << stack1 << std::endl;
+		std::cout << "stack2: " << stack2 << std::endl;
+	}
 
 	uint64_t a;
-};
-
-class TestClassTwo :
-	public TestClass
-{
-public:
-	TestClassTwo() { a = 1; b = 1; }
-	~TestClassTwo() {}
-
-	uint64_t func(uint64_t x) { return a * 2; }
-
-	uint64_t b;
 };
 
 void start_engine_instance(std::string address, uint16_t port, uint64_t lobby_id, char option, std::atomic<bool>& running)
@@ -699,6 +698,8 @@ int main()
 
 				ScriptCompile comp(mem);
 
+				ScriptVariableTypeData data = NewScriptTypeData(TestClass().a);
+
 				std::shared_ptr<ScriptClassData> test_class_data(new ScriptClassData());
 				test_class_data->class_name = "TestClass";
 				test_class_data->AddVirtualFunctionTable();
@@ -708,12 +709,22 @@ int main()
 				test_class_data->AddMember("a", a_data);
 				ScriptFunctionPrototype destructor_data;
 				destructor_data.cc = CC_MICROSOFT_X64;
-				test_class_data->AddVirtualFunction("~TestClass", destructor_data);
+				test_class_data->AddVirtualFunction("~", destructor_data);
 				ScriptFunctionPrototype func_data;
 				func_data.cc = CC_MICROSOFT_X64;
 				func_data.ret = a_data;
 				func_data.params.push_back(a_data);
 				test_class_data->AddVirtualFunction("func", func_data);
+
+				ScriptFunctionPrototype print_data;
+				print_data.cc = CC_MICROSOFT_X64;
+				print_data.params.push_back(a_data);
+				print_data.params.push_back(a_data);
+				print_data.params.push_back(a_data);
+				print_data.params.push_back(a_data);
+				print_data.params.push_back(a_data);
+				auto ptr = &TestClass::print;
+				test_class_data->AddFunction("print", print_data, *(void**)&ptr);
 
 				comp.classes.insert(std::make_pair("TestClass", test_class_data));
 
@@ -732,38 +743,23 @@ int main()
 
 				comp.ss.read((char*)mem, mem_size);
 
-				auto found_class = comp.classes.find("Main");
+				std::string class_name = "Main";
+				auto found_class = comp.classes.find(class_name);
 				if (found_class != comp.classes.end())
 				{
-					TestClass * t = (TestClass*)malloc(found_class->second->size);
-					auto found_constructor = found_class->second->functions.find("Main");
+					auto found_constructor = found_class->second->functions.find(class_name + "::" + class_name);
 					if (found_constructor != found_class->second->functions.end())
 					{
+						TestClass * t = (TestClass*)operator new(found_class->second->size);
+
 						void (*func)(TestClass*) = (void(*)(TestClass*))found_constructor->second.second;
 						func(t);
-					}
-
-					void ** vftable = new void*[2];
-					void *** vftable_ptr = (void***)t;
-					*vftable_ptr = vftable;
-
-					auto found_destructor = found_class->second->functions.find("~Main");
-					if (found_destructor != found_class->second->functions.end())
-					{
-						vftable[0] = found_destructor->second.second;
-					}
-					
-					auto found_func = found_class->second->functions.find("main");
-					if (found_func != found_class->second->functions.end())
-					{
-						vftable[1] = found_func->second.second;
 
 						for (int i = 0; i < 10; ++i)
 							std::cout << t->func(i) << std::endl;
-					}
 
-					delete[] vftable;
-					free(t);
+						delete t;
+					}
 				}
 
 			}

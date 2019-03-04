@@ -1,13 +1,15 @@
 #pragma once
 
+#include <cstdint>
+
 enum ScriptVariableType
 {
-	VOID,
-	INTEGER_SIGNED,
-	INTEGER_UNSIGNED,
-	FLOAT,
-	FUNCTION,
-	CLASS
+	SVT_VOID,
+	SVT_INTEGER_SIGNED,
+	SVT_INTEGER_UNSIGNED,
+	SVT_FLOAT,
+	SVT_FUNCTION,
+	SVT_CLASS
 };
 
 class ScriptBaseClassMetaData;
@@ -24,12 +26,13 @@ public:
 
 ScriptTypeDataOld _svt_get(int i);
 ScriptTypeDataOld _svt_get(unsigned int ui);
+ScriptTypeDataOld _svt_get(uint64_t ui);
 ScriptTypeDataOld _svt_get(float f);
 
 template <typename T>
 ScriptTypeDataOld _svt_get(T t)
 {
-	ScriptTypeDataOld ret(CLASS);
+	ScriptTypeDataOld ret(SVT_CLASS);
 	ret.script_class = &T::meta;
 	return ret;
 }

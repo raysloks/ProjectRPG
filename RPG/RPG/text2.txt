@@ -1,28 +1,22 @@
 dynamic class Main : TestClass
 {
-	uint test;
-
 	void Main()
 	{
-		a = 20;
-		test = 0;
+		a = 5;
 	};
 
 	void ~Main()
 	{
 	};
 
-	uint main(uint x)
+	virtual void moo(uint x)
 	{
-		test = test + 1;
-		uint c = x + 2;
-		if (x - 5)
-			test = 0;
-		return test + c;
 	};
 
-	uint mult(uint a, uint b)
+	uint func(uint x)
 	{
-		return a * b;
+		print(10, 20 - x, 30, 40, 50 + x);
+		return x;
 	};
+
 };

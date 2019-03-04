@@ -25,11 +25,13 @@ public:
 
 	void BeginScope();
 	void EndScope();
+	void EndScopeAggresive();
 
 	void Compile();
 	void Link();
 
 	void AddStackDependant();
+	void AddStackDependantNegative();
 
 	template <typename T>
 	T GetAt(size_t position)
@@ -85,6 +87,7 @@ public:
 	std::vector<ScriptScope> scope;
 	size_t stack, max_stack;
 	std::vector<size_t> stack_dependants;
+	std::vector<size_t> stack_dependants_negative;
 
 	ScriptCompileMemoryTarget target;
 

@@ -29,7 +29,7 @@ ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister()
 	throw std::runtime_error("Unable to find free register.");
 }
 
-ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister(ScriptCompileMemoryTarget& target)
+ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister(const ScriptCompileMemoryTarget& target)
 {
 	if (comp.IsFree(target.regm))
 	{
@@ -58,7 +58,7 @@ ScriptCompileMemoryTarget ScriptAssemblyHelper::FindRegister(const std::vector<S
 	return ret;
 }
 
-void ScriptAssemblyHelper::Move(uint8_t opcode, ScriptCompileMemoryTarget& destination, ScriptCompileMemoryTarget& source)
+void ScriptAssemblyHelper::Move(uint8_t opcode, const ScriptCompileMemoryTarget& destination, const ScriptCompileMemoryTarget& source)
 {
 	StreamAssignee<uint8_t> p(comp);
 	StreamAssignee<uint8_t> po(comp);
@@ -71,7 +71,9 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, ScriptCompileMemoryTarget& desti
 	if (destination.mode != 0b11 && source.mode != 0b11)
 	{
 		auto intermediary = FindRegister({ destination, source });
-		Move(0x8b, intermediary, source); // maybe set destination as busy here?
+		Move(0x8b, intermediary, source);
+		Move(opcode, destination, intermediary);
+		return;
 		//throw std::runtime_error("Cannot operate from memory to memory.");
 	}
 
@@ -85,15 +87,17 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, ScriptCompileMemoryTarget& desti
 
 	if (d_bit)
 	{
-		if (destination.regm > 7)
+		if (destination.regm & 0b1000)
 			rex |= 0b100;
-		if (source.regm > 7)
+		if (source.regm & 0b1000)
 			rex |= 0b001;
 
 		p = rex;
 		po = opcode;
 		o = source.GetModRegRM(destination.regm);
-		if (source.regm == 13)
+		if (source.regm == 0b100)
+			dat8 = 0b00100100;
+		if (source.regm == 0b101 && source.mode ^ 0b11)
 			comp.AddStackDependant();
 		if (source.mode == 0b01)
 			dat8 = source.offset;
@@ -102,15 +106,17 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, ScriptCompileMemoryTarget& desti
 	}
 	else
 	{
-		if (source.regm > 7)
+		if (source.regm & 0b1000)
 			rex |= 0b100;
-		if (destination.regm > 7)
+		if (destination.regm & 0b1000)
 			rex |= 0b001;
 
 		p = rex;
 		po = opcode;
 		o = destination.GetModRegRM(source.regm);
-		if (destination.regm == 13)
+		if (destination.regm == 0b100)
+			dat8 = 0b00100100;
+		if (destination.regm == 0b101 && destination.mode ^ 0b11)
 			comp.AddStackDependant();
 		if (destination.mode == 0b01)
 			dat8 = destination.offset;
@@ -119,7 +125,7 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, ScriptCompileMemoryTarget& desti
 	}
 }
 
-void ScriptAssemblyHelper::Move(uint8_t opcode, uint8_t opcode_extension, ScriptCompileMemoryTarget& operand)
+void ScriptAssemblyHelper::Move(uint8_t opcode, uint8_t opcode_extension, const ScriptCompileMemoryTarget& operand)
 {
 	StreamAssignee<uint8_t> p(comp);
 	StreamAssignee<uint8_t> po(comp);
@@ -130,12 +136,14 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, uint8_t opcode_extension, Script
 	StreamAssignee<uint64_t> dat64(comp);
 
 	uint8_t rex = 0b01001000;
-	if (operand.regm > 7)
+	if (operand.regm & 0b1000)
 		rex |= 0b001;
 	p = rex;
 	po = opcode;
 	o = operand.GetModRegRM(opcode_extension);
-	if (operand.regm == 13)
+	if (operand.regm == 0b100)
+		dat8 = 0b00100100;
+	if (operand.regm == 0b101 && operand.mode ^ 0b11)
 		comp.AddStackDependant();
 	if (operand.mode == 0b01)
 		dat8 = operand.offset;
@@ -143,7 +151,7 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, uint8_t opcode_extension, Script
 		dat32 = operand.offset;
 }
 
-void ScriptAssemblyHelper::Push(ScriptCompileMemoryTarget& source)
+void ScriptAssemblyHelper::Push(const ScriptCompileMemoryTarget& source)
 {
 	StreamAssignee<uint8_t> p(comp);
 	StreamAssignee<uint8_t> po(comp);
@@ -161,7 +169,7 @@ void ScriptAssemblyHelper::Push(ScriptCompileMemoryTarget& source)
 	}*/
 	if (source.mode == 0b11)
 	{
-		if (source.regm > 7)
+		if (source.regm & 0b1000)
 		{
 			p = 0b01000001;
 			po = 0x50 + (source.regm & 0b111);
@@ -177,7 +185,7 @@ void ScriptAssemblyHelper::Push(ScriptCompileMemoryTarget& source)
 	}
 }
 
-void ScriptAssemblyHelper::Pop(ScriptCompileMemoryTarget& destination)
+void ScriptAssemblyHelper::Pop(const ScriptCompileMemoryTarget& destination)
 {
 	StreamAssignee<uint8_t> p(comp);
 	StreamAssignee<uint8_t> po(comp);
@@ -189,7 +197,7 @@ void ScriptAssemblyHelper::Pop(ScriptCompileMemoryTarget& destination)
 
 	if (destination.mode == 0b11)
 	{
-		if (destination.regm > 7)
+		if (destination.regm & 0b1000)
 		{
 			p = 0b01000001;
 			po = 0x58 + (destination.regm & 0b111);

@@ -8,9 +8,10 @@ class ScriptCompileMemoryTarget
 public:
 	ScriptCompileMemoryTarget();
 	ScriptCompileMemoryTarget(uint8_t reg);
+	ScriptCompileMemoryTarget(uint8_t mode, uint8_t regm, int32_t offset);
 	~ScriptCompileMemoryTarget();
 
-	uint8_t GetModRegRM(uint8_t reg);
+	uint8_t GetModRegRM(uint8_t reg) const;
 
 	bool lvalue;
 

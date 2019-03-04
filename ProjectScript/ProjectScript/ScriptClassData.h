@@ -6,6 +6,7 @@
 #include "ScriptVirtualFunctionData.h"
 
 #include <unordered_map>
+#include <optional>
 
 class ScriptClassData
 {
@@ -21,11 +22,14 @@ public:
 	void AddFunction(const std::string& name, const ScriptFunctionPrototype& prototype, void * pointer);
 	void AddVirtualFunction(const std::string& name, const ScriptFunctionPrototype& prototype);
 
-	ScriptVariableData GetMember(const std::string& name);
-	void * GetFunctionFinalAddress(const std::string& name, const ScriptFunctionPrototype& prototype);
-	off_t GetVirtualFunctionIndex(const std::string& name);
+	ScriptVariableData GetMember(const std::string& name) const;
+	void GetMemberList(std::vector<ScriptVariableData>& list) const;
+	void * GetFunctionFinalAddress(const std::string& name, const ScriptFunctionPrototype& prototype) const;
+	std::optional<ScriptFunctionPrototype> GetFunctionFullPrototype(const std::string& name, const ScriptFunctionPrototype& prototype) const;
+	off_t GetVirtualFunctionIndex(const std::string& name, const ScriptFunctionPrototype& prototype) const;
+	void GetVirtualFunctionList(std::vector<ScriptVirtualFunctionData>& list) const;
 
-	size_t GetVirtualFunctionCount();
+	size_t GetVirtualFunctionCount() const;
 
 	std::string class_name;
 	std::shared_ptr<ScriptClassData> parent;
@@ -33,6 +37,7 @@ public:
 	std::vector<ScriptVirtualFunctionData> virtual_functions;
 	std::unordered_map<std::string, ScriptVariableData> members;
 	size_t size;
+	void * vftable;
 };
 
 #endif

@@ -16,11 +16,19 @@ ScriptCompileMemoryTarget::ScriptCompileMemoryTarget(uint8_t reg)
 	offset = 0;
 }
 
+ScriptCompileMemoryTarget::ScriptCompileMemoryTarget(uint8_t m, uint8_t r, int32_t o)
+{
+	lvalue = false;
+	mode = m;
+	regm = r;
+	offset = o;
+}
+
 ScriptCompileMemoryTarget::~ScriptCompileMemoryTarget()
 {
 }
 
-uint8_t ScriptCompileMemoryTarget::GetModRegRM(uint8_t reg)
+uint8_t ScriptCompileMemoryTarget::GetModRegRM(uint8_t reg) const
 {
 	return (mode << 6) | ((reg & 0b111) << 3) | (regm & 0b111);
 }

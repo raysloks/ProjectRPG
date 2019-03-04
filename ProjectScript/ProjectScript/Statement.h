@@ -5,6 +5,7 @@
 #include "ScriptCompile.h"
 #include "Token.h"
 #include <vector>
+#include <optional>
 
 class ScriptCode;
 

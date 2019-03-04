@@ -26,7 +26,7 @@ void ScriptCompile::BeginFunction()
 	StreamAssigneeRelative<int8_t> rel8(*this);
 	StreamAssigneeRelative<int32_t> rel32(*this);
 
-	sasm.Push(ScriptCompileMemoryTarget(13));
+	sasm.Push(ScriptCompileMemoryTarget(0b101));
 
 	// sub rsp, 0
 	p = 0b01001000;
@@ -35,11 +35,11 @@ void ScriptCompile::BeginFunction()
 	AddStackDependant();
 	dat32 = 0;
 
-	// lea r13, rsp+128
-	p = 0b01001100;
+	// lea rbp, [rsp+128]
+	p = 0b01001000;
 	po = 0x8d;
 	o = 0b10101100;
-	sib = 0b10100100;
+	sib = 0b00100100;
 	dat32 = 128;
 
 	max_stack = 0;
@@ -51,19 +51,86 @@ void ScriptCompile::EndFunction()
 	max_stack = std::max(max_stack, stack);
 	for (auto offset : stack_dependants)
 		SetAt<int32_t>(offset, GetAt<int32_t>(offset) + max_stack);
+	for (auto offset : stack_dependants_negative)
+		SetAt<int32_t>(offset, GetAt<int32_t>(offset) - max_stack);
 	stack_dependants.clear();
 }
 
 void ScriptCompile::BeginScope()
 {
-	size_t noffset = ss.str().size();
+	size_t noffset = ss.tellp();
 	scope.push_back(ScriptScope());
 	scope.back().offset = noffset;
 }
 
 void ScriptCompile::EndScope()
 {
-	size_t block_size = ss.str().size() - scope.back().offset;
+	size_t block_size = (size_t)ss.tellp() - scope.back().offset;
+
+	size_t minoff = 0;
+	if (scope.size() >= 2)
+		minoff = scope[scope.size() - 2].offset;
+	size_t maxoff = scope.back().offset;
+
+	for (auto i = rel8.begin(); i != rel8.end(); ++i)
+	{
+		if (*i >= minoff && *i < maxoff)
+		{
+			int8_t off = GetAt<int8_t>(*i);
+			if (off + *i + sizeof(off) > scope.back().offset)
+				SetAt<int8_t>(*i, off + block_size);
+		}
+	}
+	for (auto i = rel32.begin(); i != rel32.end(); ++i)
+	{
+		if (*i >= minoff && *i < maxoff)
+		{
+			int32_t off = GetAt<int32_t>(*i);
+			if (off + *i + sizeof(off) > scope.back().offset)
+				SetAt<int32_t>(*i, off + block_size);
+		}
+	}
+
+	size_t stack_dec = 0;
+	for (auto i = scope.back().vars.begin(); i != scope.back().vars.end(); ++i)
+	{
+		if (i->second.target.regm == 0b101)
+			if (i->second.target.offset < 0)
+				stack_dec += i->second.type.size;
+	}
+
+	if (stack_dec > 0)
+	{
+		max_stack = std::max(max_stack, stack);
+		stack -= stack_dec;
+
+		//StreamAssignee<uint8_t> po(*this);
+		//StreamAssignee<uint8_t> o(*this);
+		//StreamAssignee<uint8_t> dat8(*this);
+		//StreamAssignee<uint32_t> dat32(*this);
+
+		//if (stack_dec < 256)
+		//{
+		//	// add esp, stack_dec
+		//	po = 0x83;
+		//	o = 0b11000100;
+		//	dat8 = stack_dec;
+		//}
+		//else
+		//{
+		//	// add esp, stack_dec
+		//	po = 0x81;
+		//	o = 0b11000100;
+		//	dat32 = stack_dec;
+		//}
+	}
+
+	scope.pop_back();
+}
+
+void ScriptCompile::EndScopeAggresive()
+{
+	size_t block_size = (size_t)ss.tellp() - scope.back().offset;
 
 	size_t minoff = 0;
 	if (scope.size() >= 2)
@@ -138,20 +205,33 @@ void ScriptCompile::Link()
 {
 	for (auto& link : links)
 	{
+		void * function_pointer = link.class_ptr->GetFunctionFinalAddress(link.function_name, link.prototype);
+		if (function_pointer == nullptr)
+			throw std::runtime_error("Unable to find address of function '" + link.function_name + "'.");
 		if (link.relative)
 		{
-			SetAt<int32_t>(link.location, (char*)link.class_ptr->GetFunctionFinalAddress(link.function_name, link.prototype) - ((char*)base_pointer + link.location + sizeof(int32_t)));
+			uint64_t destination = (uint64_t)function_pointer;
+			uint64_t source = (uint64_t)base_pointer + link.location + sizeof(int32_t);
+			int64_t diff = destination - source;
+			if (diff > INT32_MAX || diff < INT32_MIN)
+				throw std::runtime_error("Relative link out of range.");
+			SetAt<int32_t>(link.location, diff);
 		}
 		else
 		{
-			SetAt<uint64_t>(link.location, (uint64_t)link.class_ptr->GetFunctionFinalAddress(link.function_name, link.prototype));
+			SetAt<uint64_t>(link.location, (uint64_t)function_pointer);
 		}
 	}
 }
 
 void ScriptCompile::AddStackDependant()
 {
-	stack_dependants.push_back(ss.str().size());
+	stack_dependants.push_back(ss.tellp());
+}
+
+void ScriptCompile::AddStackDependantNegative()
+{
+	stack_dependants_negative.push_back(ss.tellp());
 }
 
 void ScriptCompile::Cut(size_t start, size_t size)
@@ -221,9 +301,9 @@ void ScriptCompile::PushVariable(const std::string& name)
 	stack += varData.type.size;
 
 	varData.target.lvalue = false;
-	varData.target.offset = -stack - 128;
+	varData.target.offset = -stack + 128;
 	varData.target.mode = 0b10;
-	varData.target.regm = 13;
+	varData.target.regm = 0b101;
 
 	if (scope.back().vars.find(name) != scope.back().vars.end())
 		throw std::runtime_error("Redefinition of variable '" + name + "'.");
@@ -253,9 +333,9 @@ void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type)
 	stack += var_size;
 
 	varData.target.lvalue = false;
-	varData.target.offset = -stack - 128;
+	varData.target.offset = -stack + 128;
 	varData.target.mode = 0b10;
-	varData.target.regm = 13;
+	varData.target.regm = 0b101;
 
 	if (scope.back().vars.find(name) != scope.back().vars.end())
 		throw std::runtime_error("Redefinition of variable '" + name + "'.");
@@ -295,9 +375,9 @@ void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type, S
 	stack += var_size;
 	
 	varData.target.lvalue = false;
-	varData.target.offset = -stack - 128;
+	varData.target.offset = -stack + 128;
 	varData.target.mode = 0b10;
-	varData.target.regm = 13;
+	varData.target.regm = 0b101;
 
 	if (scope.back().vars.find(name) != scope.back().vars.end())
 		throw std::runtime_error("Redefinition of variable '" + name + "'.");
@@ -335,9 +415,9 @@ void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type, i
 	stack += type.size;
 
 	varData.target.lvalue = false;
-	varData.target.offset = -stack - 128;
+	varData.target.offset = -stack + 128;
 	varData.target.mode = 0b10;
-	varData.target.regm = 13;
+	varData.target.regm = 0b101;
 
 	if (scope.back().vars.find(name) != scope.back().vars.end())
 		throw std::runtime_error("Redefinition of variable '" + name + "'.");
@@ -376,7 +456,7 @@ void ScriptCompile::AddParameterStack(const std::string& name, ScriptTypeData ty
 	varData.target.lvalue = false;
 	varData.target.offset = offset - 128;
 	varData.target.mode = 0b10;
-	varData.target.regm = 13;
+	varData.target.regm = 0b101;
 
 	if (scope.back().vars.find(name) != scope.back().vars.end())
 		throw std::runtime_error("Redefinition of parameter '" + name + "'.");
