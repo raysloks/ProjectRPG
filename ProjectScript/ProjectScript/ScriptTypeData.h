@@ -34,33 +34,4 @@ public:
 	bool operator!=(const ScriptTypeData& rhs) const;
 };
 
-template <class T,
-	typename std::enable_if_t<std::is_signed<T>::value && std::is_integral<T>::value>* = nullptr>
-	ScriptTypeData NewScriptTypeData()
-{
-	ScriptTypeData ret;
-	ret.type = ST_INT;
-	ret.size = 8;
-	return ret;
-}
-
-template <class T,
-	typename std::enable_if_t<std::is_unsigned<T>::value && std::is_integral<T>::value>* = nullptr>
-	ScriptTypeData NewScriptTypeData()
-{
-	ScriptTypeData ret;
-	ret.type = ST_UINT;
-	ret.size = 8;
-	return ret;
-}
-
-template <class T,
-	typename std::enable_if_t<std::is_pointer<T>::value>* = nullptr>
-	ScriptTypeData NewScriptTypeData()
-{
-	ScriptTypeData ret = NewScriptTypeData<std::decay<T>::type>();
-	++ret.indirection;
-	return ret;
-}
-
 #endif

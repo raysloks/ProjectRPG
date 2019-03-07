@@ -591,6 +591,7 @@ public:
 #include "SteamWrapper.h"
 
 #include "ScriptCode.h"
+#include "ScriptVariableTypeData.h"
 
 #include "StringResource.h"
 
@@ -601,14 +602,14 @@ public:
 
 	virtual uint64_t func(uint64_t x) { return 0; };
 
-	void print(uint64_t ui64)
+	void print(uint64_t rdx, uint64_t r8, uint64_t r9, uint64_t stack1, uint64_t stack2)
 	{
-		std::cout << ui64;
-	}
-
-	void println(uint64_t ui64)
-	{
-		std::cout << ui64 << std::endl;
+		std::cout << "a: " << a << std::endl;
+		std::cout << "rdx: " << rdx << std::endl;
+		std::cout << "r8: " << r8 << std::endl;
+		std::cout << "r9: " << r9 << std::endl;
+		std::cout << "stack1: " << stack1 << std::endl;
+		std::cout << "stack2: " << stack2 << std::endl;
 	}
 
 	uint64_t a;
@@ -697,13 +698,15 @@ int main()
 
 				ScriptCompile comp(mem);
 
+				ScriptVariableTypeData data = NewScriptTypeData(TestClass().a);
+
 				std::shared_ptr<ScriptClassData> test_class_data(new ScriptClassData());
 				test_class_data->class_name = "TestClass";
 				test_class_data->AddVirtualFunctionTable();
-
-				ScriptTypeData a_data = NewScriptTypeData<decltype(TestClass::a)>();
-				test_class_data->AddMember("a", a_data, offsetof(TestClass, a));
-
+				ScriptTypeData a_data;
+				a_data.type = ST_UINT;
+				a_data.size = 8;
+				test_class_data->AddMember("a", a_data);
 				ScriptFunctionPrototype destructor_data;
 				destructor_data.cc = CC_MICROSOFT_X64;
 				test_class_data->AddVirtualFunction("~", destructor_data);
@@ -713,21 +716,15 @@ int main()
 				func_data.params.push_back(a_data);
 				test_class_data->AddVirtualFunction("func", func_data);
 
-				{
-					ScriptFunctionPrototype print_data;
-					print_data.cc = CC_MICROSOFT_X64;
-					print_data.params.push_back(a_data);
-					void (TestClass::*ptr)(uint64_t) = &TestClass::print;
-					test_class_data->AddFunction("print", print_data, *(void**)&ptr);
-				}
-
-				{
-					ScriptFunctionPrototype println_data;
-					println_data.cc = CC_MICROSOFT_X64;
-					println_data.params.push_back(a_data);
-					void (TestClass::*ptr)(uint64_t) = &TestClass::println;
-					test_class_data->AddFunction("println", println_data, *(void**)&ptr);
-				}
+				ScriptFunctionPrototype print_data;
+				print_data.cc = CC_MICROSOFT_X64;
+				print_data.params.push_back(a_data);
+				print_data.params.push_back(a_data);
+				print_data.params.push_back(a_data);
+				print_data.params.push_back(a_data);
+				print_data.params.push_back(a_data);
+				auto ptr = &TestClass::print;
+				test_class_data->AddFunction("print", print_data, *(void**)&ptr);
 
 				comp.classes.insert(std::make_pair("TestClass", test_class_data));
 

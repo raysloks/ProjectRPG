@@ -38,22 +38,19 @@ void ScriptFunctionCompileData::compile(ScriptCompile& comp)
 
 	comp.BeginScope();
 
-	// mov [esp+8], ebx
 	sasm.Move(0x89, ScriptCompileMemoryTarget(0b01, 0b100, 8), ScriptCompileMemoryTarget(0b011));
-	// mov ebx, ecx
 	sasm.Move(0x89, ScriptCompileMemoryTarget(0b011), ScriptCompileMemoryTarget(0b001));
 
 	std::vector<uint8_t> free_regs = { 0b1001, 0b1000, 0b10 };
 	std::vector<uint8_t> busy_regs;
 	for (size_t i = 0; i < prototype.params.size(); ++i)
 	{
-		int32_t offset = i * 8 + 8 + 8;
-		comp.AddParameterStack(parameter_names[i], prototype.params[i], offset + 8);
+		comp.AddParameterStack(parameter_names[i], prototype.params[i], i * 8 + 8 + 8);
 		if (!free_regs.empty())
 		{
 			//comp.AddParameterRegister(parameter_names[i], prototype.params[i], free_regs.back());
 			//busy_regs.push_back(free_regs.back());
-			sasm.Move(0x89, ScriptCompileMemoryTarget(0b01, 0b100, offset), ScriptCompileMemoryTarget(free_regs.back()));
+			sasm.Move(0x89, ScriptCompileMemoryTarget(0b01, 0b100, i * 8 + 8 + 8), ScriptCompileMemoryTarget(free_regs.back()));
 			free_regs.pop_back();
 		}
 		else

@@ -18,7 +18,7 @@ public:
 	ScriptCompileMemoryTarget FindRegister(const ScriptCompileMemoryTarget& target);
 	ScriptCompileMemoryTarget FindRegister(const std::vector<ScriptCompileMemoryTarget>& target);
 	void Move(uint8_t opcode, const ScriptCompileMemoryTarget& destination, const ScriptCompileMemoryTarget& source);
-	void MoveR(uint8_t opcode, uint8_t opcode_extension, const ScriptCompileMemoryTarget& operand);
+	void Move(uint8_t opcode, uint8_t opcode_extension, const ScriptCompileMemoryTarget& operand);
 	void Push(const ScriptCompileMemoryTarget& source);
 	void Pop(const ScriptCompileMemoryTarget& destination);
 

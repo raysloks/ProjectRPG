@@ -175,6 +175,10 @@
     <ClInclude Include="ScriptMemory.h" />
     <ClInclude Include="ScriptScope.h" />
     <ClInclude Include="ScriptTypeData.h" />
+    <ClInclude Include="ScriptVariableData.h" />
+    <ClInclude Include="ScriptVariableMetaData.h" />
+    <ClInclude Include="ScriptVariableTypeData.h" />
+    <ClInclude Include="ScriptVariableTypes.h" />
     <ClInclude Include="Statement.h" />
     <ClInclude Include="StreamAssignee.h" />
     <ClInclude Include="StringVar.h" />

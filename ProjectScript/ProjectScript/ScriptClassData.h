@@ -19,7 +19,6 @@ public:
 	void AddVirtualFunctionTable();
 
 	void AddMember(const std::string& name, const ScriptTypeData& type);
-	void AddMember(const std::string& name, const ScriptTypeData& type, int32_t offset);
 	void AddFunction(const std::string& name, const ScriptFunctionPrototype& prototype, void * pointer);
 	void AddVirtualFunction(const std::string& name, const ScriptFunctionPrototype& prototype);
 

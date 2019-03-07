@@ -567,7 +567,7 @@ void Statement::compile(ScriptCompile& comp)
 			// TODO check type
 
 			// cmp
-			sasm.MoveR(0x81, 7, comp.target);
+			sasm.Move(0x81, 7, comp.target);
 			dat32 = 0;
 
 			// jz
@@ -900,44 +900,16 @@ void Statement::compile(ScriptCompile& comp)
 			callee_proto.params.resize(params.size());
 			std::transform(params.begin(), params.end(), callee_proto.params.begin(), [&](auto a) { return a->getType(comp); });
 
-			std::string function_name;
-			std::shared_ptr<ScriptClassData> function_class;
-			if (lhs->token.lexeme.compare(".") == 0)
-			{
-				function_name = lhs->rhs->token.lexeme;
-				function_class = lhs->lhs->getType(comp).class_data;
-				if (!function_class)
-					throw std::runtime_error("'.' must be preceded by an instance of a class.");
-
-				comp.target = ScriptCompileMemoryTarget(0b001);
-				lhs->lhs->compile(comp);
-			}
-			else
-			{
-				function_name = lhs->token.lexeme;
-				function_class = comp.current_class;
-
-				// mov rcx, rbx
-				sasm.Move(0x89, ScriptCompileMemoryTarget(0b001), ScriptCompileMemoryTarget(0b011));
-			}
-
 			if (lhs->keyword == 0)
 			{
-				auto full_proto = function_class->GetFunctionFullPrototype(function_name, callee_proto);
+				auto full_proto = comp.current_class->GetFunctionFullPrototype(lhs->token.lexeme, callee_proto);
 				if (full_proto)
 					callee_proto = full_proto.value();
 				else
-					throw std::runtime_error("Could not find function '" + function_name + "'.");
+					throw std::runtime_error("Could not find function '" + lhs->token.lexeme + "'.");
 			}
 
 			bool has_this = true;
-
-			comp.BeginScope();
-
-			size_t shadow_space = std::max(32ull, params.size() * 8 + (has_this ? 8 : 0));
-			comp.stack += shadow_space;
-
-			size_t temp_space = 0;
 
 			for (size_t i = 0; i < params.size(); ++i)
 			{
@@ -964,33 +936,24 @@ void Statement::compile(ScriptCompile& comp)
 					break;
 				}
 
-				if (callee_proto.params[i].GetSize() <= 8)
-				{
-					comp.target = param_target;
-					params[i]->compile(comp);
-				}
-				else
-				{
-					comp.target = ScriptCompileMemoryTarget(0b10, 0b10101, -128 + shadow_space + temp_space);
-					temp_space += callee_proto.params[i].GetSize();
-					params[i]->compile(comp);
-					sasm.Move(0x8d, param_target, comp.target);
-				}
+				comp.target = param_target;
+				params[i]->compile(comp);
 			}
 
-			comp.stack += temp_space;
+			comp.BeginScope();
+			comp.stack += std::max(32ull, params.size() * 8 + (has_this ? 8 : 0));
 
-			off_t vfi = function_class->GetVirtualFunctionIndex(lhs->token.lexeme, callee_proto);
+			off_t vfi = comp.current_class->GetVirtualFunctionIndex(lhs->token.lexeme, callee_proto);
 			if (vfi >= 0)
 			{
 				auto tmp_target = sasm.FindRegister();
-				auto vfptr_target = function_class->GetMember("_vfptr").target;
+				auto vfptr_target = comp.current_class->GetMember("_vfptr").target;
 				sasm.Move(0x89, tmp_target, vfptr_target);
 
 				tmp_target.offset = vfi * 8;
 				tmp_target.mode = 0b10;
 
-				sasm.MoveR(0xff, 2, tmp_target);
+				sasm.Move(0xff, 2, tmp_target);
 			}
 			else
 			{
@@ -1004,14 +967,14 @@ void Statement::compile(ScriptCompile& comp)
 				ScriptLinkData link;
 				link.relative = false;
 				link.location = ss.tellp();
-				link.class_ptr = function_class;
-				link.function_name = function_name;
+				link.class_ptr = comp.current_class;
+				link.function_name = lhs->token.lexeme;
 				link.prototype = callee_proto;
 				comp.links.push_back(link);
 				
 				dat64 = 0;
 
-				sasm.MoveR(0xff, 2, tmp_target);
+				sasm.Move(0xff, 2, tmp_target);
 
 				//// call lhs (rel32)
 				//po = 0xe8;
@@ -1029,18 +992,11 @@ void Statement::compile(ScriptCompile& comp)
 
 			comp.EndScope();
 
-			if (callee_proto.ret.GetSize() > 0 && callee_proto.ret.GetSize() <= 8)
+			if (callee_proto.ret.GetSize())
 			{
 				ScriptCompileMemoryTarget eax_target;
-				if (target.lvalue)
-				{
-					comp.target = eax_target;
-				}
-				else
-				{
-					if (target != eax_target)
-						sasm.Move(0x89, target, eax_target);
-				}
+				if (target != eax_target)
+					sasm.Move(0x89, target, eax_target);
 			}
 
 			return;
@@ -1240,7 +1196,7 @@ void Statement::compile(ScriptCompile& comp)
 				if (rdx_busy)
 					sasm.Push(rdx_target);
 
-				sasm.MoveR(0xf7, 4, comp.target);
+				sasm.Move(0xf7, 4, comp.target);
 
 				if (rdx_busy)
 					sasm.Pop(rdx_target);
@@ -1319,83 +1275,52 @@ void Statement::compile(ScriptCompile& comp)
 				comp.target.lvalue = true;
 				lhs->compile(comp);
 
-				if (comp.target.mode == 0b11)
+				if (target.mode == 0b11)
 				{
-					throw std::runtime_error("Cannot get pointer to register.");
+					// lea target, comp.target
+					sasm.Move(0x8d, comp.target, target);
 				}
 				else
 				{
-					if (target.lvalue)
-					{
-						target = sasm.FindRegister();
+					ScriptCompileMemoryTarget eax_target;
 
-						// lea target, comp.target
-						sasm.Move(0x8d, target, comp.target);
+					// lea eax, comp.target
+					sasm.Move(0x8d, comp.target, eax_target);
 
-						comp.target = target;
-					}
-					else
-					{
-						// lea target, comp.target
-						sasm.Move(0x8d, target, comp.target);
-					}
+					// mov target, eax
+					sasm.Move(0x89, target, eax_target);
 				}
 			}
 			break;
 			case '*':
 			{
-				if (lhs_type.indirection == 0)
-					throw std::runtime_error("Operand of '*' must be a pointer.");
-				--lhs_type.indirection;
-
-				comp.target.lvalue = true;
-				lhs->compile(comp);
-
-				if (comp.target.mode == 0b11)
+				if (target.lvalue)
 				{
+					lhs->compile(comp);
+
 					comp.target.mode = 0b00;
 				}
 				else
 				{
-					auto reg_target = sasm.FindRegister();
-					sasm.Move(0x8b, reg_target, comp.target);
-					comp.target = reg_target;
-					comp.target.mode = 0b00;
-				}
+					ScriptCompileMemoryTarget eax_target;
 
-				if (!target.lvalue)
-				{
-					size_t size = lhs_type.GetSize();
-					if (size <= 8)
+					comp.target = eax_target;
+					lhs->compile(comp);
+
+					comp.target.mode = 0b00;
+
+					if (target.mode == 0b11)
 					{
-						sasm.Move(0x89, target, comp.target);
+						// mov target, comp.target
+						sasm.Move(0x8b, target, comp.target);
 					}
 					else
 					{
-						auto rcx_target = ScriptCompileMemoryTarget(0b001);
-						bool rcx_busy = comp.IsBusy(rcx_target.regm);
-						if (rcx_busy)
-							sasm.Push(rcx_target);
+						// mov eax, comp.target
+						sasm.Move(0x8b, eax_target, comp.target);
 
-						sasm.MoveR(0x8d, 0b110, comp.target);
-						sasm.MoveR(0x8d, 0b111, target);
-
-						// mov rcx, size
-						p = 0b01001000;
-						po = 0xc7;
-						o = rcx_target.GetModRegRM(0);
-						dat32 = size;
-
-						// cld
-						po = 0xfc;
-
-						// rep movs
-						p = 0xf3;
-						p = 0b01001000;
-						po = 0xa5;
-
-						if (rcx_busy)
-							sasm.Pop(rcx_target);
+						// mov target, eax
+						sasm.Move(0x89, target, eax_target);
 					}
 				}
 			}
@@ -1403,7 +1328,7 @@ void Statement::compile(ScriptCompile& comp)
 			case '-':
 			{
 				lhs->compile(comp);
-				sasm.MoveR(0xf7, 3, comp.target);
+				sasm.Move(0xf7, 3, comp.target);
 			}
 			break;
 			default:
@@ -1747,9 +1672,8 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 		}
 		break;
 	case 5:
-		if (lhs)
-			return lhs->getType(comp);
-		break;
+		if (!lhs)
+			break;
 	case 7:
 	{
 		if (rhs->keyword == 4)

@@ -1,19 +1,8 @@
-class Foo
-{
-	uint bar;
-
-	void add(uint x)
-	{
-		bar = bar + x;
-	};
-};
-
 dynamic class Main : TestClass
 {
 	void Main()
 	{
 		a = 5;
-		foo.bar = 1;
 	};
 
 	void ~Main()
@@ -22,15 +11,12 @@ dynamic class Main : TestClass
 
 	virtual void moo(uint x)
 	{
-		print(x);
 	};
 
 	uint func(uint x)
 	{
-		(&foo).add(x * x);
-		return foo.bar;
+		print(10, 20 - x, 30, 40, 50 + x);
+		return x;
 	};
-
-	Foo foo;
 
 };
