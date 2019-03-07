@@ -1,5 +1,7 @@
 #include "ScriptClassData.h"
 
+#include <algorithm>
+
 ScriptClassData::ScriptClassData()
 {
 	size = 0;
@@ -42,8 +44,27 @@ void ScriptClassData::AddMember(const std::string& name, const ScriptTypeData& t
 	members.insert(std::make_pair(name, member_data));
 	size_t member_size = type.GetSize();
 	size += member_size;
-	if (member_size % 8 != 0)
-		size += 8 - member_size % 8;
+	if (size % 8 != 0)
+		size += 8 - size % 8;
+}
+
+void ScriptClassData::AddMember(const std::string & name, const ScriptTypeData & type, int32_t offset)
+{
+	ScriptVariableData member_data;
+	member_data.type = type;
+
+	member_data.target.lvalue = false; // shouldn't really matter, should it?
+	member_data.target.offset = offset;
+	member_data.target.mode = 0b01;
+	if (member_data.target.offset > 127)
+		member_data.target.mode = 0b10;
+	member_data.target.regm = 0b011; // rbx
+
+	members.insert(std::make_pair(name, member_data));
+	size_t member_size = type.GetSize();
+	size = std::max(size, offset + member_size);
+	if (size % 8 != 0)
+		size += 8 - size % 8;
 }
 
 void ScriptClassData::AddFunction(const std::string& name, const ScriptFunctionPrototype& prototype, void * pointer)

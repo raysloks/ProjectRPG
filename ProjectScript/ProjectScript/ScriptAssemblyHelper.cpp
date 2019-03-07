@@ -68,6 +68,25 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, const ScriptCompileMemoryTarget&
 	StreamAssignee<uint32_t> dat32(comp);
 	StreamAssignee<uint64_t> dat64(comp);
 
+	bool d_bit = destination.mode == 0b11;
+
+	if (opcode == 0x8d)
+	{
+		if (source.mode == 0b11)
+			throw std::runtime_error("Cannot get effective address of a register.");
+		if (destination.mode == 0b11)
+		{
+			MoveR(0x8d, destination.regm, source);
+		}
+		else
+		{
+			auto intermediary = FindRegister({ destination, source });
+			MoveR(0x8d, intermediary.regm, source);
+			Move(0x8b, destination, intermediary);
+		}
+		return;
+	}
+
 	if (destination.mode != 0b11 && source.mode != 0b11)
 	{
 		auto intermediary = FindRegister({ destination, source });
@@ -76,8 +95,6 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, const ScriptCompileMemoryTarget&
 		return;
 		//throw std::runtime_error("Cannot operate from memory to memory.");
 	}
-
-	bool d_bit = destination.mode == 0b11;
 
 	opcode &= 0b11111101;
 	if (d_bit)
@@ -125,7 +142,7 @@ void ScriptAssemblyHelper::Move(uint8_t opcode, const ScriptCompileMemoryTarget&
 	}
 }
 
-void ScriptAssemblyHelper::Move(uint8_t opcode, uint8_t opcode_extension, const ScriptCompileMemoryTarget& operand)
+void ScriptAssemblyHelper::MoveR(uint8_t opcode, uint8_t opcode_extension, const ScriptCompileMemoryTarget& operand)
 {
 	StreamAssignee<uint8_t> p(comp);
 	StreamAssignee<uint8_t> po(comp);
