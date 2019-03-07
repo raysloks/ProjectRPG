@@ -75,7 +75,6 @@ void ScriptFunctionCompileData::compile(ScriptCompile& comp)
 		ScriptTypeData type_data;
 		type_data.type = ST_CLASS;
 		type_data.class_data = class_ptr;
-		type_data.size = class_ptr->size;
 		type_data.indirection = 1;
 
 		ScriptCompileMemoryTarget target;

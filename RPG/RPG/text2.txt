@@ -20,14 +20,17 @@ dynamic class Main : TestClass
 	{
 	};
 
-	virtual void moo(uint x)
+	virtual void moo(Main * x)
 	{
-		print(x);
+		x.println((*x).a);
 	};
 
 	uint func(uint x)
 	{
 		(&foo).add(x * x);
+		moo(this);
+		a = a + foo.bar;
+		println(1000 * x);
 		return foo.bar;
 	};
 

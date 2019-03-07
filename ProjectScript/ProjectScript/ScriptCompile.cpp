@@ -101,7 +101,7 @@ void ScriptCompile::EndScope()
 	{
 		if (i->second.target.regm == 0b101)
 			if (i->second.target.offset < 0)
-				stack_dec += i->second.type.size;
+				stack_dec += i->second.type.GetSize();
 	}
 
 	if (stack_dec > 0)
@@ -166,7 +166,7 @@ void ScriptCompile::EndScopeAggresive()
 	{
 		if (i->second.target.regm == 0b101)
 			if (i->second.target.offset < 0)
-				stack_dec += i->second.type.size;
+				stack_dec += i->second.type.GetSize();
 	}
 
 	if (stack_dec > 0)
@@ -303,7 +303,7 @@ void ScriptCompile::PushVariable(const std::string& name)
 
 	ScriptVariableData varData;
 	varData.type = oldVarData.type;
-	stack += varData.type.size;
+	stack += varData.type.GetSize();
 
 	varData.target.lvalue = false;
 	varData.target.offset = -stack + 128;
@@ -417,7 +417,7 @@ void ScriptCompile::PushVariable(const std::string& name, ScriptTypeData type, i
 {
 	ScriptVariableData varData;
 	varData.type = type;
-	stack += type.size;
+	stack += type.GetSize();
 
 	varData.target.lvalue = false;
 	varData.target.offset = -stack + 128;

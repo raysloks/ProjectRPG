@@ -683,7 +683,7 @@ int main()
 
 		while (true)
 		{
-			//try
+			try
 			{
 				char buffer[4096];
 
@@ -766,10 +766,10 @@ int main()
 				}
 
 			}
-			/*catch (std::runtime_error& e)
+			catch (std::runtime_error& e)
 			{
 				std::cout << e.what() << std::endl;
-			}*/
+			}
 		}
 
 		VirtualFree(mem, max_mem_size, MEM_RELEASE);

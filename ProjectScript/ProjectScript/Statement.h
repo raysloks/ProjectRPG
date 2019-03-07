@@ -22,7 +22,7 @@ public:
 
 	bool hasReturn();
 	bool isConstant(ScriptCompile& comp);
-	ScriptTypeData getType(ScriptCompile& comp);
+	ScriptTypeData getType(ScriptCompile& comp, bool operative);
 
 	std::string output(const std::string& indent = "");
 

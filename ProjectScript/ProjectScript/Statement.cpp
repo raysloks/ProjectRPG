@@ -181,8 +181,8 @@ Statement::Statement(std::vector<std::shared_ptr<Statement>>& tokens, bool expre
 					if (depth == 0) {
 						if (fp != tokens.end()) {
 							std::shared_ptr<Statement> p(new Statement(std::vector<std::shared_ptr<Statement>>(fp + 1, i), true));
-							if (max_depth == 1)
-								p->keyword = 5;
+							//if (max_depth == 1)
+							p->keyword = 5;
 							if (fp!=tokens.begin())
 								if ((*(fp - 1))->token.lexeme.compare("if")==0 || (*(fp - 1))->token.lexeme.compare("while")==0)
 									p->keyword = 0;
@@ -516,10 +516,10 @@ void Statement::compile(ScriptCompile& comp)
 		{
 			if (comp.proto->ret.GetSize() == 0)
 				throw std::runtime_error("Return type is 'void'.");
-			if (comp.proto->ret != lhs->getType(comp))
+			if (comp.proto->ret != lhs->getType(comp, true))
 				throw std::runtime_error("Return type mismatch.");
 
-			if (comp.proto->ret.size <= 8)
+			if (comp.proto->ret.GetSize() <= 8)
 			{
 				comp.target = ScriptCompileMemoryTarget();
 
@@ -532,7 +532,7 @@ void Statement::compile(ScriptCompile& comp)
 		}
 		else
 		{
-			if (comp.proto->ret.size > 0)
+			if (comp.proto->ret.GetSize() > 0)
 				throw std::runtime_error("Function needs to return a value.");
 		}
 
@@ -684,7 +684,7 @@ void Statement::compile(ScriptCompile& comp)
 
 				ScriptFunctionPrototype prototype;
 				prototype.cc = CC_MICROSOFT_X64;
-				prototype.ret = lhs->getType(comp);
+				prototype.ret = lhs->getType(comp, false);
 
 				std::vector<std::string> parameter_names;
 
@@ -704,7 +704,7 @@ void Statement::compile(ScriptCompile& comp)
 						}
 					}
 
-					auto type = v->getType(comp);
+					auto type = v->getType(comp, false);
 					if (type.GetSize() != 0)
 					{
 						prototype.params.push_back(type);
@@ -834,16 +834,6 @@ void Statement::compile(ScriptCompile& comp)
 				return;
 			}
 		}
-		if (comp.proto)
-		{
-			comp.PushVariable(rhs->token.lexeme, getType(comp));
-			return;
-		}
-		if (comp.current_class)
-		{
-			comp.current_class->AddMember(rhs->token.lexeme, getType(comp));
-			return;
-		}
 		if (lhs->token.lexeme.compare("include") == 0)
 		{
 			if (comp.proto)
@@ -853,6 +843,16 @@ void Statement::compile(ScriptCompile& comp)
 
 			//throw std::runtime_error("Cannot find '" + rhs->token.lexeme + "'.");
 			throw std::runtime_error("'include' is not yet implemented.");
+		}
+		if (comp.proto)
+		{
+			comp.PushVariable(rhs->token.lexeme, getType(comp, false));
+			return;
+		}
+		if (comp.current_class)
+		{
+			comp.current_class->AddMember(rhs->token.lexeme, getType(comp, false));
+			return;
 		}
 	}
 	return;
@@ -898,14 +898,14 @@ void Statement::compile(ScriptCompile& comp)
 			add_arg(rhs);
 
 			callee_proto.params.resize(params.size());
-			std::transform(params.begin(), params.end(), callee_proto.params.begin(), [&](auto a) { return a->getType(comp); });
+			std::transform(params.begin(), params.end(), callee_proto.params.begin(), [&](auto a) { return a->getType(comp, true); });
 
 			std::string function_name;
 			std::shared_ptr<ScriptClassData> function_class;
 			if (lhs->token.lexeme.compare(".") == 0)
 			{
 				function_name = lhs->rhs->token.lexeme;
-				function_class = lhs->lhs->getType(comp).class_data;
+				function_class = lhs->lhs->getType(comp, true).class_data;
 				if (!function_class)
 					throw std::runtime_error("'.' must be preceded by an instance of a class.");
 
@@ -921,14 +921,11 @@ void Statement::compile(ScriptCompile& comp)
 				sasm.Move(0x89, ScriptCompileMemoryTarget(0b001), ScriptCompileMemoryTarget(0b011));
 			}
 
-			if (lhs->keyword == 0)
-			{
-				auto full_proto = function_class->GetFunctionFullPrototype(function_name, callee_proto);
-				if (full_proto)
-					callee_proto = full_proto.value();
-				else
-					throw std::runtime_error("Could not find function '" + function_name + "'.");
-			}
+			auto full_proto = function_class->GetFunctionFullPrototype(function_name, callee_proto);
+			if (full_proto)
+				callee_proto = full_proto.value();
+			else
+				throw std::runtime_error("Could not find function '" + function_name + "'.");
 
 			bool has_this = true;
 
@@ -1062,9 +1059,9 @@ void Statement::compile(ScriptCompile& comp)
 	}
 
 	if (lhs) {
-		auto lhs_type = lhs->getType(comp);
+		auto lhs_type = lhs->getType(comp, true);
 		if (rhs) {
-			auto rhs_type = lhs->getType(comp);
+			auto rhs_type = lhs->getType(comp, true);
 			if (lhs_type != rhs_type)
 				throw std::runtime_error("Type mismatch.");
 
@@ -1131,12 +1128,12 @@ void Statement::compile(ScriptCompile& comp)
 			{
 			case '.':
 			{
-				auto lhs_type = lhs->getType(comp);
+				auto lhs_type = lhs->getType(comp, true);
 				if (lhs_type.type != ST_CLASS)
 					throw std::runtime_error("'.' must be preceded by an instance of a class.");
 				if (lhs_type.class_data)
 				{
-					for (auto func : lhs_type.class_data->functions)
+					/*for (auto func : lhs_type.class_data->functions)
 					{
 						if (rhs->token.lexeme.compare(func.first) == 0)
 						{
@@ -1144,16 +1141,18 @@ void Statement::compile(ScriptCompile& comp)
 
 							return;
 						}
-					}
-					for (auto member : lhs_type.class_data->members)
+					}*/
+					auto member_data = lhs_type.class_data->GetMember(rhs->token.lexeme);
+					if (member_data != ScriptVariableData())
 					{
-						if (rhs->token.lexeme.compare(member.first) == 0)
-						{
-							comp.target.lvalue = true;
-							
-							lhs->compile(comp);
+						comp.target.lvalue = true;
 
-							comp.target.offset += member.second.target.offset;
+						lhs->compile(comp);
+
+						if (lhs_type.indirection == 0)
+						{
+							comp.target.offset += member_data.target.offset;
+							comp.target.mode = 0b10; // hmm todo fix?
 
 							if (!target.lvalue)
 							{
@@ -1168,9 +1167,13 @@ void Statement::compile(ScriptCompile& comp)
 									sasm.Move(0x8b, target, comp.target);
 								}
 							}
-
-							return;
 						}
+						else
+						{
+							throw std::runtime_error("Cannot yet access members via pointers.");
+						}
+
+						return;
 					}
 					throw std::runtime_error("No member '" + rhs->token.lexeme + "' could be found in class '" + lhs_type.class_data->class_name + "'.");
 				}
@@ -1575,6 +1578,7 @@ std::shared_ptr<Variable> Statement::run(const std::shared_ptr<ScriptMemory>& me
 	break;
 	//keyword 5 is reserved for single depth parentheses' for some odd reason
 	//aka I used it to make parsing a bit easier for me
+	//i guess they're used for all parentheses' now
 	case 6:
 	{
 		std::shared_ptr<BooleanVar> var;
@@ -1715,7 +1719,7 @@ bool Statement::isConstant(ScriptCompile & comp)
 	return false;
 }
 
-ScriptTypeData Statement::getType(ScriptCompile & comp)
+ScriptTypeData Statement::getType(ScriptCompile& comp, bool operative)
 {
 	switch (keyword)
 	{
@@ -1723,14 +1727,12 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 		if (token.lexeme.compare("int") == 0)
 		{
 			ScriptTypeData typeData;
-			typeData.size = 8;
 			typeData.type = ST_INT;
 			return typeData;
 		}
 		if (token.lexeme.compare("uint") == 0)
 		{
 			ScriptTypeData typeData;
-			typeData.size = 8;
 			typeData.type = ST_UINT;
 			return typeData;
 		}
@@ -1739,7 +1741,6 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 			if (token.lexeme.compare(c.first) == 0)
 			{
 				ScriptTypeData typeData;
-				typeData.size = c.second->size;
 				typeData.type = ST_CLASS;
 				typeData.class_data = c.second;
 				return typeData;
@@ -1747,8 +1748,6 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 		}
 		break;
 	case 5:
-		if (lhs)
-			return lhs->getType(comp);
 		break;
 	case 7:
 	{
@@ -1776,7 +1775,7 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 			add_arg(rhs);
 
 			callee_proto.params.resize(params.size());
-			std::transform(params.begin(), params.end(), callee_proto.params.begin(), [&](auto a) { return a->getType(comp); });
+			std::transform(params.begin(), params.end(), callee_proto.params.begin(), [&](auto a) { return a->getType(comp, false); });
 
 			if (lhs->keyword == 0)
 			{
@@ -1786,28 +1785,34 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 			}
 		}
 		if (lhs->token.lexeme.compare("static") == 0)
-			return rhs->getType(comp);
+			return rhs->getType(comp, operative);
 		if (lhs->token.lexeme.compare("virtual") == 0)
-			return rhs->getType(comp);
-		return lhs->getType(comp);
+			return rhs->getType(comp, operative);
+		return lhs->getType(comp, operative);
 	}
 	break;
 	default:
 		throw std::runtime_error("Was expecting an expression.");
 	}
 
-	if (lhs) {
-		if (rhs) {
+	if (lhs)
+	{
+		if (rhs)
+		{
+			if (token.lexeme.empty())
+			{
+				return lhs->getType(comp, operative);
+			}
 			switch (token.lexeme.front())
 			{
 			case '.':
 			{
-				auto lhs_type = lhs->getType(comp);
+				auto lhs_type = lhs->getType(comp, operative);
 				if (lhs_type.type != ST_CLASS)
 					throw std::runtime_error("'.' must be preceded by an instance of a class.");
 				if (lhs_type.class_data)
 				{
-					for (auto func : lhs_type.class_data->functions)
+					/*for (auto func : lhs_type.class_data->functions)
 					{
 						if (rhs->token.lexeme.compare(func.first) == 0)
 						{
@@ -1817,58 +1822,113 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 							typeData.function_prototype.reset(new ScriptFunctionPrototype(func.second.first));
 							return typeData;
 						}
-					}
-					for (auto member : lhs_type.class_data->members)
-					{
-						if (rhs->token.lexeme.compare(member.first) == 0)
-						{
-							return member.second.type;
-						}
-					}
+					}*/
+					auto member_data = lhs_type.class_data->GetMember(rhs->token.lexeme);
+					if (member_data != ScriptVariableData())
+						return member_data.type;
 					throw std::runtime_error("No member '" + rhs->token.lexeme + "' could be found in class '" + lhs_type.class_data->class_name + "'.");
 				}
 				throw std::runtime_error("Class of '" + lhs->token.lexeme + "' could not be determined.");
 			}
 			case '(':
 			{
-				if (lhs->keyword == 0)
+				// TODO refactor '(' function substitution to separate function ala DRY
+				ScriptFunctionPrototype callee_proto;
+
+				std::vector<std::shared_ptr<Statement>> params;
+
+				std::function<void(const std::shared_ptr<Statement>&)> add_arg;
+				add_arg = [&params, &add_arg](const std::shared_ptr<Statement>& v)
 				{
-					if (lhs->rhs)
+					if (v->token.lexeme.size() == 0 && (v->keyword == 0 || v->keyword == 5))
+						return;
+					if (v->token.lexeme.front() == ',')
 					{
-						auto lhs_type = lhs->getType(comp);
-						if (lhs_type.function_prototype)
-							return lhs_type.function_prototype->ret;
+						add_arg(v->lhs);
+						add_arg(v->rhs);
 					}
-					if (comp.current_class)
+					else
 					{
-						for (auto func : comp.current_class->functions)
-						{
-							if (func.first.compare(lhs->token.lexeme) == 0)
-							{
-								return func.second.first.ret;
-							}
-						}
+						params.push_back(v);
 					}
+				};
+				add_arg(rhs);
+
+				callee_proto.params.resize(params.size());
+				std::transform(params.begin(), params.end(), callee_proto.params.begin(), [&](auto a) { return a->getType(comp, true); });
+
+				std::string function_name;
+				std::shared_ptr<ScriptClassData> function_class;
+				if (lhs->token.lexeme.compare(".") == 0)
+				{
+					function_name = lhs->rhs->token.lexeme;
+					function_class = lhs->lhs->getType(comp, true).class_data;
+					if (!function_class)
+						throw std::runtime_error("'.' must be preceded by an instance of a class.");
+				}
+				else
+				{
+					function_name = lhs->token.lexeme;
+					function_class = comp.current_class;
+				}
+
+				auto full_proto = function_class->GetFunctionFullPrototype(function_name, callee_proto);
+				if (full_proto)
+					callee_proto = full_proto.value();
+				else
+					throw std::runtime_error("Could not find function '" + function_name + "'.");
+
+				return callee_proto.ret;
+			}
+			case '*':
+			{
+				if (!operative)
+				{
+					auto lhs_type = lhs->getType(comp, operative);
+					++lhs_type.indirection;
+					return lhs_type;
 				}
 			}
 			default:
 			{
 				if (lhs->token.lexeme.compare("static") == 0)
-					return rhs->getType(comp);
-				auto lhs_type = lhs->getType(comp);
-				if (rhs->getType(comp) != lhs_type)
+					return rhs->getType(comp, operative);
+				auto lhs_type = lhs->getType(comp, operative);
+				if (rhs->getType(comp, operative) != lhs_type)
 					throw std::runtime_error("Type mismatch.");
 				return lhs_type;
 			}
 			break;
 			}
+			auto lhs_type = lhs->getType(comp, operative);
+			return lhs_type;
 		}
-		auto lhs_type = lhs->getType(comp);
-		return lhs_type;
+		else
+		{
+			switch (token.lexeme.front())
+			{
+			case '*':
+			{
+				auto lhs_type = lhs->getType(comp, operative);
+				--lhs_type.indirection;
+				return lhs_type;
+			}
+			case '&':
+			{
+				auto lhs_type = lhs->getType(comp, operative);
+				++lhs_type.indirection;
+				return lhs_type;
+			}
+			}
+		}
 	}
-	else {
-		if (rhs) {
-		} else {
+	else
+	{
+		if (rhs)
+		{
+		}
+		else
+		{
 			if (token.lexeme.size() != 0)
 			{
 				{
@@ -1878,7 +1938,6 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 					if (!ss.fail() && token.lexeme.find('.') == std::string::npos)
 					{
 						ScriptTypeData typeData;
-						typeData.size = 8;
 						typeData.type = ST_UINT;
 						return typeData;
 					}
@@ -1890,7 +1949,6 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 					if (!ss.fail())
 					{
 						ScriptTypeData typeData;
-						typeData.size = 8;
 						typeData.type = ST_FLOAT;
 						return typeData;
 					}
@@ -1898,7 +1956,6 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 				if (token.lexeme.front() == '"' || token.lexeme.front() == '\'')
 				{
 					ScriptTypeData typeData;
-					typeData.size = 8;
 					return typeData;
 				}
 				if (comp.current_class)
@@ -1907,7 +1964,6 @@ ScriptTypeData Statement::getType(ScriptCompile & comp)
 				if (token.lexeme.compare("void") == 0)
 				{
 					ScriptTypeData typeData;
-					typeData.size = 0;
 					typeData.type = ST_VOID;
 					return typeData;
 				}

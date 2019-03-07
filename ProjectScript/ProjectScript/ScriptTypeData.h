@@ -24,7 +24,7 @@ public:
 	~ScriptTypeData();
 
 	ScriptType type;
-	size_t size, indirection;
+	size_t indirection;
 	std::shared_ptr<ScriptClassData> class_data;
 	std::shared_ptr<ScriptFunctionPrototype> function_prototype;
 
@@ -40,7 +40,6 @@ template <class T,
 {
 	ScriptTypeData ret;
 	ret.type = ST_INT;
-	ret.size = 8;
 	return ret;
 }
 
@@ -50,7 +49,6 @@ template <class T,
 {
 	ScriptTypeData ret;
 	ret.type = ST_UINT;
-	ret.size = 8;
 	return ret;
 }
 
