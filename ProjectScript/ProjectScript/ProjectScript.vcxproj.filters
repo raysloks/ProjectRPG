@@ -155,9 +155,6 @@
     <ClInclude Include="ScriptScope.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptVariableData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ScriptTypeData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -192,15 +189,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ScriptFunctionWrapperBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptVariableMetaData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptVariableTypeData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptVariableTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ScriptFunctionCompileData.h">

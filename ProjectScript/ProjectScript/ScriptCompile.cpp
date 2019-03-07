@@ -49,6 +49,11 @@ void ScriptCompile::BeginFunction()
 void ScriptCompile::EndFunction()
 {
 	max_stack = std::max(max_stack, stack);
+
+	// 16 byte stack alignment
+	if (max_stack % 16 != 0)
+		max_stack += 16 - max_stack % 16;
+
 	for (auto offset : stack_dependants)
 		SetAt<int32_t>(offset, GetAt<int32_t>(offset) + max_stack);
 	for (auto offset : stack_dependants_negative)
