@@ -153,6 +153,7 @@
     <ClCompile Include="ChatComponent.cpp" />
     <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="DamageData.cpp" />
+    <ClCompile Include="EquipmentData.cpp" />
     <ClCompile Include="HitboxData.cpp" />
     <ClCompile Include="HitData.cpp" />
     <ClCompile Include="DamageTypeData.cpp" />
@@ -214,6 +215,7 @@
     <ClInclude Include="ChatComponent.h" />
     <ClInclude Include="Chunk.h" />
     <ClInclude Include="DamageData.h" />
+    <ClInclude Include="EquipmentData.h" />
     <ClInclude Include="HitboxData.h" />
     <ClInclude Include="HitData.h" />
     <ClInclude Include="DamageTypeData.h" />

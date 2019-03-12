@@ -92,6 +92,7 @@
     <ClCompile Include="ItemType.cpp" />
     <ClCompile Include="NPC.cpp" />
     <ClCompile Include="Alias.cpp" />
+    <ClCompile Include="EquipmentData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -184,6 +185,7 @@
     <ClInclude Include="ItemType.h" />
     <ClInclude Include="NPC.h" />
     <ClInclude Include="Alias.h" />
+    <ClInclude Include="EquipmentData.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

@@ -5,7 +5,7 @@ def write_gmdl(self, context, filepath):
     print("running write_gmdl...")
     f = open(filepath, 'wb')
     
-    context = bpy.context
+    #context = bpy.context
     scene = context.scene
     
     abs_filepath = bpy.path.abspath(filepath)
@@ -23,8 +23,8 @@ def write_gmdl(self, context, filepath):
     
     vertex_index_offset = 0
     for ob in bpy.context.scene.objects:
-        if ob.layers[0] and ob.type == 'MESH':
-            mesh = ob.to_mesh(scene, True, 'RENDER')
+        if not ob.users_collection[0].hide_render and ob.type == 'MESH':
+            mesh = ob.to_mesh(context.depsgraph, True)
             mesh.calc_normals_split()
             loop_normals = dict()
             for loop in mesh.loops:
@@ -47,7 +47,7 @@ def write_gmdl(self, context, filepath):
                     mat_faces[0].append(face)
             for vert in mesh.vertices:
                 f.write(struct.pack('c', str.encode('v')))
-                final_co = ob.matrix_world * vert.co
+                final_co = ob.matrix_world @ vert.co
                 f.write(struct.pack('<3f', final_co.x, final_co.y, final_co.z))
                 norm = [0.0, 0.0, 0.0]
                 try:
@@ -56,12 +56,12 @@ def write_gmdl(self, context, filepath):
                     norm = vert.normal
                 if norm.x != 0.0 or norm.y != 0.0 or norm.z != 0.0:
                     f.write(struct.pack('c',str.encode('n')))
-                    norm = ob.matrix_world.to_3x3() * norm
+                    norm = ob.matrix_world.to_3x3() @ norm
                     f.write(struct.pack('<3f', norm.x, norm.y, norm.z))
                 else:
                     try:
                         f.write(struct.pack('c',str.encode('n')))
-                        norm = ob.matrix_world.to_3x3() * vert.normal
+                        norm = ob.matrix_world.to_3x3() @ vert.normal
                         f.write(struct.pack('<3f', norm.x, norm.y, norm.z))
                     except:
                         self.report({'INFO'}, 'No normal.')
@@ -73,21 +73,28 @@ def write_gmdl(self, context, filepath):
                 f.write(struct.pack('c',str.encode('m')))
                 if len(mat) > 0:
                     mat_data = mesh.materials[mat[0].material_index]
-                    for tex in mat_data.texture_slots:
-                        if tex is not None:
-                            if hasattr(tex.texture, 'image'):
+                    try:
+                        for node in mat_data.node_tree.nodes:
+                            if type(node) is bpy.types.ShaderNodeTexImage:
+                                tex = node
                                 f.write(struct.pack('c', str.encode('M')))
-                                texture_filepath = tex.texture.image.filepath
+                                texture_filepath = tex.image.filepath
                                 texture_abs_filepath = bpy.path.abspath(texture_filepath)
                                 texture_filepath = bpy.path.relpath(texture_abs_filepath, abs_filepath)
                                 texture_filepath = texture_filepath.replace("\\", "/");
                                 texture_filepath = texture_filepath[5:]
                                 f.write(struct.pack('<i', len(texture_filepath)))
                                 f.write(str.encode(texture_filepath))
-                                if tex.texture.use_interpolation:
+                                if tex.interpolation == 'Linear':
                                     f.write(struct.pack('c', str.encode('o')))
                                     f.write(struct.pack('<i', len("mag_linear")))
                                     f.write(str.encode("mag_linear"))
+                                if tex.image.colorspace_settings.name == 'Linear':
+                                    f.write(struct.pack('c', str.encode('o')))
+                                    f.write(struct.pack('<i', len("cs_linear")))
+                                    f.write(str.encode("cs_linear"))
+                    except:
+                        self.report({'INFO'}, 'No image texture.')
                 for face in mat:
                     f.write(struct.pack('c',str.encode('F')))
                     f.write(struct.pack('<3I',face.vertices[0] + vertex_index_offset,face.vertices[1] + vertex_index_offset,face.vertices[2] + vertex_index_offset))
@@ -122,7 +129,7 @@ class ExportGMDL(bpy.types.Operator, ExportHelper):
     # ExportHelper mixin class uses this
     filename_ext = ".gmdl"
 
-    filter_glob = StringProperty(default="*.gmdl", options={'HIDDEN'})
+    filter_glob : StringProperty(default="*.gmdl", options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):
@@ -139,12 +146,12 @@ def menu_func_export(self, context):
 
 def register():
     bpy.utils.register_class(ExportGMDL)
-    bpy.types.INFO_MT_file_export.append(menu_func_export)
+    #bpy.types.INFO_MT_file_export.append(menu_func_export)
 
 
 def unregister():
     bpy.utils.unregister_class(ExportGMDL)
-    bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    #bpy.types.INFO_MT_file_export.remove(menu_func_export)
 
 
 if __name__ == "__main__":

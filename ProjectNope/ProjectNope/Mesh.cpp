@@ -351,6 +351,10 @@ void Mesh::toSphere(float radius)
 	}
 }
 
+void Mesh::genUV()
+{
+}
+
 void Mesh::render(RenderSetup& rs, MaterialList& mats) // maybe should get mats to be const
 {
 	TimeslotC(mesh_render);

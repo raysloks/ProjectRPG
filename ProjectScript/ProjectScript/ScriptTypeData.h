@@ -61,4 +61,13 @@ template <class T,
 	return ret;
 }
 
+template <class T,
+	typename std::enable_if_t<std::is_void<T>::value>* = nullptr>
+	ScriptTypeData NewScriptTypeData()
+{
+	ScriptTypeData ret;
+	ret.type = ST_VOID;
+	return ret;
+}
+
 #endif

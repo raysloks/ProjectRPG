@@ -457,6 +457,12 @@ Statement::Statement(std::vector<std::shared_ptr<Statement>>& tokens, bool expre
 		}
 
 		while(tokens.size()>1) {
+			if (tokens[1]->token.lexeme._Starts_with("::"))
+			{
+				tokens[0]->token.lexeme.append(tokens[1]->token.lexeme);
+				tokens.erase(tokens.begin() + 1);
+				continue;
+			}
 			tokens[0] = std::shared_ptr<Statement>(new Statement(tokens[0], Token(), tokens[1]));
 			if (tokens[1]->keyword == 5)
 				tokens[0]->token.lexeme = "()";
@@ -921,13 +927,19 @@ void Statement::compile(ScriptCompile& comp)
 				sasm.Move(0x89, ScriptCompileMemoryTarget(0b001), ScriptCompileMemoryTarget(0b011));
 			}
 
+			bool has_this = true;
+
 			auto full_proto = function_class->GetFunctionFullPrototype(function_name, callee_proto);
 			if (full_proto)
+			{
 				callee_proto = full_proto.value();
+			}
 			else
+			{
 				throw std::runtime_error("Could not find function '" + function_name + "'.");
+			}
 
-			bool has_this = true;
+			bool rax_busy = (callee_proto.ret.GetSize() > 0 && comp.IsBusy(0b000));
 
 			comp.BeginScope();
 
@@ -935,6 +947,14 @@ void Statement::compile(ScriptCompile& comp)
 			comp.stack += shadow_space;
 
 			size_t temp_space = 0;
+
+			if (rax_busy)
+			{
+				// mov [rbp - 128 + shadow_space + temp_space], rax
+				sasm.Move(0x89, ScriptCompileMemoryTarget(0b10, 0b10101, -128 + shadow_space), ScriptCompileMemoryTarget(0b000));
+				temp_space += 8;
+				comp.SetFree(0b000);
+			}
 
 			for (size_t i = 0; i < params.size(); ++i)
 			{
@@ -1028,16 +1048,31 @@ void Statement::compile(ScriptCompile& comp)
 
 			if (callee_proto.ret.GetSize() > 0 && callee_proto.ret.GetSize() <= 8)
 			{
-				ScriptCompileMemoryTarget eax_target;
+				ScriptCompileMemoryTarget rax_target;
 				if (target.lvalue)
 				{
-					comp.target = eax_target;
+					if (rax_busy)
+					{
+						comp.target = sasm.FindRegister(rax_target);
+						sasm.Move(0x89, comp.target, rax_target);
+					}
+					else
+					{
+						comp.target = rax_target;
+					}
 				}
 				else
 				{
-					if (target != eax_target)
-						sasm.Move(0x89, target, eax_target);
+					if (target != rax_target)
+						sasm.Move(0x89, target, rax_target);
 				}
+			}
+
+			if (rax_busy)
+			{
+				// mov rax, [rbp - 128 + shadow_space + temp_space]
+				sasm.Move(0x89, ScriptCompileMemoryTarget(0b000), ScriptCompileMemoryTarget(0b10, 0b10101, -128 + shadow_space));
+				comp.SetBusy(0b000);
 			}
 
 			return;
@@ -1071,7 +1106,7 @@ void Statement::compile(ScriptCompile& comp)
 				comp.target.lvalue = true;
 				lhs->compile(comp);
 				target = comp.target;
-				ScriptRegisterGuard guard(&comp);
+				ScriptRegisterGuard guard(&comp, target.regm);
 
 				comp.target.lvalue = true;
 				rhs->compile(comp);
@@ -1200,7 +1235,7 @@ void Statement::compile(ScriptCompile& comp)
 				lhs->compile(comp);
 				if (target.lvalue)
 					target = comp.target;
-				ScriptRegisterGuard guard(&comp);
+				ScriptRegisterGuard guard(&comp, target.regm);
 
 				comp.target.lvalue = true;
 				rhs->compile(comp);
@@ -1214,7 +1249,7 @@ void Statement::compile(ScriptCompile& comp)
 				lhs->compile(comp);
 				if (target.lvalue)
 					target = comp.target;
-				ScriptRegisterGuard guard(&comp);
+				ScriptRegisterGuard guard(&comp, target.regm);
 
 				comp.target.lvalue = true;
 				rhs->compile(comp);
@@ -1234,7 +1269,7 @@ void Statement::compile(ScriptCompile& comp)
 
 				comp.target = rax_target;
 				lhs->compile(comp);
-				ScriptRegisterGuard guard(&comp);
+				ScriptRegisterGuard guard(&comp, rax_target.regm);
 
 				comp.target.lvalue = true;
 				rhs->compile(comp);
@@ -1894,7 +1929,8 @@ ScriptTypeData Statement::getType(ScriptCompile& comp, bool operative)
 				if (lhs->token.lexeme.compare("static") == 0)
 					return rhs->getType(comp, operative);
 				auto lhs_type = lhs->getType(comp, operative);
-				if (rhs->getType(comp, operative) != lhs_type)
+				auto rhs_type = rhs->getType(comp, operative);
+				if (lhs_type != rhs_type)
 					throw std::runtime_error("Type mismatch.");
 				return lhs_type;
 			}
@@ -1933,7 +1969,7 @@ ScriptTypeData Statement::getType(ScriptCompile& comp, bool operative)
 			{
 				{
 					std::istringstream ss(token.lexeme);
-					uint32_t ui;
+					uint64_t ui;
 					ss >> ui;
 					if (!ss.fail() && token.lexeme.find('.') == std::string::npos)
 					{

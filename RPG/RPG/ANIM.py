@@ -88,7 +88,7 @@ class ExportANIM(bpy.types.Operator, ExportHelper):
     # ExportHelper mixin class uses this
     filename_ext = ".anim"
 
-    filter_glob = StringProperty(default="*.anim", options={'HIDDEN'})
+    filter_glob : StringProperty(default="*.anim", options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):

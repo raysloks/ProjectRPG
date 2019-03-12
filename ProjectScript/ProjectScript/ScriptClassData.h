@@ -23,6 +23,12 @@ public:
 	void AddFunction(const std::string& name, const ScriptFunctionPrototype& prototype, void * pointer);
 	void AddVirtualFunction(const std::string& name, const ScriptFunctionPrototype& prototype);
 
+	template <typename R, typename T, typename ...Args>
+	void AddFunction(const std::string& name, R(T::*f)(Args...))
+	{
+		AddFunction(name, NewScriptFunctionPrototype(f), *(void**)&f);
+	}
+
 	ScriptVariableData GetMember(const std::string& name) const;
 	void GetMemberList(std::vector<ScriptVariableData>& list) const;
 	void * GetFunctionFinalAddress(const std::string& name, const ScriptFunctionPrototype& prototype) const;

@@ -25,7 +25,7 @@ public:
 		{
 			for (size_t i = 0; i < tabs; i++)
 				str.append("    ");
-			str.append(slot.first + " : " + std::to_string(slot.second->time) + "\n");
+			str.append(slot.first + " : " + std::to_string((int)std::round(slot.second->time)) + "\n");
 			str.append(slot.second->get(tabs + 1));
 		}
 		return str;

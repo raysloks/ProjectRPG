@@ -60,13 +60,13 @@ Client::Client(World * pWorld)
 
 	show_entity_list = false;
 
-	light = Vec3(sqrtf(2.0f) / 3.0f, M_E / 2.0f, M_PI);
-	light.Normalize();
+	light = Vec3(0.0f, 0.0f, 1.0f);
 
-	Vec3 pole(0.0f, 0.0f, 1.0f);
+	Vec3 pole(-1.0f, 0.5f, 0.1f);
 	pole.Normalize();
-	light *= Matrix3(0.0f, pole);
-	light_size = 0.003f;
+	light *= Matrix3(-25.0f * M_PI / 180.0f, pole);
+	light.Normalize();
+	light_size = 0.125f;
 
 	windows.push_back(std::shared_ptr<Window>(new MainMenuWindow(world, this, 0, 0, 0, 0)));
 
@@ -1178,7 +1178,7 @@ void Client::render_world(void)
 			rs.view = proj;
 			rs.pass = 5;
 
-			Vec3 light_color(1.0f, 0.95f, 0.8f);
+			Vec3 light_color = Vec3(1.0f, 0.995f, 0.964f);
 			Vec3 fog_add(0.0001f, 0.000125f, 0.0002f);
 
 			{

@@ -676,14 +676,14 @@ void start_engine_instance(std::string address, uint16_t port, uint64_t lobby_id
 //	PSTR lpCmdLine, INT nCmdShow)
 int main()
 {
-	if (true)
+	if (false)
 	{
 		size_t max_mem_size = 65536;
 		void * mem = VirtualAlloc(nullptr, max_mem_size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
 		while (true)
 		{
-			try
+			//try
 			{
 				char buffer[4096];
 
@@ -713,21 +713,8 @@ int main()
 				func_data.params.push_back(a_data);
 				test_class_data->AddVirtualFunction("func", func_data);
 
-				{
-					ScriptFunctionPrototype print_data;
-					print_data.cc = CC_MICROSOFT_X64;
-					print_data.params.push_back(a_data);
-					void (TestClass::*ptr)(uint64_t) = &TestClass::print;
-					test_class_data->AddFunction("print", print_data, *(void**)&ptr);
-				}
-
-				{
-					ScriptFunctionPrototype println_data;
-					println_data.cc = CC_MICROSOFT_X64;
-					println_data.params.push_back(a_data);
-					void (TestClass::*ptr)(uint64_t) = &TestClass::println;
-					test_class_data->AddFunction("println", println_data, *(void**)&ptr);
-				}
+				test_class_data->AddFunction("print", &TestClass::print);
+				test_class_data->AddFunction("println", &TestClass::println);
 
 				comp.classes.insert(std::make_pair("TestClass", test_class_data));
 
@@ -758,7 +745,7 @@ int main()
 						void (*func)(TestClass*) = (void(*)(TestClass*))found_constructor->second.second;
 						func(t);
 
-						for (int i = 0; i < 10; ++i)
+						for (int i = 0; i < 100; ++i)
 							std::cout << t->func(i) << std::endl;
 
 						delete t;
@@ -766,10 +753,10 @@ int main()
 				}
 
 			}
-			catch (std::runtime_error& e)
+			/*catch (std::runtime_error& e)
 			{
 				std::cout << e.what() << std::endl;
-			}
+			}*/
 		}
 
 		VirtualFree(mem, max_mem_size, MEM_RELEASE);

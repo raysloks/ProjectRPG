@@ -8,6 +8,8 @@
 
 #include "EntityID.h"
 
+#include "EquipmentData.h"
+
 #include <memory>
 #include <functional>
 
@@ -58,6 +60,8 @@ public:
 
 	SyncQueue<EntityID> interact;
 	EntityID current_interact;
+
+	EquipmentData equipment;
 
 	std::vector<std::pair<float, Item>> notifications_display;
 

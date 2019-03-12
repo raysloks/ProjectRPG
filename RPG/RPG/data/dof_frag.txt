@@ -19,6 +19,8 @@ uniform vec2 noise_b;
 
 uniform float alpha;
 
+const float M_E = 2.71828182845904523536028747135266249775724709369995;
+
 in vec2 texCoord;
 
 out vec4 final_color;

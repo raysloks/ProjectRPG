@@ -89,6 +89,7 @@ public:
 
 	void subdivide();
 	void toSphere(float radius);
+	void genUV();
 
 	void render(RenderSetup& rs, MaterialList& mats);//const;?
 	void render_skinned(RenderSetup& rs, MaterialList& mats, const Pose& pose);
