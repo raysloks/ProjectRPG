@@ -204,8 +204,8 @@ void InventoryComponent::set_display(bool enable)
 										glEnable(GL_DEPTH_TEST);
 										glDepthMask(GL_TRUE);
 										rs.pushTransform();
-										rs.addTransform(Quaternion(1.0f, Vec3(-1.0f, -1.0f, 0.0f).Normalize()));
-										rs.addTransform(Matrix4::Scale(Vec3(128.0f)));
+										rs.addTransform(Quaternion(1.0f, Vec3(-1.0f, 1.0f, 0.0f).Normalize()));
+										rs.addTransform(Matrix4::Scale(Vec3(256.0f)));
 										rs.pushMod(mod3d);
 										type->dec->render(rs);
 										rs.popMod();
@@ -344,9 +344,9 @@ void InventoryComponent::set_display(bool enable)
 												glEnable(GL_DEPTH_TEST);
 												glDepthMask(GL_TRUE);
 												rs.pushTransform();
-												rs.addTransform(Matrix4::Translation(Vec2(32.0f)));
-												rs.addTransform(Quaternion(1.0f, Vec3(-1.0f, -1.0f, 0.0f).Normalize()));
-												rs.addTransform(Matrix4::Scale(Vec3(64.0f)));
+												rs.addTransform(Matrix4::Translation(Vec2(32.0f, 0.0f)));
+												rs.addTransform(Quaternion(1.0f, Vec3(-1.0f, 1.0f, 0.0f).Normalize()));
+												rs.addTransform(Matrix4::Scale(Vec3(128.0f)));
 												rs.pushMod(mod3d);
 												type->dec->render(rs);
 												rs.popMod();

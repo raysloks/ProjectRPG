@@ -26,7 +26,7 @@ CameraControlComponent::CameraControlComponent(void) : Component(_factory.id)
 
 CameraControlComponent::CameraControlComponent(instream& is, bool full) : Component(_factory.id)
 {
-	cam_rot_basic = Vec2(M_PI_4, M_PI_2 + M_PI_4);
+	cam_rot_basic = Vec2(0.0f, M_PI_2);
 	distance = 0.0f;
 }
 

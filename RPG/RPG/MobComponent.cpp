@@ -338,7 +338,7 @@ void MobComponent::tick(float dTime)
 					}
 					list.clear();*/
 
-					float disk_radius = 0.75f * r;
+					float disk_radius = 0.5f * r;
 					float offset = 0.0f;
 					float standing_height = (crouch ? 1.0f : 2.0f) * r;
 					float height = standing_height;

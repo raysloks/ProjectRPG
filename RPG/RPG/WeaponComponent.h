@@ -6,7 +6,6 @@
 #include "EntityID.h"
 
 class MobComponent;
-class WeaponData;
 
 class WeaponComponent :
 	public Component
@@ -35,13 +34,13 @@ public:
 
 	static AutoSerialFactory<WeaponComponent, Component> _factory;
 
-	WeaponComponent * swap(size_t index);
+	WeaponComponent * swap(uint32_t index);
 
-	void updateHitbox();
+	void update();
 
 	EntityID mob_id;
 
-	std::shared_ptr<WeaponData> wd;
+	uint32_t item_index;
 
 	std::vector<EntityID> hcids;
 };

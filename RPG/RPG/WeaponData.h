@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "HitboxData.h"
-#include "Decorator.h"
 
 class WeaponData
 {
@@ -12,5 +11,4 @@ public:
 	~WeaponData();
 
 	std::vector<HitboxData> hitboxes;
-	Decorator dec;
 };

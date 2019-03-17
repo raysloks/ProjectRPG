@@ -11,23 +11,13 @@
 
 #include "ClientData.h"
 
+#include "ItemType.h"
 #include "WeaponData.h"
 
 AutoSerialFactory<WeaponComponent, Component> WeaponComponent::_factory("WeaponComponent");
 
 WeaponComponent::WeaponComponent(void) : Component(_factory.id)
 {
-	wd.reset(new WeaponData());
-
-	for (size_t i = 0; i < 3; ++i)
-	{
-		HitboxData hbd;
-		hbd.bone = "ItemHand_R";
-		hbd.offset = Vec3(0.0f, 0.5f + 0.25f * i, 0.0f);
-		hbd.radius = 0.2f;
-
-		wd->hitboxes.push_back(hbd);
-	}
 }
 
 WeaponComponent::WeaponComponent(instream& is, bool full) : Component(_factory.id)
@@ -62,23 +52,30 @@ void WeaponComponent::tick(float dTime)
 	{
 		auto p = entity->getComponent<PositionComponent>();
 		auto mob_p = mob->entity->getComponent<PositionComponent>();
-		auto mob_pose = mob->entity->getComponent<PoseComponent>();
 
-		auto anim = Resource::get<SkeletalAnimation>(mob_pose->anim);
-		if (anim && mob_p && mob_pose)
+		if (p && mob_p)
 		{
 			p->p = mob_p->p;
-			auto g = entity->getComponent<GraphicsComponent>();
-			auto mob_g = mob->entity->getComponent<GraphicsComponent>();
-			if (g && mob_g && mob_pose->pose.bones.size())
-			{
-				if (g->decs.items.size() && mob_g->decs.items.size())
-					g->decs.items.front()->final = mob_pose->pose.bones[anim->getIndex("ItemHand_R")].total_transform * mob_g->decs.items.front()->local;
-			}
-		}
 
-		if (entity->world->authority)
-			p->update();
+			if (!entity->world->authority)
+			{
+				auto mob_pose = mob->entity->getComponent<PoseComponent>();
+
+				auto anim = Resource::get<SkeletalAnimation>(mob_pose->anim);
+				if (anim && mob_p && mob_pose)
+				{
+					auto g = entity->getComponent<GraphicsComponent>();
+					auto mob_g = mob->entity->getComponent<GraphicsComponent>();
+					if (g && mob_g && mob_pose->pose.bones.size())
+					{
+						if (g->decs.items.size() && mob_g->decs.items.size())
+							g->decs.items.front()->local = mob_pose->pose.bones[anim->getIndex("ItemHand_R")].total_transform * mob_g->decs.items.front()->local;
+					}
+				}
+			}
+			else
+				p->update();
+		}
 	}
 }
 
@@ -116,7 +113,7 @@ void WeaponComponent::write_to(outstream& os) const
 {
 }
 
-WeaponComponent * WeaponComponent::swap(size_t index)
+WeaponComponent * WeaponComponent::swap(uint32_t index)
 {
 	entity->world->SetEntity(entity->id, nullptr);
 
@@ -130,29 +127,16 @@ WeaponComponent * WeaponComponent::swap(size_t index)
 	ent->addComponent(g);
 	ent->addComponent(w);
 
-	switch (index)
-	{
-	case 0:
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/items/weapons/swords/claymore.gmdl", Material("data/assets/items/weapons/swords/claymore.tga"), 0)));
-		g->decs.items.front()->local *= Quaternion(-M_PI / 2.0f, Vec3(0.0f, 1.0f, 0.0f));
-		g->decs.items.front()->local *= 0.5f;
-		g->decs.items.front()->local.mtrx[3][3] *= 2.0f;
-		break;
-	case 1:
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/medkit.gmdl", Material("data/assets/medkit.tga"), 0)));
-		g->decs.items.front()->local *= Quaternion(M_PI, Vec3(0.0f, 1.0f, 0.0f)) * Quaternion(-0.25f, Vec3(1.0f, 0.0f, 0.0f));
-		break;
-	}
-	g->decs.update(0);
-
 	w->mob_id = mob_id;
+	w->item_index = index;
+	w->update();
 
 	entity->world->AddEntity(ent);
 	
 	return w;
 }
 
-void WeaponComponent::updateHitbox()
+void WeaponComponent::update()
 {
 	for (auto hcid : hcids)
 	{
@@ -168,28 +152,48 @@ void WeaponComponent::updateHitbox()
 		target->hit = true;
 	};
 
-	for (auto i : wd->hitboxes)
+	auto g = entity->getComponent<GraphicsComponent>();
+	g->decs.items.resize(1);
+	g->decs.items[0] = nullptr;
+
+	auto item = ItemType::get(item_index);
+	if (item)
 	{
-		NewEntity * hit_ent = new NewEntity();
+		g->decs.items[0] = item->dec;
+		g->decs.update(0);
 
-		PositionComponent * p = new PositionComponent();
-		GraphicsComponent * g = new GraphicsComponent();
-		HitComponent * h = new HitComponent();
+		auto wd = item->weapon;
+		if (wd)
+		{
+			for (auto i : wd->hitboxes)
+			{
+				NewEntity * hit_ent = new NewEntity();
 
-		hit_ent->addComponent(p);
-		hit_ent->addComponent(g);
-		hit_ent->addComponent(h);
+				PositionComponent * p = new PositionComponent();
+				GraphicsComponent * g = new GraphicsComponent();
+				HitComponent * h = new HitComponent();
 
-		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/sphere32_16.gmdl", Material("data/assets/white.tga"), 0)));
+				hit_ent->addComponent(p);
+				hit_ent->addComponent(g);
+				hit_ent->addComponent(h);
 
-		h->owner = mob_id;
-		h->bone = i.bone;
-		h->offset = i.offset;
-		h->radius = i.radius;
-		h->func = func;
+				g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/sphere32_16.gmdl", Material("data/assets/white.tga"), 0)));
 
-		entity->world->AddEntity(hit_ent);
+				h->owner = mob_id;
+				h->bone = i.bone;
+				h->offset = i.offset;
+				h->radius = i.radius;
+				h->func = func;
 
-		hcids.push_back(hit_ent->get_id());
+				entity->world->AddEntity(hit_ent);
+
+				hcids.push_back(hit_ent->get_id());
+			}
+		}
+	}
+
+	if (hcids.empty())
+	{
+
 	}
 }

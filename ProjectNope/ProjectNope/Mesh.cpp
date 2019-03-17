@@ -164,7 +164,7 @@ Mesh::Mesh(instream& is, const std::string& path) : vbo_latest(false)
 			vert.back().n = Vec3(x,y,z);
 		}
 		if (prefix == 'f') {
-			unsigned short a,b,c;
+			uint16_t a,b,c;
 			is >> a >> b >> c;
 			sets.back().vertices.push_back(Face(a, b, c));
 			nts = 0;
@@ -200,7 +200,7 @@ Mesh::Mesh(instream& is, const std::string& path) : vbo_latest(false)
 			uv.push_back(Vec2(x, y));
 		}
 		if (prefix == 't') {
-			unsigned short i;
+			uint16_t i;
 			is >> i;
 			switch (nt)
 			{
@@ -242,7 +242,7 @@ Mesh::Mesh(instream& is, const std::string& path) : vbo_latest(false)
 			}
 		}
 		if (prefix == 'w') {
-			int id;
+			uint32_t id;
 			float weight;
 			is >> id >> weight;
 			vert.back().w.insert(std::pair<int, float>(id, weight));

@@ -2,6 +2,8 @@
 
 #include "Decorator.h"
 
+class WeaponData;
+
 class ItemType
 {
 public:
@@ -14,4 +16,6 @@ public:
 
 	std::string name, desc, icon;
 	std::shared_ptr<Decorator> dec;
+
+	WeaponData * weapon;
 };

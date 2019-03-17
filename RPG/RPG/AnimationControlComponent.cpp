@@ -75,13 +75,16 @@ void AnimationControlComponent::tick(float dTime)
 				{
 					auto func = [=](int bid)
 					{
-						NewEntity * sound_ent = new NewEntity();
-						auto pos = new PositionComponent(p->p + Vec3() * anim->getMatrix(bid, pose->frame) * g->decs.items.front()->local);
-						auto audio = new AudioComponent("data/assets/audio/step.wav");
-						audio->gain = scale * 0.25f;
-						sound_ent->addComponent(pos);
-						sound_ent->addComponent(audio);
-						entity->world->AddEntity(sound_ent);
+						if (mob->landed)
+						{
+							NewEntity * sound_ent = new NewEntity();
+							auto pos = new PositionComponent(p->p + Vec3() * anim->getMatrix(bid, pose->frame) * g->decs.items.front()->local);
+							auto audio = new AudioComponent("data/assets/audio/step.wav");
+							audio->gain = scale * 0.25f;
+							sound_ent->addComponent(pos);
+							sound_ent->addComponent(audio);
+							entity->world->AddEntity(sound_ent);
+						}
 					};
 					run_cycle->events.insert(std::make_pair(0.05f, std::bind(func, anim->getIndex("Foot_R"))));
 					run_cycle->events.insert(std::make_pair(0.55f, std::bind(func, anim->getIndex("Foot_L"))));

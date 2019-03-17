@@ -68,8 +68,10 @@ void main()
 			dag.x += zn * ((-2.0 + 3.0 * abs(x)) * (2.0 - abs(y)));
 			dag.x += zn * ((-2.0 + 3.0 * abs(y)) * (2.0 - abs(x)));
 		}
-	}*/
+	}
 	
+	vec3 tex_col = vec3(2 - max(2, length(dag) * 5000));*/
+
 	vec3 tex_col = vec3(0.0);
 	
 	float samples = 0.0;

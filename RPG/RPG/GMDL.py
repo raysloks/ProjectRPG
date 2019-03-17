@@ -75,26 +75,29 @@ def write_gmdl(self, context, filepath):
                     mat_data = mesh.materials[mat[0].material_index]
                     try:
                         for node in mat_data.node_tree.nodes:
-                            if type(node) is bpy.types.ShaderNodeTexImage:
-                                tex = node
-                                f.write(struct.pack('c', str.encode('M')))
-                                texture_filepath = tex.image.filepath
-                                texture_abs_filepath = bpy.path.abspath(texture_filepath)
-                                texture_filepath = bpy.path.relpath(texture_abs_filepath, abs_filepath)
-                                texture_filepath = texture_filepath.replace("\\", "/");
-                                texture_filepath = texture_filepath[5:]
-                                f.write(struct.pack('<i', len(texture_filepath)))
-                                f.write(str.encode(texture_filepath))
-                                if tex.interpolation == 'Linear':
-                                    f.write(struct.pack('c', str.encode('o')))
-                                    f.write(struct.pack('<i', len("mag_linear")))
-                                    f.write(str.encode("mag_linear"))
-                                if tex.image.colorspace_settings.name == 'Linear':
-                                    f.write(struct.pack('c', str.encode('o')))
-                                    f.write(struct.pack('<i', len("cs_linear")))
-                                    f.write(str.encode("cs_linear"))
+                            try:
+                                if type(node) is bpy.types.ShaderNodeTexImage:
+                                    tex = node
+                                    f.write(struct.pack('c', str.encode('M')))
+                                    texture_filepath = tex.image.filepath
+                                    texture_abs_filepath = bpy.path.abspath(texture_filepath)
+                                    texture_filepath = bpy.path.relpath(texture_abs_filepath, abs_filepath)
+                                    texture_filepath = texture_filepath.replace("\\", "/");
+                                    texture_filepath = texture_filepath[5:]
+                                    f.write(struct.pack('<i', len(texture_filepath)))
+                                    f.write(str.encode(texture_filepath))
+                                    if tex.interpolation == 'Linear':
+                                        f.write(struct.pack('c', str.encode('o')))
+                                        f.write(struct.pack('<i', len("mag_linear")))
+                                        f.write(str.encode("mag_linear"))
+                                    if tex.image.colorspace_settings.name == 'Linear':
+                                        f.write(struct.pack('c', str.encode('o')))
+                                        f.write(struct.pack('<i', len("cs_linear")))
+                                        f.write(str.encode("cs_linear"))
+                            except:
+                                self.report({'INFO'}, 'No image texture.')
                     except:
-                        self.report({'INFO'}, 'No image texture.')
+                        self.report({'INFO'}, 'No node tree.')
                 for face in mat:
                     f.write(struct.pack('c',str.encode('F')))
                     f.write(struct.pack('<3I',face.vertices[0] + vertex_index_offset,face.vertices[1] + vertex_index_offset,face.vertices[2] + vertex_index_offset))
