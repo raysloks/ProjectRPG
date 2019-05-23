@@ -2,6 +2,7 @@
 #define SCRIPT_TYPE_DATA_H
 
 #include <memory>
+#include <string>
 
 enum ScriptType
 {

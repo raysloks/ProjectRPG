@@ -1,11 +1,20 @@
 #include "ScriptClassData.h"
 
 #include <algorithm>
+#include <stdexcept>
 
 ScriptClassData::ScriptClassData()
 {
 	size = 0;
 	vftable = nullptr;
+}
+
+ScriptClassData::ScriptClassData(const std::string& name, size_t s, bool dynamic)
+{
+	class_name = name;
+	size = s;
+	if (dynamic)
+		AddVirtualFunctionTable();
 }
 
 ScriptClassData::~ScriptClassData()
@@ -25,7 +34,7 @@ void ScriptClassData::AddVirtualFunctionTable()
 		ScriptTypeData type;
 		type.type = ST_VOID;
 		type.indirection = 2;
-		AddMember("_vfptr", type);
+		AddMember("_vfptr", type, 0);
 	}
 }
 

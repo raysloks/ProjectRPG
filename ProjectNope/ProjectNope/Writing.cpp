@@ -259,3 +259,13 @@ void Writing::render(const std::string& text, RenderSetup& rs)
 	}
 	glEnd();*/
 }
+
+Vec2 Writing::getAdvance(const std::string& text)
+{
+	GlyphString gs(text);
+	gs.font = font;
+	gs.x_size = x_size * scale;
+	gs.y_size = y_size * scale;
+	gs.offset = offset;
+	return gs.getAdvance();
+}

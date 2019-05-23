@@ -14,8 +14,16 @@
 
 #include "MobComponent.h"
 #include "InteractComponent.h"
+#include "WeaponComponent.h"
 
 #include "Decorator.h"
+
+#include "RectangleWindow.h"
+#include "RectangleButtonWindow.h"
+#include "TextWindow.h"
+
+#include "InventoryCommandInteract.h"
+#include "InventoryCommandEquip.h"
 
 AutoSerialFactory<InventoryComponent, Component> InventoryComponent::_factory("InventoryComponent");
 
@@ -83,12 +91,54 @@ void InventoryComponent::pre_frame(float dTime)
 
 		if (input.isPressed(Platform::KeyEvent::TAB))
 		{
-			open = !open;
+			if (window)
+			{
+				client->windows.erase(std::remove(client->windows.begin(), client->windows.end(), window));
+				window.reset();
+			}
+			else
+			{
+				window.reset(new Window());
+				client->windows.push_back(window);
+				window->onRender = [=]()
+				{
+					client->hideCursor = false;
+				};
+
+				auto rect_window = new RectangleWindow(400.0f, 200.0f, 1000.0f, 1000.0f);
+				window->addChild(rect_window);
+
+				int i = 0;
+				for (auto item : items.items)
+				{
+					++i;
+
+					auto type = ItemType::get(item->type);
+
+					auto text = new TextWindow(20, 40 * i + 16, 100, 32);
+					text->text = type->name;
+					auto button = new RectangleButtonWindow(120, 40 * i, 100, 32);
+					button->text = "Equip";
+					button->onClick = [=]()
+					{
+						commands.queue.emplace_back(new InventoryCommandEquip(i - 1));
+						/*auto mob = entity->getComponent<MobComponent>();
+						if (mob && mob->weapon)
+						{
+							mob->weapon->item_index = item->type;
+							mob->weapon->update();
+						}*/
+					};
+					rect_window->addChild(text);
+					rect_window->addChild(button);
+				}
+			}
 		}
 
 		if (input.isPressed(Platform::KeyEvent::E))
 		{
-			interact.queue.emplace_back(current_interact);
+			commands.queue.emplace_back(new InventoryCommandInteract(current_interact));
+			//interact.queue.emplace_back(current_interact);
 		}
 	}
 }
@@ -97,6 +147,12 @@ void InventoryComponent::tick(float dTime)
 {
 	if (entity->world->authority)
 	{
+		for (auto command : commands.queue)
+		{
+			command.ptr->execute(*this);
+		}
+		commands.queue.clear();
+
 		auto mob = entity->getComponent<MobComponent>();
 		if (mob)
 		{
@@ -313,7 +369,7 @@ void InventoryComponent::set_display(bool enable)
 
 							Writing::setOffset(Vec2(0.0f, 0.0f));
 
-							if (open)
+							if (false)
 							{
 								if (sprite)
 								{
@@ -362,14 +418,14 @@ void InventoryComponent::set_display(bool enable)
 												rs.popMod();
 											}
 											rs.pushTransform();
-											rs.addTransform(Matrix4::Translation(Vec2(80.0f, 24.0f)));
+											rs.addTransform(Matrix4::Translation(Vec2(64.0f, 24.0f)));
 											Writing::setSize(25);
 											Writing::setColor(1.0f, 1.0f, 1.0f);
 											Writing::render(type->name, rs);
 											rs.popTransform();
 											rs.popTransform();
 											rs.pushTransform();
-											rs.addTransform(Matrix4::Translation(Vec2(80.0f, 40.0f)));
+											rs.addTransform(Matrix4::Translation(Vec2(64.0f, 40.0f)));
 											Writing::setSize(15);
 											Writing::setColor(1.0f, 1.0f, 1.0f, 0.8f);
 											Writing::render(type->desc, rs);
@@ -436,6 +492,7 @@ void InventoryComponent::set_display(bool enable)
 
 void InventoryComponent::writeLog(outstream& os, ClientData& client)
 {
+	commands.writeLog(os, client);
 	interact.writeLog(os, client);
 	items.writeLog(os);
 	notifications.writeLog(os);
@@ -443,6 +500,7 @@ void InventoryComponent::writeLog(outstream& os, ClientData& client)
 
 void InventoryComponent::readLog(instream& is)
 {
+	commands.readLog(is);
 	interact.readLog(is);
 	items.readLog(is);
 	notifications.readLog(is, ClientData());
@@ -453,6 +511,7 @@ void InventoryComponent::readLog(instream& is)
 
 void InventoryComponent::writeLog(outstream& os)
 {
+	commands.writeLog(os);
 	interact.writeLog(os);
 	notifications.writeLog(os, ClientData());
 }
@@ -461,6 +520,8 @@ void InventoryComponent::readLog(instream& is, ClientData& client)
 {
 	if (client.client_id == client_id)
 	{
+		commands.readLog(is, client);
+
 		uint32_t next_sync, next_size;
 		is >> next_sync >> next_size;
 		std::vector<EntityID> next(next_size);

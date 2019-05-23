@@ -1,20 +1,37 @@
-#include "Window.h"
-
 #ifndef RECTANGLE_WINDOW_H
 #define RECTANGLE_WINDOW_H
+
+#include "Window.h"
+
+#include "Vec2.h"
 
 class RectangleWindow :
 	public Window
 {
 public:
-	RectangleWindow(int x, int y, int width, int height);
+	RectangleWindow(float x, float y, float width, float height);
 	~RectangleWindow(void);
 
 	bool handleEvent(IEvent * pEvent);
 
 	void render(RenderSetup& rs);
 
-	int x, y, w, h;
+	union
+	{
+		Vec2 p;
+		struct
+		{
+			float x, y;
+		};
+	};
+	union
+	{
+		Vec2 size;
+		struct
+		{
+			float w, h;
+		};
+	};
 protected:
 	bool focus;
 };

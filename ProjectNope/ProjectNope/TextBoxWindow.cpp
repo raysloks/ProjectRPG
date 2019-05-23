@@ -45,13 +45,13 @@ void TextBoxWindow::render(void)
 	{
 		glPushMatrix();
 
-		glTranslatef(Writing::getLength(text.substr(0, p))*size.x, 0.0f, 0.0f);
+		Writing::getAdvance(text.substr(0, caret));
 
 		glBegin(GL_QUADS);
 
 		glVertex2f(x-1, y-4);
-		glVertex2f(x-1, y+size.y+4);
-		glVertex2f(x+1, y+size.y+4);
+		glVertex2f(x-1, y+font_size+4);
+		glVertex2f(x+1, y+font_size+4);
 		glVertex2f(x+1, y-4);
 
 		glEnd();
@@ -76,32 +76,32 @@ bool TextBoxWindow::handleEvent(IEvent * pEvent)
 			bool action = false;
 			if (ev->key==Platform::KeyEvent::LMB)
 			{
-				p = (ev->x-x)/size.x;
+				caret = (ev->x-x)/size.x;
 				action = true;
 			}
 			if (ev->key==Platform::KeyEvent::LEFT) {
-				if (p!=0) {
-					p--;
+				if (caret!=0) {
+					caret--;
 				}
-				p = std::distance(text.begin(), Writing::getRange(text.begin(), text.begin()+p, text.end()).first);
+				caret = std::distance(text.begin(), Writing::getRange(text.begin(), text.begin() + caret, text.end()).first);
 				action = true;
 			}
 			if (ev->key==Platform::KeyEvent::RIGHT) {
-				p = std::distance(text.begin(), Writing::getRange(text.begin(), text.begin()+p, text.end()).second);
+				caret = std::distance(text.begin(), Writing::getRange(text.begin(), text.begin() + caret, text.end()).second);
 				action = true;
 			}
 			if (ev->key==Platform::KeyEvent::DEL) {
-				if (p<text.size())
-					p = std::distance(text.begin(), Writing::erase(text, text.begin()+p));
+				if (caret<text.size())
+					caret = std::distance(text.begin(), Writing::erase(text, text.begin()+caret));
 				action = true;
 			}
 			if (ev->chr.size())
 			{
 				if (ev->chr.front()==(unsigned char)8) {
 					if (text.size()) {
-						if (p!=0)
+						if (caret!=0)
 						{
-							p = std::distance(text.begin(), Writing::erase(text, text.begin()+p-1));
+							caret = std::distance(text.begin(), Writing::erase(text, text.begin()+caret-1));
 						}
 					}
 					action = true;
@@ -116,11 +116,11 @@ bool TextBoxWindow::handleEvent(IEvent * pEvent)
 					action = true;
 				}
 				if (!action) {
-					if (p<text.size())
-						text.insert(p, ev->chr);
+					if (caret<text.size())
+						text.insert(caret, ev->chr);
 					else
 						text.append(ev->chr);
-					p += ev->chr.size();
+					caret += ev->chr.size();
 					action = true;
 				}
 			}

@@ -8,7 +8,7 @@ RectangleButtonWindow::RectangleButtonWindow(int px, int py, int width, int heig
 	hover = false;
 	pressed = false;
 
-	offset = Vec2(8.0f, 22.0f);
+	offset = Vec2(8.0f, -8.0f);
 }
 
 RectangleButtonWindow::~RectangleButtonWindow(void)
@@ -20,7 +20,7 @@ RectangleButtonWindow::~RectangleButtonWindow(void)
 void RectangleButtonWindow::render(RenderSetup& rs)
 {
 	rs.pushTransform();
-	rs.addTransform(Matrix4::Translation(Vec3(x, y, 0.0f)));
+	rs.addTransform(Matrix4::Translation(p));
 	rs.addTransform(Matrix4::Scale(Vec3(w, h, 1.0f)));
 
 	Vec4 color(1.0f, 1.0f, 1.0f, 0.4f);
@@ -43,8 +43,8 @@ void RectangleButtonWindow::render(RenderSetup& rs)
 	rs.popTransform();
 
 	rs.pushTransform();
-	rs.addTransform(Matrix4::Translation(Vec3(x, y + h, 0.0f)));
-	Writing::setSize(25);
+	rs.addTransform(Matrix4::Translation(Vec3(x, y + h, 0.0f) + offset));
+	Writing::setSize(24);
 	Writing::setColor(0.0f, 0.0f, 0.0f);
 	Writing::render(text, rs);
 	rs.popTransform();

@@ -64,6 +64,8 @@ void GraphicsComponent::writeLog(outstream& os, ClientData& client)
 void GraphicsComponent::readLog(instream& is)
 {
 	decs.readLog(is);
+	for (auto dec : decs.items)
+		dec->mesh = nullptr;
 }
 
 void GraphicsComponent::pre_frame(float dTime)

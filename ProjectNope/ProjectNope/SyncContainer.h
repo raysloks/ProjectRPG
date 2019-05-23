@@ -121,12 +121,21 @@ public:
 
 	void remove(size_t index)
 	{
-		if (index<items.size())
+		if (index < items.size())
+		{
 			if (items[index] != nullptr)
 			{
 				items[index].reset();
 				alloc.push(index);
 			}
+		}
+	}
+
+	std::shared_ptr<T> get(size_t index)
+	{
+		if (index < items.size())
+			return items[index];
+		return nullptr;
 	}
 
 	size_t transfer(size_t index, SyncContainer<T>& target)

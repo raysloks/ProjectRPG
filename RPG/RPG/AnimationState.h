@@ -9,10 +9,8 @@ class MobComponent;
 
 class AnimationState
 {
-protected:
-	AnimationState();
-
 public:
+	AnimationState();
 	virtual ~AnimationState() = 0;
 
 	virtual void enter(AnimationState * prev) = 0;

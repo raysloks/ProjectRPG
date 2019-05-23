@@ -27,6 +27,8 @@ public:
 	void set_vsync(bool on);
 	bool get_vsync(void);
 
+	void set_cursor_position(int x, int y);
+
 	bool has_focus(void);
 
 	void release(void);

@@ -54,45 +54,39 @@ void PlayerInputComponent::post_frame(float dTime)
 		{
 			const Input& input = client->input;
 
-			move = client->input.ctrl[0].left_analog.out;
-
-			if (move.Len() > 1.0f)
-				move.Normalize();
+			Vec3 move_input = client->input.ctrl[0].left_analog.out;
 
 			if (client->isActive)
 			{
 				if (input.isDown(Platform::KeyEvent::W) || input.isDown(Platform::KeyEvent::UP))
-					move.y += 1.0f;
+					move_input.y += 1.0f;
 				if (input.isDown(Platform::KeyEvent::A) || input.isDown(Platform::KeyEvent::LEFT))
-					move.x -= 1.0f;
+					move_input.x -= 1.0f;
 				if (input.isDown(Platform::KeyEvent::S) || input.isDown(Platform::KeyEvent::DOWN))
-					move.y -= 1.0f;
+					move_input.y -= 1.0f;
 				if (input.isDown(Platform::KeyEvent::D) || input.isDown(Platform::KeyEvent::RIGHT))
-					move.x += 1.0f;
+					move_input.x += 1.0f;
+				if (input.isDown(Platform::KeyEvent::SPACE))
+					move_input.z += 1.0f;
+				if (input.isDown(Platform::KeyEvent::LCTRL))
+					move_input.z -= 1.0f;
 			}
-
-			if (move.Len() > 1.0f)
-				move.Normalize();
 
 			/*Vec3 local_dir = move;
 			move.x = local_dir.x*cos(camera->x) - local_dir.y*sin(camera->x);
 			move.y = local_dir.x*sin(camera->x) + local_dir.y*cos(camera->x);*/
 
-			Vec3 fx, fy;
-
 			auto ccc = entity->getComponent<CameraControlComponent>();
-			if (ccc != nullptr)
-			{
-				fx = ccc->right;
-				fy = ccc->forward;
 
-				facing = ccc->cam_rot_basic;
-			}
+			facing = ccc->cam_rot_basic;
 
-			float l = move.Len();
-			move = fy * move.y + fx * move.x;
-			move.Normalize();
-			move *= l;
+			move = ccc->forward * move_input.y + ccc->right * move_input.x;
+			if (move.Len() > 1.0f)
+				move.Normalize();
+
+			move_space = ccc->front * move_input.y + ccc->right * move_input.x + ccc->up * move_input.z;
+			if (move_space.Len() > 1.0f)
+				move_space.Normalize();
 
 			if (input.isPressed(Platform::KeyEvent::LMB) || input.ctrl[0].x.pressed)
 				sc.queue.emplace_back("attack");
@@ -102,7 +96,7 @@ void PlayerInputComponent::post_frame(float dTime)
 				sc.queue.emplace_back("jump");
 			if (input.isPressed(Platform::KeyEvent::Q) || input.ctrl[0].y.pressed)
 				sc.queue.emplace_back("heal");
-			if (input.isPressed(Platform::KeyEvent::F17))
+			if (input.isPressed(Platform::KeyEvent::F1))
 				sc.queue.emplace_back("fly");
 		}
 	}
@@ -122,18 +116,19 @@ void PlayerInputComponent::tick(float dTime)
 		if (entity->world->authority)
 		{
 			mob->move = move;
+			mob->move_space = move_space;
 
 			float buffer_duration = 0.2f;
 
-			if (sc.consume("attack"))
+			if (sc.consumeValue("attack"))
 				mob->input["attack"] = buffer_duration;
-			if (sc.consume("dash"))
+			if (sc.consumeValue("dash"))
 				mob->input["roll"] = buffer_duration;
-			if (sc.consume("jump"))
+			if (sc.consumeValue("jump"))
 				mob->input["jump"] = buffer_duration;
-			if (sc.consume("fly"))
+			if (sc.consumeValue("fly"))
 				mob->input["dash"] = buffer_duration;
-			if (sc.consume("heal"))
+			if (sc.consumeValue("heal"))
 				mob->input["heal"] = buffer_duration;
 		}
 	}
@@ -151,7 +146,7 @@ void PlayerInputComponent::readLog(instream& is)
 
 void PlayerInputComponent::writeLog(outstream& os)
 {
-	os << move << facing;
+	os << move << move_space << facing;
 	sc.writeLog(os);
 }
 
@@ -159,7 +154,7 @@ void PlayerInputComponent::readLog(instream& is, ClientData& client)
 {
 	if (client.client_id == client_id)
 	{
-		is >> move >> facing;
+		is >> move >> move_space >> facing;
 		sc.readLog(is, client);
 	}
 }

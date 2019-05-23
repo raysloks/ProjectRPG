@@ -269,6 +269,20 @@ namespace Platform
 		}
 	}
 
+	int GUIObject::GetX()
+	{
+		RECT rect;
+		GetClientRect(hWnd, &rect);
+		return rect.left;
+	}
+
+	int GUIObject::GetY()
+	{
+		RECT rect;
+		GetClientRect(hWnd, &rect);
+		return rect.top;
+	}
+
 	int GUIObject::GetWidth()
 	{
 		RECT rect;

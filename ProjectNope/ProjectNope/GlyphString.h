@@ -15,6 +15,8 @@ public:
 
 	void render(RenderSetup& rs);
 
+	Vec2 getAdvance();
+
 	std::string font, string;
 	size_t x_size, y_size;
 	Vec2 offset;

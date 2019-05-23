@@ -17,15 +17,15 @@ public:
 		sync = next_sync;
 	}
 
-	void update(uint32_t next_sync, const std::vector<T>& next)
+	void update(uint32_t next_sync, std::vector<T>& next)
 	{
 		uint32_t diff = next_sync - sync;
 		if (diff < INT32_MAX && diff <= next.size())
-			queue.insert(queue.end(), next.end() - diff, next.end());
+			queue.insert(queue.end(), std::make_move_iterator(next.end() - diff), std::make_move_iterator(next.end()));
 		sync = next_sync;
 	}
 
-	bool consume(const T& value)
+	bool consumeValue(const T& value)
 	{
 		auto i = std::find(queue.begin(), queue.end(), value);
 		if (i != queue.end())

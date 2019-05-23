@@ -11,7 +11,7 @@ public:
 	~TextBoxWindow(void);
 
 	std::string placeholder;
-	size_t p;
+	size_t caret;
 	float t;
 
 	void render(void);

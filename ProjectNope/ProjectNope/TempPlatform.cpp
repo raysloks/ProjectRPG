@@ -5,11 +5,10 @@ class TPWindow :
 	public Platform::GUIObject
 {
 public:
-	TPWindow(const std::string& name, int x, int y, int w, int h, int z_depth, bool fullscreen, int fullscreen_monitor, TempPlatform * pP) : 
-	  GUIObject(name, x, y, w, h, z_depth, fullscreen, fullscreen_monitor), platform(pP) {
-	  }
-
-	  IEventManager * pCallback;
+	TPWindow(const std::string& name, int x, int y, int w, int h, int z_depth, bool fullscreen, int fullscreen_monitor, TempPlatform * pP) :
+		GUIObject(name, x, y, w, h, z_depth, fullscreen, fullscreen_monitor), platform(pP) {}
+	
+	IEventManager * pCallback;
 private:
 	void OnKeyDown(const Platform::KeyEvent& key) {
 		KeyDownEvent * ev = new KeyDownEvent(key.code, key.chr);
@@ -147,6 +146,12 @@ void TempPlatform::set_vsync(bool on)
 bool TempPlatform::get_vsync(void)
 {
 	return use_vsync;
+}
+
+void TempPlatform::set_cursor_position(int x, int y)
+{
+	if (ptr)
+		ptr->SetCursorPosition(ptr->GetX() + x, ptr->GetY() + y);
 }
 
 bool TempPlatform::has_focus(void)

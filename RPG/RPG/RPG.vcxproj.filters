@@ -93,6 +93,9 @@
     <ClCompile Include="NPC.cpp" />
     <ClCompile Include="Alias.cpp" />
     <ClCompile Include="EquipmentData.cpp" />
+    <ClCompile Include="InventoryCommand.cpp" />
+    <ClCompile Include="InventoryCommandInteract.cpp" />
+    <ClCompile Include="InventoryCommandEquip.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -186,6 +189,9 @@
     <ClInclude Include="NPC.h" />
     <ClInclude Include="Alias.h" />
     <ClInclude Include="EquipmentData.h" />
+    <ClInclude Include="InventoryCommand.h" />
+    <ClInclude Include="InventoryCommandInteract.h" />
+    <ClInclude Include="InventoryCommandEquip.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

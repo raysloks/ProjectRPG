@@ -20,6 +20,8 @@ namespace Writing
 	void setOffset(const Vec2& offset);
 	void render(const std::string& text, RenderSetup& rs);
 
+	Vec2 getAdvance(const std::string& text);
+
 	std::string::iterator erase(std::string& str, const std::string::iterator& p);
 
 	unsigned int getCodePoint(std::string::const_iterator& c, const std::string::const_iterator& end);

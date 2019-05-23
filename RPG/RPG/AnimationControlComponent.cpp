@@ -129,6 +129,7 @@ void AnimationControlComponent::tick(float dTime)
 			set_state(new SimpleState("hit", 4.0f));
 		}*/
 
+		pose->pose.update();
 		Vec3 root_position = Vec3() * pose->pose.transforms[anim->getIndex("root")] - prev_root * (1.0f - simple_state->blend_t);
 		Vec3 root_movement = (root_position - root) * Matrix3(transform);
 		root = root_position;

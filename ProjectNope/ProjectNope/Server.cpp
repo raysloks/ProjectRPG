@@ -6,7 +6,6 @@
 #include "PositionComponent.h"
 
 #include "Client.h"
-extern Client * client;
 
 #include <fstream>
 
@@ -346,6 +345,15 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 		in >> type;
 		switch (type)
 		{
+		case 0:
+		{
+			uint8_t counter;
+			in >> counter;
+			MAKE_PACKET;
+			out << (uint8_t)0 << counter;
+			SEND_PACKET(conn->endpoint);
+			break;
+		}
 		case 1:
 		{
 			uint32_t id, sync;

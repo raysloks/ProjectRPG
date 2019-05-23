@@ -74,6 +74,9 @@ public:
 	float packet_loss_sim;
 	bool show_entity_list;
 
+	float heartbeat_interval, heartbeat_elapsed;
+	uint8_t heartbeat_counter;
+
 	bool show_back_face_lines;
 
 	int wireframe;

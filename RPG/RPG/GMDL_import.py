@@ -11,6 +11,10 @@ def read_gmdl(context, filepath):
         
     with open(filepath, 'rb') as f:
         
+        def read_string(f):
+            length = struct.unpack('<I', f.read(4))
+            return f.read(length[0]).decode()
+        
         mesh = bpy.data.meshes.new('mesh')
         obj = bpy.data.objects.new('object', mesh)
         
@@ -63,6 +67,14 @@ def read_gmdl(context, filepath):
             if prefix == b'w':
                 print('w')
                 f.read(8)
+            if prefix == b'm':
+                print('m')
+            if prefix == b'M':
+                print('M')
+                read_string(f)
+            if prefix == b'o':
+                print('o')
+                read_string(f)
             byte = f.read(1)
         
         bm.to_mesh(mesh)

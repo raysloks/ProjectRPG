@@ -68,7 +68,7 @@ void WeaponComponent::tick(float dTime)
 					auto mob_g = mob->entity->getComponent<GraphicsComponent>();
 					if (g && mob_g && mob_pose->pose.bones.size())
 					{
-						if (g->decs.items.size() && mob_g->decs.items.size())
+						if (g->decs.items.size() && mob_g->decs.items.size() && g->decs.items.front() && mob_g->decs.items.front())
 							g->decs.items.front()->local = mob_pose->pose.bones[anim->getIndex("ItemHand_R")].total_transform * mob_g->decs.items.front()->local;
 					}
 				}
@@ -153,13 +153,12 @@ void WeaponComponent::update()
 	};
 
 	auto g = entity->getComponent<GraphicsComponent>();
-	g->decs.items.resize(1);
-	g->decs.items[0] = nullptr;
+	g->decs.remove(0);
 
 	auto item = ItemType::get(item_index);
 	if (item)
 	{
-		g->decs.items[0] = item->dec;
+		g->decs.add(item->dec);
 		g->decs.update(0);
 
 		auto wd = item->weapon;
@@ -194,6 +193,26 @@ void WeaponComponent::update()
 
 	if (hcids.empty())
 	{
+		NewEntity * hit_ent = new NewEntity();
 
+		PositionComponent * p = new PositionComponent();
+		GraphicsComponent * g = new GraphicsComponent();
+		HitComponent * h = new HitComponent();
+
+		hit_ent->addComponent(p);
+		hit_ent->addComponent(g);
+		hit_ent->addComponent(h);
+
+		g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/sphere32_16.gmdl", Material("data/assets/white.tga"), 0)));
+
+		h->owner = mob_id;
+		h->bone = "ItemHand_R";
+		h->offset = Vec3();
+		h->radius = 0.1f;
+		h->func = func;
+
+		entity->world->AddEntity(hit_ent);
+
+		hcids.push_back(hit_ent->get_id());
 	}
 }

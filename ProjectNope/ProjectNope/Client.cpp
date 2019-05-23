@@ -70,13 +70,18 @@ Client::Client(World * pWorld)
 
 	windows.push_back(std::shared_ptr<Window>(new MainMenuWindow(world, this, 0, 0, 0, 0)));
 
-	interpol_delay = 2.0f/32.0f;
+	interpol_delay = 2.0f / 32.0f;
+
+	heartbeat_interval = 1.0f / 1.0f;
+	heartbeat_elapsed = 0.0f;
 
 	packet_loss_sim = 0.0f;
 
 	show_back_face_lines = false;
 	
 	wireframe = 0;
+
+	subframes = 1;
 
 	clientData = new ClientData();
 	clientData->client_id = 0;
@@ -268,11 +273,18 @@ void Client::pre_frame(float dTime)
 
 	if (con != nullptr)
 	{
-		MAKE_PACKET;
+		// send heartbeat
+		heartbeat_elapsed += dTime;
+		if (heartbeat_elapsed >= heartbeat_interval)
+		{
+			heartbeat_elapsed = 0.0f;
 
-		out << (uint8_t)0;
+			MAKE_PACKET;
 
-		SEND_PACKET;
+			out << (uint8_t)0 << ++heartbeat_counter;
+
+			SEND_PACKET;
+		}
 
 		process_network_data();
 
@@ -1360,10 +1372,14 @@ void Client::render_world(void)
 		hideCursor = false;
 		for (auto win = windows.begin(); win != windows.end(); ++win)
 		{
-			dynamic_cast<RectangleWindow*>(win->get())->x = 0;
-			dynamic_cast<RectangleWindow*>(win->get())->y = 0;
-			dynamic_cast<RectangleWindow*>(win->get())->w = view_w;
-			dynamic_cast<RectangleWindow*>(win->get())->h = view_h;
+			auto rect_window = dynamic_cast<RectangleWindow*>(win->get());
+			if (rect_window)
+			{
+				rect_window->x = 0;
+				rect_window->y = 0;
+				rect_window->w = view_w;
+				rect_window->h = view_h;
+			}
 			if (win->get()->onRender)
 				win->get()->onRender();
 			rs.pushTransform();
@@ -1372,6 +1388,11 @@ void Client::render_world(void)
 		}
 		//lockCursor = true;
 		lockCursor = hideCursor; // allow cursor to escape window when visible
+		if (hideCursor && lockCursor)
+		{
+			if (platform->has_focus())
+				platform->set_cursor_position(view_w / 2, view_h / 2);
+		}
 
 #if TIMESLOT_LEVEL >= 0
 		//if (input.isDown(Platform::KeyEvent::P))
@@ -1502,8 +1523,11 @@ bool Client::HandleEvent(IEvent * pEvent)
 		MouseMoveEvent * ev = (MouseMoveEvent*)pEvent;
 		if (ev->relative)
 		{
-			input.mouse_dif_x += ev->x;
-			input.mouse_dif_y += ev->y;
+			if (hideCursor)
+			{
+				input.mouse_dif_x += ev->x;
+				input.mouse_dif_y += ev->y;
+			}
 		}
 		else
 		{
@@ -1554,23 +1578,136 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 	{
 		switch (type)
 		{
+		case 0:
+		{
+			uint8_t counter;
+			in >> counter;
+			uint8_t diff = heartbeat_counter - counter;
+			Profiler::set("latency", (diff * heartbeat_interval + heartbeat_elapsed) * 1000.0f);
+			break;
+		}
 		case 1: // notify of entity
+		{
+			int32_t id, uid;
+			in >> id >> uid;
+
 			{
-				int32_t id, uid;
-				in >> id >> uid;
+				MAKE_PACKET;
 
+				out << (unsigned char)3 << id << uid;
+
+				SEND_PACKET;
+			}
+
+			NewEntity * current_entity = world->GetEntity(id);
+			if (current_entity != nullptr)
+			{
+				if (SyncState::is_ordered_strict(world->uid[id], uid))
 				{
-					MAKE_PACKET;
-
-					out << (unsigned char)3 << id << uid;
-
-					SEND_PACKET;
+					world->SetEntity(id, nullptr);
+					if (id < interpol_targets.size())
+					{
+						if (interpol_targets[id] != nullptr)
+							delete interpol_targets[id];
+						interpol_targets[id] = nullptr;
+					}
 				}
+				else
+				{
+					break;
+				}
+			}
+			NewEntity * unit = new NewEntity(in, false);
+			world->SetEntity(id, unit);
+			world->uid[id] = uid;
+			NewEntity * copy = new NewEntity();
+			copy->world = world;
+			for (auto i = unit->components.begin(); i != unit->components.end(); ++i)
+			{
+				if (*i != nullptr)
+				{
+					copy->components.push_back(dynamic_cast<Component*>(Component::_registry.getFactory((*i)->_serial_id)->create(*i)));
+					(*i)->connect(unit, false);
+					(*i)->entity = unit;
+					copy->components.back()->connect(copy, false);
+					copy->components.back()->entity = copy;
+				}
+				else
+					copy->components.push_back(nullptr);
+			}
+			copy->component_sync = unit->component_sync;
+			if (id >= interpol_targets.size())
+			{
+				interpol_targets.resize(id + 1);
+				interpol_elapsed.resize(id + 1);
+			}
+			if (id >= clientData->per_entity_sync.size())
+			{
+				clientData->per_entity_sync.resize(id + 1);
+			}
 
-				NewEntity * current_entity = world->GetEntity(id);
-				if (current_entity != nullptr)
+			if (interpol_targets[id] != nullptr)
+				delete interpol_targets[id];
+			interpol_targets[id] = copy;
+			interpol_elapsed[id] = 0.0f;
+			break;
+		}
+		case 2: // entity log
+		{
+			uint32_t id, uid, sync;
+			in >> id >> uid >> sync;
+			if (id < interpol_targets.size())
+			{
+				auto ent = world->GetEntity(id);
+				if (ent != nullptr)
 				{
 					if (SyncState::is_ordered_strict(world->uid[id], uid))
+					{
+						break; //TODO cache log until notification of entity creation is received
+					}
+					if (SyncState::is_ordered(clientData->per_entity_sync[id], sync))
+					{
+						clientData->per_entity_sync[id] = sync;
+						uint32_t sync_val;
+						uint32_t sync_len, sync_index;
+						in >> sync_len;
+						std::map<size_t, uint32_t> to_confirm;
+						for (size_t i = 0; i < sync_len; ++i)
+						{
+							in >> sync_index >> sync_val;
+							ent->ss.set(sync_index, sync_val);
+							to_confirm.insert(std::make_pair(sync_index, sync_val));
+						}
+						if (!to_confirm.empty())
+						{
+							MAKE_PACKET;
+
+							out << (unsigned char)1 << id << (uint32_t)to_confirm.size();
+							for (auto i = to_confirm.begin(); i != to_confirm.end(); ++i)
+								out << (uint32_t)i->first << i->second;
+
+							SEND_PACKET;
+						}
+
+						if (interpol_targets[id] != nullptr)
+						{
+							interpol_targets[id]->readLog(in);
+						}
+						interpol_elapsed[id] = 0.0f;
+					}
+				}
+			}
+			break;
+		}
+		case 3: // delete entity
+		{
+			uint32_t id, uid;
+			in >> id >> uid;
+			if (id != 0xffffffff)
+			{
+				if (id < world->units.size())
+				{
+					if (uid == world->uid[id])
 					{
 						world->SetEntity(id, nullptr);
 						if (id < interpol_targets.size())
@@ -1580,118 +1717,13 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 							interpol_targets[id] = nullptr;
 						}
 					}
-					else
-					{
-						break;
-					}
 				}
-				NewEntity * unit = new NewEntity(in, false);
-				world->SetEntity(id, unit);
-				world->uid[id] = uid;
-				NewEntity * copy = new NewEntity();
-				copy->world = world;
-				for (auto i = unit->components.begin(); i != unit->components.end(); ++i)
-				{
-					if (*i != nullptr)
-					{
-						copy->components.push_back(dynamic_cast<Component*>(Component::_registry.getFactory((*i)->_serial_id)->create(*i)));
-						(*i)->connect(unit, false);
-						(*i)->entity = unit;
-						copy->components.back()->connect(copy, false);
-						copy->components.back()->entity = copy;
-					}
-					else
-						copy->components.push_back(nullptr);
-				}
-				copy->component_sync = unit->component_sync;
-				if (id >= interpol_targets.size())
-				{
-					interpol_targets.resize(id + 1);
-					interpol_elapsed.resize(id + 1);
-				}
-				if (id >= clientData->per_entity_sync.size())
-				{
-					clientData->per_entity_sync.resize(id + 1);
-				}
-
-				if (interpol_targets[id] != nullptr)
-					delete interpol_targets[id];
-				interpol_targets[id] = copy;
-				interpol_elapsed[id] = 0.0f;
-				break;
 			}
-		case 2: // entity log
-			{
-				uint32_t id, uid, sync;
-				in >> id >> uid >> sync;
-				if (id < interpol_targets.size())
-				{
-					auto ent = world->GetEntity(id);
-					if (ent != nullptr)
-					{
-						if (SyncState::is_ordered_strict(world->uid[id], uid))
-						{
-							break; //TODO cache log until notification of entity creation is received
-						}
-						if (SyncState::is_ordered(clientData->per_entity_sync[id], sync))
-						{
-							clientData->per_entity_sync[id] = sync;
-							uint32_t sync_val;
-							uint32_t sync_len, sync_index;
-							in >> sync_len;
-							std::map<size_t, uint32_t> to_confirm;
-							for (size_t i = 0; i < sync_len; ++i)
-							{
-								in >> sync_index >> sync_val;
-								ent->ss.set(sync_index, sync_val);
-								to_confirm.insert(std::make_pair(sync_index, sync_val));
-							}
-							if (!to_confirm.empty())
-							{
-								MAKE_PACKET;
-
-								out << (unsigned char)1 << id << (uint32_t)to_confirm.size();
-								for (auto i = to_confirm.begin(); i != to_confirm.end(); ++i)
-									out << (uint32_t)i->first << i->second;
-
-								SEND_PACKET;
-							}
-
-							if (interpol_targets[id] != nullptr)
-							{
-								interpol_targets[id]->readLog(in);
-							}
-							interpol_elapsed[id] = 0.0f;
-						}
-					}
-				}
-				break;
-			}
-		case 3: // delete entity
-			{
-				uint32_t id, uid;
-				in >> id >> uid;
-				if (id != 0xffffffff)
-				{
-					if (id < world->units.size())
-					{
-						if (uid == world->uid[id])
-						{
-							world->SetEntity(id, nullptr);
-							if (id < interpol_targets.size())
-							{
-								if (interpol_targets[id] != nullptr)
-									delete interpol_targets[id];
-								interpol_targets[id] = nullptr;
-							}
-						}
-					}
-				}
-				break;
-			}
+			break;
+		}
 		default:
-			{
-			}
+		{
+		}
 		}
 		//std::cout << "packet, type " << (int)type << std::endl;
 	}

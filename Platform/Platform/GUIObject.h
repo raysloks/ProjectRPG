@@ -41,8 +41,8 @@ namespace Platform
 
 		inline std::shared_ptr<RenderContext> getContext(){return pContext;}
 
-		int GetX(){return mX;}
-		int GetY(){return mY;}
+		int GetX();
+		int GetY();
 		int GetWidth();
 		int GetHeight();
 		bool IsFullscreen(){return isFullScr;}

@@ -21,6 +21,8 @@ public:
 	virtual void set_vsync(bool on) = 0;
 	virtual bool get_vsync(void) = 0;
 
+	virtual void set_cursor_position(int x, int y) = 0;
+
 	virtual bool has_focus(void) = 0;
 
 	virtual void release(void) = 0;

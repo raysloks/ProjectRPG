@@ -114,7 +114,7 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	NewEntity * ent = new NewEntity();
 
 	CameraControlComponent * cam = new CameraControlComponent();
-	PositionComponent * p = new PositionComponent();
+	PositionComponent * p = new PositionComponent(Vec3(0.0f, 0.0f, 250.0f));
 	GraphicsComponent * g = new GraphicsComponent(false);
 	PlayerInputComponent * input = new PlayerInputComponent();
 	MobComponent * mob = new MobComponent();
@@ -139,6 +139,7 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	inv->client_id = client_id;
 
 	mob->p = p;
+	mob->respawn = p->p;
 
 	entity->world->AddEntity(ent);
 
@@ -159,7 +160,7 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 
 		entity->world->AddEntity(ent);
 
-		w->item_index = 1;
+		w->item_index = -1;
 		w->update();
 	}
 

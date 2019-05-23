@@ -1,5 +1,4 @@
-#ifndef MOB_COMPONENT_H
-#define MOB_COMPONENT_H
+#pragma once
 
 #include "Component.h"
 
@@ -20,6 +19,7 @@
 #include <functional>
 
 class PositionComponent;
+class AnimationControlComponent;
 class Aura;
 class WeaponComponent;
 
@@ -55,7 +55,10 @@ public:
 	void add_aura(Aura * aura);
 	void remove_aura(Aura * aura);
 
+	void land(float dTime);
+
 	PositionComponent * p;
+	AnimationControlComponent * acc;
 
 	//stats
 	union
@@ -94,15 +97,18 @@ public:
 	Vec3 dp;
 	Vec3 external_dp;
 	Vec3 land_n, land_v, takeoff_v;
-	Vec3 move;
+	Vec3 move, move_space;
 	bool run, crouch;
 	float landed;
+
+	//actions
+	bool busy, recovering, rolling;
 
 	std::map<std::string, float> input;
 
 	// todo rework
 	bool hit;
 	EntityID last_hit;
-};
 
-#endif
+	GlobalPosition respawn;
+};

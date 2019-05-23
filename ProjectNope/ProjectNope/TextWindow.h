@@ -14,9 +14,9 @@ public:
 
 	std::string text;
 	Vec4 color;
-	Vec2 size;
+	int font_size;
 
-	void render(void);
+	void render(RenderSetup& rs);
 };
 
 #endif

@@ -56,7 +56,7 @@ bool APLList::tick(float dTime, Pose * out_pose)
 APLSource::APLSource(Action * act, bool b) : action(act), loop(b), time(0.0f)
 {
 }
-APLSource::APLSource(Action * act, const std::function<bool(void)>& loop_func) : action(act), on_end(loop_func), time(0.0f)
+APLSource::APLSource(Action * act, const std::function<bool(void)>& loop_func) : action(act), on_end(loop_func), time(0.0f), loop(false)
 {
 }
 APLSource::~APLSource(void)

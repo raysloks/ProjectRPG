@@ -1,7 +1,9 @@
 #include "RectangleWindow.h"
 #include "RenderSetup.h"
 
-RectangleWindow::RectangleWindow(int px, int py, int width, int height)
+#include "Texture.h"
+
+RectangleWindow::RectangleWindow(float px, float py, float width, float height)
 {
 	x = px;
 	y = py;
@@ -17,7 +19,24 @@ RectangleWindow::~RectangleWindow(void)
 void RectangleWindow::render(RenderSetup& rs)
 {
 	rs.pushTransform();
-	rs.addTransform(Matrix4::Translation(Vec3(x, y, 0.0f)));
+	rs.addTransform(Matrix4::Translation(p));
+	rs.pushTransform();
+	rs.addTransform(Matrix4::Scale(Vec3(w, h, 1.0f)));
+
+	Vec4 color(1.0f, 1.0f, 1.0f, 0.4f);
+	ShaderMod mod(nullptr, [color](const std::shared_ptr<ShaderProgram>& prog) {
+		prog->Uniform("color", color);
+	});
+
+	rs.pushMod(mod);
+
+	auto image = Resource::get<Texture>("data/assets/white.tga");
+	if (image)
+		image->render(rs);
+
+	rs.popMod();
+
+	rs.popTransform();
 	Window::render(rs);
 	rs.popTransform();
 }

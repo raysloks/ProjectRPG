@@ -39,8 +39,8 @@ void GlyphString::render(RenderSetup& rs)
 
 	size_t n_chars = 0;
 
-	float offset_x = 0.0f;
-	float offset_y = 0.0f;
+	float advance_x = 0.0f;
+	float advance_y = 0.0f;
 
 	auto fr = Resource::get<FontResource>(font);
 	if (fr != nullptr)
@@ -54,23 +54,23 @@ void GlyphString::render(RenderSetup& rs)
 
 				if (code_point == '\n')
 				{
-					offset_x = 0;
-					offset_y += size_t(y_size * 1.15f);
+					advance_x = 0;
+					advance_y += size_t(y_size * 1.15f);
 				}
 				else
 				{
 					auto glyph = fr->getGlyph(code_point, x_size, y_size);
 					if (glyph != nullptr)
 					{
-						glyph->insert(p_fill, t_fill, offset_x, offset_y);
+						glyph->insert(p_fill, t_fill, advance_x, advance_y);
 
 						p_fill += 12;
 						t_fill += 12;
 
 						auto bitmap = (FT_BitmapGlyph)glyph->ftBitmap;
 
-						offset_x += bitmap->root.advance.x >> 16;
-						offset_y += bitmap->root.advance.y >> 16;
+						advance_x += bitmap->root.advance.x >> 16;
+						advance_y += bitmap->root.advance.y >> 16;
 
 						++n_chars;
 					}
@@ -96,12 +96,46 @@ void GlyphString::render(RenderSetup& rs)
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, fr->atlas->texture->texid);
 
-		rs.addTransform(Matrix4::Translation(Vec3(offset_x, offset_y, 0.0f) * offset));
+		rs.addTransform(Matrix4::Translation(Vec3(advance_x, advance_y, 0.0f) * offset));
 
 		rs.applyMods();
 
 		vbo.draw(rs);
 
-		rs.addTransform(Matrix4::Translation(Vec3(offset_x, offset_y, 0.0f)));
+		rs.addTransform(Matrix4::Translation(Vec3(advance_x, advance_y, 0.0f)));
 	}
+}
+
+Vec2 GlyphString::getAdvance()
+{
+	float advance_x = 0.0f;
+	float advance_y = 0.0f;
+
+	auto fr = Resource::get<FontResource>(font);
+	if (fr != nullptr)
+	{
+		for (std::string::const_iterator c = string.cbegin(); c != string.cend();)
+		{
+			unsigned int code_point = Writing::getCodePoint(c, string.cend());
+
+			if (code_point == '\n')
+			{
+				advance_x = 0;
+				advance_y += size_t(y_size * 1.15f);
+			}
+			else
+			{
+				auto glyph = fr->getGlyph(code_point, x_size, y_size);
+				if (glyph != nullptr)
+				{
+					auto bitmap = (FT_BitmapGlyph)glyph->ftBitmap;
+
+					advance_x += bitmap->root.advance.x >> 16;
+					advance_y += bitmap->root.advance.y >> 16;
+				}
+			}
+		}
+	}
+
+	return Vec2(advance_x, advance_y);
 }

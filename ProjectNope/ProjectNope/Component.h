@@ -9,10 +9,8 @@ class ClientData;
 
 class Component
 {
-protected:
-	Component(uint32_t id);
-
 public:
+	Component(uint32_t id);
 	virtual ~Component(void);
 
 	virtual void connect(NewEntity * pEntity, bool authority);

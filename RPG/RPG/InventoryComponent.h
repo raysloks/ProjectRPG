@@ -1,5 +1,4 @@
-#ifndef INVENTORY_COMPONENT_H
-#define INVENTORY_COMPONENT_H
+#pragma once
 
 #include "Component.h"
 
@@ -13,9 +12,14 @@
 #include <memory>
 #include <functional>
 
+#include "SerializableWrapper.h"
+
+#include "InventoryCommand.h"
+
 class RenderSetup;
 class Item;
 class Decorator;
+class Window;
 
 class InventoryComponent :
 	public Component
@@ -58,6 +62,7 @@ public:
 	SyncContainer<Item> items;
 	SyncQueue<Item> notifications;
 
+	SyncQueue<SerializableWrapper<InventoryCommand>> commands;
 	SyncQueue<EntityID> interact;
 	EntityID current_interact;
 
@@ -65,8 +70,5 @@ public:
 
 	std::vector<std::pair<float, Item>> notifications_display;
 
-	bool open;
+	std::shared_ptr<Window> window;
 };
-
-#endif
-

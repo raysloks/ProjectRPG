@@ -12,6 +12,7 @@ class ScriptClassData
 {
 public:
 	ScriptClassData();
+	ScriptClassData(const std::string& name, size_t size, bool dynamic = false);
 	~ScriptClassData();
 
 	void SetParent(const std::shared_ptr<ScriptClassData>& ptr);

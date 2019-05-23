@@ -52,7 +52,7 @@ void RunCycleState::tick(float dTime)
 
 	prev_t = t;
 
-	t += dTime * (rel_v.Len() + 1.0f - mob->landed) * speed / acc->scale;
+	t += dTime * (rel_v.Len() / acc->scale + 1.0f - mob->landed) * speed;
 
 	if (mob->landed < 0.5f)
 	{
@@ -102,7 +102,7 @@ void RunCycleState::tick(float dTime)
 
 			pose->pose.interpolate(back_pose, fmaxf(0.0f, fminf(1.0f, -forward_dot * 2.0f)));
 
-			pose->pose.interpolate(anim->getPose(anim->getLength(idle.name), idle.name), fmaxf(0.0f, 1.0f - fmaxf(1.0f - mob->landed, rel_v.Len())));
+			pose->pose.interpolate(anim->getPose(anim->getLength(idle.name), idle.name), fmaxf(0.0f, 1.0f - fmaxf(1.0f - mob->landed, rel_v.Len() * 0.2f)));
 		}
 
 		if (blend_t < 1.0f)

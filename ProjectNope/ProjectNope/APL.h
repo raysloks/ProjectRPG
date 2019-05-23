@@ -1,5 +1,6 @@
 #include "AnimationPoseLayer.h"
 #include <list>
+#include <functional>
 
 #ifndef APL_H
 #define APL_H

@@ -45,7 +45,8 @@ public:
 
 	MobComponent * mob = nullptr;
 
-	Vec2 move, facing;
+	Vec2 facing;
+	Vec3 move, move_space;
 	SyncQueue<std::string> sc;
 };
 

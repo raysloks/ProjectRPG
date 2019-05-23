@@ -30,6 +30,7 @@
 #include "InteractComponent.h"
 
 #include "Item.h"
+#include "ItemType.h"
 
 #include "ShadowSpawnUnit.h"
 #include "GolemUnit.h"
@@ -161,15 +162,15 @@ public:
 			world->AddEntity(ent);
 		}
 
-		GolemUnit::spawn(Vec3(-50.0f, -300.0f, 0.0f), world);
-		GolemUnit::spawn(Vec3(0.0f, 30.0f, -40.0f), world);
-		GolemUnit::spawn(Vec3(50.0f, 90.0f, 20.0f), world);
-		GolemUnit::spawn(Vec3(50.0f, -2115.0f, -215.0f + 0.5f), world);
+		GolemUnit::spawn(Vec3(-50.0f, -300.0f, 250.0f), world);
+		GolemUnit::spawn(Vec3(0.0f, 30.0f, 210.0f), world);
+		GolemUnit::spawn(Vec3(50.0f, 90.0f, 270.0f), world);
+		GolemUnit::spawn(Vec3(50.0f, -2115.0f, 35.0f + 0.5f), world);
 
 		{
 			NewEntity * ent = new NewEntity();
 
-			PositionComponent * p = new PositionComponent(Vec3(0.0f, 0.0f, -250.0f));
+			PositionComponent * p = new PositionComponent(Vec3(0.0f, 0.0f, 0.0f));
 			GraphicsComponent * g = new GraphicsComponent(false, 4);
 
 			ent->addComponent(p);
@@ -189,6 +190,7 @@ public:
 
 		// create wibbly wobbly wall
 		//for (int j = 0; j < 2; ++j)
+		if (false)
 		{
 			NewEntity * ent = new NewEntity();
 
@@ -226,47 +228,48 @@ public:
 
 		for (size_t j = 0; j < 5; ++j)
 		{
-			NewEntity * ent = new NewEntity();
-
-			PositionComponent * p = new PositionComponent(Vec3(j, -2.5f, -0.5f));
-			GraphicsComponent * g = new GraphicsComponent(false);
-			InteractComponent * i = new InteractComponent();
-
-			ent->addComponent(p);
-			ent->addComponent(g);
-			ent->addComponent(i);
-
-			Material wibbly = "data/assets/white.tga";
-
-			MaterialList materials;
-			materials.materials.push_back(wibbly);
-			g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/cube_bevel.gmdl", materials, 0)));
-			g->decs.items.front()->local *= 0.1f;
-			g->decs.items.front()->local.mtrx[3][3] = 1.0f;
-			g->decs.items.front()->final = g->decs.items.front()->local;
-
-			i->name = "Item";
-			i->action_name = "Pick Up";
-
-			i->func = [=](MobComponent * user)
+			uint32_t item_index = j;
+			ItemType * item_type = ItemType::get(item_index);
+			
+			if (item_type)
 			{
-				auto inv = user->entity->getComponent<InventoryComponent>();
-				if (inv)
-				{
-					auto item = std::make_shared<Item>();
-					inv->items.add(item);
-					inv->notifications.queue.push_back(*item);
-					world->SetEntity(ent->id, nullptr);
-				}
-			};
+				NewEntity * ent = new NewEntity();
 
-			world->AddEntity(ent);
+				PositionComponent * p = new PositionComponent(Vec3(j, -2.5f, 250.0f - 0.5f));
+				GraphicsComponent * g = new GraphicsComponent(false);
+				InteractComponent * i = new InteractComponent();
+
+				ent->addComponent(p);
+				ent->addComponent(g);
+				ent->addComponent(i);
+
+				g->decs.add(item_type->dec);
+
+				i->name = item_type->name;
+				i->action_name = "Pick Up";
+
+				i->func = [=](MobComponent * user)
+				{
+					auto inv = user->entity->getComponent<InventoryComponent>();
+					if (inv)
+					{
+						auto item = std::make_shared<Item>(item_index);
+						inv->items.add(item);
+						inv->notifications.queue.push_back(*item);
+						world->SetEntity(ent->id, nullptr);
+					}
+				};
+
+				world->AddEntity(ent);
+			}
 		}
 
+		std::vector<Vec3> fountain_positions = { Vec3(0.0f, 0.0f, 249.0f), Vec3(-150.0f, -170.0f, 165.0f) };
+		for (auto position : fountain_positions)
 		{
 			NewEntity * ent = new NewEntity();
 
-			PositionComponent * p = new PositionComponent(Vec3(0.0f, 0.0f, -1.0f));
+			PositionComponent * p = new PositionComponent(position);
 			ColliderComponent * c = new ColliderComponent();
 			GraphicsComponent * g = new GraphicsComponent(false);
 			InteractComponent * i = new InteractComponent();
@@ -283,6 +286,7 @@ public:
 
 			i->func = [=](MobComponent * user)
 			{
+				user->respawn = p->p + Vec3(0.0f, 0.0f, 1.0f);
 				for (auto& res : user->resource)
 				{
 					res.current = res.max;
@@ -300,7 +304,7 @@ public:
 			ColliderComponent * c = new ColliderComponent();
 			GraphicsComponent * g = new GraphicsComponent(false);
 
-			o->center = Vec3(50.0f, -1115.0f, -235.0f);
+			o->center = Vec3(50.0f, -1115.0f, 15.0f);
 			o->period = 200.0f;
 			o->angle = Vec3(0.0f, 0.0f, 1.0f);
 			o->offset = Vec3(0.0f, 1000.0f, 0.0f);
@@ -672,9 +676,9 @@ void start_engine_instance(std::string address, uint16_t port, uint64_t lobby_id
 
 #include "ItemType.h"
 
-//INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-//	PSTR lpCmdLine, INT nCmdShow)
-int main()
+INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+	PSTR lpCmdLine, INT nCmdShow)
+//int main()
 {
 	if (false)
 	{
@@ -697,9 +701,7 @@ int main()
 
 				ScriptCompile comp(mem);
 
-				std::shared_ptr<ScriptClassData> test_class_data(new ScriptClassData());
-				test_class_data->class_name = "TestClass";
-				test_class_data->AddVirtualFunctionTable();
+				std::shared_ptr<ScriptClassData> test_class_data(new ScriptClassData("TestClass", sizeof(TestClass), true));
 
 				ScriptTypeData a_data = NewScriptTypeData<decltype(TestClass::a)>();
 				test_class_data->AddMember("a", a_data, offsetof(TestClass, a));

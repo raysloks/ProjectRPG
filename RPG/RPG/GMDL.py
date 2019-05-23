@@ -12,7 +12,7 @@ def write_gmdl(self, context, filepath):
     
     texverts = []
 
-    def clogVT(co,f):
+    def clogVT(co,f,texverts):
         if co not in texverts:
             texverts.append(co)
             f.write(struct.pack('c',str.encode('u')))
@@ -24,6 +24,7 @@ def write_gmdl(self, context, filepath):
     vertex_index_offset = 0
     for ob in bpy.context.scene.objects:
         if not ob.users_collection[0].hide_render and ob.type == 'MESH':
+            print(ob.name)
             mesh = ob.to_mesh(context.depsgraph, True)
             mesh.calc_normals_split()
             loop_normals = dict()
@@ -31,9 +32,9 @@ def write_gmdl(self, context, filepath):
                 loop_normals[loop.vertex_index] = loop.normal;
             for col in mesh.vertex_colors:
                 f.write(struct.pack('c',str.encode('c')))
-                f.write(struct.pack('<i',len(col.name)))
+                f.write(struct.pack('<I',len(col.name)))
                 f.write(str.encode(col.name))
-                f.write(struct.pack('<i',len(col.data)))
+                f.write(struct.pack('<I',len(col.data)))
                 for val in col.data:
                     f.write(struct.pack('<3f',val.color[0],val.color[1],val.color[2]))
             mat_faces = [[] for x in range(len(mesh.materials))]
@@ -67,8 +68,8 @@ def write_gmdl(self, context, filepath):
                         self.report({'INFO'}, 'No normal.')
                 for group in vert.groups:
                     f.write(struct.pack('c',str.encode('w')))
-                    f.write(struct.pack('i',group.group))
-                    f.write(struct.pack('f',group.weight))
+                    f.write(struct.pack('<I',group.group))
+                    f.write(struct.pack('<f',group.weight))
             for mat in mat_faces:
                 f.write(struct.pack('c',str.encode('m')))
                 if len(mat) > 0:
@@ -84,15 +85,15 @@ def write_gmdl(self, context, filepath):
                                     texture_filepath = bpy.path.relpath(texture_abs_filepath, abs_filepath)
                                     texture_filepath = texture_filepath.replace("\\", "/");
                                     texture_filepath = texture_filepath[5:]
-                                    f.write(struct.pack('<i', len(texture_filepath)))
+                                    f.write(struct.pack('<I', len(texture_filepath)))
                                     f.write(str.encode(texture_filepath))
                                     if tex.interpolation == 'Linear':
                                         f.write(struct.pack('c', str.encode('o')))
-                                        f.write(struct.pack('<i', len("mag_linear")))
+                                        f.write(struct.pack('<I', len("mag_linear")))
                                         f.write(str.encode("mag_linear"))
                                     if tex.image.colorspace_settings.name == 'Linear':
                                         f.write(struct.pack('c', str.encode('o')))
-                                        f.write(struct.pack('<i', len("cs_linear")))
+                                        f.write(struct.pack('<I', len("cs_linear")))
                                         f.write(str.encode("cs_linear"))
                             except:
                                 self.report({'INFO'}, 'No image texture.')
@@ -104,9 +105,9 @@ def write_gmdl(self, context, filepath):
                     try:
                         for uv_layer in mesh.uv_layers:
                             fuvd = uv_layer.data
-                            clogVT(fuvd[face.loop_indices[0]].uv,f)
-                            clogVT(fuvd[face.loop_indices[1]].uv,f)
-                            clogVT(fuvd[face.loop_indices[2]].uv,f)
+                            clogVT(fuvd[face.loop_indices[0]].uv,f,texverts)
+                            clogVT(fuvd[face.loop_indices[1]].uv,f,texverts)
+                            clogVT(fuvd[face.loop_indices[2]].uv,f,texverts)
                     except:
                         self.report({'ERROR'}, 'Texture error.')
                     f.write(struct.pack('c',str.encode('I')))

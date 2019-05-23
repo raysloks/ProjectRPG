@@ -67,10 +67,80 @@ void MobComponent::disconnect(void)
 #include "LineComponent.h"
 #include "AudioComponent.h"
 
+void MobComponent::land(float dTime)
+{
+	Vec3 target = move;
+	if (land_n != Vec3())
+	{
+		Vec3 target_right = target.Cross(up);
+		target = land_n.Cross(target_right);
+	}
+	target.Normalize();
+
+	if (recovering)
+		run = false;
+
+	if (!busy)
+	{
+		if (target != Vec3() && run)
+			stamina_regen -= dTime * 5.0f;
+	}
+
+	float speed = crouch ? 2.0f : run ? 9.0f : recovering ? 3.0f : 6.0f;
+
+	speed *= speed_mod;
+
+	if (busy)
+		speed = 0.0f;
+
+	target *= move.Len() * speed;
+
+	{
+		v -= land_v;
+		float nv = v.Dot(land_n);
+		v -= land_n * nv;
+
+		if (!rolling)
+			v = bu_blend(v, target, -0.5f, -40.0f, dTime);
+
+		v += land_n * nv;
+		v += land_v;
+	}
+
+	if (!recovering && !busy)
+	{
+		if (input.find("roll") != input.end() && target != Vec3() && stamina.current >= 1)
+		{
+			acc->set_state(new SimpleState("roll", 2.0f));
+
+			v = target.Normalized() * 10.0f + land_v;
+
+			stamina.current -= 1;
+
+			input.erase("roll");
+		}
+
+		if (input.find("jump") != input.end() && stamina.current >= 1)
+		{
+			v -= land_v;
+			if (up.Dot(v) < 0.0f)
+				v -= up * up.Dot(v);
+			v += land_v;
+			v += up * 4.0f;
+
+			stamina.current -= 1;
+
+			input.erase("jump");
+		}
+	}
+}
+
 void MobComponent::tick(float dTime)
 {
 	if (!p)
 		p = entity->getComponent<PositionComponent>();
+	if (!acc)
+		acc = entity->getComponent<AnimationControlComponent>();
 
 	if (entity->world->authority)
 	{
@@ -81,21 +151,17 @@ void MobComponent::tick(float dTime)
 
 		for (auto& aura : auras)
 		{
-			if (aura)
+			if ((aura->duration -= dTime) <= 0.0f)
 			{
-				if ((aura->duration -= dTime) <= 0.0f)
-				{
-					delete aura;
-					aura = nullptr;
-				}
+				delete aura;
+				aura = nullptr;
 			}
 		}
+		auras.erase(std::remove(auras.begin(), auras.end(), nullptr), auras.end());
 
-		auto acc = entity->getComponent<AnimationControlComponent>();
-
-		bool recovering = input.find("recover") != input.end();
-		bool rolling = acc->has_state("roll") || acc->has_state("hit");
-		bool busy = !acc->has_state("run");
+		recovering = input.find("recover") != input.end();
+		rolling = acc->has_state("roll") || acc->has_state("hit");
+		busy = !acc->has_state("run");
 
 		if (acc->has_state("roll"))
 		{
@@ -119,7 +185,7 @@ void MobComponent::tick(float dTime)
 				if (stamina.current >= stamina_cost)
 				{
 					stamina.current -= stamina_cost;
-					acc->set_state(new BlendState("attack", "attack_up", 1.0f - facing.y * 2.0f / M_PI, 3.0f));
+					acc->set_state(new BlendState("attack", "attack_up", 1.0f - facing.y * 2.0f / float(M_PI), 3.0f));
 					input.erase("attack");
 				}
 			}
@@ -215,11 +281,11 @@ void MobComponent::tick(float dTime)
 
 		if (p != nullptr)
 		{
-			if (Vec3(p->p).z < -250.0f)
+			if (Vec3(p->p).z < 0.0f)
 			{
 				if (temp_team == 0)
 				{
-					p->p = Vec3();
+					p->p = respawn;
 					v = Vec3();
 					for (auto& r : resource)
 						r.current = r.max;
@@ -292,14 +358,23 @@ void MobComponent::tick(float dTime)
 			//land_n = Vec3(); // smooth these out for some cases
 			//land_v = Vec3(); // -''-
 
-			Vec3 g_dir = Vec3(0.0f, 0.0f, -1.0f);//-Vec3(*p).Normalized();
-			Vec3 g = g_dir * 9.8f;
-
-			dp = (g / 2.0f * dTime + v) * dTime + external_dp;
-
 			float t = 1.0f;
 
 			bool done_landing = false;
+
+			Vec3 g_dir = Vec3(0.0f, 0.0f, -1.0f);//-Vec3(*p).Normalized();
+			Vec3 g = g_dir * 9.8f;
+
+			float immersion = fminf(1.5f, 1.0f - Vec3(p->p).z) / 1.5f;
+			if (immersion > 0.0f)
+			{
+				takeoff_v = Vec3();
+				land_n = Vec3();
+				land_v = Vec3();
+				g -= g * (1.0f / 0.98f) * immersion;
+			}
+
+			dp = (g / 2.0f * dTime + v) * dTime + external_dp;
 
 			std::set<void*> ignored;
 			std::set<Vec3> previous;
@@ -426,13 +501,15 @@ void MobComponent::tick(float dTime)
 				}*/
 
 				ColliderComponent::SphereCast(p->p, p->p + dp, r, list);
-
+				
 				std::shared_ptr<Collision> col;
 				for (auto i = list.begin(); i != list.end(); ++i)
 				{
 					if (ignored.find((*i)->wall) == ignored.end())
+					{
 						if ((*i)->t >= 0.0f && (*i)->t <= 1.0f)
-							if ((*i)->n.Dot(dp - (*i)->v*dTime) < 0.0f)
+						{
+							if ((*i)->n.Dot(dp - (*i)->v * dTime) < 0.0f)
 							{
 								if (col != 0)
 								{
@@ -444,6 +521,8 @@ void MobComponent::tick(float dTime)
 									col = *i;
 								}
 							}
+						}
+					}
 				}
 
 				if (col != 0)
@@ -461,15 +540,20 @@ void MobComponent::tick(float dTime)
 
 					{
 						float fall_one = col->n.Dot(v) / 10.0f;
-						int32_t fall_damage = fall_one * fall_one - 1.0f;
-						if (fall_damage > 0)
+						float fall_damage_part = (fall_one * fall_one - 1.0f) / 10.0f;
+						if (fall_damage_part > 0.0f)
 						{
-							hit = true;
-							do_damage(HitData(fall_damage));
+							uint32_t fall_damage = health.max * fall_damage_part;
+							if (fall_damage > 0)
+							{
+								hit = true;
+								do_damage(HitData(fall_damage));
+							}
 						}
 					}
 
-					if (col->n.Dot(up) > land_n.Dot(up) || ignored.empty()) {
+					if (col->n.Dot(up) > land_n.Dot(up) || ignored.empty())
+					{
 						land_n = col->n;
 						land_v = col->v;
 					}
@@ -488,71 +572,11 @@ void MobComponent::tick(float dTime)
 						{
 							done_landing = true;
 
-							Vec3 target = move;
-							Vec3 target_right = target.Cross(up);
-							target = land_n.Cross(target_right);
-							target.Normalize();
-
-							if (recovering)
-								run = false;
-
-							if (!busy)
-							{
-								if (target != Vec3() && run)
-									stamina_regen -= dTime * 5.0f;
-							}
-
-							float speed = crouch ? 2.0f : run ? 9.0f : recovering ? 3.0f : 6.0f;
-
-							speed *= speed_mod;
-
-							if (busy)
-								speed = 0.0f;
-
-							target *= move.Len() * speed;
-
-							{
-								v -= land_v;
-								float nv = v.Dot(land_n);
-								v -= land_n * nv;
-
-								if (!rolling)
-									v = bu_blend(v, target, -0.5f, -40.0f, dTime);
-
-								v += land_n * nv;
-								v += land_v;
-							}
-
-							if (!recovering && !busy)
-							{
-								if (input.find("roll") != input.end() && target != Vec3() && stamina.current >= 1)
-								{
-									acc->set_state(new SimpleState("roll", 2.0f));
-
-									v = target.Normalized() * 10.0f + land_v;
-
-									stamina.current -= 1;
-
-									input.erase("roll");
-								}
-
-								if (input.find("jump") != input.end() && stamina.current >= 1)
-								{
-									v -= land_v;
-									if (up.Dot(v) < 0.0f)
-										v -= up * up.Dot(v);
-									v += land_v;
-									v += up * 4.0f;
-
-									stamina.current -= 1;
-
-									input.erase("jump");
-								}
-							}
+							land(dTime);
 						}
 					}
 
-					takeoff_v = (v - land_v) * 0.8f + land_v;
+					takeoff_v = (v - land_v) * 0.6f + land_v;
 
 					float edp_dot_n = external_dp.Dot(col->n);
 					if (edp_dot_n < 0.0f)
@@ -578,17 +602,25 @@ void MobComponent::tick(float dTime)
 				}
 			}
 
-			if (!done_landing)
+			if (immersion > 0.0f)
 			{
-				v -= takeoff_v;
-				float z = v.z;
-				v.z -= z;
+				v += move_space * 6.0f * dTime;
+				v = bu_blend(v, Vec3(), log(0.1f) * immersion, 0.0f, dTime);
+			}
+			else
+			{
+				if (!done_landing)
+				{
+					v -= takeoff_v;
+					float z = v.z;
+					v.z -= z;
 
-				if (!rolling)
-					v = bu_blend(v, move * 6.0f * 0.2f, -0.5f, -10.0f, dTime);
+					if (!rolling)
+						v = bu_blend(v, move * 6.0f * 0.4f, -0.5f, -5.0f, dTime);
 
-				v.z += z;
-				v += takeoff_v;
+					v.z += z;
+					v += takeoff_v;
+				}
 			}
 
 			dp = Vec3();
@@ -699,7 +731,7 @@ void MobComponent::do_damage(HitData& hit)
 
 				if (temp_team == 0)
 				{
-					p->p = Vec3();
+					p->p = respawn;
 					v = Vec3();
 					for (auto& r : resource)
 						r.current = r.max;
@@ -743,11 +775,7 @@ void MobComponent::do_heal(size_t heal, EntityID source)
 
 void MobComponent::add_aura(Aura * aura)
 {
-	auto i = std::find(auras.begin(), auras.end(), nullptr);
-	if (i != auras.end())
-		*i = aura;
-	else
-		auras.push_back(aura);
+	auras.push_back(aura);
 	aura->attach(this);
 }
 
@@ -755,5 +783,5 @@ void MobComponent::remove_aura(Aura * aura)
 {
 	auto i = std::find(auras.begin(), auras.end(), aura);
 	delete *i;
-	*i = nullptr;
+	auras.erase(i);
 }
