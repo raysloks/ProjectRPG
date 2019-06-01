@@ -6,8 +6,10 @@ class SkillNode
 public:
 	SkillNode();
 	~SkillNode();
-
-	int exp;
+  
+  Aura * getAura(int level);
+  Ability * getAbility(int level);
+  
 };
 
 #endif
