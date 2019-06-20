@@ -28,8 +28,10 @@ void Ability::activate(const AbilityContext& ac) const
 	if (cast_time > 0.0f)
 	{
 		auto acc = ac.source->entity->getComponent<AnimationControlComponent>();
-		auto cast = new SimpleState("cast", 1.0f / cast_time);
+		auto cast = new SimpleState("quaff", 1.0f / cast_time);
+		cast->length = cast_time * 100.0f;
 		cast->events.insert(std::make_pair(1.0f, finish));
+		acc->set_state(cast);
 	}
 	else
 	{
@@ -45,11 +47,13 @@ void Ability::init()
 
 	abilities.resize(256);
 
-	abilities[0].cast_time = 3.0f;
+	abilities[0].cast_time = 1.0f;
 	abilities[0].icon = "data/assets/y.tga";
+	abilities[0].name = "Skullsplitter";
 
 	abilities[1].cast_time = 3.0f;
 	abilities[1].icon = "data/assets/wibbly.tga";
+	abilities[1].name = "Fireball";
 }
 
 const Ability * Ability::get(uint32_t index)

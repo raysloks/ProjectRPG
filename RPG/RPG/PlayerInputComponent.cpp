@@ -19,6 +19,9 @@
 #include "Matrix4.h"
 #include "Quaternion.h"
 
+#include "Ability.h"
+#include "AbilityContext.h"
+
 AutoSerialFactory<PlayerInputComponent, Component> PlayerInputComponent::_factory("PlayerInputComponent");
 
 PlayerInputComponent::PlayerInputComponent(void) : Component(_factory.id)
@@ -89,14 +92,22 @@ void PlayerInputComponent::post_frame(float dTime)
 			if (move_space.Len() > 1.0f)
 				move_space.Normalize();
 
-			if (input.isPressed(Platform::KeyEvent::N1) || input.ctrl[0].x.pressed)
+			/*if (input.isPressed(Platform::KeyEvent::N1) || input.ctrl[0].x.pressed)
 				sc.queue.emplace_back("attack");
 			if (input.isPressed(Platform::KeyEvent::N2) || input.ctrl[0].right_trigger.pressed)
 				sc.queue.emplace_back("dash");
+			if (input.isPressed(Platform::KeyEvent::Q) || input.ctrl[0].y.pressed)
+				sc.queue.emplace_back("heal");*/
+
+			if (input.isPressed(Platform::KeyEvent::N1) || input.ctrl[0].x.pressed)
+				sc.queue.emplace_back("0");
+			if (input.isPressed(Platform::KeyEvent::N2) || input.ctrl[0].right_trigger.pressed)
+				sc.queue.emplace_back("1");
+			if (input.isPressed(Platform::KeyEvent::Q) || input.ctrl[0].y.pressed)
+				sc.queue.emplace_back("2");
+
 			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].a.pressed)
 				sc.queue.emplace_back("jump");
-			if (input.isPressed(Platform::KeyEvent::Q) || input.ctrl[0].y.pressed)
-				sc.queue.emplace_back("heal");
 			if (input.isPressed(Platform::KeyEvent::F1))
 				sc.queue.emplace_back("fly");
 		}
@@ -120,6 +131,13 @@ void PlayerInputComponent::tick(float dTime)
 			mob->move_space = move_space;
 
 			float buffer_duration = 0.2f;
+
+			AbilityContext ac;
+			ac.source = mob;
+			if (sc.consumeValue("0"))
+				Ability::get(*mob->abilities.items[0])->activate(ac);
+			if (sc.consumeValue("1"))
+				Ability::get(*mob->abilities.items[1])->activate(ac);
 
 			if (sc.consumeValue("attack"))
 				mob->input["attack"] = buffer_duration;

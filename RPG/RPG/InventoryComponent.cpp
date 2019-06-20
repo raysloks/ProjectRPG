@@ -390,7 +390,7 @@ void InventoryComponent::set_display(bool enable)
 									if (sprite)
 									{
 										rs.pushTransform();
-										rs.addTransform(Matrix4::Translation(rs.size * Vec2(0.5f, 0.75f) + Vec2((i - 3.5f)  * 70.0f, 0.0f)));
+										rs.addTransform(Matrix4::Translation(rs.size * Vec2(0.5f, 0.875f) + Vec2((i - 3.5f)  * 70.0f, 0.0f)));
 										rs.pushMod(mod);
 
 										rs.addTransform(Matrix4::Translation(Vec2(-32.0f)));

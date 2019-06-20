@@ -14,11 +14,13 @@ Action::~Action(void)
 {
 }
 
-void Action::fill_cache()
+void Action::fill_cache(float resolution)
 {
-	for (size_t i = 0; i < length; ++i)
+	for (float t = 0.0f; ; t += resolution)
 	{
-		cache.push_back(*anim->getPoseRaw(i, *this));
+		cache.push_back(*anim->getPoseRaw(t, *this));
+		if (t >= length)
+			break;
 	}
 }
 
@@ -317,8 +319,8 @@ SkeletalAnimation::SkeletalAnimation(instream& is)
 				{
 					float x, y;
 					is >> x >> y;
-					if (x>action->length)
-						action->length=x;
+					if (x > action->length)
+						action->length = x;
 					action->keys[group_index][type].insert(std::pair<float, float>(x, y));
 				}
 			}
@@ -330,10 +332,12 @@ SkeletalAnimation::SkeletalAnimation(instream& is)
 
 void SkeletalAnimation::getPose(float time, const Action& action, Pose& pose) const
 {
-	int time_int = floorf(time);
+	int64_t time_int = floorf(time);
 	float time_frac = time - time_int;
 
-	if (time_int < 0)
+	time_int %= action.cache.size();
+
+	/*if (time_int < 0)
 	{
 		pose = action.cache.front();
 		return;
@@ -343,10 +347,11 @@ void SkeletalAnimation::getPose(float time, const Action& action, Pose& pose) co
 	{
 		pose = action.cache.back();
 		return;
-	}
+	}*/
 
 	pose = action.cache[time_int];
-	pose.interpolate(action.cache[time_int + 1], time_frac);
+	time_int = (time_int + 1) % action.cache.size();
+	pose.interpolate(action.cache[time_int], time_frac);
 }
 
 void SkeletalAnimation::getPose(float time, const std::string& action, Pose& pose) const
@@ -541,8 +546,8 @@ void SkeletalAnimation::compileActions(float resolution)
 	float total_t = 0.0f;
 	for (auto& action : actions)
 	{
-		action.second.compiled_start = total_t + resolution * 0.5f;
-		for (float t = 0.0f; t <= action.second.length; t += resolution)
+		action.second.compiled_start = total_t + resolution;
+		for (float t = 0.0f; ; t += resolution)
 		{
 			total_t += resolution;
 			++frame_count;
@@ -560,10 +565,12 @@ void SkeletalAnimation::compileActions(float resolution)
 					}
 				}
 			}
+			if (t >= action.second.length)
+				break;
 		}
-		action.second.compiled_end = total_t - resolution * 0.5f;
+		action.second.compiled_end = total_t;
 		
-		action.second.fill_cache();
+		action.second.fill_cache(resolution);
 	}
 }
 

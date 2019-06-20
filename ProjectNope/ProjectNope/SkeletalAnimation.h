@@ -20,7 +20,7 @@ public:
 	Action(float length);
 	~Action(void);
 
-	void fill_cache();
+	void fill_cache(float resolution);
 
 	std::vector<std::vector<std::map<float, float>>> keys;
 	std::vector<std::vector<std::string>> props;

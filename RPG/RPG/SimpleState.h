@@ -32,6 +32,7 @@ public:
 	float blend_t;
 	float t, prev_t;
 	float speed;
+	float length;
 	std::string name;
 	std::map<float, std::function<void(void)>> events;
 };

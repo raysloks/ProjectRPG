@@ -19,9 +19,10 @@ public:
 
 	void activate(const AbilityContext& ac) const;
 
+	std::string icon, name;
+
 	float cast_time;
 	//Interruptability interruptability;
-	std::string icon;
 
 	std::vector<std::shared_ptr<const Effect>> effects;
 };

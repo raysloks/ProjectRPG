@@ -13,11 +13,12 @@ SimpleState::SimpleState(const std::string& n, float s) : name(n), speed(s)
 	t = 0.0f;
 	prev_t = 0.0f;
 	blend_t = 0.0f;
+	length = std::numeric_limits<float>::quiet_NaN();
 }
 
 SimpleState::SimpleState(instream& is)
 {
-	is >> t >> speed >> name;
+	is >> t >> speed >> length >> name;
 	prev_t = t;
 	blend_t = 0.0f;
 }
@@ -56,7 +57,8 @@ void SimpleState::tick(float dTime)
 	if (anim)
 	{
 		float start = anim->getStart(name);
-		float length = anim->getLength(name);
+		if (isnan(length))
+			length = anim->getLength(name);
 
 		pose->frame = start + length * t;
 
@@ -82,7 +84,7 @@ void SimpleState::interpolate(AnimationState * other, float fWeight)
 
 void SimpleState::write_to(outstream& os) const
 {
-	os << t << speed << name;
+	os << t << speed << length << name;
 }
 
 uint32_t SimpleState::getSerial() const
