@@ -14,6 +14,8 @@
 
 #include "HitData.h"
 
+#include "SyncContainer.h"
+
 #include <memory>
 #include <map>
 #include <functional>
@@ -28,7 +30,7 @@ class MobComponent :
 {
 public:
 	MobComponent(void);
-	MobComponent(instream& is, bool full);
+	MobComponent(instream& is);
 	~MobComponent(void);
 
 	void connect(NewEntity * pEntity, bool authority);
@@ -36,15 +38,15 @@ public:
 
 	void tick(float dTime);
 
-	void writeLog(outstream& os, ClientData& client);
+	void writeLog(outstream& os, const std::shared_ptr<ClientData>& client);
 	void readLog(instream& is);
 
 	void writeLog(outstream& os);
-	void readLog(instream& is, ClientData& client);
+	void readLog(instream& is, const std::shared_ptr<ClientData>& client);
 
 	void interpolate(Component * pComponent, float fWeight);
 
-	void write_to(outstream& os, ClientData& client) const;
+	void write_to(outstream& os, const std::shared_ptr<ClientData>& client) const;
 	void write_to(outstream& os) const;
 
 	static AutoSerialFactory<MobComponent, Component> _factory;
@@ -84,6 +86,8 @@ public:
 	FunctionList<HitData&> on_hit_taken, on_fatal_hit_taken, on_death;
 
 	std::vector<Aura*> auras;
+
+	SyncContainer<uint32_t> abilities;
 
 	//facing
 	Vec2 facing;

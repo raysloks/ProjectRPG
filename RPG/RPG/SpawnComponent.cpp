@@ -19,7 +19,7 @@ SpawnComponent::SpawnComponent(void) : Component(_factory.id)
 {
 }
 
-SpawnComponent::SpawnComponent(instream& is, bool full) : Component(_factory.id)
+SpawnComponent::SpawnComponent(instream& is) : Component(_factory.id)
 {
 }
 
@@ -47,7 +47,7 @@ void SpawnComponent::tick(float dTime)
 {
 }
 
-void SpawnComponent::writeLog(outstream& os, ClientData& client)
+void SpawnComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -59,7 +59,7 @@ void SpawnComponent::writeLog(outstream& os)
 {
 }
 
-void SpawnComponent::readLog(instream& is, ClientData& client)
+void SpawnComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -67,7 +67,7 @@ void SpawnComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void SpawnComponent::write_to(outstream& os, ClientData& client) const
+void SpawnComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 

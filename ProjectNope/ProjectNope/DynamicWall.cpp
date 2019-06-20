@@ -351,7 +351,7 @@ std::shared_ptr<Collision> DynamicWall::SphereCast(const Vec3& sP, const Vec3& e
 				Vec3 cn = (cp2-cp1).Cross(cp3-cp1);
 				cn.Normalize();
 
-				col.reset(new Collision());
+				col = std::make_shared<Collision>();
 				col->poc = sP+dif*t;
 				Vec3 w = calcWeight(cp1, cp2, cp3, col->poc); // this does another calculation of cn. optimize!
 				std::cout << w.x << " , " << w.y << " , " << w.z << std::endl;

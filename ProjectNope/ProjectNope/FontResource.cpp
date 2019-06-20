@@ -25,7 +25,7 @@ FT_Face FontResource::getFace(size_t x_size, size_t y_size)
 std::shared_ptr<Glyph> FontResource::getGlyph(unsigned long code, size_t x_size, size_t y_size)
 {
 	if (!atlas)
-		atlas.reset(new GlyphAtlas(2048, 2048));
+		atlas = std::make_shared<GlyphAtlas>(2048, 2048);
 
 	auto glyph = glyphs.find(std::make_pair(code, std::make_pair(x_size, y_size)));
 	if (glyph == glyphs.end())

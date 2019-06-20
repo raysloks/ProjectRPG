@@ -37,7 +37,7 @@ void Item::readLog(instream& is)
 
 NewEntity * Item::drop(World * world, uint32_t type, const GlobalPosition& pos)
 {
-	ItemType * item_type = ItemType::get(type);
+	const ItemType * item_type = ItemType::get(type);
 
 	if (item_type)
 	{

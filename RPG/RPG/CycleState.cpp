@@ -13,7 +13,7 @@ CycleState::CycleState(const std::string& n, float s) : SimpleState(n, s)
 	t = 0.0f;
 }
 
-CycleState::CycleState(instream& is, bool full) : SimpleState(is, full)
+CycleState::CycleState(instream& is) : SimpleState(is)
 {
 }
 

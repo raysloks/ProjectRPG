@@ -36,32 +36,37 @@ public:
 		return false;
 	}
 
-	void writeLog(outstream& os, ClientData& client)
+	void writeFromDestination(outstream& os)
 	{
 		os << sync;
 	}
-	void readLog(instream& is)
+
+	void readFromDestination(instream& is)
 	{
-		/*uint32_t next_sync;
+		uint32_t next_sync;
 		is >> next_sync;
-		update(next_sync);*/
-		is >> sync;
+		update(next_sync);
+		//is >> sync;
 	}
 
-	void writeLog(outstream& os)
+	void writeFromSource(outstream& os)
 	{
 		os << sync + uint32_t(queue.size());
 		os << uint32_t(queue.size());
 		for (auto& obj : queue)
 			os << obj;
 	}
-	void readLog(instream& is, ClientData& client)
+
+	void readFromSource(instream& is)
 	{
 		uint32_t next_sync, next_size;
 		is >> next_sync >> next_size;
 		std::vector<T> next(next_size);
 		for (size_t i = 0; i < next_size; ++i)
-			is >> next[i];
+			if constexpr (std::is_constructible<T, instream&>::value)
+				next[i] = T(is);
+			else
+				is >> next[i];
 		update(next_sync, next);
 	}
 

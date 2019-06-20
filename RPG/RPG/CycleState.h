@@ -7,7 +7,7 @@ class CycleState :
 {
 public:
 	CycleState(const std::string& name, float speed = 1.0f);
-	CycleState(instream& is, bool full);
+	CycleState(instream& is);
 	~CycleState();
 
 	void tick(float dTime);

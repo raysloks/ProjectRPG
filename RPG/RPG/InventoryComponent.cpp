@@ -21,9 +21,12 @@
 #include "RectangleWindow.h"
 #include "RectangleButtonWindow.h"
 #include "TextWindow.h"
+#include "DecoratorWindow.h"
 
 #include "InventoryCommandInteract.h"
 #include "InventoryCommandEquip.h"
+
+#include "Ability.h"
 
 AutoSerialFactory<InventoryComponent, Component> InventoryComponent::_factory("InventoryComponent");
 
@@ -32,7 +35,7 @@ InventoryComponent::InventoryComponent(void) : Component(_factory.id)
 	name = "Oogabooga";
 }
 
-InventoryComponent::InventoryComponent(instream& is, bool full) : Component(_factory.id)
+InventoryComponent::InventoryComponent(instream& is) : Component(_factory.id)
 {
 	is >> owner >> name;
 }
@@ -77,6 +80,12 @@ void InventoryComponent::pre_frame(float dTime)
 		}
 	}
 
+	while (hp_changes.queue.size())
+	{
+		combat_text_display.push_back(std::make_pair(0.0f, std::to_string(hp_changes.queue.back())));
+		hp_changes.queue.pop_back();
+	}
+
 	for (auto& i : notifications_display)
 	{
 		i.first += dTime;
@@ -84,8 +93,15 @@ void InventoryComponent::pre_frame(float dTime)
 	notifications_display.erase(std::remove_if(notifications_display.begin(), notifications_display.end(),
 		[](const std::pair<float, Item>& i) { return i.first > 1.5f; }), notifications_display.end());
 
+	for (auto& i : combat_text_display)
+	{
+		i.first += dTime;
+	}
+	combat_text_display.erase(std::remove_if(combat_text_display.begin(), combat_text_display.end(),
+		[](const std::pair<float, std::string>& i) { return i.first > 1.5f; }), combat_text_display.end());
+
 	Client * client = entity->world->client;
-	if (client)
+	if (client && owner)
 	{
 		const Input& input = client->input;
 
@@ -98,39 +114,58 @@ void InventoryComponent::pre_frame(float dTime)
 			}
 			else
 			{
-				window.reset(new Window());
+				auto rect_window = new RectangleWindow(-800.0f, -800.0f, 600.0f, 600.0f);
+				rect_window->min_anchor = Vec2(1.0f, 1.0f);
+				rect_window->max_anchor = Vec2(1.0f, 1.0f);
+				window.reset(rect_window);
 				client->windows.push_back(window);
-				window->onRender = [=]()
+				/*window->onRender = [=]()
 				{
 					client->hideCursor = false;
-				};
+				};*/
 
-				auto rect_window = new RectangleWindow(400.0f, 200.0f, 1000.0f, 1000.0f);
-				window->addChild(rect_window);
+				auto text = new TextWindow(10, 10, 100, 40);
+				text->text = name + "'s Inventory";
+				rect_window->addChild(text);
 
-				int i = 0;
-				for (auto item : items.items)
+				for (int i = 0; i < items.items.size(); ++i)
 				{
-					++i;
+					auto item = items.items[i];
 
 					auto type = ItemType::get(item->type);
 
-					auto text = new TextWindow(20, 40 * i + 16, 100, 32);
+					auto item_window = new RectangleWindow(20.0f, 60.0f + 80 * i, -40.0f, 60.0f);
+					item_window->max_anchor = Vec2(1.0f, 0.0f);
+					rect_window->addChild(item_window);
+
+					auto dec = new DecoratorWindow();
+					dec->min_offset = Vec2(0, -10);
+					dec->max_offset = Vec2(80, 70);
+					dec->dec = type->dec;
+					item_window->addChild(dec);
+
+					auto text = new TextWindow(80, 10, 100, 40);
 					text->text = type->name;
-					auto button = new RectangleButtonWindow(120, 40 * i, 100, 32);
-					button->text = "Equip";
-					button->onClick = [=]()
+					text->offset = Vec2(0.0f, 0.5f);
+					item_window->addChild(text);
+
+					if (type->weapon)
 					{
-						commands.queue.emplace_back(new InventoryCommandEquip(i - 1));
-						/*auto mob = entity->getComponent<MobComponent>();
-						if (mob && mob->weapon)
+						auto button = new RectangleButtonWindow(200, 10, 100, 40);
+						//button->text = "Equip";
+						button->onClick = [=]()
 						{
-							mob->weapon->item_index = item->type;
-							mob->weapon->update();
-						}*/
-					};
-					rect_window->addChild(text);
-					rect_window->addChild(button);
+							commands.queue.emplace_back(new InventoryCommandEquip(i));
+						};
+						item_window->addChild(button);
+
+						text = new TextWindow(0, 0, 0, 0);
+						text->font_size = 24;
+						text->max_anchor = Vec2(1.0f, 1.0f);
+						text->text = "Equip";
+						text->offset = Vec2(0.5f, 0.5f);
+						button->addChild(text);
+					}
 				}
 			}
 		}
@@ -138,7 +173,6 @@ void InventoryComponent::pre_frame(float dTime)
 		if (input.isPressed(Platform::KeyEvent::E))
 		{
 			commands.queue.emplace_back(new InventoryCommandInteract(current_interact));
-			//interact.queue.emplace_back(current_interact);
 		}
 	}
 }
@@ -152,31 +186,6 @@ void InventoryComponent::tick(float dTime)
 			command.ptr->execute(*this);
 		}
 		commands.queue.clear();
-
-		auto mob = entity->getComponent<MobComponent>();
-		if (mob)
-		{
-			for (auto i : interact.queue)
-			{
-				auto ent = entity->world->GetEntity(i);
-				if (ent)
-				{
-					auto p = ent->getComponent<PositionComponent>();
-					auto ic = ent->getComponent<InteractComponent>();
-					if (p && ic)
-					{
-						if (Vec3(p->p - mob->p->p).LenPwr() <= 5.29f)
-						{
-							if (ic->func)
-							{
-								ic->func(mob);
-							}
-						}
-					}
-				}
-			}
-			interact.queue.clear();
-		}
 	}
 }
 
@@ -193,10 +202,10 @@ void InventoryComponent::set_display(bool enable)
 				if (mob != nullptr)
 				{
 					if (entity->world->authority)
-						owner = entity->world->client->clientData->client_id == client_id;
+						owner = entity->world->client->clientData == clientData.lock();
 					if (owner)
 					{
-						func.reset(new std::function<void(RenderSetup&)>([this, mob](RenderSetup& rs)
+						func = std::make_shared<std::function<void(RenderSetup&)>>([this, mob](RenderSetup& rs)
 						{
 							Vec4 color(1.0f);
 
@@ -369,6 +378,31 @@ void InventoryComponent::set_display(bool enable)
 
 							Writing::setOffset(Vec2(0.0f, 0.0f));
 
+
+							// render abilities
+							color = Vec4(1.0f);
+							for (int i = 0; i < mob->abilities.items.size(); ++i)
+							{
+								auto ability = Ability::get(*mob->abilities.items[i]);
+								if (ability)
+								{
+									auto sprite = Resource::get<Texture>(ability->icon);
+									if (sprite)
+									{
+										rs.pushTransform();
+										rs.addTransform(Matrix4::Translation(rs.size * Vec2(0.5f, 0.75f) + Vec2((i - 3.5f)  * 70.0f, 0.0f)));
+										rs.pushMod(mod);
+
+										rs.addTransform(Matrix4::Translation(Vec2(-32.0f)));
+										sprite->render(rs, Vec2(64.0f));
+
+										rs.popMod();
+										rs.popTransform();
+									}
+								}
+							}
+
+
 							if (false)
 							{
 								if (sprite)
@@ -437,16 +471,46 @@ void InventoryComponent::set_display(bool enable)
 								}
 								rs.popTransform();
 							}
-						}));
+
+							if (p)
+							{
+								for (auto ct : combat_text_display)
+								{
+									rs.pushTransform();
+									rs.addTransform(Matrix4::Translation(Vec3(rs.size * 0.5f)));
+									GlobalPosition text_position = p->p + Vec3(0.0f, 0.0f, 0.75f) * ct.first;
+									Vec3 dif = text_position - entity->world->cam_pos;
+									if (dif.LenPwr() < 500.0f)
+									{
+										Vec3 screen_pos = dif * rs.view;
+										if (screen_pos.z < 1.0f)
+										{
+											rs.addTransform(Matrix4::Translation(screen_pos * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f));
+											float scale = rs.size.y * (1.0f / 256.0f) / Vec3(text_position - entity->world->cam_pos).Len();
+											rs.addTransform(Matrix4::Scale(Vec3(scale, scale, scale)));
+											rs.addTransform(Matrix4::Translation(Vec3(0.0f, 0.0f, 0.0f)));
+
+											Writing::setOffset(Vec2(-0.5f, 0.0f));
+											Writing::setSize(25);
+											Writing::setColor(0.5f, 0.5f, 0.1f);
+											Writing::render(ct.second, rs);
+											rs.popTransform();
+										}
+									}
+									rs.popTransform();
+								}
+							}
+						});
 					}
 					else
 					{
-						func.reset(new std::function<void(RenderSetup&)>([this, mob](RenderSetup& rs) {
-							rs.pushTransform();
+						func = std::make_shared<std::function<void(RenderSetup&)>>([this, mob](RenderSetup& rs) {
 							PositionComponent * p = entity->getComponent<PositionComponent>();
 							if (p)
 							{
+								rs.pushTransform();
 								rs.addTransform(Matrix4::Translation(Vec3(rs.size * 0.5f)));
+
 								GlobalPosition text_position = p->p + Vec3(0.0f, 0.0f, 0.75f);
 								Vec3 dif = text_position - entity->world->cam_pos;
 								if (dif.LenPwr() < 500.0f)
@@ -454,6 +518,7 @@ void InventoryComponent::set_display(bool enable)
 									Vec3 screen_pos = dif * rs.view;
 									if (screen_pos.z < 1.0f)
 									{
+										rs.pushTransform();
 										rs.addTransform(Matrix4::Translation(screen_pos * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f));
 										float scale = rs.size.y * (1.0f / 256.0f) / Vec3(text_position - entity->world->cam_pos).Len();
 										rs.addTransform(Matrix4::Scale(Vec3(scale, scale, scale)));
@@ -469,11 +534,38 @@ void InventoryComponent::set_display(bool enable)
 										Writing::render(name, rs);
 										Writing::setOffset(Vec2());
 										rs.popTransform();
+										rs.popTransform();
 									}
 								}
+
+								for (auto ct : combat_text_display)
+								{
+									rs.pushTransform();
+									GlobalPosition text_position = p->p + Vec3(0.0f, 0.0f, 0.75f) * ct.first;
+									Vec3 dif = text_position - entity->world->cam_pos;
+									if (dif.LenPwr() < 500.0f)
+									{
+										Vec3 screen_pos = dif * rs.view;
+										if (screen_pos.z < 1.0f)
+										{
+											rs.addTransform(Matrix4::Translation(screen_pos * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f));
+											float scale = rs.size.y * (1.0f / 256.0f) / Vec3(text_position - entity->world->cam_pos).Len();
+											rs.addTransform(Matrix4::Scale(Vec3(scale, scale, scale)));
+											rs.addTransform(Matrix4::Translation(Vec3(0.0f, 0.0f, 0.0f)));
+
+											Writing::setOffset(Vec2(-0.5f, 0.0f));
+											Writing::setSize(25);
+											Writing::setColor(0.5f, 0.5f, 0.1f);
+											Writing::render(ct.second, rs);
+											rs.popTransform();
+										}
+									}
+									rs.popTransform();
+								}
+
+								rs.popTransform();
 							}
-							rs.popTransform();
-						}));
+						});
 					}
 					client->render2D.push_back(func);
 				}
@@ -490,90 +582,66 @@ void InventoryComponent::set_display(bool enable)
 	}
 }
 
-void InventoryComponent::writeLog(outstream& os, ClientData& client)
+void InventoryComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
-	commands.writeLog(os, client);
-	interact.writeLog(os, client);
+	commands.writeFromDestination(os);
 	items.writeLog(os);
-	notifications.writeLog(os);
+	notifications.writeFromSource(os);
+	hp_changes.writeFromSource(os);
 }
 
 void InventoryComponent::readLog(instream& is)
 {
-	commands.readLog(is);
-	interact.readLog(is);
+	commands.readFromDestination(is);
 	items.readLog(is);
-	notifications.readLog(is, ClientData());
+	notifications.readFromSource(is);
+	hp_changes.readFromSource(is);
 }
-
-#include <lmcons.h>
-#include <codecvt>
 
 void InventoryComponent::writeLog(outstream& os)
 {
-	commands.writeLog(os);
-	interact.writeLog(os);
-	notifications.writeLog(os, ClientData());
+	if (owner)
+	{
+		commands.writeFromSource(os);
+
+		notifications.writeFromDestination(os);
+	}
+
+	hp_changes.writeFromDestination(os);
 }
 
-void InventoryComponent::readLog(instream& is, ClientData& client)
+void InventoryComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
-	if (client.client_id == client_id)
-	{
-		commands.readLog(is, client);
+	uint32_t next_sync;
 
-		uint32_t next_sync, next_size;
-		is >> next_sync >> next_size;
-		std::vector<EntityID> next(next_size);
-		for (size_t i = 0; i < next_size; ++i)
-		{
-			is >> next[i];
-			if (next[i].id < client.unit_uid.size())
-			{
-				if (next[i].uid == client.unit_uid[next[i].id])
-				{
-					next[i].id = client.getRealID(next[i].id);
-					if (next[i].id < entity->world->uid.size())
-					{
-						next[i].uid = entity->world->uid[next[i].id];
-					}
-					else
-					{
-						next[i] = EntityID();
-					}
-				}
-				else
-				{
-					next[i] = EntityID();
-				}
-			}
-			else
-			{
-				next[i] = EntityID();
-			}
-		}
-		interact.update(next_sync, next);
+	if (client == clientData.lock())
+	{
+		commands.readFromSource(is);
 
 		is >> next_sync;
 		notifications.update(next_sync);
 	}
+
+	is >> next_sync;
+	hp_changes.update(next_sync);
 }
 
 void InventoryComponent::interpolate(Component * pComponent, float fWeight)
 {
 	auto other = reinterpret_cast<InventoryComponent*>(pComponent);
 
-	interact.update(other->interact.sync);
-
 	items = other->items;
 
 	notifications.update(other->notifications.sync, other->notifications.queue);
 	other->notifications.queue.clear();
+
+	hp_changes.update(other->hp_changes.sync, other->hp_changes.queue);
+	other->hp_changes.queue.clear();
 }
 
-void InventoryComponent::write_to(outstream& os, ClientData& client) const
+void InventoryComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
-	os << (client.client_id == client_id) << name;
+	os << (client == clientData.lock()) << name;
 }
 
 void InventoryComponent::write_to(outstream& os) const

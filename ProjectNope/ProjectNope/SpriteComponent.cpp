@@ -6,7 +6,7 @@ SpriteComponent::SpriteComponent(void) : Component(_factory.id)
 {
 }
 
-SpriteComponent::SpriteComponent(instream& is, bool full) : Component(_factory.id)
+SpriteComponent::SpriteComponent(instream& is) : Component(_factory.id)
 {
 }
 
@@ -30,7 +30,7 @@ void SpriteComponent::tick(float dTime)
 {
 }
 
-void SpriteComponent::writeLog(outstream& os, ClientData& client)
+void SpriteComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -42,7 +42,7 @@ void SpriteComponent::writeLog(outstream& os)
 {
 }
 
-void SpriteComponent::readLog(instream& is, ClientData& client)
+void SpriteComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -50,7 +50,7 @@ void SpriteComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void SpriteComponent::write_to(outstream& os, ClientData& client) const
+void SpriteComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 

@@ -17,7 +17,7 @@ InventoryCommandEquip::InventoryCommandEquip(uint32_t i)
 	index = i;
 }
 
-InventoryCommandEquip::InventoryCommandEquip(instream& is, bool full)
+InventoryCommandEquip::InventoryCommandEquip(instream& is)
 {
 	is >> index;
 }

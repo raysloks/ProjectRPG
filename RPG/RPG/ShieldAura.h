@@ -8,7 +8,7 @@ class ShieldAura :
 public:
 	ShieldAura(int32_t amount);
 	ShieldAura(int32_t amount, float duration);
-	ShieldAura(instream& is, bool full);
+	ShieldAura(instream& is);
 	~ShieldAura();
 
 	void attach(MobComponent * mob);

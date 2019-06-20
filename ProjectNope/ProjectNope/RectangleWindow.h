@@ -3,7 +3,7 @@
 
 #include "Window.h"
 
-#include "Vec2.h"
+#include "Vec4.h"
 
 class RectangleWindow :
 	public Window
@@ -12,28 +12,9 @@ public:
 	RectangleWindow(float x, float y, float width, float height);
 	~RectangleWindow(void);
 
-	bool handleEvent(IEvent * pEvent);
-
 	void render(RenderSetup& rs);
 
-	union
-	{
-		Vec2 p;
-		struct
-		{
-			float x, y;
-		};
-	};
-	union
-	{
-		Vec2 size;
-		struct
-		{
-			float w, h;
-		};
-	};
-protected:
-	bool focus;
+	Vec4 color;
 };
 
 #endif

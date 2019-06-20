@@ -35,7 +35,8 @@ namespace Platform
 
 		void Destroy();
 
-		bool HasCursor();
+		bool HasFocus();
+		bool IsForeground();
 
 		inline HWND getHWnd(){return hWnd;}
 

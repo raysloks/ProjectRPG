@@ -13,7 +13,7 @@ class SimpleState :
 {
 public:
 	SimpleState(const std::string& name, float speed = 1.0f);
-	SimpleState(instream& is, bool full);
+	SimpleState(instream& is);
 	~SimpleState();
 
 	void enter(AnimationState * prev);

@@ -11,7 +11,7 @@ VoiceComponent::VoiceComponent(void) : Component(_factory.id)
 	}
 }
 
-VoiceComponent::VoiceComponent(instream& is, bool full) : Component(_factory.id)
+VoiceComponent::VoiceComponent(instream& is) : Component(_factory.id)
 {
 }
 
@@ -54,7 +54,7 @@ void VoiceComponent::tick(float dTime)
 	}
 }
 
-void VoiceComponent::writeLog(outstream& os, ClientData& client)
+void VoiceComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -66,7 +66,7 @@ void VoiceComponent::writeLog(outstream& os)
 {
 }
 
-void VoiceComponent::readLog(instream& is, ClientData& client)
+void VoiceComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -74,7 +74,7 @@ void VoiceComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void VoiceComponent::write_to(outstream& os, ClientData& client) const
+void VoiceComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 

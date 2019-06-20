@@ -7,7 +7,7 @@ class RunCycleState :
 {
 public:
 	RunCycleState(const std::string& name, float speed, const std::string& idle_name, float idle_speed);
-	RunCycleState(instream& is, bool full);
+	RunCycleState(instream& is);
 	~RunCycleState();
 
 	void enter(AnimationState * prev);

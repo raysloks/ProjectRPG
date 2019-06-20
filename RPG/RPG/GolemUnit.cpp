@@ -82,7 +82,7 @@ MobComponent * GolemUnit::spawn(const GlobalPosition& pos, World * world)
 	wrapper->p = p;
 	wrapper->mob = mob;
 	wrapper->acc = acc;
-	wrapper->on_death.reset(new std::function<void(HitData&)>([entity](HitData& hit)
+	wrapper->on_death = std::make_shared<std::function<void(HitData&)>>([entity](HitData& hit)
 	{
 		auto chats = entity->world->GetComponents<ChatComponent>();
 		if (chats.size())
@@ -92,7 +92,7 @@ MobComponent * GolemUnit::spawn(const GlobalPosition& pos, World * world)
 			message.timeout = 10.0f;
 			chats.front()->messages.push_back(message);
 		}
-	}));
+	});
 	ai->wrapper = wrapper;
 
 	mob->on_death.add(0, wrapper->on_death);

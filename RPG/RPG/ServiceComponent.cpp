@@ -6,7 +6,7 @@ ServiceComponent::ServiceComponent(void) : Component(_factory.id)
 {
 }
 
-ServiceComponent::ServiceComponent(instream& is, bool full) : Component(_factory.id)
+ServiceComponent::ServiceComponent(instream& is) : Component(_factory.id)
 {
 }
 
@@ -36,7 +36,7 @@ void ServiceComponent::tick(float dTime)
 		on_tick(dTime);
 }
 
-void ServiceComponent::writeLog(outstream& os, ClientData& client)
+void ServiceComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -48,7 +48,7 @@ void ServiceComponent::writeLog(outstream& os)
 {
 }
 
-void ServiceComponent::readLog(instream& is, ClientData& client)
+void ServiceComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -56,7 +56,7 @@ void ServiceComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void ServiceComponent::write_to(outstream& os, ClientData& client) const
+void ServiceComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 

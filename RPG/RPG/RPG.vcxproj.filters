@@ -96,6 +96,8 @@
     <ClCompile Include="InventoryCommand.cpp" />
     <ClCompile Include="InventoryCommandInteract.cpp" />
     <ClCompile Include="InventoryCommandEquip.cpp" />
+    <ClCompile Include="AuraEffect.cpp" />
+    <ClCompile Include="AbilityContext.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -192,6 +194,11 @@
     <ClInclude Include="InventoryCommand.h" />
     <ClInclude Include="InventoryCommandInteract.h" />
     <ClInclude Include="InventoryCommandEquip.h" />
+    <ClInclude Include="AuraEffect.h" />
+    <ClInclude Include="Effect.h" />
+    <ClInclude Include="MissileEffect.h" />
+    <ClInclude Include="SphereEffect.h" />
+    <ClInclude Include="AbilityContext.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

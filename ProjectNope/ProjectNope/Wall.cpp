@@ -429,7 +429,7 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3& sP, const Vec3& eP, float 
 		// vertex
 		if (f1.LenPwr() <= r2 && ld1 >= 0.0f && ld1 <= l)
 		{
-			col.reset(new Collision());
+			col = std::make_shared<Collision>();
 			col->t = ld1 / l;
 			col->n = -dir;
 			col->poo = sP + dir * ld1;
@@ -449,7 +449,7 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3& sP, const Vec3& eP, float 
 		// vertex
 		if (f2.LenPwr() <= r2 && ld2 >= 0.0f && ld2 <= l)
 		{
-			col.reset(new Collision());
+			col = std::make_shared<Collision>();
 			col->t = ld2 / l;
 			col->n = -dir;
 			col->poo = sP + dir * ld2;
@@ -469,7 +469,7 @@ std::shared_ptr<Collision> Wall::DiskCast(const Vec3& sP, const Vec3& eP, float 
 		// vertex
 		if (f3.LenPwr() <= r2 && ld3 >= 0.0f && ld3 <= l)
 		{
-			col.reset(new Collision());
+			col = std::make_shared<Collision>();
 			col->t = ld3 / l;
 			col->n = -dir;
 			col->poo = sP + dir * ld3;
@@ -529,7 +529,7 @@ std::shared_ptr<Collision> Wall::LowerDisk(const Vec3 & lock, const Vec3 & cente
 	{
 		if (f1.LenPwr() <= r2)
 		{
-			col.reset(new Collision());
+			col = std::make_shared<Collision>();
 			col->t = t1;
 			col->poo = center + dir * t1;
 			col->poc = p1;
@@ -540,7 +540,7 @@ std::shared_ptr<Collision> Wall::LowerDisk(const Vec3 & lock, const Vec3 & cente
 	{
 		if (f2.LenPwr() <= r2)
 		{
-			col.reset(new Collision());
+			col = std::make_shared<Collision>();
 			col->t = t2;
 			col->poo = center + dir * t2;
 			col->poc = p2;
@@ -551,7 +551,7 @@ std::shared_ptr<Collision> Wall::LowerDisk(const Vec3 & lock, const Vec3 & cente
 	{
 		if (f3.LenPwr() <= r2)
 		{
-			col.reset(new Collision());
+			col = std::make_shared<Collision>();
 			col->t = t3;
 			col->poo = center + dir * t3;
 			col->poc = p3;

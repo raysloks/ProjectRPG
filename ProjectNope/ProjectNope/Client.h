@@ -81,7 +81,7 @@ public:
 
 	int wireframe;
 
-	ClientData * clientData;
+	std::shared_ptr<ClientData> clientData;
 
 	Input input;
 

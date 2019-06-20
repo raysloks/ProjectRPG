@@ -64,7 +64,7 @@ public:
 	};
 	bool relative;
 
-	MouseMoveEvent(int a, int b, bool c);
+	MouseMoveEvent(float x, float y, bool relative);
 	~MouseMoveEvent(void);
 
 	const EventType& GetType(void) const;
@@ -104,10 +104,29 @@ class ResizeEvent :
 	public IEvent
 {
 public:
-	int w, h;
+	union
+	{
+		Vec2 size;
+		struct
+		{
+			float w, h;
+		};
+	};
 
-	ResizeEvent(int width, int height);
+	ResizeEvent(float width, float height);
 	~ResizeEvent(void);
+
+	const EventType& GetType(void) const;
+
+	static const EventType event_type;
+};
+
+class FocusLostEvent :
+	public IEvent
+{
+public:
+	FocusLostEvent();
+	~FocusLostEvent(void);
 
 	const EventType& GetType(void) const;
 

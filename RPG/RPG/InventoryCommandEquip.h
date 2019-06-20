@@ -7,7 +7,7 @@ class InventoryCommandEquip :
 {
 public:
 	InventoryCommandEquip(uint32_t index);
-	InventoryCommandEquip(instream& is, bool full);
+	InventoryCommandEquip(instream& is);
 	~InventoryCommandEquip();
 
 	void execute(InventoryComponent& inv);

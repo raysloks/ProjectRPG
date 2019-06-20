@@ -26,4 +26,6 @@ public:
 	static SerializableRegistry<Aura> _registry;
 
 	float duration;
+
+	uint32_t icon;
 };

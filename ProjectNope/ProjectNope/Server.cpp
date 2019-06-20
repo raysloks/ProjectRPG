@@ -54,7 +54,7 @@ void Server::tick(float dTime)
 		std::shared_ptr<StringResource> config = Resource::get<StringResource>("server_config.txt");
 		if (config != nullptr)
 		{
-			mem.reset(new ScriptMemory());
+			mem = std::make_shared<ScriptMemory>();
 			Script script(std::istringstream(config->string));
 			script.run(mem);
 		}
@@ -134,7 +134,7 @@ void Server::tick(float dTime)
 					NewEntity * ent = added_unit.second;
 					MAKE_PACKET;
 					out << (unsigned char)1 << client_side_id << conn->data->unit_uid[client_side_id];
-					ent->write_to(out, *conn->data);
+					ent->write_to(out, conn->data);
 
 					for (size_t i = 0; i < ent->ss.sync.size(); i++)
 						conn->data->sync[client_side_id].insert(std::make_pair(i, ent->ss.sync[i]));
@@ -155,7 +155,7 @@ void Server::tick(float dTime)
 							{
 								MAKE_PACKET;
 								out << (unsigned char)1 << client_side_id << conn->data->unit_uid[client_side_id];
-								ent->write_to(out, *conn->data);
+								ent->write_to(out, conn->data);
 								SEND_PACKET(conn->endpoint);
 							}
 
@@ -196,7 +196,7 @@ void Server::tick(float dTime)
 							std::stringbuf buf;
 							outstream temp(&buf);
 
-							ent->writeLog(temp, *conn->data);
+							ent->writeLog(temp, conn->data);
 
 							if (buf.str().size())
 							{
@@ -262,7 +262,7 @@ void Server::NotifyOfCreation(uint32_t id) //TODO merge duplicate code
 					MAKE_PACKET;
 
 					out << (unsigned char)1 << client_side_id << conn->data->unit_uid[client_side_id];
-					ent->write_to(out, *conn->data);
+					ent->write_to(out, conn->data);
 
 					for (size_t i = 0; i < ent->ss.sync.size(); ++i)
 						conn->data->sync[client_side_id].insert(std::make_pair(i, ent->ss.sync[i]));
@@ -399,7 +399,7 @@ void Server::handle_packet(const std::shared_ptr<Packet>& packet)
 			in >> id;
 			NewEntity * ent = world->GetEntity(conn->data->getRealID(id));
 			if (ent != nullptr)
-				ent->readLog(in, *conn->data);
+				ent->readLog(in, conn->data);
 			break;
 		}
 		default:

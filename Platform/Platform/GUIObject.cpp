@@ -299,7 +299,7 @@ namespace Platform
 
 	void GUIObject::SetCursorVisible(bool visible) { if (_cvis!=visible) ShowCursor(visible); _cvis = visible; }
 	void GUIObject::SetCursorPosition(int x, int y) { SetCursorPos(x, y); }
-	bool GUIObject::HasCursor(void) {
+	bool GUIObject::IsForeground(void) {
 		//POINT point;
 		//GetCursorPos(&point);
 		//return point.x>=mX && point.y>=mY && point.x<=mX+mW && point.y<=mY+mH && GetFocus()==hWnd && GetForegroundWindow()==hWnd;
@@ -316,9 +316,14 @@ namespace Platform
 		DestroyWindow(hWnd);
 	}
 
+	bool GUIObject::HasFocus()
+	{
+		return GetFocus() == hWnd;
+	}
+
 	void GUIObject::SetCursorLock(bool locked)
 	{
-		if (HasCursor())
+		if (HasFocus())
 		{
 			if (locked)
 			{

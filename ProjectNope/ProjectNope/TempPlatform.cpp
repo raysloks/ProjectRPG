@@ -63,6 +63,7 @@ TempPlatform::TempPlatform(void)
 	mY = 32;
 	mW = 640;
 	mH = 480;
+	lock = true;
 }
 
 TempPlatform::~TempPlatform(void)
@@ -114,15 +115,22 @@ int TempPlatform::get_height(void)
 
 void TempPlatform::input(IEventManager * pEventManager, bool lock_cursor, bool hide_cursor)
 {
-	if (ptr!=0) {
+	if (ptr)
+	{
 		((TPWindow*)ptr)->pCallback = pEventManager;
-		if (ptr->HasCursor() && lock_cursor) {
-			ptr->SetCursorVisible(!hide_cursor);
-			ptr->SetCursorLock(true);
-		} else {
-			ptr->SetCursorVisible(true);
-			ptr->SetCursorLock(false);
-		}
+		lock = lock_cursor;
+		hide = hide_cursor;
+		update_cursor_lock_and_hide();
+		ptr->Tick();
+	}
+	Platform::GUIObject::PollControllerState();
+}
+
+void TempPlatform::input(IEventManager * pEventManager)
+{
+	if (ptr)
+	{
+		((TPWindow*)ptr)->pCallback = pEventManager;
 		ptr->Tick();
 	}
 	Platform::GUIObject::PollControllerState();
@@ -154,10 +162,22 @@ void TempPlatform::set_cursor_position(int x, int y)
 		ptr->SetCursorPosition(ptr->GetX() + x, ptr->GetY() + y);
 }
 
+void TempPlatform::set_cursor_lock(bool lock_cursor)
+{
+	lock = lock_cursor;
+	update_cursor_lock_and_hide();
+}
+
+void TempPlatform::set_cursor_hide(bool hide_cursor)
+{
+	hide = hide_cursor;
+	update_cursor_lock_and_hide();
+}
+
 bool TempPlatform::has_focus(void)
 {
 	if (ptr!=0)
-		return ptr->HasCursor();
+		return ptr->HasFocus();
 	return false;
 }
 
@@ -167,5 +187,17 @@ void TempPlatform::release(void)
 		ptr->Destroy();
 		delete ptr;
 		ptr = 0;
+	}
+}
+
+void TempPlatform::update_cursor_lock_and_hide()
+{
+	if (ptr->HasFocus()/* && lock*/) {
+		ptr->SetCursorVisible(!hide);
+		ptr->SetCursorLock(true);
+	}
+	else {
+		ptr->SetCursorVisible(true);
+		ptr->SetCursorLock(false);
 	}
 }

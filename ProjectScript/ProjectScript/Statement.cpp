@@ -258,7 +258,7 @@ Statement::Statement(std::vector<std::shared_ptr<Statement>>& tokens, bool expre
 					if (depth == 0) {
 						if (fp!=tokens.end()) {
 							std::shared_ptr<Statement> p(new Statement(0, Token(), 0));
-							p->code.reset(new ScriptCode(std::vector<std::shared_ptr<Statement>>(fp+1, i)));
+							p->code = std::make_shared<ScriptCode>(std::vector<std::shared_ptr<Statement>>(fp+1, i));
 							if (fp!=tokens.begin()) {
 								if ((*(fp-1))->keyword==5) {
 									p->lhs = *(fp-1);
@@ -1592,7 +1592,7 @@ std::shared_ptr<Variable> Statement::run(const std::shared_ptr<ScriptMemory>& me
 	case 4:
 	{
 		std::shared_ptr<FunctionVar> var(new FunctionVar());
-		var->script_func.reset(new ScriptFunction());
+		var->script_func = std::make_shared<ScriptFunction>();
 		var->script_func->code = code;
 		std::function<void(const std::shared_ptr<Statement>&)> add_arg;
 		add_arg = [var, &add_arg](const std::shared_ptr<Statement>& v)
@@ -1863,7 +1863,7 @@ ScriptTypeData Statement::getType(ScriptCompile& comp, bool operative)
 						return member_data.type;
 					throw std::runtime_error("No member '" + rhs->token.lexeme + "' could be found in class '" + lhs_type.class_data->class_name + "'.");
 				}
-				throw std::runtime_error("Class of '" + lhs->token.lexeme + "' could not be determined.");
+				throw std::runtime_error("Class of '" + lhs->output() + "' could not be determined.");
 			}
 			case '(':
 			{

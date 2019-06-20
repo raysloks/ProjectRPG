@@ -23,11 +23,14 @@ public:
 	int get_height(void);
 
 	void input(IEventManager * pEventManager, bool lock_cursor, bool hide_cursor);
+	void input(IEventManager * pEventManager);
 	void swap(void);
 	void set_vsync(bool on);
 	bool get_vsync(void);
 
 	void set_cursor_position(int x, int y);
+	void set_cursor_lock(bool lock_cursor);
+	void set_cursor_hide(bool hide_cursor);
 
 	bool has_focus(void);
 
@@ -38,6 +41,10 @@ private:
 	int mX, mY, mW, mH, z_buffer_depth;
 	bool use_fullscreen, use_vsync;
 	int fullscreen_monitor;
+
+	void update_cursor_lock_and_hide();
+
+	bool lock, hide;
 };
 
 #endif

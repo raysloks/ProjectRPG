@@ -19,7 +19,7 @@ GraphicsComponent::GraphicsComponent(bool dynamic, uint32_t tag) : Component(_fa
 	this->tag = tag;
 }
 
-GraphicsComponent::GraphicsComponent(instream& is, bool full) : Component(_factory.id), p(nullptr), pose(nullptr)
+GraphicsComponent::GraphicsComponent(instream& is) : Component(_factory.id), p(nullptr), pose(nullptr)
 {
 	all.push_back(this);
 	is >> dynamic >> tag;
@@ -55,7 +55,7 @@ void GraphicsComponent::disconnect(void)
 	decs.setSyncState(nullptr);
 }
 
-void GraphicsComponent::writeLog(outstream& os, ClientData& client)
+void GraphicsComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 	if (decs.conf.size())
 		decs.writeLog(os);
@@ -93,7 +93,7 @@ void GraphicsComponent::interpolate(Component * pComponent, float fWeight)
 	}
 }
 
-void GraphicsComponent::write_to(outstream& os, ClientData& client) const
+void GraphicsComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 	os << dynamic << tag;
 	os << (uint32_t)decs.items.size();
@@ -310,7 +310,7 @@ void GraphicsComponent::prep(RenderSetup& rs)
 						}
 						else
 						{
-							ig.reset(new InstancedGraphics(dec->mesh_fname, dec->materials, pose->anim));
+							ig = std::make_shared<InstancedGraphics>(dec->mesh_fname, dec->materials, pose->anim);
 							ig->tag = g->tag;
 							instanced.insert(std::make_pair(key, ig));
 						}

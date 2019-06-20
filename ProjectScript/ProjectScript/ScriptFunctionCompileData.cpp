@@ -62,7 +62,7 @@ void ScriptFunctionCompileData::compile(ScriptCompile& comp)
 		}
 	}
 
-	comp.proto.reset(new ScriptFunctionPrototype(prototype));
+	comp.proto = std::make_unique<ScriptFunctionPrototype>(prototype);
 
 	comp.BeginFunction();
 

@@ -30,7 +30,7 @@ AnimationControlComponent::AnimationControlComponent(void) : Component(_factory.
 	state = nullptr;
 }
 
-AnimationControlComponent::AnimationControlComponent(instream& is, bool full) : Component(_factory.id)
+AnimationControlComponent::AnimationControlComponent(instream& is) : Component(_factory.id)
 {
 	scale = 1.0f;
 	sync = 0;
@@ -144,7 +144,7 @@ void AnimationControlComponent::pre_frame(float dTime)
 {
 }
 
-void AnimationControlComponent::writeLog(outstream& os, ClientData& client)
+void AnimationControlComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 	os << scale;
 	if (state)
@@ -174,7 +174,7 @@ void AnimationControlComponent::writeLog(outstream& os)
 {
 }
 
-void AnimationControlComponent::readLog(instream& is, ClientData& client)
+void AnimationControlComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -199,7 +199,7 @@ void AnimationControlComponent::interpolate(Component * pComponent, float fWeigh
 	scale = bu_blend(other->scale, scale, fWeight);
 }
 
-void AnimationControlComponent::write_to(outstream& os, ClientData& client) const
+void AnimationControlComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 

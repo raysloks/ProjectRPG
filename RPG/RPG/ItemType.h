@@ -11,7 +11,7 @@ public:
 	~ItemType();
 
 	static void init();
-	static ItemType * get(uint32_t index);
+	static const ItemType * get(uint32_t index);
 	static void release();
 
 	std::string name, desc, icon;

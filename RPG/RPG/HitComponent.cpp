@@ -18,7 +18,7 @@ HitComponent::HitComponent(void) : Component(_factory.id)
 	activation = "active";
 }
 
-HitComponent::HitComponent(instream& is, bool full) : Component(_factory.id)
+HitComponent::HitComponent(instream& is) : Component(_factory.id)
 {
 }
 
@@ -121,7 +121,7 @@ void HitComponent::tick(float dTime)
 	prev_r = r;
 }
 
-void HitComponent::writeLog(outstream& os, ClientData& client)
+void HitComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -133,7 +133,7 @@ void HitComponent::writeLog(outstream& os)
 {
 }
 
-void HitComponent::readLog(instream& is, ClientData& client)
+void HitComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -141,7 +141,7 @@ void HitComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void HitComponent::write_to(outstream& os, ClientData& client) const
+void HitComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 

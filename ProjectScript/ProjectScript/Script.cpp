@@ -16,7 +16,7 @@ Script::Script(std::istringstream& ss)
 			tokens.pop_back();
 	}
 
-	func.reset(new ScriptCode(tokens));
+	func = std::make_shared<ScriptCode>(tokens);
 }
 
 Script::~Script(void)
@@ -25,6 +25,6 @@ Script::~Script(void)
 
 void Script::run(std::shared_ptr<ScriptMemory> mem)
 {
-	if (func!=0)
+	if (func)
 		func->run(mem);
 }

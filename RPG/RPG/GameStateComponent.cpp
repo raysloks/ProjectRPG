@@ -22,7 +22,7 @@ GameStateComponent::GameStateComponent(void) : Component(_factory.id)
 {
 }
 
-GameStateComponent::GameStateComponent(instream& is, bool full) : Component(_factory.id)
+GameStateComponent::GameStateComponent(instream& is) : Component(_factory.id)
 {
 }
 
@@ -56,7 +56,7 @@ void GameStateComponent::tick(float dTime)
 	}
 }
 
-void GameStateComponent::writeLog(outstream& os, ClientData& client)
+void GameStateComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -69,14 +69,14 @@ void GameStateComponent::writeLog(outstream& os)
 	os << 0;
 }
 
-void GameStateComponent::readLog(instream& is, ClientData& client)
+void GameStateComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 	int dummy;
 	is >> dummy;
-	auto avatar = avatars.find(client.client_id);
+	auto avatar = avatars.find(client->client_id);
 	if (avatar == avatars.end())
 	{
-		avatars.insert(std::make_pair(client.client_id, createAvatar(client.client_id, 0, 0)));
+		avatars.insert(std::make_pair(client->client_id, createAvatar(client, 0, 0)));
 	}
 }
 
@@ -85,7 +85,7 @@ void GameStateComponent::interpolate(Component * pComponent, float fWeight)
 	GameStateComponent * other = reinterpret_cast<GameStateComponent*>(pComponent);
 }
 
-void GameStateComponent::write_to(outstream& os, ClientData& client) const
+void GameStateComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 
@@ -109,7 +109,7 @@ void GameStateComponent::write_to(outstream& os) const
 
 #include "SimpleState.h"
 
-MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t team, uint32_t index)
+MobComponent * GameStateComponent::createAvatar(const std::shared_ptr<ClientData>& client, uint32_t team, uint32_t index)
 {
 	NewEntity * ent = new NewEntity();
 
@@ -134,14 +134,23 @@ MobComponent * GameStateComponent::createAvatar(uint32_t client_id, uint32_t tea
 	pose->anim = "data/assets/units/player/hoodlum.anim";
 	g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/hoodlum.gmdl", Material("data/assets/units/player/hoodlum.tga"))));
 
-	input->client_id = client_id;
-	cam->client_id = client_id;
-	inv->client_id = client_id;
+	input->client_id = client->client_id;
+	cam->client_id = client->client_id;
+	inv->clientData = client;
 
 	mob->p = p;
 	mob->respawn = p->p;
 
 	entity->world->AddEntity(ent);
+
+	mob->abilities.add(std::make_shared<uint32_t>(1));
+	mob->abilities.add(std::make_shared<uint32_t>(0));
+	mob->abilities.add(std::make_shared<uint32_t>(1));
+	mob->abilities.add(std::make_shared<uint32_t>(0));
+	mob->abilities.add(std::make_shared<uint32_t>(1));
+	mob->abilities.add(std::make_shared<uint32_t>(0));
+	mob->abilities.add(std::make_shared<uint32_t>(1));
+	mob->abilities.add(std::make_shared<uint32_t>(0));
 
 	if (team == 0)
 	{
@@ -178,10 +187,10 @@ void GameStateComponent::set_display(bool enable)
 		{
 			if (!func)
 			{
-				func.reset(new std::function<void(RenderSetup&)>([this](RenderSetup& rs)
+				func = std::make_shared<std::function<void(RenderSetup&)>>([this](RenderSetup& rs)
 				{
 
-				}));
+				});
 				client->render2D.push_back(func);
 			}
 		}

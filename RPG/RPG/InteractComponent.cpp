@@ -6,7 +6,7 @@ InteractComponent::InteractComponent(void) : Component(_factory.id)
 {
 }
 
-InteractComponent::InteractComponent(instream& is, bool full) : Component(_factory.id)
+InteractComponent::InteractComponent(instream& is) : Component(_factory.id)
 {
 	is >> name >> action_name;
 }
@@ -35,7 +35,7 @@ void InteractComponent::tick(float dTime)
 {
 }
 
-void InteractComponent::writeLog(outstream& os, ClientData& client)
+void InteractComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -47,7 +47,7 @@ void InteractComponent::writeLog(outstream& os)
 {
 }
 
-void InteractComponent::readLog(instream& is, ClientData& client)
+void InteractComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -55,7 +55,7 @@ void InteractComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void InteractComponent::write_to(outstream& os, ClientData& client) const
+void InteractComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 	os << name << action_name;
 }

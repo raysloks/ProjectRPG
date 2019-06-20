@@ -1,7 +1,11 @@
+#pragma once
+
+#include "AbilityContext.h"
+
 class Effect
 {
 public:
-	abstract ~Effect() = 0;
+	virtual ~Effect() {}
 	
-	abstract void apply(const AbilityContext& ac) const = 0;
+	virtual void apply(const AbilityContext& ac) const = 0;
 };

@@ -14,7 +14,7 @@ PositionComponent::PositionComponent(const GlobalPosition& position) : Component
 {
 }
 
-PositionComponent::PositionComponent(instream& is, bool full) : Component(_factory.id)
+PositionComponent::PositionComponent(instream& is) : Component(_factory.id)
 {
 	is >> p;
 }
@@ -35,7 +35,7 @@ void PositionComponent::disconnect(void)
 		entity->ss.deallocate(sync);
 }
 
-void PositionComponent::writeLog(outstream& os, ClientData& client)
+void PositionComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 	if (send)
 		os << p;
@@ -52,7 +52,7 @@ void PositionComponent::interpolate(Component * pComponent, float fWeight)
 	p += Vec3((static_cast<PositionComponent*>(pComponent)->p-p))*fWeight;
 }
 
-void PositionComponent::write_to(outstream& os, ClientData& client) const
+void PositionComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 	os << p;
 }

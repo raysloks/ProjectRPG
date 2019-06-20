@@ -10,6 +10,32 @@
 
 #include "SyncState.h"
 
+template <typename T>
+class has_readLog
+{
+	typedef char one;
+	struct two { char x[2]; };
+
+	template <typename C> static one test(decltype(&C::readLog));
+	template <typename C> static two test(...);
+
+public:
+	enum { value = sizeof(test<T>(0)) == sizeof(char) };
+};
+
+template <typename T>
+class has_writeLog
+{
+	typedef char one;
+	struct two { char x[2]; };
+
+	template <typename C> static one test(decltype(&C::writeLog));
+	template <typename C> static two test(...);
+
+public:
+	enum { value = sizeof(test<T>(0)) == sizeof(char) };
+};
+
 template <class T>
 class SyncContainer
 {
@@ -61,10 +87,13 @@ public:
 		{
 			os << (uint32_t)*i;
 			auto p = items[*i];
-			if (p!=0)
+			if (p)
 			{
 				os << (unsigned char)1;
-				p->writeLog(os);
+				if constexpr (has_writeLog<T>::value)
+					p->writeLog(os);
+				else
+					os << *p;
 			}
 			else
 			{
@@ -82,13 +111,16 @@ public:
 		for (size_t i = 0; i < size; i++)
 		{
 			is >> index >> type;
-			if (type!=0)
+			if (type != 0)
 			{
-				if (index>=items.size())
-					items.resize(index+1);
-				if (items[index]==0)
-					items[index].reset(new T());
-				items[index]->readLog(is);
+				if (index >= items.size())
+					items.resize(index + 1);
+				if (items[index] == 0)
+					items[index] = std::make_shared<T>();
+				if constexpr (has_readLog<T>::value)
+					items[index]->readLog(is);
+				else
+					is >> *items[index];
 			}
 			else
 			{

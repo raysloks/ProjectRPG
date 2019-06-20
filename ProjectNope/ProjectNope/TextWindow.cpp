@@ -17,12 +17,16 @@ TextWindow::~TextWindow(void)
 void TextWindow::render(RenderSetup& rs)
 {
 	rs.pushTransform();
-	rs.addTransform(Matrix4::Translation(Vec2(x, y)));
+	rs.addTransform(Matrix4::Translation(min));
+	rs.addTransform(Matrix4::Translation(Vec2(0.0f, font_size * (1.0f - offset.y)) + size * offset));
 
 	Writing::setSize(font_size);
 	Writing::setColor(color);
+	Writing::setOffset(-offset);
 	Writing::render(text, rs);
 	rs.popTransform();
 
 	rs.popTransform();
+
+	Window::render(rs);
 }

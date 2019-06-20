@@ -6,7 +6,7 @@ PoseComponent::PoseComponent(void) : Component(_factory.id)
 {
 }
 
-PoseComponent::PoseComponent(instream& is, bool full) : Component(_factory.id)
+PoseComponent::PoseComponent(instream& is) : Component(_factory.id)
 {
 	is >> anim;
 }
@@ -31,7 +31,7 @@ void PoseComponent::tick(float dTime)
 {
 }
 
-void PoseComponent::writeLog(outstream& os, ClientData& client)
+void PoseComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -43,7 +43,7 @@ void PoseComponent::writeLog(outstream& os)
 {
 }
 
-void PoseComponent::readLog(instream& is, ClientData& client)
+void PoseComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -51,7 +51,7 @@ void PoseComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void PoseComponent::write_to(outstream& os, ClientData& client) const
+void PoseComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 	os << anim;
 }

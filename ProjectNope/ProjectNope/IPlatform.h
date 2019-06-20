@@ -17,11 +17,14 @@ public:
 	virtual int get_height(void) = 0;
 
 	virtual void input(IEventManager * pEventManager, bool lock_cursor, bool hide_cursor) = 0;
+	virtual void input(IEventManager * pEventManager) = 0;
 	virtual void swap(void) = 0;
 	virtual void set_vsync(bool on) = 0;
 	virtual bool get_vsync(void) = 0;
 
 	virtual void set_cursor_position(int x, int y) = 0;
+	virtual void set_cursor_lock(bool lock_cursor) = 0;
+	virtual void set_cursor_hide(bool hide_cursor) = 0;
 
 	virtual bool has_focus(void) = 0;
 

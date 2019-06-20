@@ -26,20 +26,20 @@ class GraphicsComponent :
 {
 public:
 	GraphicsComponent(bool dynamic = true, uint32_t tag = 0);
-	GraphicsComponent(instream& is, bool full);
+	GraphicsComponent(instream& is);
 	~GraphicsComponent(void);
 
 	void connect(NewEntity * pEntity, bool authority);
 	void disconnect(void);
 
-	void writeLog(outstream& os, ClientData& client);
+	void writeLog(outstream& os, const std::shared_ptr<ClientData>& client);
 	void readLog(instream& is);
 
 	void pre_frame(float dTime);
 
 	void interpolate(Component * pComponent, float fWeight);
 
-	void write_to(outstream& os, ClientData& client) const;
+	void write_to(outstream& os, const std::shared_ptr<ClientData>& client) const;
 	void write_to(outstream& os) const;
 
 	void invalidate(void);

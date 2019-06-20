@@ -16,7 +16,7 @@ class NewEntity
 {
 public:
 	NewEntity(void);
-	NewEntity(instream& is, bool full);
+	NewEntity(instream& is);
 	~NewEntity(void);
 
 	SyncState ss;
@@ -39,15 +39,15 @@ public:
 	void post_frame(float dTime);
 	void tick(float dTime);
 
-	void writeLog(outstream& os, ClientData& client);
+	void writeLog(outstream& os, const std::shared_ptr<ClientData>& client);
 	void readLog(instream& is);
 
 	void writeLog(outstream& os);
-	void readLog(instream& is, ClientData& client);
+	void readLog(instream& is, const std::shared_ptr<ClientData>& client);
 
 	void interpolate(NewEntity * pEntity, float fWeight);
 
-	void write_to(outstream& os, ClientData& client) const;
+	void write_to(outstream& os, const std::shared_ptr<ClientData>& client) const;
 	void write_to(outstream& os) const;
 
 	Component * getComponent(uint32_t type) const;

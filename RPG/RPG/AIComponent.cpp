@@ -21,7 +21,7 @@ AIComponent::AIComponent(void) : Component(_factory.id)
 	wrapper = nullptr;
 }
 
-AIComponent::AIComponent(instream& is, bool full) : Component(_factory.id)
+AIComponent::AIComponent(instream& is) : Component(_factory.id)
 {
 	wrapper = nullptr;
 }
@@ -54,7 +54,7 @@ void AIComponent::tick(float dTime)
 	}
 }
 
-void AIComponent::writeLog(outstream& os, ClientData& client)
+void AIComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -66,7 +66,7 @@ void AIComponent::writeLog(outstream& os)
 {
 }
 
-void AIComponent::readLog(instream& is, ClientData& client)
+void AIComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -74,7 +74,7 @@ void AIComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void AIComponent::write_to(outstream& os, ClientData& client) const
+void AIComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 

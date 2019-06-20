@@ -13,7 +13,7 @@ RunCycleState::RunCycleState(const std::string& n, float s, const std::string& i
 	t = 0.0f;
 }
 
-RunCycleState::RunCycleState(instream& is, bool full) : CycleState(is, full), idle(is, full)
+RunCycleState::RunCycleState(instream& is) : CycleState(is), idle(is)
 {
 }
 

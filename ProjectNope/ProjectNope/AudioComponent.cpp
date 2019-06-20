@@ -13,7 +13,7 @@ AudioComponent::AudioComponent(const std::string& sound, float pow) : Component(
 {
 }
 
-AudioComponent::AudioComponent(instream& is, bool full) : Component(_factory.id), src(nullptr)
+AudioComponent::AudioComponent(instream& is) : Component(_factory.id), src(nullptr)
 {
 	is >> _sound >> offset >> gain >> pos_id;
 }
@@ -82,7 +82,7 @@ void AudioComponent::tick(float dTime)
 	offset += dTime;
 }
 
-void AudioComponent::writeLog(outstream& os, ClientData& client)
+void AudioComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -94,7 +94,7 @@ void AudioComponent::writeLog(outstream& os)
 {
 }
 
-void AudioComponent::readLog(instream& is, ClientData& client)
+void AudioComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -102,12 +102,12 @@ void AudioComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void AudioComponent::write_to(outstream& os, ClientData& client) const
+void AudioComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 	os << _sound << offset << gain;
-	uint32_t client_side_id = client.getUnit(pos_id.id);
+	uint32_t client_side_id = client->getUnit(pos_id.id);
 	if (client_side_id != 0xffffffff)
-		os << EntityID(client_side_id, client.unit_uid[client_side_id]);
+		os << EntityID(client_side_id, client->unit_uid[client_side_id]);
 	else
 		os << EntityID();
 }

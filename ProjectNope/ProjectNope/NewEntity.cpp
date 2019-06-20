@@ -14,13 +14,13 @@ NewEntity::NewEntity(void)
 {
 }
 
-NewEntity::NewEntity(instream& is, bool full)
+NewEntity::NewEntity(instream& is)
 {
 	uint32_t n;
 	is >> n;
 	for (size_t i = 0; i < n; i++)
 	{
-		if (!full)
+		//if (!full)
 		{
 			int sync;
 			is >> sync;
@@ -29,10 +29,10 @@ NewEntity::NewEntity(instream& is, bool full)
 		auto factory = Component::_registry.deserialize(is);
 		Component * comp;
 		if (factory != nullptr)
-			comp = dynamic_cast<Component*>(factory->create(is, full));
+			comp = dynamic_cast<Component*>(factory->create(is));
 		else
 			comp = nullptr;
-		addComponent(comp, full);
+		addComponent(comp);
 	}
 }
 
@@ -136,7 +136,7 @@ void NewEntity::tick(float dTime)
 	}
 }
 
-void NewEntity::writeLog(outstream& os, ClientData& client)
+void NewEntity::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 	std::stringbuf logs_buf;
 	outstream logs(&logs_buf);
@@ -144,7 +144,7 @@ void NewEntity::writeLog(outstream& os, ClientData& client)
 	{
 		if (components[i] != nullptr)
 		{
-			if (components[i]->visible(client))
+			if (components[i]->visible(*client))
 			{
 				std::stringbuf cbuf;
 				outstream comp(&cbuf);
@@ -268,7 +268,7 @@ void NewEntity::writeLog(outstream& os)
 		os << uint32_t(0xffffffff);
 }
 
-void NewEntity::readLog(instream& is, ClientData& client)
+void NewEntity::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 	while (!is.eof())
 	{
@@ -299,13 +299,13 @@ void NewEntity::interpolate(NewEntity * pEntity, float fWeight)
 			(*i)->interpolate(*(pEntity->components.begin()+std::distance(components.begin(), i)), fWeight);
 }
 
-void NewEntity::write_to(outstream& os, ClientData& client) const
+void NewEntity::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 	os << (uint32_t)components.size();
 	for (auto i = components.begin(); i != components.end(); ++i) {
 		os << ss.sync[component_syncref[std::distance(components.begin(), i)]];
 		if (*i != nullptr)
-			if ((*i)->visible(client))
+			if ((*i)->visible(*client))
 			{
 				os << (*i)->_serial_id;
 				(*i)->write_to(os, client);

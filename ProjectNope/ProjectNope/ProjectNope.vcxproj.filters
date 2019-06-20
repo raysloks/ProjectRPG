@@ -321,6 +321,9 @@
     <ClCompile Include="KeybindCollection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DecoratorWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IPlatform.h">
@@ -625,6 +628,9 @@
     </ClInclude>
     <ClInclude Include="KeybindCollection.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DecoratorWindow.h">
+      <Filter>Header Files\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

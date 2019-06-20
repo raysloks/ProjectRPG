@@ -4,7 +4,7 @@
 
 GlyphAtlas::GlyphAtlas(size_t width, size_t height) : w(width), h(height)
 {
-	texture.reset(new Texture());
+	texture = std::make_shared<Texture>();
 
 	glGenTextures(1, &texture->texid);
 	glBindTexture(GL_TEXTURE_2D, texture->texid);

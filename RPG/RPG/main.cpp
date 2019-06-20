@@ -32,6 +32,8 @@
 #include "Item.h"
 #include "ItemType.h"
 
+#include "Ability.h"
+
 #include "ShadowSpawnUnit.h"
 #include "GolemUnit.h"
 
@@ -229,7 +231,7 @@ public:
 		for (size_t j = 0; j < 5; ++j)
 		{
 			uint32_t item_index = j;
-			ItemType * item_type = ItemType::get(item_index);
+			const ItemType * item_type = ItemType::get(item_index);
 			
 			if (item_type)
 			{
@@ -795,6 +797,7 @@ INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	//std::shared_ptr<ISteamWrapper> steam(ISteamWrapper::make());
 	
 	ItemType::init();
+	Ability::init();
 
 	std::atomic<bool> running = true;
 	if (option == 'h')
@@ -812,6 +815,7 @@ INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		start_engine_instance(address, port, lobby_id, option, running);
 	}
 
+	Ability::release();
 	ItemType::release();
 
 	Resource::unload();

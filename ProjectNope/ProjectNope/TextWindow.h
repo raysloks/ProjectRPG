@@ -13,6 +13,7 @@ public:
 	~TextWindow(void);
 
 	std::string text;
+	Vec2 offset;
 	Vec4 color;
 	int font_size;
 

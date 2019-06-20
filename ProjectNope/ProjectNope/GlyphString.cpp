@@ -96,7 +96,7 @@ void GlyphString::render(RenderSetup& rs)
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, fr->atlas->texture->texid);
 
-		rs.addTransform(Matrix4::Translation(Vec3(advance_x, advance_y, 0.0f) * offset));
+		rs.addTransform(Matrix4::Translation(Vec3(roundf(advance_x * offset.x), roundf(advance_y * offset.y), 0.0f)));
 
 		rs.applyMods();
 

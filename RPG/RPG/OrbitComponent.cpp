@@ -12,7 +12,7 @@ OrbitComponent::OrbitComponent(void) : Component(_factory.id), speed(1.0f)
 {
 }
 
-OrbitComponent::OrbitComponent(instream& is, bool full) : Component(_factory.id)
+OrbitComponent::OrbitComponent(instream& is) : Component(_factory.id)
 {
 }
 
@@ -47,7 +47,7 @@ void OrbitComponent::tick(float dTime)
 	}
 }
 
-void OrbitComponent::writeLog(outstream& os, ClientData& client)
+void OrbitComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -59,7 +59,7 @@ void OrbitComponent::writeLog(outstream& os)
 {
 }
 
-void OrbitComponent::readLog(instream& is, ClientData& client)
+void OrbitComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -67,7 +67,7 @@ void OrbitComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void OrbitComponent::write_to(outstream& os, ClientData& client) const
+void OrbitComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 

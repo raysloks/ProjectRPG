@@ -23,6 +23,7 @@
     <ClInclude Include="binistream.h" />
     <ClInclude Include="binostream.h" />
     <ClInclude Include="BlendUtility.h" />
+    <ClInclude Include="Factory.h" />
     <ClInclude Include="FunctionList.h" />
     <ClInclude Include="Matrix3.h" />
     <ClInclude Include="Matrix4.h" />

@@ -16,7 +16,7 @@ ProjectileComponent::ProjectileComponent(void) : Component(_factory.id)
 {
 }
 
-ProjectileComponent::ProjectileComponent(instream& is, bool full) : Component(_factory.id)
+ProjectileComponent::ProjectileComponent(instream& is) : Component(_factory.id)
 {
 }
 
@@ -98,7 +98,7 @@ void ProjectileComponent::tick(float dTime)
 	}
 }
 
-void ProjectileComponent::writeLog(outstream& os, ClientData& client)
+void ProjectileComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -110,7 +110,7 @@ void ProjectileComponent::writeLog(outstream& os)
 {
 }
 
-void ProjectileComponent::readLog(instream& is, ClientData& client)
+void ProjectileComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -118,7 +118,7 @@ void ProjectileComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void ProjectileComponent::write_to(outstream& os, ClientData& client) const
+void ProjectileComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 

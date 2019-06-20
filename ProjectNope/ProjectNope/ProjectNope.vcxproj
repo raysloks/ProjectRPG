@@ -191,6 +191,7 @@
     <ClCompile Include="ColliderIterator.cpp" />
     <ClCompile Include="Connection.cpp" />
     <ClCompile Include="ControllerState.cpp" />
+    <ClCompile Include="DecoratorWindow.cpp" />
     <ClCompile Include="EntityID.cpp" />
     <ClCompile Include="EntitySyncData.cpp" />
     <ClCompile Include="ExampleComponent.cpp" />
@@ -283,6 +284,7 @@
     <ClInclude Include="ColliderIterator.h" />
     <ClInclude Include="Connection.h" />
     <ClInclude Include="ControllerState.h" />
+    <ClInclude Include="DecoratorWindow.h" />
     <ClInclude Include="EntityID.h" />
     <ClInclude Include="EntitySyncData.h" />
     <ClInclude Include="ExampleComponent.h" />

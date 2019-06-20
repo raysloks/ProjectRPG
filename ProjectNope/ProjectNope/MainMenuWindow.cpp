@@ -68,6 +68,9 @@ MainMenuWindow::MainMenuWindow(World * pWorld, Client * pClient, int px, int py,
 	addChild(start_game_button);
 	addChild(join_game_button);
 	addChild(exit_game_button);
+
+	min_anchor = Vec2(0.0f, 0.0f);
+	max_anchor = Vec2(1.0f, 1.0f);
 }
 
 MainMenuWindow::~MainMenuWindow(void)
@@ -76,7 +79,7 @@ MainMenuWindow::~MainMenuWindow(void)
 
 void MainMenuWindow::render(RenderSetup& rs)
 {
-	client->hideCursor = state == 2;
+	//client->hideCursor = state == 2;
 	if (state == 1)
 		RectangleWindow::render(rs);
 }

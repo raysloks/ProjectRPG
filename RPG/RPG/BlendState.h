@@ -7,7 +7,7 @@ class BlendState :
 {
 public:
 	BlendState(const std::string& name, const std::string& second_name, float weight = 0.5f, float speed = 1.0f);
-	BlendState(instream& is, bool full);
+	BlendState(instream& is);
 	~BlendState();
 
 	void tick(float dTime);

@@ -14,7 +14,7 @@ public:
 	size_t caret;
 	float t;
 
-	void render(void);
+	void render(RenderSetup& rs);
 
 	bool handleEvent(IEvent * pEvent);
 };

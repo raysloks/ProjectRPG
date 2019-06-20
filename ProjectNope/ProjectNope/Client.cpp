@@ -33,6 +33,8 @@
 
 #include "Profiler.h"
 
+#include <boost/range/adaptor/reversed.hpp>
+
 extern double secondsPerStep;
 extern double fpsCap;
 extern bool forceCap;
@@ -83,7 +85,7 @@ Client::Client(World * pWorld)
 
 	subframes = 1;
 
-	clientData = new ClientData();
+	clientData = std::make_shared<ClientData>();
 	clientData->client_id = 0;
 
 	depth_fill_prog = ShaderProgram::Get("data/dfill_vert.txt", "data/dfill_frag.txt");
@@ -113,9 +115,7 @@ void Client::disconnect(void)
 	if (con != nullptr)
 		con->socket_.close();
 	con = nullptr;
-	if (clientData != nullptr)
-		delete clientData;
-	clientData = new ClientData();
+	clientData = std::make_shared<ClientData>();
 	
 	world->clear();
 	world->clean();
@@ -127,8 +127,6 @@ Client::~Client(void)
 {
 	if (con)
 		con->socket_.close();
-	if (clientData)
-		delete clientData;
 	Sound::release();
 	if (platform)
 	{
@@ -152,7 +150,7 @@ void Client::setup(void)
 		auto config = Resource::get<StringResource>("config.txt");
 		if (config || Resource::is_loaded("config.txt"))
 		{
-			mem.reset(new ScriptMemory());
+			mem = std::make_shared<ScriptMemory>();
 			if (config)
 			{
 				Script script(std::istringstream(config->string));
@@ -932,7 +930,7 @@ void Client::render_world(void)
 				// push shadow look-up table to gpu
 				if (light_lookup_tex == 0)
 				{
-					light_lookup_tex.reset(new Texture());
+					light_lookup_tex = std::make_shared<Texture>();
 
 					light_lookup_tex->w = light_lookup_res_angle;
 					light_lookup_tex->h = light_lookup_res_distance;
@@ -1358,6 +1356,7 @@ void Client::render_world(void)
 		Writing::setColor(0.0f, 0.0f, 0.0f);
 		Writing::setFont("data/assets/fonts/NotoSans-SemiBold.ttf");
 		Writing::setSize(12);
+		Writing::setOffset(Vec2());
 		Writing::setScale(gui_scale);
 
 		rs.addTransform(Matrix4::Translation(Vec3(-gui_w / 2.0f, -gui_h / 2.0f, 0.0f)));
@@ -1369,46 +1368,39 @@ void Client::render_world(void)
 			rs.popTransform();
 		}
 
-		hideCursor = false;
-		for (auto win = windows.begin(); win != windows.end(); ++win)
+		//hideCursor = false;
+		for (auto window : windows)
 		{
-			auto rect_window = dynamic_cast<RectangleWindow*>(win->get());
-			if (rect_window)
-			{
-				rect_window->x = 0;
-				rect_window->y = 0;
-				rect_window->w = view_w;
-				rect_window->h = view_h;
-			}
-			if (win->get()->onRender)
-				win->get()->onRender();
-			rs.pushTransform();
-			win->get()->render(rs);
-			rs.popTransform();
+			window->handleEvent(new ResizeEvent(gui_w, gui_h));
+			window->render(rs);
 		}
-		//lockCursor = true;
-		lockCursor = hideCursor; // allow cursor to escape window when visible
-		if (hideCursor && lockCursor)
-		{
-			if (platform->has_focus())
-				platform->set_cursor_position(view_w / 2, view_h / 2);
-		}
+		//hideCursor = input.isDown(Platform::KeyEvent::LMB) || input.isDown(Platform::KeyEvent::RMB);
+		lockCursor = true;
+		//lockCursor = hideCursor; // allow cursor to escape window when visible
+		//if (hideCursor && lockCursor)
+		//{
+		//	if (platform->has_focus())
+		//		platform->set_cursor_position(input.mouse_x, input.mouse_y);//platform->set_cursor_position(view_w / 2, view_h / 2);
+		//}
 
 #if TIMESLOT_LEVEL >= 0
 		//if (input.isDown(Platform::KeyEvent::P))
 		{
 			rs.pushTransform();
 			rs.addTransform(Matrix4::Translation(Vec3(140.0f, 40.0f, 0.0f)));
+			Writing::setColor(0.0f, 0.0f, 1.0f);
+			Writing::setSize(24);
+			Writing::setOffset(Vec2());
 			Writing::render(std::to_string(world->units.size()), rs);
 			rs.popTransform();
 			rs.popTransform();
 
-			Writing::setColor(0.8f, 0.1f, 0.7f);
-			Writing::setSize(12);
-
 			rs.pushTransform();
 			rs.addTransform(Matrix4::Translation(Vec3(40.0f, 40.0f, 0.0f)));
 
+			Writing::setColor(0.8f, 0.1f, 0.7f);
+			Writing::setSize(12);
+			Writing::setOffset(Vec2());
 			Writing::render(Profiler::get(), rs);
 			/*rs.popTransform();
 			rs.addTransform(Matrix4::Translation(Vec3(-2.0f, 0.0f, 0.0f)));
@@ -1500,22 +1492,40 @@ bool Client::HandleEvent(IEvent * pEvent)
 	if (pEvent->GetType() == MouseMoveEvent::event_type) {
 		MouseMoveEvent * ev = (MouseMoveEvent*)pEvent;
 		if (!ev->relative)
+		{
+			if (hideCursor)
+				return false;
 			ev->p /= gui_scale;
+		}
 	}
 
-	for (std::vector<std::shared_ptr<Window>>::reverse_iterator win = windows.rbegin(); win != windows.rend(); ++win)
+	for (auto window : boost::adaptors::reverse(windows))
 	{
-		if (win->get()->handleEvent(pEvent))
+		if (window->handleEvent(pEvent))
 			return false;
 	}
 
 	if (pEvent->GetType()==KeyDownEvent::event_type) {
 		KeyDownEvent * ev = (KeyDownEvent*)pEvent;
+		if (ev->key == Platform::KeyEvent::LMB || ev->key == Platform::KeyEvent::RMB)
+		{
+			input.mouse_x = ev->x;
+			input.mouse_y = ev->y;
+			hideCursor = true;
+			platform->set_cursor_hide(hideCursor);
+		}
 		input.onDown(ev->key);
 	}
 
 	if (pEvent->GetType()==KeyUpEvent::event_type) {
 		KeyUpEvent * ev = (KeyUpEvent*)pEvent;
+		if (ev->key == Platform::KeyEvent::LMB || ev->key == Platform::KeyEvent::RMB)
+		{
+			hideCursor = false;
+			if (platform->has_focus())
+				platform->set_cursor_position(input.mouse_x, input.mouse_y);
+			platform->set_cursor_hide(hideCursor);
+		}
 		input.onUp(ev->key);
 	}
 
@@ -1531,8 +1541,11 @@ bool Client::HandleEvent(IEvent * pEvent)
 		}
 		else
 		{
-			input.mouse_x = ev->x;
-			input.mouse_y = ev->y;
+			if (!hideCursor)
+			{
+				input.mouse_x = ev->x;
+				input.mouse_y = ev->y;
+			}
 		}
 	}
 	if (pEvent->GetType()==MouseWheelEvent::event_type) {
@@ -1617,7 +1630,7 @@ void Client::handle_packet(const std::shared_ptr<Packet>& packet)
 					break;
 				}
 			}
-			NewEntity * unit = new NewEntity(in, false);
+			NewEntity * unit = new NewEntity(in);
 			world->SetEntity(id, unit);
 			world->uid[id] = uid;
 			NewEntity * copy = new NewEntity();

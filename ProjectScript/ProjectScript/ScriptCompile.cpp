@@ -510,7 +510,7 @@ void ScriptCompile::SetClass(const std::string& name)
 	}
 	else
 	{
-		current_class.reset(new ScriptClassData());
+		current_class = std::make_shared<ScriptClassData>();
 		current_class->class_name = name;
 		classes.insert(std::make_pair(name, current_class));
 	}

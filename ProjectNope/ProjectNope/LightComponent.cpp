@@ -18,7 +18,7 @@ LightComponent::LightComponent(void) : Component(_factory.id)
 	pose = nullptr;
 }
 
-LightComponent::LightComponent(instream& is, bool full) : Component(_factory.id)
+LightComponent::LightComponent(instream& is) : Component(_factory.id)
 {
 	all.push_back(this);
 	pose = nullptr;
@@ -64,7 +64,7 @@ void LightComponent::tick(float dTime)
 {
 }
 
-void LightComponent::writeLog(outstream& os, ClientData& client)
+void LightComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -76,7 +76,7 @@ void LightComponent::writeLog(outstream& os)
 {
 }
 
-void LightComponent::readLog(instream& is, ClientData& client)
+void LightComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -84,7 +84,7 @@ void LightComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void LightComponent::write_to(outstream& os, ClientData& client) const
+void LightComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 	os << bone_id;
 }

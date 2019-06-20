@@ -10,7 +10,7 @@ CameraShakeComponent::CameraShakeComponent(void) : Component(_factory.id)
 	t = 0.0f;
 }
 
-CameraShakeComponent::CameraShakeComponent(instream& is, bool full) : Component(_factory.id)
+CameraShakeComponent::CameraShakeComponent(instream& is) : Component(_factory.id)
 {
 	t = 0.0f;
 }
@@ -42,7 +42,7 @@ void CameraShakeComponent::tick(float dTime)
 		entity->world->SetEntity(entity->id, nullptr);
 }
 
-void CameraShakeComponent::writeLog(outstream& os, ClientData& client)
+void CameraShakeComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -54,7 +54,7 @@ void CameraShakeComponent::writeLog(outstream& os)
 {
 }
 
-void CameraShakeComponent::readLog(instream& is, ClientData& client)
+void CameraShakeComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -62,7 +62,7 @@ void CameraShakeComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void CameraShakeComponent::write_to(outstream& os, ClientData& client) const
+void CameraShakeComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 

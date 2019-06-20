@@ -6,7 +6,7 @@ LearningComponent::LearningComponent(void) : Component(_factory.id)
 {
 }
 
-LearningComponent::LearningComponent(instream& is, bool full) : Component(_factory.id)
+LearningComponent::LearningComponent(instream& is) : Component(_factory.id)
 {
 }
 
@@ -34,7 +34,7 @@ void LearningComponent::tick(float dTime)
 {
 }
 
-void LearningComponent::writeLog(outstream& os, ClientData& client)
+void LearningComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -46,7 +46,7 @@ void LearningComponent::writeLog(outstream& os)
 {
 }
 
-void LearningComponent::readLog(instream& is, ClientData& client)
+void LearningComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -54,7 +54,7 @@ void LearningComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void LearningComponent::write_to(outstream& os, ClientData& client) const
+void LearningComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 

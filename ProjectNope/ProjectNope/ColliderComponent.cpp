@@ -17,7 +17,7 @@ ColliderComponent::ColliderComponent(bool d) : Component(_factory.id), deform(d)
 	all.push_back(this);
 }
 
-ColliderComponent::ColliderComponent(instream& is, bool full) : Component(_factory.id)
+ColliderComponent::ColliderComponent(instream& is) : Component(_factory.id)
 {
 	all.push_back(this);
 	is >> deform;
@@ -60,7 +60,7 @@ void ColliderComponent::tick(float dTime)
 	}
 }
 
-void ColliderComponent::writeLog(outstream& os, ClientData& client)
+void ColliderComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -72,7 +72,7 @@ void ColliderComponent::writeLog(outstream& os)
 {
 }
 
-void ColliderComponent::readLog(instream& is, ClientData& client)
+void ColliderComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -80,7 +80,7 @@ void ColliderComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void ColliderComponent::write_to(outstream& os, ClientData& client) const
+void ColliderComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 	os << deform;
 }

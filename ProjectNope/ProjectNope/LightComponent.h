@@ -14,7 +14,7 @@ class LightComponent :
 {
 public:
 	LightComponent(void);
-	LightComponent(instream& is, bool full);
+	LightComponent(instream& is);
 	~LightComponent(void);
 
 	void connect(NewEntity * pEntity, bool authority);
@@ -23,15 +23,15 @@ public:
 	void pre_frame(float dTime);
 	void tick(float dTime);
 
-	void writeLog(outstream& os, ClientData& client);
+	void writeLog(outstream& os, const std::shared_ptr<ClientData>& client);
 	void readLog(instream& is);
 
 	void writeLog(outstream& os);
-	void readLog(instream& is, ClientData& client);
+	void readLog(instream& is, const std::shared_ptr<ClientData>& client);
 
 	void interpolate(Component * pComponent, float fWeight);
 
-	void write_to(outstream& os, ClientData& client) const;
+	void write_to(outstream& os, const std::shared_ptr<ClientData>& client) const;
 	void write_to(outstream& os) const;
 
 	GlobalPosition p;

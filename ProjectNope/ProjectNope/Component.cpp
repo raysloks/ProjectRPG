@@ -10,13 +10,13 @@ void Component::connect(NewEntity * pEntity, bool authority) {}
 
 void Component::disconnect(void) {}
 
-void Component::writeLog(outstream& os, ClientData& client) {}
+void Component::writeLog(outstream& os, const std::shared_ptr<ClientData>& client) {}
 
 void Component::readLog(instream& is) {}
 
 void Component::writeLog(outstream& os) {}
 
-void Component::readLog(instream& is, ClientData& client) {}
+void Component::readLog(instream& is, const std::shared_ptr<ClientData>& client) {}
 
 void Component::pre_frame(float dTime) {}
 
@@ -26,7 +26,7 @@ void Component::tick(float dTime) {}
 
 void Component::interpolate(Component * pComponent, float fWeight) {}
 
-void Component::write_to(outstream& os, ClientData& client) const {}
+void Component::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const {}
 
 void Component::write_to(outstream& os) const {}
 

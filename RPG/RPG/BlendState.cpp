@@ -15,7 +15,7 @@ BlendState::BlendState(const std::string& n, const std::string& sn, float w, flo
 	t = 0.0f;
 }
 
-BlendState::BlendState(instream& is, bool full) : SimpleState(is, full)
+BlendState::BlendState(instream& is) : SimpleState(is)
 {
 	is >> second_name >> weight;
 }

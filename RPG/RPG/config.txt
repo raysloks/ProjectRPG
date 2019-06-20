@@ -28,7 +28,7 @@ fov = 90;
 near_z = 0.1;
 far_z = 5000;
 
-sensitivity = 0.0005;
+sensitivity = 0.001;
 sensitivity_x = 1;
 sensitivity_y = 1;
 

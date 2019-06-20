@@ -44,7 +44,7 @@ MobComponent::MobComponent(void) : Component(_factory.id), health(20), stamina(1
 	facing.y = M_PI_2;
 }
 
-MobComponent::MobComponent(instream& is, bool full) : Component(_factory.id)
+MobComponent::MobComponent(instream& is) : Component(_factory.id)
 {
 	is >> facing >> up;
 	p = nullptr;
@@ -56,10 +56,13 @@ MobComponent::~MobComponent(void)
 
 void MobComponent::connect(NewEntity * pEntity, bool authority)
 {
+	if (authority)
+		abilities.setSyncState(&pEntity->ss);
 }
 
 void MobComponent::disconnect(void)
 {
+	abilities.setSyncState(nullptr);
 }
 
 #include "Profiler.h"
@@ -636,7 +639,7 @@ void MobComponent::tick(float dTime)
 	}
 }
 
-void MobComponent::writeLog(outstream& os, ClientData& client)
+void MobComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 	os << facing << up;
 	os << v << land_n << land_v << landed;
@@ -645,6 +648,7 @@ void MobComponent::writeLog(outstream& os, ClientData& client)
 	os << move;
 	os << input;
 	os << r;
+	abilities.writeLog(os);
 }
 
 void MobComponent::readLog(instream& is)
@@ -656,13 +660,14 @@ void MobComponent::readLog(instream& is)
 	is >> move;
 	is >> input;
 	is >> r;
+	abilities.readLog(is);
 }
 
 void MobComponent::writeLog(outstream& os)
 {
 }
 
-void MobComponent::readLog(instream& is, ClientData& client)
+void MobComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -686,10 +691,11 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 		move = bu_blend(move, mob->move, fWeight);
 		input = mob->input;
 		r = mob->r;
+		abilities = mob->abilities;
 	}
 }
 
-void MobComponent::write_to(outstream& os, ClientData& client) const
+void MobComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 	os << facing << up;
 }
@@ -697,6 +703,8 @@ void MobComponent::write_to(outstream& os, ClientData& client) const
 void MobComponent::write_to(outstream& os) const
 {
 }
+
+#include "InventoryComponent.h"
 
 void MobComponent::do_damage(HitData& hit)
 {
@@ -719,6 +727,9 @@ void MobComponent::do_damage(HitData& hit)
 	if (damage > 0)
 	{
 		health.current -= damage;
+		auto inv = entity->getComponent<InventoryComponent>();
+		if (inv)
+			inv->hp_changes.queue.push_back(damage);
 		if (health.current <= 0)
 		{
 			on_fatal_hit_taken.call(hit);

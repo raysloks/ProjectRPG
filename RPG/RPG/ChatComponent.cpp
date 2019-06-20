@@ -29,7 +29,7 @@ ChatComponent::ChatComponent(void) : Component(_factory.id)
 {
 }
 
-ChatComponent::ChatComponent(instream& is, bool full) : Component(_factory.id)
+ChatComponent::ChatComponent(instream& is) : Component(_factory.id)
 {
 }
 
@@ -77,7 +77,7 @@ void ChatComponent::tick(float dTime)
 	}
 }
 
-void ChatComponent::writeLog(outstream& os, ClientData& client)
+void ChatComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 	uint8_t n_messages = messages.size();
 	os << n_messages;
@@ -107,12 +107,12 @@ void ChatComponent::writeLog(outstream& os)
 	}
 }
 
-void ChatComponent::readLog(instream& is, ClientData& client)
+void ChatComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 	std::string message;
 	is >> message;
 	ChatMessage chat_message;
-	chat_message.message = std::to_string(client.client_id) + ": " + message + "\n";
+	chat_message.message = std::to_string(client->client_id) + ": " + message + "\n";
 	chat_message.timeout = 10.0f;
 	messages.push_back(chat_message);
 }
@@ -123,7 +123,7 @@ void ChatComponent::interpolate(Component * pComponent, float fWeight)
 	messages = other->messages;
 }
 
-void ChatComponent::write_to(outstream& os, ClientData& client) const
+void ChatComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 
@@ -140,7 +140,7 @@ void ChatComponent::set_display(bool enable)
 		{
 			if (!func)
 			{
-				func.reset(new std::function<void(RenderSetup&)>([this](RenderSetup& rs) {
+				func = std::make_shared<std::function<void(RenderSetup&)>>([this](RenderSetup& rs) {
 					rs.pushTransform();
 
 					rs.addTransform(Matrix4::Translation(Vec2(20.0f, rs.size.y - 20.0f)));
@@ -154,7 +154,7 @@ void ChatComponent::set_display(bool enable)
 					}
 
 					rs.popTransform();
-				}));
+				});
 				client->render2D.push_back(func);
 			}
 		}

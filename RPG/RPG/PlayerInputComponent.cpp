@@ -25,7 +25,7 @@ PlayerInputComponent::PlayerInputComponent(void) : Component(_factory.id)
 {
 }
 
-PlayerInputComponent::PlayerInputComponent(instream& is, bool full) : Component(_factory.id)
+PlayerInputComponent::PlayerInputComponent(instream& is) : Component(_factory.id)
 {
 	is >> sc.sync;
 }
@@ -78,7 +78,8 @@ void PlayerInputComponent::post_frame(float dTime)
 
 			auto ccc = entity->getComponent<CameraControlComponent>();
 
-			facing = ccc->cam_rot_basic;
+			if (input.isDown(Platform::KeyEvent::RMB))
+				facing = ccc->cam_rot_basic;
 
 			move = ccc->forward * move_input.y + ccc->right * move_input.x;
 			if (move.Len() > 1.0f)
@@ -88,9 +89,9 @@ void PlayerInputComponent::post_frame(float dTime)
 			if (move_space.Len() > 1.0f)
 				move_space.Normalize();
 
-			if (input.isPressed(Platform::KeyEvent::LMB) || input.ctrl[0].x.pressed)
+			if (input.isPressed(Platform::KeyEvent::N1) || input.ctrl[0].x.pressed)
 				sc.queue.emplace_back("attack");
-			if (input.isPressed(Platform::KeyEvent::RMB) || input.ctrl[0].right_trigger.pressed)
+			if (input.isPressed(Platform::KeyEvent::N2) || input.ctrl[0].right_trigger.pressed)
 				sc.queue.emplace_back("dash");
 			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].a.pressed)
 				sc.queue.emplace_back("jump");
@@ -134,28 +135,28 @@ void PlayerInputComponent::tick(float dTime)
 	}
 }
 
-void PlayerInputComponent::writeLog(outstream& os, ClientData& client)
+void PlayerInputComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
-	sc.writeLog(os, client);
+	sc.writeFromDestination(os);
 }
 
 void PlayerInputComponent::readLog(instream& is)
 {
-	sc.readLog(is);
+	sc.readFromDestination(is);
 }
 
 void PlayerInputComponent::writeLog(outstream& os)
 {
 	os << move << move_space << facing;
-	sc.writeLog(os);
+	sc.writeFromSource(os);
 }
 
-void PlayerInputComponent::readLog(instream& is, ClientData& client)
+void PlayerInputComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
-	if (client.client_id == client_id)
+	if (client->client_id == client_id)
 	{
 		is >> move >> move_space >> facing;
-		sc.readLog(is, client);
+		sc.readFromSource(is);
 	}
 }
 
@@ -165,7 +166,7 @@ void PlayerInputComponent::interpolate(Component * pComponent, float fWeight)
 	sc.update(other->sc.sync);
 }
 
-void PlayerInputComponent::write_to(outstream& os, ClientData& client) const
+void PlayerInputComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 	os << sc.sync;
 }

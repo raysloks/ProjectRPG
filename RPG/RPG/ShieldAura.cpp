@@ -14,7 +14,7 @@ ShieldAura::ShieldAura(int32_t a, float d) : Aura(d)
 	amount = a;
 }
 
-ShieldAura::ShieldAura(instream& is, bool full)
+ShieldAura::ShieldAura(instream& is)
 {
 	is >> amount;
 }
@@ -25,7 +25,7 @@ ShieldAura::~ShieldAura()
 
 void ShieldAura::attach(MobComponent * mob)
 {
-	func.reset(new std::function<void(HitData&)>([this, mob](HitData& hit)
+	func = std::make_shared<std::function<void(HitData&)>>([this, mob](HitData& hit)
 	{
 		for (auto& dmg : hit.damage)
 		{
@@ -35,7 +35,7 @@ void ShieldAura::attach(MobComponent * mob)
 		}
 		if (amount <= 0)
 			mob->remove_aura(this);
-	}));
+	});
 	mob->on_hit_taken.funcs.insert(std::make_pair(100, func));
 }
 

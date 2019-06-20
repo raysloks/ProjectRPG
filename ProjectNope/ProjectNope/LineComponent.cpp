@@ -20,7 +20,7 @@ LineComponent::LineComponent(void) : Component(_factory.id)
 	p = 0;
 }
 
-LineComponent::LineComponent(instream& is, bool full) : Component(_factory.id)
+LineComponent::LineComponent(instream& is) : Component(_factory.id)
 {
 	all.insert(this);
 	col_mat *= 0.5f;
@@ -45,7 +45,7 @@ void LineComponent::tick(float dTime)
 {
 }
 
-void LineComponent::writeLog(outstream& os, ClientData& client)
+void LineComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -57,7 +57,7 @@ void LineComponent::writeLog(outstream& os)
 {
 }
 
-void LineComponent::readLog(instream& is, ClientData& client)
+void LineComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -69,7 +69,7 @@ void LineComponent::interpolate(Component * pComponent, float fWeight)
 	}
 }
 
-void LineComponent::write_to(outstream& os, ClientData& client) const
+void LineComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 

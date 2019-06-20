@@ -44,44 +44,44 @@ void Decorator::readLog(instream& is)
 
 void Decorator::attach(const Pose& pose)
 {
-	if (mesh==0)
+	if (mesh == nullptr)
 		mesh = Resource::get<Mesh>(mesh_fname);
-	if (mesh!=0)
+	if (mesh != nullptr)
 	{
-		if (bone_id>=0)
+		if (bone_id >= 0)
 		{
-			if (skin!=mesh)
+			if (skin != mesh)
 				skin = mesh;
 		}
 		else
 		{
-			if (skin==0 || skin==mesh)
-				skin.reset(new Mesh(*mesh));
+			if (skin == nullptr || skin == mesh)
+				skin = std::make_shared<Mesh>(*mesh);
 			mesh->getPose(pose, skin.get());
 		}
 	}
-	if (bone_id>=0)
+	if (bone_id >= 0)
 	{
-		if (pose.bones.size()>bone_id)
+		if (pose.bones.size() > bone_id)
 			final = pose.bones[bone_id].getTransform();
 	}
 }
 
 void Decorator::attach()
 {
-	if (mesh==0)
+	if (mesh == nullptr)
 		mesh = Resource::get<Mesh>(mesh_fname);
-	if (mesh!=0)
+	if (mesh != nullptr)
 	{
-		if (bone_id>=0)
+		if (bone_id >= 0)
 		{
-			if (skin!=mesh)
+			if (skin != mesh)
 				skin = mesh;
 		}
 		else
 		{
-			if (skin==0 || skin==mesh)
-				skin.reset(new Mesh(*mesh));
+			if (skin == nullptr || skin == mesh)
+				skin = std::make_shared<Mesh>(*mesh);
 		}
 	}
 }

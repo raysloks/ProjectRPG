@@ -15,7 +15,7 @@ SimpleState::SimpleState(const std::string& n, float s) : name(n), speed(s)
 	blend_t = 0.0f;
 }
 
-SimpleState::SimpleState(instream& is, bool full)
+SimpleState::SimpleState(instream& is)
 {
 	is >> t >> speed >> name;
 	prev_t = t;

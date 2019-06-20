@@ -2,6 +2,8 @@
 
 #include "streams.h"
 
+class ClientData;
+
 template <class T>
 class SerializableWrapper
 {
@@ -9,6 +11,12 @@ public:
 	SerializableWrapper()
 	{
 		ptr = nullptr;
+	}
+	SerializableWrapper(instream& is, ClientData& client)
+	{
+		auto factory = T::_registry.deserialize(is);
+		if (factory)
+			ptr = factory->create(is, client);
 	}
 	SerializableWrapper(const SerializableWrapper<T>& rhs)
 	{
@@ -55,6 +63,6 @@ instream& operator>>(instream& is, SerializableWrapper<T>& sw)
 {
 	auto factory = T::_registry.deserialize(is);
 	if (factory)
-		sw.ptr = factory->create(is, false);
+		sw.ptr = factory->create(is);
 	return is;
 }

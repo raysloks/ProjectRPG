@@ -9,7 +9,7 @@ class InventoryCommandInteract :
 {
 public:
 	InventoryCommandInteract(const EntityID& id);
-	InventoryCommandInteract(instream& is, bool full);
+	InventoryCommandInteract(instream& is);
 	~InventoryCommandInteract();
 
 	void execute(InventoryComponent& inv);

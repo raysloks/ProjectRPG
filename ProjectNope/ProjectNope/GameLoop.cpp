@@ -111,7 +111,7 @@ void GameLoop::tick(void)
 		client->pre_frame(fullInSeconds / client->subframes * time_scale);
 		client->render();
 		client->input.clear();
-		client->platform->input(gpEventManager, client->lockCursor, client->hideCursor);
+		client->platform->input(gpEventManager);
 		gpEventManager->Tick();
 		client->input.update();
 		client->post_frame(fullInSeconds / client->subframes * time_scale);

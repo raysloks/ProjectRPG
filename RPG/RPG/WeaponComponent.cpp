@@ -20,7 +20,7 @@ WeaponComponent::WeaponComponent(void) : Component(_factory.id)
 {
 }
 
-WeaponComponent::WeaponComponent(instream& is, bool full) : Component(_factory.id)
+WeaponComponent::WeaponComponent(instream& is) : Component(_factory.id)
 {
 	is >> mob_id;
 }
@@ -79,7 +79,7 @@ void WeaponComponent::tick(float dTime)
 	}
 }
 
-void WeaponComponent::writeLog(outstream& os, ClientData& client)
+void WeaponComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -91,7 +91,7 @@ void WeaponComponent::writeLog(outstream& os)
 {
 }
 
-void WeaponComponent::readLog(instream& is, ClientData& client)
+void WeaponComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -100,11 +100,11 @@ void WeaponComponent::interpolate(Component * pComponent, float fWeight)
 	auto other = reinterpret_cast<WeaponComponent*>(pComponent);
 }
 
-void WeaponComponent::write_to(outstream& os, ClientData& client) const
+void WeaponComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
-	uint32_t client_side_id = client.getUnit(mob_id.id);
+	uint32_t client_side_id = client->getUnit(mob_id.id);
 	if (client_side_id != 0xffffffff)
-		os << EntityID(client_side_id, client.unit_uid[client_side_id]);
+		os << EntityID(client_side_id, client->unit_uid[client_side_id]);
 	else
 		os << EntityID();
 }

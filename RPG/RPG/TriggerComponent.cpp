@@ -11,7 +11,7 @@ TriggerComponent::TriggerComponent(void) : Component(_factory.id)
 {
 }
 
-TriggerComponent::TriggerComponent(instream& is, bool full) : Component(_factory.id)
+TriggerComponent::TriggerComponent(instream& is) : Component(_factory.id)
 {
 }
 
@@ -64,7 +64,7 @@ void TriggerComponent::tick(float dTime)
 	}
 }
 
-void TriggerComponent::writeLog(outstream& os, ClientData& client)
+void TriggerComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -76,7 +76,7 @@ void TriggerComponent::writeLog(outstream& os)
 {
 }
 
-void TriggerComponent::readLog(instream& is, ClientData& client)
+void TriggerComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
 }
 
@@ -84,7 +84,7 @@ void TriggerComponent::interpolate(Component * pComponent, float fWeight)
 {
 }
 
-void TriggerComponent::write_to(outstream& os, ClientData& client) const
+void TriggerComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
 }
 

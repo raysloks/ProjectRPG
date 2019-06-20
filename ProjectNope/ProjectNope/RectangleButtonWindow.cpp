@@ -13,6 +13,7 @@ RectangleButtonWindow::RectangleButtonWindow(int px, int py, int width, int heig
 
 RectangleButtonWindow::~RectangleButtonWindow(void)
 {
+	RectangleWindow::~RectangleWindow();
 }
 
 #include "Texture.h"
@@ -20,14 +21,13 @@ RectangleButtonWindow::~RectangleButtonWindow(void)
 void RectangleButtonWindow::render(RenderSetup& rs)
 {
 	rs.pushTransform();
-	rs.addTransform(Matrix4::Translation(p));
-	rs.addTransform(Matrix4::Scale(Vec3(w, h, 1.0f)));
+	rs.addTransform(Matrix4::Translation(min));
 
 	Vec4 color(1.0f, 1.0f, 1.0f, 0.4f);
 	if (hover)
-		color = Vec4(0.8f, 0.8f, 0.8f, 0.4f);
+		color = Vec4(0.7f, 0.7f, 0.7f, 0.4f);
 	if (pressed)
-		color = Vec4(0.6f, 0.6f, 0.6f, 0.4f);
+		color = Vec4(0.4f, 0.4f, 0.4f, 0.4f);
 	ShaderMod mod(nullptr, [color](const std::shared_ptr<ShaderProgram>& prog) {
 		prog->Uniform("color", color);
 	});
@@ -36,60 +36,60 @@ void RectangleButtonWindow::render(RenderSetup& rs)
 
 	auto image = Resource::get<Texture>("data/assets/white.tga");
 	if (image)
-		image->render(rs);
+		image->render(rs, size);
 
 	rs.popMod();
 
 	rs.popTransform();
 
 	rs.pushTransform();
-	rs.addTransform(Matrix4::Translation(Vec3(x, y + h, 0.0f) + offset));
+	rs.addTransform(Matrix4::Translation(Vec2(min.x, max.y) + offset));
 	Writing::setSize(24);
 	Writing::setColor(0.0f, 0.0f, 0.0f);
+	Writing::setOffset(Vec2());
 	Writing::render(text, rs);
 	rs.popTransform();
 	rs.popTransform();
-	rs.pushTransform();
-	rs.addTransform(Matrix4::Translation(Vec3(x, y, 0.0f)));
+
 	Window::render(rs);
-	rs.popTransform();
 }
 
 bool RectangleButtonWindow::handleEvent(IEvent * pEvent)
 {
-	if (pEvent->GetType()==MouseMoveEvent::event_type) {
+	if (pEvent->GetType()==MouseMoveEvent::event_type)
+	{
 		MouseMoveEvent * ev = (MouseMoveEvent*)pEvent;
 		if (!ev->relative)
-			if (ev->x>=x && ev->y>=y && ev->x<x+w && ev->y<y+h) {
-				hover = true;
-			} else {
-				if (hover) {
-					pressed = false;
-					hover = false;
-				}
-			}
-	}
-	if (pEvent->GetType()==KeyDownEvent::event_type) {
-		KeyDownEvent * ev = (KeyDownEvent*)pEvent;
-		if (ev->key==Platform::KeyEvent::LMB || ev->key==Platform::KeyEvent::MMB || ev->key==Platform::KeyEvent::RMB)
 		{
-			if (ev->x>=x && ev->y>=y && ev->x<x+w && ev->y<y+h) {
-				if (onClick)
-					onClick();
-				pressed = true;
-				return true;
+			if (ev->x >= min.x && ev->y >= min.y && ev->x < max.x && ev->y < max.y)
+			{
+				hover = true;
+			}
+			else
+			{
+				pressed = false;
+				hover = false;
 			}
 		}
 	}
-	if (pEvent->GetType()==KeyUpEvent::event_type) {
+	if (pEvent->GetType()==KeyDownEvent::event_type)
+	{
+		KeyDownEvent * ev = (KeyDownEvent*)pEvent;
+		if (ev->key==Platform::KeyEvent::LMB || ev->key==Platform::KeyEvent::MMB || ev->key==Platform::KeyEvent::RMB)
+		{
+			if (ev->x >= min.x && ev->y >= min.y && ev->x < max.x && ev->y < max.y)
+			{
+				pressed = true;
+			}
+		}
+	}
+	if (pEvent->GetType()==KeyUpEvent::event_type)
+	{
 		KeyUpEvent * ev = (KeyUpEvent*)pEvent;
 		if (ev->key==Platform::KeyEvent::LMB || ev->key==Platform::KeyEvent::MMB || ev->key==Platform::KeyEvent::RMB)
 		{
 			pressed = false;
-			/*if (ev->x>=x && ev->y>=y && ev->x<=x+w && ev->y<=y+h)
-				if (!fpCallbackKeyUp.empty())
-					fpCallbackKeyUp(this);*/
 		}
 	}
-	return false;
+	return Window::handleEvent(pEvent);
 }

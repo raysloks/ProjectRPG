@@ -84,6 +84,17 @@ namespace Platform
 		static const unsigned int F22 = 0x0046;
 		static const unsigned int F23 = 0x0047;
 		static const unsigned int F24 = 0x0048;
+
+		static const unsigned int N0 = 0x0050;
+		static const unsigned int N1 = 0x0051;
+		static const unsigned int N2 = 0x0052;
+		static const unsigned int N3 = 0x0053;
+		static const unsigned int N4 = 0x0054;
+		static const unsigned int N5 = 0x0055;
+		static const unsigned int N6 = 0x0056;
+		static const unsigned int N7 = 0x0057;
+		static const unsigned int N8 = 0x0058;
+		static const unsigned int N9 = 0x0059;
 	};
 
 }

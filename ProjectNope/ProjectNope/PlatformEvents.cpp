@@ -12,6 +12,8 @@ const EventType PlatformDestroyEvent::event_type("PlatformDestroyEvent");
 
 const EventType ResizeEvent::event_type("ResizeEvent");
 
+const EventType FocusLostEvent::event_type("FocusLostEvent");
+
 KeyDownEvent::KeyDownEvent(int key_code, const std::string& c) : key(key_code), chr(c)
 {
 }
@@ -20,7 +22,7 @@ KeyUpEvent::KeyUpEvent(int key_code, const std::string& c) : key(key_code), chr(
 {
 }
 
-MouseMoveEvent::MouseMoveEvent(int a, int b, bool c) : x(a), y(b), relative(c)
+MouseMoveEvent::MouseMoveEvent(float a, float b, bool c) : x(a), y(b), relative(c)
 {
 }
 
@@ -32,7 +34,7 @@ PlatformDestroyEvent::PlatformDestroyEvent(void) : stop(false)
 {
 }
 
-ResizeEvent::ResizeEvent(int a, int b) : w(a), h(b)
+ResizeEvent::ResizeEvent(float a, float b) : w(a), h(b)
 {
 }
 
@@ -86,6 +88,11 @@ const EventType& PlatformDestroyEvent::GetType(void) const
 }
 
 const EventType& ResizeEvent::GetType(void) const
+{
+	return event_type;
+}
+
+const EventType& FocusLostEvent::GetType(void) const
 {
 	return event_type;
 }

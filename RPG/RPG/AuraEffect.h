@@ -1,3 +1,10 @@
+#pragma once
+
+#include "Effect.h"
+
+#include "Factory.h"
+#include "Aura.h"
+
 class AuraEffect :
 	public Effect
 {
@@ -6,6 +13,5 @@ public:
 	
 	void apply(const AbilityContext& ac);
 	
-	// maybe just a single aura like wow? maybe that is an optimization they've done so all types of effects are the same size
-	std::vector<std::shared_ptr<AuraFactory>> auras;
+	std::shared_ptr<Factory<Aura>> aura;
 };
