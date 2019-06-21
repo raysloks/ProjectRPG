@@ -13,5 +13,5 @@ public:
 	
 	void apply(const AbilityContext& ac);
 	
-	std::shared_ptr<Factory<Aura>> aura;
+	uint32_t aura_index;
 };

@@ -13,6 +13,10 @@ protected:
 
 public:
 	virtual ~Aura();
+	
+	static void init();
+	static Aura * create(uint32_t index);
+	static void release();
 
 	virtual void attach(MobComponent * mob);
 
