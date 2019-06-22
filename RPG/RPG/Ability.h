@@ -24,5 +24,5 @@ public:
 	float cast_time;
 	//Interruptability interruptability;
 
-	std::vector<std::shared_ptr<const Effect>> effects;
+	std::vector<uint32_t> effects;
 };

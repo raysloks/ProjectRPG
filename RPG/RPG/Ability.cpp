@@ -23,7 +23,7 @@ void Ability::activate(const AbilityContext& ac) const
 	auto finish = [=]
 	{
 		for (auto effect : effects)
-			effect->apply(ac);
+			Effect::get(effect)->apply(ac);
 	};
 	if (cast_time > 0.0f)
 	{
@@ -49,11 +49,13 @@ void Ability::init()
 
 	abilities[0].cast_time = 1.0f;
 	abilities[0].icon = "data/assets/y.tga";
-	abilities[0].name = "Skullsplitter";
+	abilities[0].name = "Barrier";
+	abilities[0].effects.push_back(0);
 
 	abilities[1].cast_time = 3.0f;
 	abilities[1].icon = "data/assets/wibbly.tga";
 	abilities[1].name = "Fireball";
+	abilities[1].effects.push_back(1);
 }
 
 const Ability * Ability::get(uint32_t index)

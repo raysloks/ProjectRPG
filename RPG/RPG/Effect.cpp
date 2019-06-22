@@ -9,6 +9,7 @@ void Effect::init()
 	effects.resize(256);
 
 	effects[0] = new AuraEffect(0);
+	effects[1] = new MissileEffect(0);
 }
 
 const Effect * Effect::get(uint32_t index)
