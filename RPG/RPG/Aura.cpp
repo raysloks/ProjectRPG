@@ -1,7 +1,5 @@
 #include "Aura.h"
 
-SerializableRegistry<Aura> Aura::_registry;
-
 Aura::Aura() : duration(std::numeric_limits<float>::infinity())
 {
 }
@@ -26,14 +24,10 @@ void Aura::writeLog(outstream& os)
 {
 }
 
-void Aura::write_to(outstream& os)
-{
-}
+#include "AuraFactory.h"
+#include "AutoAuraFactory.h"
 
-uint32_t Aura::getSerial() const
-{
-	return 0;
-}
+#include "ShieldAura.h"
 
 std::vector<AuraFactory*> aura_factories;
 
@@ -43,13 +37,17 @@ void Aura::init()
 
 	aura_factories.resize(256);
 
-	aura_factories[0] = new AutoAuraFactory<ShieldAura>();
+	aura_factories[0] = new AutoAuraFactory<ShieldAura, 10, 20>();
 }
 
 Aura * Aura::create(uint32_t index)
 {
 	if (index < aura_factories.size())
-		return aura_factories[index]->create();
+	{
+		Aura * aura = aura_factories[index]->create();
+		aura->index = index;
+		return aura;
+	}
 	return nullptr;
 }
 

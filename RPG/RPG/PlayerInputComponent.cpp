@@ -61,7 +61,7 @@ void PlayerInputComponent::post_frame(float dTime)
 
 			if (client->isActive)
 			{
-				if (input.isDown(Platform::KeyEvent::W) || input.isDown(Platform::KeyEvent::UP))
+				if (input.isDown(Platform::KeyEvent::W) || input.isDown(Platform::KeyEvent::UP) || input.isDown(Platform::KeyEvent::LMB) && input.isDown(Platform::KeyEvent::RMB))
 					move_input.y += 1.0f;
 				if (input.isDown(Platform::KeyEvent::A) || input.isDown(Platform::KeyEvent::LEFT))
 					move_input.x -= 1.0f;
@@ -84,7 +84,11 @@ void PlayerInputComponent::post_frame(float dTime)
 			if (input.isDown(Platform::KeyEvent::RMB))
 				facing = ccc->cam_rot_basic;
 
-			move = ccc->forward * move_input.y + ccc->right * move_input.x;
+			Vec3 forward = Vec3(0.0f, -1.0f, 0.0f) * Quaternion(facing.x, Vec3(0.0f, 0.0f, -1.0f));
+			Vec3 up = Vec3(0.0f, 0.0f, 1.0f);
+			Vec3 right = forward.Cross(up);
+
+			move = forward * move_input.y + right * move_input.x;
 			if (move.Len() > 1.0f)
 				move.Normalize();
 
@@ -99,12 +103,22 @@ void PlayerInputComponent::post_frame(float dTime)
 			if (input.isPressed(Platform::KeyEvent::Q) || input.ctrl[0].y.pressed)
 				sc.queue.emplace_back("heal");*/
 
-			if (input.isPressed(Platform::KeyEvent::N1) || input.ctrl[0].x.pressed)
+			if (input.isPressed(Platform::KeyEvent::N1))
 				sc.queue.emplace_back("0");
-			if (input.isPressed(Platform::KeyEvent::N2) || input.ctrl[0].right_trigger.pressed)
+			if (input.isPressed(Platform::KeyEvent::N2))
 				sc.queue.emplace_back("1");
-			if (input.isPressed(Platform::KeyEvent::Q) || input.ctrl[0].y.pressed)
+			if (input.isPressed(Platform::KeyEvent::N3))
 				sc.queue.emplace_back("2");
+			if (input.isPressed(Platform::KeyEvent::N4))
+				sc.queue.emplace_back("3");
+			if (input.isPressed(Platform::KeyEvent::Q))
+				sc.queue.emplace_back("4");
+			if (input.isPressed(Platform::KeyEvent::E))
+				sc.queue.emplace_back("5");
+			if (input.isPressed(Platform::KeyEvent::R))
+				sc.queue.emplace_back("6");
+			if (input.isPressed(Platform::KeyEvent::F))
+				sc.queue.emplace_back("7");
 
 			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].a.pressed)
 				sc.queue.emplace_back("jump");
@@ -134,10 +148,23 @@ void PlayerInputComponent::tick(float dTime)
 
 			AbilityContext ac;
 			ac.source = mob;
+			ac.target = mob;
 			if (sc.consumeValue("0"))
 				Ability::get(*mob->abilities.items[0])->activate(ac);
 			if (sc.consumeValue("1"))
 				Ability::get(*mob->abilities.items[1])->activate(ac);
+			if (sc.consumeValue("2"))
+				Ability::get(*mob->abilities.items[2])->activate(ac);
+			if (sc.consumeValue("3"))
+				Ability::get(*mob->abilities.items[3])->activate(ac);
+			if (sc.consumeValue("4"))
+				Ability::get(*mob->abilities.items[4])->activate(ac);
+			if (sc.consumeValue("5"))
+				Ability::get(*mob->abilities.items[5])->activate(ac);
+			if (sc.consumeValue("6"))
+				Ability::get(*mob->abilities.items[6])->activate(ac);
+			if (sc.consumeValue("7"))
+				Ability::get(*mob->abilities.items[7])->activate(ac);
 
 			if (sc.consumeValue("attack"))
 				mob->input["attack"] = buffer_duration;

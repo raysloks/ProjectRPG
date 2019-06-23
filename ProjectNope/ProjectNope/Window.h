@@ -23,13 +23,15 @@ public:
 
 	virtual bool handleEvent(IEvent * pEvent);
 
-	std::function<void(void)> onClick, onRender;
+	std::function<void(void)> onClick, onRender, onCursorEnter, onCursorExit;
 
 	Vec2 min_anchor, max_anchor;
 	Vec2 min_offset, max_offset;
 
 	Vec2 min, max, size;
 	
+	bool enabled, cursor;
+
 protected:
 	Window * parent;
 	Window * focus;

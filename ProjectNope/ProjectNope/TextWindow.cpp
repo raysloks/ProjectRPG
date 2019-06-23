@@ -16,6 +16,9 @@ TextWindow::~TextWindow(void)
 
 void TextWindow::render(RenderSetup& rs)
 {
+	if (!enabled)
+		return;
+
 	rs.pushTransform();
 	rs.addTransform(Matrix4::Translation(min));
 	rs.addTransform(Matrix4::Translation(Vec2(0.0f, font_size * (1.0f - offset.y)) + size * offset));

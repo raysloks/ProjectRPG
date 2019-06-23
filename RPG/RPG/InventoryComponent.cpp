@@ -27,6 +27,9 @@
 #include "InventoryCommandEquip.h"
 
 #include "Ability.h"
+#include "Aura.h"
+
+#include <iomanip>
 
 AutoSerialFactory<InventoryComponent, Component> InventoryComponent::_factory("InventoryComponent");
 
@@ -105,11 +108,75 @@ void InventoryComponent::pre_frame(float dTime)
 	{
 		const Input& input = client->input;
 
+		auto mob = entity->getComponent<MobComponent>();
+		if (mob)
+		{
+			if (!abilities_window)
+			{
+				auto rect_window = new RectangleWindow(-280.0f, -38.0f, 566.0f, 76.0f);
+				rect_window->min_anchor = Vec2(0.5f, 0.875f);
+				rect_window->max_anchor = Vec2(0.5f, 0.875f);
+				abilities_window.reset(rect_window);
+				client->windows.push_back(abilities_window);
+				for (int i = 0; i < mob->abilities.items.size(); ++i)
+				{
+					auto ability = Ability::get(*mob->abilities.items[i]);
+					if (ability)
+					{
+						auto ability_window = new RectangleWindow(70.0f * i + 6.0f, 6.0f, 64.0f, 64.0f);
+						ability_window->color = Vec4(1.0f);
+						ability_window->background = ability->icon;
+						rect_window->addChild(ability_window);
+					}
+				}
+			}
+
+			if (!auras_window)
+			{
+				auto rect_window = new RectangleWindow(-200.0f, -200.0f, 200.0f, 200.0f);
+				rect_window->min_anchor = Vec2(0.25f, 0.75f);
+				rect_window->max_anchor = Vec2(0.25f, 0.75f);
+				auras_window.reset(rect_window);
+				client->windows.push_back(auras_window);
+
+				int w = 5;
+				for (int i = 0; i < 40; ++i)
+				{
+					auto aura_window = new RectangleWindow(40.0f * (i % w) + 4.0f, 40.0f * (i / w) + 4.0f, 32.0f, 32.0f);
+					aura_windows.push_back(aura_window);
+					auras_window->addChild(aura_window);
+
+					auto aura_duration_window = new TextWindow(2, 2, 28, 28);
+					aura_duration_window->font_size = 12;
+					aura_duration_window->offset = Vec2(1.0f, 1.0f);
+					aura_duration_windows.push_back(aura_duration_window);
+					aura_window->addChild(aura_duration_window);
+				}
+			}
+
+			for (int i = 0; i < 40; ++i)
+			{
+				if (i < mob->auras.size() && mob->auras[i])
+				{
+					float duration = mob->auras[i]->duration;
+					aura_windows[i]->enabled = true;
+					std::ostringstream ss;
+					ss << std::fixed;
+					ss << std::setprecision(duration >= 100.0f ? 0 : 1);
+					ss << duration;
+					aura_duration_windows[i]->text = ss.str();
+				}
+				else
+				{
+					aura_windows[i]->enabled = false;
+				}
+			}
+		}
+
 		if (input.isPressed(Platform::KeyEvent::TAB))
 		{
 			if (window)
 			{
-				client->windows.erase(std::remove(client->windows.begin(), client->windows.end(), window));
 				window.reset();
 			}
 			else
@@ -199,7 +266,7 @@ void InventoryComponent::set_display(bool enable)
 			if (!func)
 			{
 				auto mob = entity->getComponent<MobComponent>();
-				if (mob != nullptr)
+				if (mob)
 				{
 					if (entity->world->authority)
 						owner = entity->world->client->clientData == clientData.lock();
@@ -376,32 +443,7 @@ void InventoryComponent::set_display(bool enable)
 								rs.popTransform();
 							}
 
-							Writing::setOffset(Vec2(0.0f, 0.0f));
-
-
-							// render abilities
-							color = Vec4(1.0f);
-							for (int i = 0; i < mob->abilities.items.size(); ++i)
-							{
-								auto ability = Ability::get(*mob->abilities.items[i]);
-								if (ability)
-								{
-									auto sprite = Resource::get<Texture>(ability->icon);
-									if (sprite)
-									{
-										rs.pushTransform();
-										rs.addTransform(Matrix4::Translation(rs.size * Vec2(0.5f, 0.875f) + Vec2((i - 3.5f)  * 70.0f, 0.0f)));
-										rs.pushMod(mod);
-
-										rs.addTransform(Matrix4::Translation(Vec2(-32.0f)));
-										sprite->render(rs, Vec2(64.0f));
-
-										rs.popMod();
-										rs.popTransform();
-									}
-								}
-							}
-
+							Writing::setOffset(Vec2(-1.0f, 0.0f));
 
 							if (false)
 							{

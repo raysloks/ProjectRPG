@@ -155,6 +155,7 @@
     <ClCompile Include="ChatComponent.cpp" />
     <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="DamageData.cpp" />
+    <ClCompile Include="Effect.cpp" />
     <ClCompile Include="EquipmentData.cpp" />
     <ClCompile Include="HitboxData.cpp" />
     <ClCompile Include="HitData.cpp" />
@@ -172,6 +173,8 @@
     <ClCompile Include="ItemType.cpp" />
     <ClCompile Include="LearningComponent.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MissileComponent.cpp" />
+    <ClCompile Include="MissileEffect.cpp" />
     <ClCompile Include="Mob.cpp" />
     <ClCompile Include="MobComponent.cpp" />
     <ClCompile Include="NPC.cpp" />
@@ -216,6 +219,8 @@
     <ClInclude Include="AnimationState.h" />
     <ClInclude Include="Aura.h" />
     <ClInclude Include="AuraEffect.h" />
+    <ClInclude Include="AuraFactory.h" />
+    <ClInclude Include="AutoAuraFactory.h" />
     <ClInclude Include="BlendState.h" />
     <ClInclude Include="CameraControlComponent.h" />
     <ClInclude Include="CameraShakeComponent.h" />
@@ -239,6 +244,7 @@
     <ClInclude Include="Item.h" />
     <ClInclude Include="ItemType.h" />
     <ClInclude Include="LearningComponent.h" />
+    <ClInclude Include="MissileComponent.h" />
     <ClInclude Include="MissileEffect.h" />
     <ClInclude Include="Mob.h" />
     <ClInclude Include="MobComponent.h" />

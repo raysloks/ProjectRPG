@@ -14,6 +14,9 @@ TextBoxWindow::~TextBoxWindow(void)
 
 void TextBoxWindow::render(RenderSetup& rs)
 {
+	if (!enabled)
+		return;
+
 	rs.pushTransform();
 	rs.addTransform(Matrix4::Translation(min));
 
@@ -67,6 +70,9 @@ void TextBoxWindow::render(RenderSetup& rs)
 
 bool TextBoxWindow::handleEvent(IEvent * pEvent)
 {
+	if (!enabled)
+		return false;
+
 	if (pEvent->GetType()==KeyDownEvent::event_type)
 	{
 		KeyDownEvent * ev = (KeyDownEvent*)pEvent;

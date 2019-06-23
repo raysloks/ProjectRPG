@@ -31,7 +31,7 @@ public:
 
 	Base * create(const Base * instance) const
 	{
-		return new T(*reinterpret_cast<const T*>(instance));
+		return new T(*(const T*)instance);
 	}
 };
 

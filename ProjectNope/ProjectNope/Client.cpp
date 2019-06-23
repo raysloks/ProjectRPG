@@ -70,9 +70,10 @@ Client::Client(World * pWorld)
 	light.Normalize();
 	light_size = 0.125f;
 
-	windows.push_back(std::shared_ptr<Window>(new MainMenuWindow(world, this, 0, 0, 0, 0)));
+	main_menu.reset(new MainMenuWindow(world, this, 0, 0, 0, 0));
+	windows.push_back(main_menu);
 
-	interpol_delay = 2.0f / 32.0f;
+	interpol_delay = 1.0f / 32.0f;
 
 	heartbeat_interval = 1.0f / 1.0f;
 	heartbeat_elapsed = 0.0f;
@@ -232,7 +233,7 @@ void Client::setup(void)
 				force_cap = bvar->b;
 
 			secondsPerStep = 1.0/((double)tickrate);
-			interpol_delay = 2.0f * secondsPerStep;
+			interpol_delay = 1.0f * secondsPerStep;
 			fpsCap = 1.0/((double)framerate_cap);
 			forceCap = force_cap;
 			forceFrameSync = force_sync;
@@ -257,12 +258,16 @@ void Client::pre_frame(float dTime)
 {
 	isActive = true;
 	ActiveEvent * ae = new ActiveEvent();
-	for (std::vector<std::shared_ptr<Window>>::reverse_iterator win=windows.rbegin();win!=windows.rend();++win)
+
+	for (auto weak_window : boost::adaptors::reverse(windows))
 	{
-		if (win->get()->handleEvent(ae)) {
-			isActive = false;
-			break;
-		}
+		auto window = weak_window.lock();
+		if (window)
+			if (window->handleEvent(ae))
+			{
+				isActive = false;
+				break;
+			}
 	}
 	delete ae;
 
@@ -375,6 +380,7 @@ void Client::render(void)
 
 	if (mem != 0)
 	{
+		Texture::prepare();
 
 		GLint view[4];
 
@@ -1369,10 +1375,15 @@ void Client::render_world(void)
 		}
 
 		//hideCursor = false;
-		for (auto window : windows)
+		windows.erase(std::remove_if(windows.begin(), windows.end(), [](const std::weak_ptr<Window>& window) { return window.expired(); }), windows.end());
+		for (auto weak_window : windows)
 		{
-			window->handleEvent(new ResizeEvent(gui_w, gui_h));
-			window->render(rs);
+			auto window = weak_window.lock();
+			if (window)
+			{
+				window->handleEvent(new ResizeEvent(gui_w, gui_h));
+				window->render(rs);
+			}
 		}
 		//hideCursor = input.isDown(Platform::KeyEvent::LMB) || input.isDown(Platform::KeyEvent::RMB);
 		lockCursor = true;
@@ -1499,34 +1510,42 @@ bool Client::HandleEvent(IEvent * pEvent)
 		}
 	}
 
-	for (auto window : boost::adaptors::reverse(windows))
+	for (auto weak_window : boost::adaptors::reverse(windows))
 	{
-		if (window->handleEvent(pEvent))
-			return false;
+		auto window = weak_window.lock();
+		if (window)
+			if (window->handleEvent(pEvent))
+				return false;
 	}
 
 	if (pEvent->GetType()==KeyDownEvent::event_type) {
 		KeyDownEvent * ev = (KeyDownEvent*)pEvent;
 		if (ev->key == Platform::KeyEvent::LMB || ev->key == Platform::KeyEvent::RMB)
 		{
-			input.mouse_x = ev->x;
-			input.mouse_y = ev->y;
-			hideCursor = true;
-			platform->set_cursor_hide(hideCursor);
+			if (!(input.isDown(Platform::KeyEvent::LMB) || input.isDown(Platform::KeyEvent::RMB)))
+			{
+				input.mouse_x = ev->x;
+				input.mouse_y = ev->y;
+				hideCursor = true;
+				platform->set_cursor_hide(hideCursor);
+			}
 		}
 		input.onDown(ev->key);
 	}
 
 	if (pEvent->GetType()==KeyUpEvent::event_type) {
 		KeyUpEvent * ev = (KeyUpEvent*)pEvent;
+		input.onUp(ev->key);
 		if (ev->key == Platform::KeyEvent::LMB || ev->key == Platform::KeyEvent::RMB)
 		{
-			hideCursor = false;
-			if (platform->has_focus())
-				platform->set_cursor_position(input.mouse_x, input.mouse_y);
-			platform->set_cursor_hide(hideCursor);
+			if (!(input.isDown(Platform::KeyEvent::LMB) || input.isDown(Platform::KeyEvent::RMB)))
+			{
+				hideCursor = false;
+				if (platform->has_focus())
+					platform->set_cursor_position(input.mouse_x, input.mouse_y);
+				platform->set_cursor_hide(hideCursor);
+			}
 		}
-		input.onUp(ev->key);
 	}
 
 	if (pEvent->GetType()==MouseMoveEvent::event_type) {

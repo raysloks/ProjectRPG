@@ -16,6 +16,8 @@ public:
 	float dist, t;
 	Component * comp;
 	void * wall;
+
+	bool operator==(const Collision& rhs) const;
 };
 
 #endif

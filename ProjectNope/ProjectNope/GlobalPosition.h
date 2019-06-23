@@ -34,8 +34,8 @@ public:
 	operator Vec3(void);
 	operator Vec3(void) const;
 
-	bool operator!=(const GlobalPosition& rhs);
-	bool operator==(const GlobalPosition& rhs);
+	bool operator!=(const GlobalPosition& rhs) const;
+	bool operator==(const GlobalPosition& rhs) const;
 
 	Vec3 local_pos;
 	int x, y, z;

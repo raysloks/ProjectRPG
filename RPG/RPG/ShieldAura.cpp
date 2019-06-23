@@ -1,7 +1,5 @@
 #include "ShieldAura.h"
 
-AutoSerialFactory<ShieldAura, Aura> ShieldAura::_factory("ShieldAura");
-
 #include <algorithm>
 
 ShieldAura::ShieldAura(int32_t a)
@@ -12,11 +10,6 @@ ShieldAura::ShieldAura(int32_t a)
 ShieldAura::ShieldAura(int32_t a, float d) : Aura(d)
 {
 	amount = a;
-}
-
-ShieldAura::ShieldAura(instream& is)
-{
-	is >> amount;
 }
 
 ShieldAura::~ShieldAura()
@@ -41,20 +34,10 @@ void ShieldAura::attach(MobComponent * mob)
 
 void ShieldAura::readLog(instream& is)
 {
-	is >> amount;
+	is >> amount >> duration;
 }
 
 void ShieldAura::writeLog(outstream& os)
 {
-	os << amount;
-}
-
-void ShieldAura::write_to(outstream& os)
-{
-	os << amount;
-}
-
-uint32_t ShieldAura::getSerial() const
-{
-	return _factory.id;
+	os << amount << duration;
 }

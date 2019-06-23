@@ -33,6 +33,9 @@
 #include "ItemType.h"
 
 #include "Ability.h"
+#include "Aura.h"
+#include "Effect.h"
+#include "MissileComponent.h"
 
 #include "ShadowSpawnUnit.h"
 #include "GolemUnit.h"
@@ -798,6 +801,9 @@ INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	
 	ItemType::init();
 	Ability::init();
+	Aura::init();
+	Effect::init();
+	MissileComponent::init();
 
 	std::atomic<bool> running = true;
 	if (option == 'h')
@@ -815,6 +821,9 @@ INT WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		start_engine_instance(address, port, lobby_id, option, running);
 	}
 
+	MissileComponent::release();
+	Effect::release();
+	Aura::release();
 	Ability::release();
 	ItemType::release();
 

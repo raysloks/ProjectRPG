@@ -211,12 +211,12 @@ GlobalPosition::operator Vec3(void) const
 	return v;
 }
 
-bool GlobalPosition::operator!=(const GlobalPosition& rhs)
+bool GlobalPosition::operator!=(const GlobalPosition& rhs) const
 {
 	return local_pos != rhs.local_pos || x != rhs.x || y != rhs.y || z != rhs.z;
 }
 
-bool GlobalPosition::operator==(const GlobalPosition& rhs)
+bool GlobalPosition::operator==(const GlobalPosition& rhs) const
 {
 	return local_pos == rhs.local_pos && x == rhs.x && y == rhs.y && z == rhs.z;
 }

@@ -26,6 +26,7 @@ class Shader;
 class ScriptMemory;
 class StandardHUD;
 class RenderSetup;
+class MainMenuWindow;
 
 class Client :
 	public IEventListener
@@ -87,8 +88,9 @@ public:
 
 	KeybindCollection keybinds;
 
-	std::vector<std::shared_ptr<Window>> windows;
+	std::vector<std::weak_ptr<Window>> windows;
 	std::shared_ptr<StandardHUD> hud;
+	std::shared_ptr<MainMenuWindow> main_menu;
 
 	std::vector<std::shared_ptr<std::function<void(RenderSetup&)>>> render2D;
 

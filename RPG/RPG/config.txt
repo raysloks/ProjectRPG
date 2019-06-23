@@ -7,7 +7,7 @@ gui_scale = 1.0;
 
 vsync = 1;
 
-tickrate = 64;
+tickrate = 32;
 
 subframes = 2;
 

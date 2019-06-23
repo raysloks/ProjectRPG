@@ -313,7 +313,7 @@ void Server::open(unsigned short port)
 	con = std::shared_ptr<Connection>(new Connection(ep));
 
 	snapshotTimer = 0;
-	snapshotRate = 2;
+	snapshotRate = 1;
 
 	snapshotBeforeTick = false;
 }

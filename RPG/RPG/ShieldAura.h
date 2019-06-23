@@ -8,19 +8,12 @@ class ShieldAura :
 public:
 	ShieldAura(int32_t amount);
 	ShieldAura(int32_t amount, float duration);
-	ShieldAura(instream& is);
 	~ShieldAura();
 
 	void attach(MobComponent * mob);
 
 	void readLog(instream& is);
 	void writeLog(outstream& os);
-
-	void write_to(outstream& os);
-
-	uint32_t getSerial() const;
-
-	static AutoSerialFactory<ShieldAura, Aura> _factory;
 
 	int32_t amount;
 

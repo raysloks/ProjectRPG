@@ -9,9 +9,10 @@ class AuraEffect :
 	public Effect
 {
 public:
+	AuraEffect(uint32_t aura_index);
 	~AuraEffect();
 	
-	void apply(const AbilityContext& ac);
+	void apply(const AbilityContext& ac) const;
 	
 	uint32_t aura_index;
 };

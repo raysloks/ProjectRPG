@@ -20,6 +20,8 @@ class RenderSetup;
 class Item;
 class Decorator;
 class Window;
+class RectangleWindow;
+class TextWindow;
 
 class InventoryComponent :
 	public Component
@@ -71,5 +73,7 @@ public:
 	std::vector<std::pair<float, Item>> notifications_display;
 	std::vector<std::pair<float, std::string>> combat_text_display;
 
-	std::shared_ptr<Window> window;
+	std::shared_ptr<Window> window, abilities_window, auras_window;
+	std::vector<RectangleWindow*> aura_windows;
+	std::vector<TextWindow*> aura_duration_windows;
 };

@@ -1,8 +1,5 @@
 #pragma once
 
-#include "AutoSerialFactory.h"
-#include "SerializableRegistry.h"
-
 #include "MobComponent.h"
 
 class Aura
@@ -23,13 +20,7 @@ public:
 	virtual void readLog(instream& is);
 	virtual void writeLog(outstream& os);
 
-	virtual void write_to(outstream& os);
-
-	virtual uint32_t getSerial() const;
-
-	static SerializableRegistry<Aura> _registry;
+	uint32_t index;
 
 	float duration;
-
-	uint32_t icon;
 };

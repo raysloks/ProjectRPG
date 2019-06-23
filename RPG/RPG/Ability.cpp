@@ -28,8 +28,8 @@ void Ability::activate(const AbilityContext& ac) const
 	if (cast_time > 0.0f)
 	{
 		auto acc = ac.source->entity->getComponent<AnimationControlComponent>();
-		auto cast = new SimpleState("quaff", 1.0f / cast_time);
-		cast->length = cast_time * 100.0f;
+		auto cast = new SimpleState("attack", 1.0f / cast_time);
+		//cast->length = cast_time * 100.0f;
 		cast->events.insert(std::make_pair(1.0f, finish));
 		acc->set_state(cast);
 	}

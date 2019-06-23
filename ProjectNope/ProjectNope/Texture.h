@@ -32,6 +32,8 @@ public:
 	void * FinalData;
 
 	GLuint texid;
+
+	static void prepare();
 };
 
 #endif

@@ -1,5 +1,8 @@
 #include "Effect.h"
 
+#include "AuraEffect.h"
+#include "MissileEffect.h"
+
 std::vector<Effect*> effects;
 
 void Effect::init()
@@ -24,5 +27,5 @@ void Effect::release()
 	for (auto effect : effects)
 		if (effect)
 			delete effect;
-	abilities.clear();
+	effects.clear();
 }

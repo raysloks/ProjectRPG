@@ -15,6 +15,7 @@ public:
 	void render(RenderSetup& rs);
 
 	Vec4 color;
+	std::string background;
 };
 
 #endif

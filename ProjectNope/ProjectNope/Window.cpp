@@ -10,6 +10,7 @@ Window::Window(void)
 {
 	parent = nullptr;
 	focus = nullptr;
+	enabled = true;
 }
 
 Window::Window(Window * pParent)
@@ -17,6 +18,7 @@ Window::Window(Window * pParent)
 	parent = nullptr;
 	focus = nullptr;
 	pParent->addChild(this);
+	enabled = true;
 }
 
 Window::~Window(void)
@@ -34,6 +36,8 @@ Window::~Window(void)
 
 void Window::render(RenderSetup& rs)
 {
+	if (!enabled)
+		return;
 	if (onRender)
 		onRender();
 	rs.pushTransform();
@@ -64,6 +68,8 @@ void Window::removeChild(Window * child)
 
 bool Window::handleEvent(IEvent * pEvent)
 {
+	if (!enabled)
+		return false;
 	IEvent* pass_on = nullptr;
 	bool click = false;
 	bool only_focus = false;
@@ -102,6 +108,24 @@ bool Window::handleEvent(IEvent * pEvent)
 		pass_on = new MouseMoveEvent(*ev);
 		if (!ev->relative)
 		{
+			if (ev->x >= min.x && ev->y >= min.y && ev->x < max.x && ev->y < max.y)
+			{
+				if (!cursor)
+				{
+					cursor = true;
+					if (onCursorEnter)
+						onCursorEnter();
+				}
+			}
+			else
+			{
+				if (cursor)
+				{
+					cursor = false;
+					if (onCursorExit)
+						onCursorExit();
+				}
+			}
 			((MouseMoveEvent*)pass_on)->x -= min.x;
 			((MouseMoveEvent*)pass_on)->y -= min.y;
 		}

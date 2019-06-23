@@ -379,7 +379,7 @@ void MobComponent::tick(float dTime)
 
 			dp = (g / 2.0f * dTime + v) * dTime + external_dp;
 
-			std::set<void*> ignored;
+			std::vector<Collision> ignored;
 			std::set<Vec3> previous;
 
 			/*auto wpc = weapon->entity->getComponent<PositionComponent>();
@@ -389,12 +389,14 @@ void MobComponent::tick(float dTime)
 				wpc->update();
 			}*/
 
-			while (t > 0.0f)
+			float last_checkin = std::numeric_limits<float>::infinity();
+			while (true)
 			{
 				std::vector<std::shared_ptr<Collision>> list;
 
-				if (t == 1.0f)
+				if (t != last_checkin)
 				{
+					last_checkin = t;
 					auto line = entity->getComponent<LineComponent>();
 					if (line != 0)
 					{
@@ -508,7 +510,7 @@ void MobComponent::tick(float dTime)
 				std::shared_ptr<Collision> col;
 				for (auto i = list.begin(); i != list.end(); ++i)
 				{
-					if (ignored.find((*i)->wall) == ignored.end())
+					if (std::find(ignored.begin(), ignored.end(), **i) == ignored.end())
 					{
 						if ((*i)->t >= 0.0f && (*i)->t <= 1.0f)
 						{
@@ -528,11 +530,11 @@ void MobComponent::tick(float dTime)
 					}
 				}
 
-				if (col != 0)
+				if (col)
 				{
-					t -= col->t;
+					v += g * dTime * col->t * t;
 
-					v += g * dTime * col->t;
+					t *= 1.0f - col->t;
 
 					p->p = col->poo;
 
@@ -588,20 +590,27 @@ void MobComponent::tick(float dTime)
 					dp = (g / 2.0f * dTime * t + v) * dTime * t + external_dp;
 
 					bool should_break = false;
-					for (auto i = previous.begin(); i != previous.end(); ++i)
-						if (i->Dot(dp) < 0.0f)
-							should_break = true;
+					/*for (auto i = ignored.begin(); i != ignored.end(); ++i)
+						if (i->n.Dot(dp) < -0.01f)
+							should_break = true;*/
 
 					if (should_break)
 						break;
 
-					ignored.insert(col->wall);
+					ignored.push_back(*col);
 				}
 				else
 				{
-					p->p += dp;
-					v += g * dTime*t;
-					break;
+					if (t == 0.0f)
+					{
+						break;
+					}
+					else
+					{
+						p->p += dp;
+						v += g * dTime * t;
+						t = 0.0f;
+					}
 				}
 			}
 
@@ -649,6 +658,13 @@ void MobComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& cl
 	os << input;
 	os << r;
 	abilities.writeLog(os);
+
+	os << (uint32_t)auras.size();
+	for (auto aura : auras)
+	{
+		os << aura->index;
+		aura->writeLog(os);
+	}
 }
 
 void MobComponent::readLog(instream& is)
@@ -661,6 +677,19 @@ void MobComponent::readLog(instream& is)
 	is >> input;
 	is >> r;
 	abilities.readLog(is);
+
+	uint32_t aura_count;
+	is >> aura_count;
+	auras.resize(aura_count);
+	// TODO fix memory leak
+	for (int i = 0; i < aura_count; ++i)
+	{
+		uint32_t aura_index;
+		is >> aura_index;
+		if (!(auras[i] && auras[i]->index == aura_index))
+			auras[i] = Aura::create(aura_index);
+		auras[i]->readLog(is);
+	}
 }
 
 void MobComponent::writeLog(outstream& os)
@@ -692,6 +721,7 @@ void MobComponent::interpolate(Component * pComponent, float fWeight)
 		input = mob->input;
 		r = mob->r;
 		abilities = mob->abilities;
+		auras = mob->auras;
 	}
 }
 
