@@ -37,7 +37,7 @@ void Aura::init()
 
 	aura_factories.resize(256);
 
-	aura_factories[0] = new AutoAuraFactory<ShieldAura, 10, 20>();
+	aura_factories[0] = new AutoAuraFactory<ShieldAura, 10, 20>("data/assets/y.tga");
 }
 
 Aura * Aura::create(uint32_t index)

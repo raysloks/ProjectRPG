@@ -259,19 +259,3 @@ bool Matrix3::operator!=(const Matrix3& rhs)const
 		return true;
 	return false;
 }
-
-outstream& operator<<(outstream& os, const Matrix3& mtrx)
-{
-	os << mtrx.data[0] << mtrx.data[1] << mtrx.data[2]
-	<< mtrx.data[3] << mtrx.data[4] << mtrx.data[5]
-	<< mtrx.data[6] << mtrx.data[7] << mtrx.data[8];
-	return os;
-}
-
-instream& operator>>(instream& is, Matrix3& mtrx)
-{
-	is >> mtrx.data[0] >> mtrx.data[1] >> mtrx.data[2]
-	>> mtrx.data[3] >> mtrx.data[4] >> mtrx.data[5]
-	>> mtrx.data[6] >> mtrx.data[7] >> mtrx.data[8];
-	return is;
-}

@@ -142,15 +142,3 @@ Quaternion operator-(const Quaternion& rhs)
 		-rhs.y,
 		-rhs.z);
 }
-
-outstream& operator<<(outstream& os, const Quaternion& q)
-{
-	os << q.w << q.x << q.y << q.z;
-	return os;
-}
-
-instream& operator >> (instream& is, Quaternion& q)
-{
-	is >> q.w >> q.x >> q.y >> q.z;
-	return is;
-}

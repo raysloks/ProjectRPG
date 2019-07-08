@@ -101,6 +101,7 @@
     <ClCompile Include="Effect.cpp" />
     <ClCompile Include="MissileComponent.cpp" />
     <ClCompile Include="MissileEffect.cpp" />
+    <ClCompile Include="DamageEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationControlComponent.h">
@@ -205,6 +206,7 @@
     <ClInclude Include="MissileComponent.h" />
     <ClInclude Include="AuraFactory.h" />
     <ClInclude Include="AutoAuraFactory.h" />
+    <ClInclude Include="DamageEffect.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Components">

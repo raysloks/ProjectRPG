@@ -52,9 +52,9 @@ void Ability::init()
 	abilities[0].name = "Barrier";
 	abilities[0].effects.push_back(0);
 
-	abilities[1].cast_time = 3.0f;
+	abilities[1].cast_time = 0.5f;
 	abilities[1].icon = "data/assets/wibbly.tga";
-	abilities[1].name = "Fireball";
+	abilities[1].name = "Skullsplitter";
 	abilities[1].effects.push_back(1);
 }
 

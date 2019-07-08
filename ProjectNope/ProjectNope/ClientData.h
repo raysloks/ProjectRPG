@@ -4,6 +4,7 @@
 #include "streams.h"
 #include <vector>
 #include <map>
+#include "EntityID.h"
 
 class Syncable;
 
@@ -18,6 +19,7 @@ public:
 	uint32_t forgetUnit(uint32_t real_id);
 	uint32_t getUnit(uint32_t real_id) const;
 	uint32_t getRealID(uint32_t client_side_id) const;
+	EntityID getRealID(EntityID client_side_id) const;
 
 	void read(instream& is);
 	void write(outstream& os);

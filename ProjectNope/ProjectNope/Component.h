@@ -31,7 +31,7 @@ public:
 	virtual void write_to(outstream& os, const std::shared_ptr<ClientData>& client) const;
 	virtual void write_to(outstream& os) const;
 
-	virtual bool visible(ClientData& client) const;
+	virtual bool visible(const std::shared_ptr<ClientData>& client) const;
 
 	virtual uint32_t getSerial() const;
 

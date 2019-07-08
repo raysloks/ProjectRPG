@@ -48,7 +48,7 @@ public:
 	void write_to(outstream& os, const std::shared_ptr<ClientData>& client) const;
 	void write_to(outstream& os) const;
 
-	bool visible(ClientData& client) const;
+	bool visible(const std::shared_ptr<ClientData>& client) const;
 
 	static AutoSerialFactory<InventoryComponent, Component> _factory;
 
@@ -66,14 +66,14 @@ public:
 	SyncQueue<int32_t> hp_changes;
 
 	SyncQueue<SerializableWrapper<InventoryCommand>> commands;
-	EntityID current_interact;
+	EntityID current_interact, current_mouseover, current_target;
 
 	EquipmentData equipment;
 
 	std::vector<std::pair<float, Item>> notifications_display;
 	std::vector<std::pair<float, std::string>> combat_text_display;
 
-	std::shared_ptr<Window> window, abilities_window, auras_window;
+	std::shared_ptr<Window> window, abilities_window, auras_window, target_window;
 	std::vector<RectangleWindow*> aura_windows;
 	std::vector<TextWindow*> aura_duration_windows;
 };

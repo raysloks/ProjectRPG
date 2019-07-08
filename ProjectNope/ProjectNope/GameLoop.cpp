@@ -22,7 +22,7 @@ FT_Library ftLibrary;
 
 double secondsPerStep = 1.0 / 60.0;
 double fpsCap = 1.0/60.0;
-float time_scale = 1.0f;
+float timescale = 1.0f;
 bool forceCap = true;
 int forceFrameSync = -1;
 bool useFrameSync = true;
@@ -108,13 +108,13 @@ void GameLoop::tick(void)
 {
 	if (client)
 	{
-		client->pre_frame(fullInSeconds / client->subframes * time_scale);
+		client->pre_frame(fullInSeconds / client->subframes * timescale);
 		client->render();
 		client->input.clear();
 		client->platform->input(gpEventManager);
 		gpEventManager->Tick();
 		client->input.update();
-		client->post_frame(fullInSeconds / client->subframes * time_scale);
+		client->post_frame(fullInSeconds / client->subframes * timescale);
 
 		client->platform->set_vsync(useVSync);
 		if (client->subframe == 0)
@@ -143,7 +143,7 @@ void GameLoop::tick(void)
 		}
 	}
 
-	server->tick(secondsPerStep * time_scale);
+	server->tick(secondsPerStep * timescale);
 	world->clean();
 
 	if (!client)

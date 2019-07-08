@@ -30,7 +30,7 @@ PlayerInputComponent::PlayerInputComponent(void) : Component(_factory.id)
 
 PlayerInputComponent::PlayerInputComponent(instream& is) : Component(_factory.id)
 {
-	is >> sc.sync;
+	is >> sc.sync >> scn.sync;
 }
 
 PlayerInputComponent::~PlayerInputComponent(void)
@@ -53,7 +53,7 @@ void PlayerInputComponent::post_frame(float dTime)
 	Client * client = entity->world->client;
 	if (client != nullptr)
 	{
-		if (client->clientData->client_id == client_id || !entity->world->authority)
+		if (client->clientData == clientData.lock() || !entity->world->authority)
 		{
 			const Input& input = client->input;
 
@@ -104,21 +104,21 @@ void PlayerInputComponent::post_frame(float dTime)
 				sc.queue.emplace_back("heal");*/
 
 			if (input.isPressed(Platform::KeyEvent::N1))
-				sc.queue.emplace_back("0");
+				scn.queue.emplace_back(AbilityUseCommand{ 0, target });
 			if (input.isPressed(Platform::KeyEvent::N2))
-				sc.queue.emplace_back("1");
+				scn.queue.emplace_back(AbilityUseCommand{ 1, target });
 			if (input.isPressed(Platform::KeyEvent::N3))
-				sc.queue.emplace_back("2");
+				scn.queue.emplace_back(AbilityUseCommand{ 2, target });
 			if (input.isPressed(Platform::KeyEvent::N4))
-				sc.queue.emplace_back("3");
+				scn.queue.emplace_back(AbilityUseCommand{ 3, target });
 			if (input.isPressed(Platform::KeyEvent::Q))
-				sc.queue.emplace_back("4");
+				scn.queue.emplace_back(AbilityUseCommand{ 4, target });
 			if (input.isPressed(Platform::KeyEvent::E))
-				sc.queue.emplace_back("5");
+				scn.queue.emplace_back(AbilityUseCommand{ 5, target });
 			if (input.isPressed(Platform::KeyEvent::R))
-				sc.queue.emplace_back("6");
+				scn.queue.emplace_back(AbilityUseCommand{ 6, target });
 			if (input.isPressed(Platform::KeyEvent::F))
-				sc.queue.emplace_back("7");
+				scn.queue.emplace_back(AbilityUseCommand{ 7, target });
 
 			if (input.isPressed(Platform::KeyEvent::SPACE) || input.ctrl[0].a.pressed)
 				sc.queue.emplace_back("jump");
@@ -146,25 +146,25 @@ void PlayerInputComponent::tick(float dTime)
 
 			float buffer_duration = 0.2f;
 
-			AbilityContext ac;
-			ac.source = mob;
-			ac.target = mob;
-			if (sc.consumeValue("0"))
-				Ability::get(*mob->abilities.items[0])->activate(ac);
-			if (sc.consumeValue("1"))
-				Ability::get(*mob->abilities.items[1])->activate(ac);
-			if (sc.consumeValue("2"))
-				Ability::get(*mob->abilities.items[2])->activate(ac);
-			if (sc.consumeValue("3"))
-				Ability::get(*mob->abilities.items[3])->activate(ac);
-			if (sc.consumeValue("4"))
-				Ability::get(*mob->abilities.items[4])->activate(ac);
-			if (sc.consumeValue("5"))
-				Ability::get(*mob->abilities.items[5])->activate(ac);
-			if (sc.consumeValue("6"))
-				Ability::get(*mob->abilities.items[6])->activate(ac);
-			if (sc.consumeValue("7"))
-				Ability::get(*mob->abilities.items[7])->activate(ac);
+			auto client = clientData.lock();
+
+			for (auto command : scn.queue)
+			{
+				AbilityContext ac;
+				ac.source = mob;
+
+				EntityID entity_id = command.target;
+				entity_id = client->getRealID(entity_id);
+				if (entity_id.id < entity->world->uid.size())
+					entity_id.uid = entity->world->uid[entity_id.id];
+
+				auto ent = entity->world->GetEntity(entity_id);
+				if (ent)
+					ac.target = ent->getComponent<MobComponent>();
+				if (ac.target != nullptr)
+					Ability::get(*mob->abilities.items[command.ability_index])->activate(ac);
+			}
+			scn.queue.clear();
 
 			if (sc.consumeValue("attack"))
 				mob->input["attack"] = buffer_duration;
@@ -183,25 +183,29 @@ void PlayerInputComponent::tick(float dTime)
 void PlayerInputComponent::writeLog(outstream& os, const std::shared_ptr<ClientData>& client)
 {
 	sc.writeFromDestination(os);
+	scn.writeFromDestination(os);
 }
 
 void PlayerInputComponent::readLog(instream& is)
 {
 	sc.readFromDestination(is);
+	scn.readFromDestination(is);
 }
 
 void PlayerInputComponent::writeLog(outstream& os)
 {
 	os << move << move_space << facing;
 	sc.writeFromSource(os);
+	scn.writeFromSource(os);
 }
 
 void PlayerInputComponent::readLog(instream& is, const std::shared_ptr<ClientData>& client)
 {
-	if (client->client_id == client_id)
+	if (client == clientData.lock())
 	{
 		is >> move >> move_space >> facing;
 		sc.readFromSource(is);
+		scn.readFromSource(is);
 	}
 }
 
@@ -209,18 +213,19 @@ void PlayerInputComponent::interpolate(Component * pComponent, float fWeight)
 {
 	auto other = reinterpret_cast<PlayerInputComponent*>(pComponent);
 	sc.update(other->sc.sync);
+	scn.update(other->scn.sync);
 }
 
 void PlayerInputComponent::write_to(outstream& os, const std::shared_ptr<ClientData>& client) const
 {
-	os << sc.sync;
+	os << sc.sync << scn.sync;
 }
 
 void PlayerInputComponent::write_to(outstream& os) const
 {
 }
 
-bool PlayerInputComponent::visible(ClientData& client) const
+bool PlayerInputComponent::visible(const std::shared_ptr<ClientData>& client) const
 {
-	return client.client_id == client_id;
+	return client == clientData.lock();
 }

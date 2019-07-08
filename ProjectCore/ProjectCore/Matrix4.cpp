@@ -423,21 +423,3 @@ Matrix4 Matrix4::Perspective(float fov, float aspect, float near_z, float far_z)
 	pers.mtrx[3][3] = 0.0f;
 	return pers;
 }
-
-outstream& operator<<(outstream& os, const Matrix4& m)
-{
-	os << m.data[0] << m.data[1] << m.data[2] << m.data[3] <<
-		m.data[4] << m.data[5] << m.data[6] << m.data[7] <<
-		m.data[8] << m.data[9] << m.data[10] << m.data[11] <<
-		m.data[12] << m.data[13] << m.data[14] << m.data[15];
-	return os;
-}
-
-instream& operator>>(instream& is, Matrix4& m)
-{
-	is >> m.data[0] >> m.data[1] >> m.data[2] >> m.data[3] >>
-		m.data[4] >> m.data[5] >> m.data[6] >> m.data[7] >>
-		m.data[8] >> m.data[9] >> m.data[10] >> m.data[11] >>
-		m.data[12] >> m.data[13] >> m.data[14] >> m.data[15];
-	return is;
-}

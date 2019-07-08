@@ -18,7 +18,7 @@ void ItemType::init()
 {
 	items.reserve(4096);
 
-	items.resize(2);
+	items.resize(3);
 
 	items[0].name = "Claymore";
 	items[0].desc = "A big sword.";
@@ -51,6 +51,11 @@ void ItemType::init()
 
 		items[1].weapon->hitboxes.push_back(hbd);
 	}
+
+	items[2].name = "Useless Sword";
+	items[2].desc = "A useless sword.";
+	items[2].dec = std::make_shared<Decorator>("data/assets/items/weapons/swords/sword.gmdl");
+	items[2].dec->bone_id = 0;
 }
 
 const ItemType * ItemType::get(uint32_t index)

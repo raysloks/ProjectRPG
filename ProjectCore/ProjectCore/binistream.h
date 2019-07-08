@@ -3,6 +3,7 @@
 
 #include <istream>
 
+#include <tuple>
 #include <vector>
 #include <map>
 
@@ -29,6 +30,12 @@ namespace std
 
 	binistream& operator>>(binistream& is, std::string& str);
 
+	template <class T, typename = std::enable_if<std::is_trivial<T>::value>>
+	binistream& operator>>(binistream& is, T& obj)
+	{
+		is.read((char*)&obj, sizeof(T));
+		return is;
+	}
 	template <class T>
 	binistream& operator>>(binistream& is, std::vector<T>& vec)
 	{

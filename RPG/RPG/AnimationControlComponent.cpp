@@ -96,7 +96,7 @@ void AnimationControlComponent::tick(float dTime)
 			overtime = 0.0f;
 			if (state)
 				state->tick(added_time);
-		} while (overtime > 0.0f);
+		} while (overtime > 0.0f || !state);
 
 		auto simple_state = reinterpret_cast<SimpleState*>(state);
 

@@ -15,6 +15,7 @@
 #include "MobComponent.h"
 #include "InteractComponent.h"
 #include "WeaponComponent.h"
+#include "PlayerInputComponent.h"
 
 #include "Decorator.h"
 
@@ -143,6 +144,7 @@ void InventoryComponent::pre_frame(float dTime)
 				for (int i = 0; i < 40; ++i)
 				{
 					auto aura_window = new RectangleWindow(40.0f * (i % w) + 4.0f, 40.0f * (i / w) + 4.0f, 32.0f, 32.0f);
+					aura_window->color = Vec4(1.0f);
 					aura_windows.push_back(aura_window);
 					auras_window->addChild(aura_window);
 
@@ -154,12 +156,31 @@ void InventoryComponent::pre_frame(float dTime)
 				}
 			}
 
+			if (!target_window)
+			{
+				auto rect_window = new RectangleWindow(200.0f, 100.0f, 200.0f, 100.0f);
+				rect_window->min_anchor = Vec2(0.5f, 0.5f);
+				rect_window->max_anchor = Vec2(0.5f, 0.5f);
+				target_window.reset(rect_window);
+				client->windows.push_back(target_window);
+			}
+
+			if (current_target != EntityID())
+			{
+				target_window->enabled = true;
+			}
+			else
+			{
+				target_window->enabled = false;
+			}
+
 			for (int i = 0; i < 40; ++i)
 			{
 				if (i < mob->auras.size() && mob->auras[i])
 				{
 					float duration = mob->auras[i]->duration;
 					aura_windows[i]->enabled = true;
+					aura_windows[i]->background = mob->auras[i]->icon;
 					std::ostringstream ss;
 					ss << std::fixed;
 					ss << std::setprecision(duration >= 100.0f ? 0 : 1);
@@ -237,7 +258,17 @@ void InventoryComponent::pre_frame(float dTime)
 			}
 		}
 
-		if (input.isPressed(Platform::KeyEvent::E))
+		if (input.isPressed(Platform::KeyEvent::LMB))
+		{
+			current_target = current_mouseover;
+			auto pic = entity->getComponent<PlayerInputComponent>();
+			if (pic)
+			{
+				pic->target = current_target;
+			}
+		}
+
+		if (input.isPressed(Platform::KeyEvent::RMB))
 		{
 			commands.queue.emplace_back(new InventoryCommandInteract(current_interact));
 		}
@@ -272,7 +303,7 @@ void InventoryComponent::set_display(bool enable)
 						owner = entity->world->client->clientData == clientData.lock();
 					if (owner)
 					{
-						func = std::make_shared<std::function<void(RenderSetup&)>>([this, mob](RenderSetup& rs)
+						func = std::make_shared<std::function<void(RenderSetup&)>>([this, mob, client](RenderSetup& rs)
 						{
 							Vec4 color(1.0f);
 
@@ -287,38 +318,57 @@ void InventoryComponent::set_display(bool enable)
 								prog->Uniform("light", Vec3(1.0f, -1.0f, 1.0f).Normalize());
 							});
 
+							auto p = entity->getComponent<PositionComponent>();
 
 							current_interact = EntityID();
-							auto p = entity->getComponent<PositionComponent>();
-							GlobalPosition interact_sphere_pos = p->p + Vec3(0.0f, 0.0f, 1.0f) * Quaternion(mob->facing.y, Vec3(1.0f, 0.0f, 0.0f)) * Quaternion(-mob->facing.x, Vec3(0.0f, 0.0f, 1.0f));
-							auto interacts = entity->world->GetNearestComponents<InteractComponent>(interact_sphere_pos, 1.0f);
-							if (!interacts.empty())
+							current_mouseover = EntityID();
+							if (!client->hideCursor)
 							{
-								current_interact = interacts.begin()->second->entity->get_id();
-								auto other_p = interacts.begin()->second->entity->getComponent<PositionComponent>();
-								rs.pushTransform();
-								rs.addTransform(Matrix4::Translation(Vec3(rs.size * 0.5f)));
-								Vec3 world_pos = Vec3(other_p->p - entity->world->cam_pos) * 0.5f + Vec3(interact_sphere_pos - entity->world->cam_pos) * 0.5f;
-								rs.addTransform(Matrix4::Translation(Vec3(world_pos * rs.view * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f)));
-								rs.pushTransform();
-								rs.addTransform(Matrix4::Translation(Vec3(20.0f, 0.0f, 0.0f)));
-								Writing::setSize(24);
-								Writing::setColor(1.0f, 1.0f, 1.0f);
-								Writing::render(interacts.begin()->second->action_name, rs);
-								rs.popTransform();
-								rs.addTransform(Matrix4::Translation(Vec3(-40.0f, -32.0f, 0.0f)));
-								Writing::setSize(16);
-								Writing::setColor(1.0f, 1.0f, 1.0f);
-								Writing::render(interacts.begin()->second->name, rs);
-								rs.popTransform();
-								rs.popTransform();
-								rs.addTransform(Matrix4::Translation(Vec3(-32.0f, -32.0f, 0.0f)));
-								auto crosshair = Resource::get<Texture>("data/assets/interact.tga");
-								if (crosshair)
-									crosshair->render(rs);
-								rs.popTransform();
-							}
+								Vec3 cursor_line = Vec3(client->input.mouse_x / rs.size.x - 0.5f, client->input.mouse_y / rs.size.y - 0.5f, 1.0f);
+								cursor_line *= Vec3(2.0f, -2.0f, 1.0f);
+								cursor_line *= rs.view.Inverse();
+								cursor_line.Normalize();
+								auto interacts = entity->world->GetNearestComponents<InteractComponent>(client->world->cam_pos, cursor_line);
+								if (!interacts.empty() && interacts.begin()->first < 1.0f)
+								{
+									current_interact = interacts.begin()->second->entity->get_id();
+									auto other_p = interacts.begin()->second->entity->getComponent<PositionComponent>();
 
+									if (Vec3(other_p->p - p->p).LenPwr() <= 2.0f * 2.0f)
+									{
+										Writing::setColor(1.0f, 1.0f, 1.0f);
+									}
+									else
+									{
+										Writing::setColor(0.5f, 0.5f, 0.5f);
+									}
+
+									rs.pushTransform();
+									rs.addTransform(Matrix4::Translation(Vec3(rs.size * 0.5f)));
+									Vec3 world_pos = Vec3(other_p->p - entity->world->cam_pos);
+									rs.addTransform(Matrix4::Translation(Vec3(world_pos * rs.view * Vec3(1.0f, -1.0f, 0.0f) * rs.size * 0.5f)));
+									rs.pushTransform();
+									rs.addTransform(Matrix4::Translation(Vec3(20.0f, 0.0f, 0.0f)));
+									Writing::setSize(24);
+									Writing::render(interacts.begin()->second->action_name, rs);
+									rs.popTransform();
+									rs.addTransform(Matrix4::Translation(Vec3(-40.0f, -32.0f, 0.0f)));
+									Writing::setSize(16);
+									Writing::render(interacts.begin()->second->name, rs);
+									rs.popTransform();
+									rs.popTransform();
+									rs.addTransform(Matrix4::Translation(Vec3(-32.0f, -32.0f, 0.0f)));
+									auto crosshair = Resource::get<Texture>("data/assets/interact.tga");
+									if (crosshair)
+										crosshair->render(rs);
+									rs.popTransform();
+								}
+								auto mobs = entity->world->GetNearestComponents<MobComponent>(client->world->cam_pos, cursor_line);
+								if (!mobs.empty() && mobs.begin()->first < 1.0f)
+								{
+									current_mouseover = mobs.begin()->second->entity->get_id();
+								}
+							}
 
 							Writing::setOffset(Vec2(-0.5f, 0.0f));
 							for (auto i : notifications_display)
@@ -690,7 +740,7 @@ void InventoryComponent::write_to(outstream& os) const
 {
 }
 
-bool InventoryComponent::visible(ClientData& client) const
+bool InventoryComponent::visible(const std::shared_ptr<ClientData>& client) const
 {
 	return true;
 	//return client.client_id == client_id;

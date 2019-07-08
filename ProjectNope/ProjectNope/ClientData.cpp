@@ -76,6 +76,13 @@ uint32_t ClientData::getRealID(uint32_t id) const
 	return 0xffffffff;
 }
 
+EntityID ClientData::getRealID(EntityID id) const
+{
+	if (id.id < known_units.size() && id.uid == unit_uid[id.id])
+		return EntityID(known_units[id.id], id.uid);
+	return EntityID();
+}
+
 void ClientData::write(outstream& os)
 {
 	os << loading;

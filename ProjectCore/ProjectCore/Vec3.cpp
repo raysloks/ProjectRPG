@@ -265,15 +265,3 @@ const Vec3& Vec3::operator/=(const Matrix4& rhs) {
 Vec3 operator-(const Vec3& rhs) {
 	return Vec3(-rhs.x, -rhs.y, -rhs.z);
 }
-
-outstream& operator<<(outstream& os, const Vec3& vec)
-{
-	os << vec.x << vec.y << vec.z;
-	return os;
-}
-
-instream& operator>>(instream& is, Vec3& vec)
-{
-	is >> vec.x >> vec.y >> vec.z;
-	return is;
-}

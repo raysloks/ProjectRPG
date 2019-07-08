@@ -17,14 +17,7 @@ bool EntityID::operator==(const EntityID& rhs) const
 	return id == rhs.id && uid == rhs.uid;
 }
 
-outstream& operator<<(outstream& os, const EntityID& id)
+bool EntityID::operator!=(const EntityID& rhs) const
 {
-	os << id.id << id.uid;
-	return os;
-}
-
-instream& operator>>(instream& is, EntityID& id)
-{
-	is >> id.id >> id.uid;
-	return is;
+	return id != rhs.id || uid != rhs.uid;
 }

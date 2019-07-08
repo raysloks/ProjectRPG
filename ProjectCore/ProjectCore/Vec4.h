@@ -61,7 +61,4 @@ public:
 
 Vec4 operator-(const Vec4& rhs);
 
-outstream& operator<<(outstream& os, const Vec4& vec);
-instream& operator>>(instream& is, Vec4& vec);
-
 #endif

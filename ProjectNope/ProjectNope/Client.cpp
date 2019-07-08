@@ -35,6 +35,7 @@
 
 #include <boost/range/adaptor/reversed.hpp>
 
+extern float timescale;
 extern double secondsPerStep;
 extern double fpsCap;
 extern bool forceCap;
@@ -201,6 +202,9 @@ void Client::setup(void)
 				if (var->f>0.0f)
 					force_sync = 1;
 			}
+			var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("timescale"));
+			if (var != 0)
+				timescale = var->f;
 			var = std::dynamic_pointer_cast<FloatVar>(mem->getVariable("tickrate"));
 			if (var!=0)
 				tickrate = var->f;

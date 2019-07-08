@@ -49,7 +49,4 @@ public:
 
 Vec2 operator-(const Vec2& rhs);
 
-outstream& operator<<(outstream& os, const Vec2& vec);
-instream& operator>>(instream& is, Vec2& vec);
-
 #endif

@@ -78,6 +78,39 @@ public:
 	}
 
 	template <class T>
+	std::multimap<float, T*> GetNearestComponents(const GlobalPosition& p, const Vec3& line)
+	{
+		TimeslotC(get_nearest_components);
+
+		std::multimap<float, T*> ret;
+
+		for (auto i = units.begin(); i != units.end(); ++i)
+		{
+			if (*i != nullptr)
+			{
+				auto pc = (*i)->getComponent<PositionComponent>();
+				if (pc != nullptr)
+				{
+					Vec3 diff = p - pc->p;
+					float dot = diff.Dot(line);
+					if (dot < 0.0f)
+					{
+						diff -= line * dot;
+						float distance = diff.Len();
+						auto t = (*i)->getComponent<T>();
+						if (t != nullptr)
+						{
+							ret.insert(std::make_pair(distance, t));
+						}
+					}
+				}
+			}
+		}
+
+		return ret;
+	}
+
+	template <class T>
 	std::multimap<float, T*> GetNearestComponents(const GlobalPosition& p, float r)
 	{
 		TimeslotC(get_nearest_components);

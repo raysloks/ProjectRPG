@@ -2,6 +2,7 @@
 
 #include "AuraEffect.h"
 #include "MissileEffect.h"
+#include "DamageEffect.h"
 
 std::vector<Effect*> effects;
 
@@ -12,7 +13,7 @@ void Effect::init()
 	effects.resize(256);
 
 	effects[0] = new AuraEffect(0);
-	effects[1] = new MissileEffect(0);
+	effects[1] = new DamageEffect(8);
 }
 
 const Effect * Effect::get(uint32_t index)

@@ -89,6 +89,8 @@ public:
 
 	SyncContainer<uint32_t> abilities;
 
+	EntityID target;
+
 	//facing
 	Vec2 facing;
 	Vec3 up;

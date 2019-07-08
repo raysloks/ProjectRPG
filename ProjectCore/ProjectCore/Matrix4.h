@@ -42,7 +42,4 @@ public:
 	static Matrix4 Perspective(float fov, float aspect, float near, float far);
 };
 
-outstream& operator<<(outstream& os, const Matrix4& m);
-instream& operator>>(instream& is, Matrix4& m);
-
 #endif

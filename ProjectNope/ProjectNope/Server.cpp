@@ -191,7 +191,7 @@ void Server::tick(float dTime)
 						if (ent != nullptr)
 						{
 							auto sync_map = conn->data->sync[client_side_id];
-							ent->ss.prep(sync_map, *conn->data);
+							ent->ss.prep(sync_map, conn->data);
 
 							std::stringbuf buf;
 							outstream temp(&buf);

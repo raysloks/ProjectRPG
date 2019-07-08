@@ -24,9 +24,9 @@ PositionComponent::~PositionComponent(void) {}
 void PositionComponent::connect(NewEntity * pEntity, bool authority)
 {
 	if (authority)
-		sync = pEntity->ss.allocate([this] (ClientData&) {
+		sync = pEntity->ss.allocate([this] (const std::shared_ptr<ClientData>&) {
 			send = true;
-		}, std::function<bool(ClientData&)>());
+		}, std::function<bool(const std::shared_ptr<ClientData>&)>());
 }
 
 void PositionComponent::disconnect(void)

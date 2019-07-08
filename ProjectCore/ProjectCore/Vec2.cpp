@@ -142,15 +142,3 @@ bool Vec2::operator>=(const Vec2& rhs)const {
 Vec2 operator-(const Vec2& rhs) {
 	return Vec2(-rhs.x, -rhs.y);
 }
-
-outstream& operator<<(outstream& os, const Vec2& vec)
-{
-	os << vec.x << vec.y;
-	return os;
-}
-
-instream& operator>>(instream& is, Vec2& vec)
-{
-	is >> vec.x >> vec.y;
-	return is;
-}

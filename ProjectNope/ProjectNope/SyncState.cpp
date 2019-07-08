@@ -8,7 +8,7 @@ SyncState::~SyncState(void)
 {
 }
 
-size_t SyncState::allocate(std::function<void(ClientData&)> f, std::function<bool(ClientData&)> c)
+size_t SyncState::allocate(std::function<void(const std::shared_ptr<ClientData>&)> f, std::function<bool(const std::shared_ptr<ClientData>&)> c)
 {
 	size_t rval;
 	if (empty.size()>0)
@@ -49,7 +49,7 @@ void SyncState::set(size_t index, uint32_t value)
 	sync[index] = value;
 }
 
-void SyncState::prep(const std::map<size_t, uint32_t>& map, ClientData& client_data)
+void SyncState::prep(const std::map<size_t, uint32_t>& map, const std::shared_ptr<ClientData>& client_data)
 {
 	npass = 0;
 	for (auto i = map.cbegin(); i != map.cend(); ++i)

@@ -29,6 +29,12 @@ namespace std
 
 	binostream& operator<<(binostream& os, const std::string &str);
 
+	template <class T, typename = std::enable_if<std::is_trivial<T>::value>>
+	binostream& operator<<(binostream& os, const T& obj)
+	{
+		os.write((const char*)&obj, sizeof(T));
+		return os;
+	}
 	template <class T>
 	binostream& operator<<(binostream& os, const std::vector<T>& vec)
 	{

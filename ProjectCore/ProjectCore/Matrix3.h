@@ -40,7 +40,4 @@ public:
 	bool operator!=(const Matrix3& rhs)const;
 };
 
-outstream& operator<<(outstream& os, const Matrix3& mtrx);
-instream& operator>>(instream& is, Matrix3& mtrx);
-
 #endif

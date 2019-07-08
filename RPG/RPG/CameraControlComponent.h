@@ -35,7 +35,7 @@ public:
 	void write_to(outstream& os, const std::shared_ptr<ClientData>& client) const;
 	void write_to(outstream& os) const;
 
-	bool visible(ClientData& client) const;
+	bool visible(const std::shared_ptr<ClientData>& client) const;
 
 	static AutoSerialFactory<CameraControlComponent, Component> _factory;
 

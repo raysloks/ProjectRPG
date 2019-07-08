@@ -202,7 +202,7 @@ void CameraControlComponent::write_to(outstream& os) const
 {
 }
 
-bool CameraControlComponent::visible(ClientData& client) const
+bool CameraControlComponent::visible(const std::shared_ptr<ClientData>& client) const
 {
-	return client.client_id == client_id;
+	return client->client_id == client_id;
 }

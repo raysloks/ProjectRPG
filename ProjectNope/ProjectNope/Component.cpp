@@ -30,7 +30,7 @@ void Component::write_to(outstream& os, const std::shared_ptr<ClientData>& clien
 
 void Component::write_to(outstream& os) const {}
 
-bool Component::visible(ClientData& client) const { return true; }
+bool Component::visible(const std::shared_ptr<ClientData>& client) const { return true; }
 
 uint32_t Component::getSerial() const
 {

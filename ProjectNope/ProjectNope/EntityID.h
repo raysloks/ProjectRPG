@@ -12,9 +12,7 @@ public:
 	uint32_t id, uid;
 
 	bool operator==(const EntityID& rhs) const;
+	bool operator!=(const EntityID& rhs) const;
 };
-
-outstream& operator<<(outstream& os, const EntityID& id);
-instream& operator>>(instream& is, EntityID& id);
 
 #endif

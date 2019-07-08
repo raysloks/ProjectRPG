@@ -32,7 +32,4 @@ public:
 
 Quaternion operator-(const Quaternion& rhs);
 
-outstream& operator<<(outstream& os, const Quaternion& q);
-instream& operator>>(instream& is, Quaternion& q);
-
 #endif

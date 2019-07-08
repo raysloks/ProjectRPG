@@ -7,10 +7,17 @@
 #include "Vec3.h"
 #include "Vec2.h"
 #include "GlobalPosition.h"
+#include "EntityID.h"
 
 #include "SyncQueue.h"
 
 class MobComponent;
+
+struct AbilityUseCommand
+{
+	uint32_t ability_index;
+	EntityID target;
+};
 
 class PlayerInputComponent :
 	public Component
@@ -37,17 +44,20 @@ public:
 	void write_to(outstream& os, const std::shared_ptr<ClientData>& client) const;
 	void write_to(outstream& os) const;
 
-	bool visible(ClientData& client) const;
+	bool visible(const std::shared_ptr<ClientData>& client) const;
 
 	static AutoSerialFactory<PlayerInputComponent, Component> _factory;
 
-	uint32_t client_id;
+	std::weak_ptr<ClientData> clientData;
 
 	MobComponent * mob = nullptr;
+
+	EntityID target;
 
 	Vec2 facing;
 	Vec3 move, move_space;
 	SyncQueue<std::string> sc;
+	SyncQueue<AbilityUseCommand> scn;
 };
 
 #endif

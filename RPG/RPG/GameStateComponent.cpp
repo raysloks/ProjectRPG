@@ -134,7 +134,7 @@ MobComponent * GameStateComponent::createAvatar(const std::shared_ptr<ClientData
 	pose->anim = "data/assets/units/player/hoodlum.anim";
 	g->decs.add(std::shared_ptr<Decorator>(new Decorator("data/assets/units/player/hoodlum.gmdl", Material("data/assets/units/player/hoodlum.tga"))));
 
-	input->client_id = client->client_id;
+	input->clientData = client;
 	cam->client_id = client->client_id;
 	inv->clientData = client;
 

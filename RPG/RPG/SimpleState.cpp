@@ -41,6 +41,7 @@ void SimpleState::tick(float dTime)
 
 	if (t > 1.0f)
 	{
+		t = 1.0f;
 		acc->set_state(nullptr);
 		acc->overtime = (t - 1.0f) / speed;
 	}

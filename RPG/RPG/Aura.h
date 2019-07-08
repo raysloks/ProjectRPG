@@ -23,4 +23,6 @@ public:
 	uint32_t index;
 
 	float duration;
+
+	std::string icon;
 };

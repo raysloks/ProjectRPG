@@ -66,14 +66,14 @@ public:
 		ss = sync_state;
 		if (sync_state != nullptr)
 		{
-			cs = sync_state->allocate(std::function<void(ClientData&)>(), std::function<bool(ClientData&)>());
+			cs = sync_state->allocate(std::function<void(const std::shared_ptr<ClientData>&)>(), std::function<bool(const std::shared_ptr<ClientData>&)>());
 			for (auto i = sync.begin(); i != sync.end(); ++i)
 			{
 				const int id = std::distance(sync.begin(), i);
-				*i = sync_state->allocate([this, id] (ClientData&) //TODO function for visibility check
+				*i = sync_state->allocate([this, id] (const std::shared_ptr<ClientData>&) //TODO function for visibility check
 				{
 					conf.insert(id);
-				}, std::function<bool(ClientData&)>());
+				}, std::function<bool(const std::shared_ptr<ClientData>&)>());
 			}
 		}
 	}
@@ -143,10 +143,10 @@ public:
 		{
 			size_t id = items.size();
 			items.push_back(item);
-			sync.push_back(ss->allocate([this, id] (ClientData&) //TODO function for visibility check
+			sync.push_back(ss->allocate([this, id] (const std::shared_ptr<ClientData>&) //TODO function for visibility check
 			{
 				conf.insert(id);
-			}, std::function<bool(ClientData&)>()));
+			}, std::function<bool(const std::shared_ptr<ClientData>&)>()));
 			return id;
 		}
 	}
